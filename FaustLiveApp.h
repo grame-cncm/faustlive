@@ -1,0 +1,379 @@
+//
+//  FaustLiveApp.h
+//
+//  Created by Sarah Denoux on 12/04/13.
+//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//
+
+#ifndef _FaustLiveApp_h
+#define _FaustLiveApp_h
+
+#include <list>
+#include <map>
+
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QMainWindow>
+#include <QObject>
+#include <QTimer>
+#include <QProgressBar>
+#include <QString>
+#include <QStringList>
+#include <QtNetwork>
+
+#include "FLWindow.h"
+#include "FLErrorWindow.h"
+#include "FLExportManager.h"
+
+using namespace std;
+
+//Keeping the information of a Window running in the current Session
+//It provides an easy way of testing the session's content and writing the session file
+struct WinInSession{
+    
+    int ID;         //Index of the window
+    string source;  //Path of the source file
+    string name;    //Name of the effect contained in the window
+    float x;        //Position x on screen
+    float y;
+    string compilationOptions; //Compilation options tied to the effect contained in the window
+    int opt_level;
+};
+
+class FaustLiveApp : public QApplication
+{
+    Q_OBJECT
+    
+    private :
+    
+        string              pathToContent(string path);
+        bool                deleteDirectoryAndContent(string& directory);
+        bool                rmDir(const QString &dirPath);
+    
+    bool cpDir(const QString &srcPath, const QString &dstPath);
+    bool isStringInt(const char* word);
+    //Menu Bar and it's sub-Menus
+    
+        QMenuBar *          fMenuBar;
+        QMenu *             fileMenu;
+        QMenu *             editMenu;
+        QMenu *             windowsMenu;
+        QMenu *             sessionMenu;
+        QMenu *             viewMenu;
+        QMenu *             helpMenu;
+    
+        QAction*            newAction;
+        QAction*            openAction;
+        QAction **          openExamples;
+        QMenu *             menuOpen_Example;
+        QAction*            openRecentAction;
+        QAction**           recentFileAction;
+        QAction*            exportAction;
+    
+        QAction*            shutAction;
+        QAction*            shutAllAction;
+        QAction*            closeAllAction;
+    
+        QAction*            editAction;
+        QAction*            pasteAction;
+        QAction*            duplicateAction;
+    
+        QList<QAction*>     frontWindow;
+    
+        QAction*            takeSnapshotAction;
+        QAction*            recallSnapshotAction;
+        QAction*            importSnapshotAction;
+        QAction*            recallRecentAction;
+        QAction**           RrecentSessionAction;
+        QAction*            importRecentAction;
+        QAction**           IrecentSessionAction;
+    
+        QAction*            httpdViewAction;
+        QAction*            svgViewAction;
+    
+        QAction*            aboutQtAction;
+        QAction*            preferencesAction;
+        QAction*            aboutAction; 
+        QAction*            versionAction;
+        QAction*            presentationAction;
+    
+        void                setup_Menu();
+    
+        QProgressBar*       PBar;   //Artificial progress bar to print a goodbye message
+    
+    //Appendices Dialogs
+        QMainWindow*        HelpWindow;  //Help Dialog
+        FLErrorWindow*       errorWindow; //Error Dialog
+        QDialog*            presWin;     //Presentation Window
+        QDialog*            compilingMessage;   //Entertaining the user during long operations
+        QDialog*            versionWindow;
+        FLExportManager*    exportDialog;
+
+    //List of windows currently running in the application
+        list<FLWindow*>     FLW_List;           //Container of the opened windows
+        list<Effect*>       executedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+    
+    //Screen parameters
+        int                 screenWidth;
+        int                 screenHeight;
+    
+    //To index the windows, the smallest index not used is given to the window
+    //With this index is calculate the place of the window on the screen
+        int                 find_smallest_index(list<int> currentIndexes); 
+        list<int>           get_currentIndexes();
+        void                calculate_position(int index, int* x, int* y);
+        list<string>        get_currentDefault();
+        string              find_smallest_defaultName(string& sourceToCompare, list<string> currentDefault);
+    
+    //Application Parameters
+        list<WinInSession*>  sessionContent;    //Describes the state of the application 
+    
+        string              WindowBaseName; //Name of Application
+        string              DefaultName;    //The Default Name of all the effects that don't have any proper name
+        string              currentSession; //Path to currentSession Folder
+        string              currentSessionFile; //Path to currentSession DescriptionFile
+        string              currentSourcesFolder; //Folder with the copy of the sources
+        string              currentSVGFolder;   //Folder with the SVG processes
+        string              currentIRFolder;    //Folder with the Bitcode files
+        
+    //Recent Files Parameters and functions
+        string              homeRecentFiles;    //Path to  Recent Dsp file
+        int                 MaxRecentFiles;    
+        list<pair<string, string> >         recentFiles;
+        void                recall_Recent_Files(string& filename);
+        void                save_Recent_Files();
+        void                set_Current_File(string& pathName, string& effName);
+        void                update_Recent_File();
+    
+    //When the application is launched without parameter, this timer will start a initialized window
+        QTimer*             initTimer;
+        QTimer*             endTimer;
+
+    //To be stored in a file, the compilation options have to be converted
+        string              convert_compilationOptions(string compilationOptions);
+        string              restore_compilationOptions(string   compilationOptions);
+    
+    //Preference Menu Objects and Functions
+        QDialog*            preference;     //Preference Window
+        string              homeSettings;       //Path of settings file
+    
+        QLineEdit*          compilModes;
+        QLineEdit*          optVal;
+    
+        QComboBox*          audioArchitecture;
+        QLabel*             ASR;        //Audio Sample Rate
+        QLabel*             ABS;        //Audio Buffer Size
+        QTextBrowser*       splRate;
+        QLineEdit*          bufSize;
+    
+        QLabel*             CV;         //Compression Value
+        QLabel*             MIA;        //Master IP Adress
+        QLabel*             MP;         //Master Port
+        QLabel*             LAT;        //LATency
+        QLineEdit*          cprValue;
+        QLineEdit*          mIP;
+        QLineEdit*          mPort;
+        QLineEdit*          lat;
+    
+        QPushButton*        saveB;
+        QPushButton*        cancelB;
+
+        QFormLayout*        layout;
+        QFormLayout*        layout2;
+        QFormLayout*        layout3;
+        QGridLayout*        layout4;
+        QVBoxLayout*        layout5;
+    
+        //Real Parameters extracted from visual widgets
+        string              compilationMode;
+        int                 opt_level;
+    
+        int                 indexAudio; //If 0 = CoreAudio ; 1 = Jack ; 2 = NetJack
+        int                 bufferSize;
+        int                 compressionValue;
+        string              masterIP;
+        int                 masterPort;
+        int                 latency;
+    
+        string              styleChoice;
+    
+        void                init_PreferenceWindow();
+        void                save_Settings(string& home);
+        void                recall_Settings(string& home);
+    
+        void                update_AudioArchitecture(int newIndex, int newBS, int newCV, string newMIA, int newMP, int newLAT);
+        void                update_AudioParameters(int index, int newBS, int newCV, string newMIA, int newMP, int newLAT);
+    
+    //Setups of help menu and the presentation interface
+        void                init_HelpWindow();
+        void                init_presentationWindow();
+        //If the user chooses to open an example, it is stored 
+        string              exampleToOpen;
+
+    //Recent Sessions Parameters and functions
+        string              homeRecentSessions;   
+        int                 MaxRecentSessions;
+        QStringList         recentSessions;
+        void                save_Recent_Sessions();
+        void                recall_Recent_Sessions(string& filename); 
+        void                set_Current_Session(string& pathName);
+        void                update_Recent_Session();
+        
+    //Save and Recall Session actions
+        void                recall_Session(string filename);
+        void                addWinToSessionFile(FLWindow* win);
+        void                deleteWinFromSessionFile(FLWindow* win);
+        void                update_CurrentSession();
+    
+    //In case of an import, those steps are necessary to modify the session before opening it
+        list<std::pair<int, int> >  establish_indexChanges(list<WinInSession*>* session);
+        void                copy_WindowsFolders(string& srcDir, string& dstDir, list<std::pair<string,string> > indexChanges);
+        void                copy_AllSources(string& srcDir, string& dstDir, list<std::pair<string,string> > nameChanges, string extension);
+        void                copy_SVGFolders(string& srcDir, string& dstDir, list<std::pair<string,string> > nameChanges);
+    
+        void                establish_sourceChanges(list<std::pair<string,string> > nameChanges, list<WinInSession*>* session);
+    
+        list<std::pair<string,string> > establish_nameChanges(list<WinInSession*>* session);
+    
+        void                deleteLineIndexed(int index);
+    
+    //In case of drops on Application Icon, this event is called
+        virtual bool        event(QEvent *ev);
+    
+    //Functions of read/write of a session description file
+        void                sessionContentToFile(string filename);
+        void                fileToSessionContent(string filename, list<WinInSession*>* session);
+    
+    //Reset of the Folders contained in the current Session Folder
+        void                reset_CurrentSession();
+    
+    //Functions of rehabilitation if sources disapears
+        void                currentSessionRestoration(list<WinInSession*>* session);
+        void                snapshotRestoration(string& file, list<WinInSession*>* session);
+    
+    //-----------------Creation of Effects
+
+    string                  ifUrlToText(string& source);
+    //When the source of the effect is not a file but text, it has to be stored in a file
+    void                    createSourceFile(string& sourceName, string& content);
+    //Updating the content of the backup file 
+    void                    update_Source(string& oldSource, string& newSource);
+    
+    string                  getDeclareName(string text, list<string> runningEffects);
+    
+    string                  renameEffect(string nomEffet, list<string> runningEffects);
+    
+    
+    Effect*                 getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
+    
+    //-----------------Questions about the current State
+    
+        bool                doesEffectNameExists(string nomEffet, list<string> runningEffects);
+        bool                isIndexUsed(int index, list<int> currentIndexes);
+        bool                isEffectInCurrentSession(string sourceToCompare);
+        string              getNameEffectFromSource(string sourceToCompare);
+        bool                isEffectNameInCurrentSession(string& sourceToCompare, string& name);
+        list<string>        getNameRunningEffects();
+        list<int>           WindowCorrespondingToEffect(Effect* eff);
+        void                removeFilesOfWin(string sourceName, string effName);
+
+        FLWindow*           getActiveWin();
+    
+    private slots :
+    
+    //---------Drop on a window
+    
+        void                update_SourceInWin(FLWindow* win, string source);
+        void                drop_Action(list<string>);
+    
+    //---------Presentation Window Slots
+    
+        void                open_Example_Action();
+        void                new_Window_pres();
+        void                open_Window_pres();
+        void                open_Session_pres();
+
+    //---------File
+        void                create_Empty_Window();
+        void                open_New_Window();
+        void                open_Recent_File();
+    
+        void                export_Win(FLWindow* Win);
+        void                export_Action();
+        void                destroyExportDialog();
+    
+        void                shut_Window(); 
+        void                shut_AllWindows();
+        virtual void        closeAllWindows();
+        void                display_Progress();
+        void                close_Window_Action();
+
+    //--------Edit
+        void                edit(FLWindow* win);
+        void                edit_Action();
+    
+        void                synchronize_Window();
+    
+        void                paste(FLWindow* win);
+        void                paste_Text();
+        void                duplicate(FLWindow* window);
+        void                duplicate_Window();
+    
+    //--------View
+        void                viewHttpd(FLWindow* win);
+        void                httpd_View_Window();
+        void                viewSvg(FLWindow* win);
+        void                svg_View_Action();
+    
+    //--------Session
+        void                take_Snapshot();
+        void                recall_Snapshot(string filename, bool importOption);
+        void                recallSnapshotFromMenu();
+        void                importSnapshotFromMenu();
+        void                recall_Recent_Session();
+        void                import_Recent_Session();
+    
+    //---------Preferences
+        void                linkClicked(const QUrl& link);
+        void                styleClicked();
+        void                styleClicked(string style);
+        void                Preferences();
+        void                hide_preferenceWindow();
+        void                save_Mode();
+        void                currentIndexChange(int index);
+    
+    //---------Help
+        void                apropos();
+        void                end_apropos();
+        void                version_Action();
+        void                show_presentation_Action();
+        void                hide_presentationWin();
+    
+    //--------Timers
+        void                init_Timer_Action();
+        void                update_ProgressBar();
+    
+    //--------Long operations entertainment
+        void                display_CompilingProgress(const char* msg);
+        void                StopProgressSlot(); 
+    
+    //--------Error received
+        void                errorPrinting(const char* msg);
+        
+        void                itemClick(QListWidgetItem *item);
+        void                itemDblClick(QListWidgetItem* item);
+    
+    //--------RightClickEvent
+        void                redirect_RCAction(const QPoint & p);
+    
+    public : 
+
+        FaustLiveApp(int& argc, char** argv);
+        virtual ~FaustLiveApp();
+    
+        void                create_New_Window(string& name);
+        void                common_shutAction(FLWindow* win);
+
+};
+
+#endif
