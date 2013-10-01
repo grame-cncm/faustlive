@@ -20,6 +20,7 @@ Other Packages
 	make
 	sudo make install
 
+Make sure to download the current development trunk of these libraries.
 
 ----------------PROJECT COMPILATION---------------
 
@@ -39,7 +40,7 @@ If you want to recompile with new compilation options, you will have to execute 
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 
 1) Implement the classes : 
-	- crossfade audio
+	- _audioFader
 	- _audioFactory
 	- _audioManager
 	- _audioSettings

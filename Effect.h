@@ -63,7 +63,7 @@ class Effect : public QObject
         QDateTime   creationDate;
     
     public:
-        Effect(bool recallVal, string sourceFile, string name);
+        Effect(bool recallVal, string sourceFile, string name = "");
         ~Effect();
     
     //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory

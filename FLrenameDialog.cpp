@@ -14,7 +14,7 @@
 //-----------------------------NEWNAMEDIALOG IMPLEMENTATION
 
 
-FLrenameDialog::FLrenameDialog(string& name ,QWidget* parent = NULL): QDialog(parent, 0){
+FLrenameDialog::FLrenameDialog(string& name ,QWidget* parent): QDialog(parent, 0){
     yes_Button = new QPushButton("Ok");
     yes_Button->setDefault(true);
     yes_Button->setEnabled(false);

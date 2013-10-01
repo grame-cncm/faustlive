@@ -48,7 +48,7 @@ class FLToolBar : public QToolBar{
     
     public:
     
-    FLToolBar(QWidget* parent);
+    FLToolBar(QWidget* parent = NULL);
     ~FLToolBar();
     
     void setOptions(string options);

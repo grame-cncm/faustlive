@@ -20,7 +20,7 @@
 
 /***********************************EFFECT IMPLEMENTATION*********************************/
 
-Effect::Effect(bool recallVal, string sourceFile, string name = ""){
+Effect::Effect(bool recallVal, string sourceFile, string name){
     
     factory = NULL;
     oldFactory = NULL;

@@ -26,7 +26,7 @@ bool FLToolBar::isStringInt(const char* word){
 
 //--------------------------FLToolBar
 
-FLToolBar::FLToolBar(QWidget* parent = NULL) : QToolBar(parent){
+FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     QLineEdit* myLine = new QLineEdit(this);
     myLine->setReadOnly(true);
