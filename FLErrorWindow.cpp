@@ -26,7 +26,6 @@ void FLErrorWindow::init_Window(){
     
     widget = new QWidget(this);
     button = new QPushButton(tr("OK"), this);
-    button->setDefault(true);
     connect(button, SIGNAL(clicked()), this, SLOT(hideWin()));
     layout = new QVBoxLayout();
     

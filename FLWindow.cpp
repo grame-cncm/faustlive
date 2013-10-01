@@ -6,44 +6,51 @@
 //
 
 #include "FLWindow.h"
+
+#include "faust/gui/faustqt.h"
+
+list<GUI*>               GUI::fGuiList;
+
 #include <sstream>
 #include <QDir>
 #include <QApplication>
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& home, int IDAudio){
+FLWindow::FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& home){
     
-    shortcut = false;
-    effect = eff;
+    fShortcut = false;
+    fEffect = eff;
     
     setAcceptDrops(true);
     
     //Convert int into string
-    windowIndex = index;
+    fWindowIndex = index;
     stringstream ss;
-    ss << windowIndex;
+    ss << fWindowIndex;
     
-    nameWindow = baseName + "-" + ss.str();
+    fWindowName = baseName + "-" + ss.str();
     
-    appHome = home + "/" + nameWindow;
+    fHome = home + "/" + fWindowName;
     
     QDir direct;
-    direct.mkdir(appHome.c_str());
+    direct.mkdir(fHome.c_str());
     
-    httpdWindow = new HTTPWindow();
-    connect(httpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
+    fHttpdWindow = new HTTPWindow();
+    connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
     
     //Allocating interfaces
-    finterface = new FUI();
-    jinterface = new FJUI();
+    fRCInterface = new FUI();
     
-    indexAudio = IDAudio;
-    clientOpen = false;
-    audioSwitched = false;
+    string folder = home + "/Settings";
+    
+    AudioCreator* creator = AudioCreator::_Instance(folder, NULL);
+    
+    fAudioManager = creator->createAudioManager(creator->getCurrentSettings());
+    fClientOpen = false;
         
-    xPos = x;
-    yPos = y;
+    fXPos = x;
+    fYPos = y;
     
     setMenuBar();
     
@@ -56,9 +63,8 @@ FLWindow::FLWindow(string& baseName, int index, Effect* eff, int x, int y, strin
 
 FLWindow::~FLWindow(){
     
-    delete audioClient;
-    
-    delete menu;
+    delete fAudioManager;
+    delete fMenu;
 }
 
 string FLWindow::pathToContent(string path){
@@ -113,12 +119,12 @@ bool FLWindow::deleteDirectoryAndContent(string& directory){
 
 void FLWindow::setMenuBar(){
     
-    menu = new FLToolBar(this);
+    fMenu = new FLToolBar(this);
     
-    addToolBar(menu);
+    addToolBar(fMenu);
     
-    connect(menu, SIGNAL(modified(string, int)), this, SLOT(modifiedOptions(string, int)));
-    connect(menu, SIGNAL(sizeChanged()), this, SLOT(resizing()));
+    connect(fMenu, SIGNAL(modified(string, int)), this, SLOT(modifiedOptions(string, int)));
+    connect(fMenu, SIGNAL(sizeChanged()), this, SLOT(resizing()));
 }
 
 void FLWindow::errorPrint(const char* msg){
@@ -127,8 +133,7 @@ void FLWindow::errorPrint(const char* msg){
 
 void FLWindow::modifiedOptions(string text, int value){
     
-    
-    effect->update_compilationOptions(text, value);
+    fEffect->update_compilationOptions(text, value);
 }
 
 void FLWindow::resizing(){
@@ -141,7 +146,7 @@ void FLWindow::emit_closeAll(){
 
 bool FLWindow::is_Default(){
     
-    string sourceContent = pathToContent(effect->getSource());
+    string sourceContent = pathToContent(fEffect->getSource());
     
     if(sourceContent.compare("process = !,!:0,0;") == 0)
         return true;
@@ -153,7 +158,7 @@ bool FLWindow::is_Default(){
 
 void FLWindow::closeEvent(QCloseEvent* event){ 
     
-    if(!shortcut)
+    if(!fShortcut)
         emit close();
     else
         emit closeAll();
@@ -162,45 +167,43 @@ void FLWindow::closeEvent(QCloseEvent* event){
 void FLWindow::keyPressEvent(QKeyEvent* event){ 
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = true;
+        fShortcut = true;
 }
 
 void FLWindow::keyReleaseEvent(QKeyEvent* event){
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = false;
+        fShortcut = false;
 }
 
 void FLWindow::shut_Window(){
     
     //During the execution, when a window is shut, its associate folder has to be removed
-    deleteDirectoryAndContent(appHome);
+    deleteDirectoryAndContent(fHome);
     
     close_Window();
 }
 
 void FLWindow::close_Window(){
     
-    if(clientOpen)
-        audioClient->stop();
+    if(fClientOpen)
+        fAudioManager->stop();
     
     deleteInterfaces();
     
-    if(httpdWindow){
-        delete httpdWindow;
-        httpdWindow = NULL;
+    if(fHttpdWindow){
+        delete fHttpdWindow;
+        fHttpdWindow = NULL;
     }
     //     printf("deleting instance = %p\n", current_DSP);   
-    deleteDSPInstance(current_DSP);
+    deleteDSPInstance(fCurrent_DSP);
 }
 
 void FLWindow::deleteInterfaces(){
-    delete interface;
-    delete finterface;
-    delete jinterface;
-    interface = NULL;
-    finterface = NULL;
-    jinterface = NULL;
+    delete fInterface;
+    delete fRCInterface;
+    fInterface = NULL;
+    fRCInterface = NULL;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -281,7 +284,7 @@ int FLWindow::calculate_Coef(){
     
     //Calculation of screen position of the window, depending on its index
     
-    int multiplCoef = windowIndex;
+    int multiplCoef = fWindowIndex;
     while(multiplCoef > 20){
         multiplCoef-=20;
     }
@@ -317,67 +320,51 @@ void FLWindow::frontShow(){
 }
 
 //Initialization of User Interface + StartUp of Audio Client
-bool FLWindow::init_Window(bool init, bool recall, char* errorMsg, int bufferSize,int compressionValue, string masterIP, int masterPort, int latency){
+bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
     
-    current_DSP = createDSPInstance(effect->getFactory());
+    fCurrent_DSP = createDSPInstance(fEffect->getFactory());
 
-    string textOptions = effect->getCompilationOptions();
+    string textOptions = fEffect->getCompilationOptions();
     if(textOptions.compare(" ") == 0)
         textOptions = "";
     
-    menu->setOptions(textOptions.c_str());
-    menu->setVal(effect->getOptValue());
+    fMenu->setOptions(textOptions.c_str());
+    fMenu->setVal(fEffect->getOptValue());
     
-    if (current_DSP == NULL){
+    if (fCurrent_DSP == NULL){
         snprintf(errorMsg, 255, "Impossible to create a DSP instance"); 
         return false;
     }
     
     //Window tittle is build with the window Name + effect Name
-    string inter = nameWindow + " : " + effect->getName();
+    string inter = fWindowName + " : " + fEffect->getName();
     
-    interface = new QTGUI(this, inter.c_str());
+    fInterface = new QTGUI(this, inter.c_str());
     
-    crossfade_netjackaudio* njaudio;
-    
-    if(finterface && jinterface && interface){
+    if(fRCInterface && fInterface){
         
         //Building interface and Audio parameters
-        current_DSP->buildUserInterface(finterface);
-        current_DSP->buildUserInterface(interface);
+        fCurrent_DSP->buildUserInterface(fRCInterface);
+        fCurrent_DSP->buildUserInterface(fInterface);
         
         if(init)
             print_initWindow();        
         
         this->adjustSize();  
         
-        if(init_audioClient(indexAudio, bufferSize, compressionValue, masterIP, masterPort, latency)){
+        if(init_audioClient(errorMsg)){
             
-            setGeometry(xPos, yPos, 0, 0);
+            start_Audio();
+            
+            setGeometry(fXPos, fYPos, 0, 0);
             adjustSize();
             
             frontShow();               
-            interface->run();
+            fInterface->run();
             return true;
         }
         else{        
             deleteInterfaces();
-            switch (indexAudio) {
-                case kCoreaudio:
-                    snprintf(errorMsg, 255, "Impossible to init Core Audio Client");
-                    break;
-                    
-                case kJackaudio:
-                    snprintf(errorMsg, 255, "Impossible to init Jack Client");        
-                    break;
-                    
-                case kNetjackaudio:
-                    snprintf(errorMsg, 255, "Impossible to init remote Net Jack Client.\nMake sure the server is running!"); 
-                    break;
-                    
-                default:
-                    break;
-            }
             return false;
         }
     }
@@ -386,144 +373,101 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg, int bufferSiz
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency){
-    
-    audioFader_Interface* audioFade = dynamic_cast<audioFader_Interface*>(audioClient);
+bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error){
     
     //    printf("yPos = %i\n", yPos);
     
     //Step 1 : Save the parameters of the actual interface
-    xPos = this->geometry().x();
-    yPos = this->geometry().y();
+    fXPos = this->geometry().x();
+    fYPos = this->geometry().y();
     //    printf("yPos = %i\n", yPos);
     
-    save_Window(indexAudio); 
+    save_Window(); 
     
     //Step 2 : Delete the actual interface
     hide(); 
     deleteInterfaces();
     
     //Step 3 : creating the user interface
-    finterface = new FUI();        
-    jinterface = new FJUI();
+    fRCInterface = new FUI();
     
     //Step 4 : creating the new DSP instance
     llvm_dsp* charging_DSP = createDSPInstance(newEffect->getFactory());
     //    printf("charging DSP = %p\n", charging_DSP);
-    string textOptions = effect->getCompilationOptions();
+    string textOptions = fEffect->getCompilationOptions();
     if(textOptions.compare(" ") == 0)
         textOptions = "";
     
-    menu->setOptions(textOptions.c_str());
-    menu->setVal(optVal);
+    fMenu->setOptions(textOptions.c_str());
+    fMenu->setVal(optVal);
     
-    if (current_DSP == NULL)
+    if (fCurrent_DSP == NULL)
         return false;
     
-    if(finterface && jinterface){
+    if(fRCInterface){
         
-        audio* newAudio;
-        
-        //Step 5 : Init the audio of incoming DSP
-        if(indexAudio != 1){
+        if(!fAudioManager->init_FadeAudio(error, fEffect->getName().c_str(), charging_DSP)){
             
-            if(indexAudio == 0){
-                newAudio = new crossfade_coreaudio(bufferSize);
-                
-                printf("New crossfade coreaudio\n");
-            }
-            else if(indexAudio == 2){
-                
-                crossfade_netjackaudio* njAudio = new crossfade_netjackaudio(compressionValue, masterIP, masterPort, latency, 0);
-                connect(njAudio, SIGNAL(error(const char*)), this, SLOT(errorPrint(const char*)));
-                
-                newAudio = (audio*)njAudio;
-            }
+            printf("INIT FADE AUDIO FAILED\n");
             
-            audioFader_Interface* newAudioFade = dynamic_cast<audioFader_Interface*> (newAudio);
+            //Step 6 : Recall the parameters of the window
+            string intermediate = fWindowName + " : " + fEffect->getName();
             
-            printf("NEW AUDIO FADE = %p\n", newAudioFade);
+            fInterface = new QTGUI(this, intermediate.c_str());
             
-            newAudioFade->launch_fadeIn();
+            fCurrent_DSP->buildUserInterface(fRCInterface);
+            fCurrent_DSP->buildUserInterface(fInterface);
             
-            if(!newAudio->init(newEffect->getName().c_str(), charging_DSP)){
-                //Step 6 : Recall the parameters of the window
-                string intermediate = nameWindow + " : " + effect->getName();
-                
-                interface = new QTGUI(this, intermediate.c_str());
-                
-                current_DSP->buildUserInterface(finterface);
-                current_DSP->buildUserInterface(interface);
-                
-                bool recalled = recall_Window();
-                setGeometry(xPos, yPos, 0, 0);
-                adjustSize();
-                show();
-                //Step 9 : Launch User Interface
-                interface->run();
-                
-                if(indexAudio == 0)
-                    snprintf(error, 255, "Impossible to init new Core Audio Client");
-                else
-                    snprintf(error, 255, "Impossible to init new Net Jack Client");                    
-                
-                return false;
-            }
+            recall_Window();
+            setGeometry(fXPos, fYPos, 0, 0);
+            adjustSize();
+            show();
+            //Step 9 : Launch User Interface
+            fInterface->run();
             
-        } 
-        else
-            ((crossfade_jackaudio*)audioClient)->init_FadeIn_Audio(charging_DSP, newEffect->getName().c_str());
-        
+            return false;
+        }
         
         //Step 7: Crossfade audio between outcoming and incoming DSP   
         
-//        caudio->launch_crossfade(charging_DSP);
-        
-        audioFade->launch_fadeOut();
+        recall_Window();
         
         //Step 6 : Recall the parameters of the window
-        string inter = nameWindow + " : " + newEffect->getName();
+        string inter = fWindowName + " : " + newEffect->getName();
         
-        interface = new QTGUI(this, inter.c_str());
+        fInterface = new QTGUI(this, inter.c_str());
         
-        charging_DSP->buildUserInterface(finterface);
-        charging_DSP->buildUserInterface(interface);
+        charging_DSP->buildUserInterface(fRCInterface);
+//        current_DSP->buildUserInterface(finterface);
+        charging_DSP->buildUserInterface(fInterface);
         
-        if(indexAudio != 1)
-            newAudio->start();
         //Step 6 : Recall the parameters of the window
         
-        bool recalled = recall_Window();
-        setGeometry(xPos, yPos, 0, 0);
+        recall_Window();
+        
+        fAudioManager->start_Fade();
+        
+        setGeometry(fXPos, fYPos, 0, 0);
         adjustSize();
         show();
         
-        while(audioFade->get_FadeOut()==1){}
-        
-        if(indexAudio != 1){
-            audioClient->stop();
-            audio* intermediate = (audio*)audioClient;
-            audioClient = newAudio;
-            delete intermediate;
-        }
-        else
-            ((crossfade_jackaudio*)audioClient)->upDate_DSP();
+        fAudioManager->wait_EndFade();
         
         //Step 8 : Change the current DSP as the dropped one
         llvm_dsp* VecInt;
         
-        printf("CURRENT DSP = %p\n", current_DSP);
+        printf("CURRENT DSP = %p\n", fCurrent_DSP);
         printf("CHARGING DSP = %p\n", charging_DSP);
         
-        VecInt = current_DSP;
-        current_DSP = charging_DSP; 
+        VecInt = fCurrent_DSP;
+        fCurrent_DSP = charging_DSP; 
         charging_DSP = VecInt;
         
         printf("deleting DSP leaving = %p\n", charging_DSP);
         deleteDSPInstance(charging_DSP);
-        effect = newEffect;
+        fEffect = newEffect;
         //Step 9 : Launch User Interface
-        interface->run();
+        fInterface->run();
         return true;
         
     }
@@ -535,214 +479,130 @@ bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int o
 
 void FLWindow::stop_Audio(){
     
-    audioClient->stop();
+    fAudioManager->stop();
     printf("STOP AUDIO\n");
-    clientOpen = false;
+    fClientOpen = false;
 }
 
-void FLWindow::reset_audioSwitch(){
-    audioSwitched = false;
+void FLWindow::start_Audio(){
+    
+    recall_Window();
+    
+    fAudioManager->start();
+    
+    
+    printf("CONNECT\n");
+    
+    string connectFile = fHome + "/" + fWindowName + ".jc";
+    fAudioManager->connect_Audio(connectFile);
+    
+    fClientOpen = true;
 }
 
-bool FLWindow::update_AudioArchitecture(int index, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency){
+bool FLWindow::update_AudioArchitecture(char* error){
     
-    delete audioClient;
+    AudioCreator* creator = AudioCreator::_Instance("/Users/denoux/CurrentSession/Settings", NULL);
+    delete fAudioManager;
     
-    if(windowIndex <3){
+    fAudioManager = creator->createAudioManager(creator->getNewSettings());
     
-    if(init_audioClient(index, bufferSize, compressionValue, masterIP, masterPort, latency)){
-        audioSwitched = true;
-//        printf("audio has switched = %i\n", audioSwitched);
+    if(init_audioClient(error))
         return true;
-    }
-        else
-            return false;
-    }
     else
         return false;
 }
 
-bool FLWindow::init_audioClient(int index, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency){
+bool FLWindow::init_audioClient(char* error){
     
-//    printf("AUDIOSWITCHED = %i\n", audioSwitched);
-    
-    // In case the audio switch did work for not all the windows, this one has to switch back
-    if(audioSwitched && clientOpen){
-        stop_Audio();
-        delete audioClient;
-        indexAudio = index;
-//        printf("Window %i has stopped\n", windowIndex);
-    }
-    
-    bool success = false;
-    
-    crossfade_netjackaudio* njaudio;
-    
-    switch(index){
-        case kCoreaudio:
-            audioClient = new crossfade_coreaudio(bufferSize);
-            break;
-        case kJackaudio:
-            audioClient = new crossfade_jackaudio(0,0);
-            break;
-        case kNetjackaudio:
-            njaudio = new crossfade_netjackaudio(compressionValue, masterIP, masterPort, latency, 0);
-            connect(njaudio, SIGNAL(error(const char*)), this, SLOT(errorPrint(const char*)));
-            audioClient = (audio*)njaudio;
-        default:
-            break;
-    }
-    
-    if((index == 1 && ((crossfade_jackaudio*)audioClient)->init(nameWindow.c_str(), current_DSP, effect->getName().c_str())) || (index != 1 && audioClient->init(nameWindow.c_str(), current_DSP))){ 
+    if(fAudioManager->initAudio(error, fEffect->getName().c_str(), fCurrent_DSP, fWindowName.c_str())){ 
             
         recall_Window();
-        audioClient->start();
-        
-        if(index == 1){
-            
-            crossfade_jackaudio* jaudio = (crossfade_jackaudio*)audioClient;
-            
-            string jackfilename = appHome + "/" + nameWindow + ".jc";
-            
-            if(QFileInfo(jackfilename.c_str()).exists()){
-                
-                list<pair<string, string> > connection = jinterface->recallConnections(jackfilename.c_str());
-                
-                jaudio->reconnect(connection);
-            }
-            else
-                jaudio->default_connections();  
-        }
-        success = true;
-        clientOpen = true;
+        return true;
     }
-    return success;
-}
-
-bool FLWindow::update_AudioParameters(char* error, int index, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency){
-    
-    audioClient->stop();
-    delete audioClient;
-    
-    if(index == 0){
-        
-        audioClient = new crossfade_coreaudio(bufferSize);
-        
-        if(audioClient->init(effect->getName().c_str(), current_DSP)){
-            
-            recall_Window();       
-            audioClient->start();
-            audioSwitched = true;
-            return true;
-        }
-        else{
-            snprintf(error, 255, "Impossible to init Core Audio Client with new parameters!");
-            return false;
-        }
-    }
-    else if(index == 2){
-        
-        crossfade_netjackaudio* newNetJack = new crossfade_netjackaudio(compressionValue, masterIP, masterPort, latency, 0);
-        connect(newNetJack, SIGNAL(error(const char*)), this, SLOT(errorPrint(const char*)));
-        
-        audioClient = (audio*)newNetJack;
-        
-        
-        if(audioClient->init(effect->getName().c_str(), current_DSP)){
-            
-            recall_Window();
-            audioClient->start();
-            audioSwitched = true;
-            return true;
-        }
-        else{
-            snprintf(error, 255, "Impossible to init remote Net Jack Client with new parameters!");
-            return false;
-        }
+    else{
+        return false;
     }
 }
-
 
 //------------------------SAVING WINDOW ACTIONS
 
 void FLWindow::update_ConnectionFile(list<pair<string,string> > changeTable){
     
-    string jackfilename = appHome + "/" + nameWindow + ".jc";
-    jinterface->update(jackfilename.c_str(), changeTable);
+    string connectFile = fHome + "/" + fWindowName + ".jc";
+    fAudioManager->change_Connections(connectFile.c_str(), changeTable);
 }
 
-void FLWindow::save_Window(int index){
+void FLWindow::save_Window(){
     
     //Graphical parameters//
-    string rcfilename = appHome + "/" + nameWindow + ".rc";
-    finterface->saveState(rcfilename.c_str());
+    string rcfilename = fHome + "/" + fWindowName + ".rc";
+    fRCInterface->saveState(rcfilename.c_str());
     
-    //Jack connections//
-    if(index == 1){
-        string jackfilename = appHome + "/" + nameWindow + ".jc";
+    printf("WINDOW SAVED\n");
+    
+    //Audio Connections parameters
+    string connectFile = fHome + "/" + fWindowName + ".jc";
         
-        crossfade_jackaudio* jaudio = (crossfade_jackaudio*)audioClient;
-        
-        jinterface->saveConnections(jackfilename.c_str(), jaudio->get_audio_connections());
-    }
+    fAudioManager->save_Connections(connectFile);
 }
 
-bool FLWindow::recall_Window(){
+void FLWindow::recall_Window(){
     
     //Graphical parameters//
-    string rcfilename = appHome + "/" + nameWindow + ".rc";
+    string rcfilename = fHome + "/" + fWindowName + ".rc";
     QString toto(rcfilename.c_str());
     
     if(QFileInfo(toto).exists()){
-        finterface->recallState(rcfilename.c_str());	
+        fRCInterface->recallState(rcfilename.c_str());	
+        printf("state recalled for %p\n", fRCInterface);
     }
 }
 
 //------------------------ACCESSORS
 
 string FLWindow::get_nameWindow(){
-    return nameWindow;
+    return fWindowName;
 }
 
 int FLWindow::get_indexWindow(){
-    return windowIndex;
+    return fWindowIndex;
 }
 
 Effect* FLWindow::get_Effect(){
-    return effect;
+    return fEffect;
 }
 
 int FLWindow::get_x(){
     
-    xPos = this->geometry().x();
-    return xPos;
+    fXPos = this->geometry().x();
+    return fXPos;
 }
 
 int FLWindow::get_y(){
-    yPos = this->geometry().y();
-    return yPos;
+    fYPos = this->geometry().y();
+    return fYPos;
 }
 
 //------------------------HTTPD
 
 bool FLWindow::init_Httpd(char* error){
     
-    if(httpdWindow != NULL){
-        httpdWindow->search_IPadress();
+    if(fHttpdWindow != NULL){
+        fHttpdWindow->search_IPadress();
         
         //HttpdInterface reset the parameters when build. So we have to save the parameters before
         
-        save_Window(indexAudio);
+        save_Window();
         
-        string windowTitle = nameWindow + ":" + effect->getName();
-        if(httpdWindow->build_httpdInterface(error, windowTitle, current_DSP)){
+        string windowTitle = fWindowName + ":" + fEffect->getName();
+        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP)){
             
             //recall parameters to run them properly
             //For a second, the initial parameters are reinitialize : it can sound weird
             recall_Window();
             
-            httpdWindow->launch_httpdInterface();
-            httpdWindow->display_HttpdWindow(calculate_Coef()*10, 0);
+            fHttpdWindow->launch_httpdInterface();
+            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0);
             
             return true;
         }
@@ -756,11 +616,11 @@ bool FLWindow::init_Httpd(char* error){
 }
 
 bool FLWindow::is_httpdWindow_active(){
-    return httpdWindow->isActiveWindow();
+    return fHttpdWindow->isActiveWindow();
 }
 
 void FLWindow::hide_httpdWindow(){
-    httpdWindow->hide();
+    fHttpdWindow->hide();
 }
 
 //------------------------Right Click Reaction

@@ -1,22 +1,22 @@
 //
-//  crossfade_jackaudio.h
+//  JA_audioFader.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _crossfade_jackaudio_h
-#define _crossfade_jackaudio_h
+#ifndef _JA_audioFader_h
+#define _JA_audioFader_h
 
 #include <string>
-#include "jack-dsp.h"
+#include "faust/audio/jack-dsp.h"
 #include "audioFader_Interface.h"
 #include "audioFader_Implementation.h"
 
 using namespace std;
 
-class crossfade_jackaudio : public jackaudio, public audioFader_Interface, public audioFader_Implementation
+class JA_audioFader : public jackaudio, public audioFader_Interface, public audioFader_Implementation
 {    
     
     dsp*            fDspIn;
@@ -33,12 +33,11 @@ class crossfade_jackaudio : public jackaudio, public audioFader_Interface, publi
     
     float crossfade_calculation(int i, int j);
     
-    
     public:
     
-        crossfade_jackaudio(const void* icon_data, size_t icon_size);
+        JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
     
-        virtual ~crossfade_jackaudio();
+        virtual ~JA_audioFader();
     
         virtual int	process(jack_nframes_t nframes);
     

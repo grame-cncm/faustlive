@@ -1,20 +1,20 @@
 //
-//  crossfade_netjackaudio.h
+//  NJ_audioFader.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _crossfade_netjackaudio_h
-#define _crossfade_netjackaudio_h
+#ifndef _NJ_audioFader_h
+#define _NJ_audioFader_h
 
 #include <QObject>
-#include "netjack-dsp.h"
+#include "faust/audio/netjack-dsp.h"
 #include "audioFader_Interface.h"
 #include "audioFader_Implementation.h"
 
-class crossfade_netjackaudio : public QObject, public netjackaudio, public audioFader_Interface, public audioFader_Implementation
+class NJ_audioFader : public QObject, public netjackaudio, public audioFader_Interface, public audioFader_Implementation
 {
     Q_OBJECT
         
@@ -27,9 +27,9 @@ class crossfade_netjackaudio : public QObject, public netjackaudio, public audio
                            int, float** audio_input_buffer, int, void**, int, float** audio_output_buffer, int, void**, void* arg);    
     public:
     
-        crossfade_netjackaudio(int celt, const std::string master_ip, int master_port, int latency, QObject* parent);
+        NJ_audioFader(int celt, const std::string master_ip, int master_port, int latency = 2, QObject* parent = NULL);
     
-        virtual ~crossfade_netjackaudio();
+        virtual ~NJ_audioFader();
     
         virtual bool init(const char* name, dsp* DSP);
     
@@ -41,7 +41,7 @@ class crossfade_netjackaudio : public QObject, public netjackaudio, public audio
         virtual bool get_FadeOut();
     
     signals :
-        void error(char*);
+        void error(const char*);
 };
 
 #endif

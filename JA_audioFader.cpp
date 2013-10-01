@@ -1,12 +1,12 @@
 //
-//  crossfade_jackaudio.cpp
+//  JA_audioFader.cpp
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "crossfade_jackaudio.h"
+#include "JA_audioFader.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -16,7 +16,7 @@
  *******************************************************************************
  *******************************************************************************/
 
-float crossfade_jackaudio::crossfade_calculation(int i, int j){
+float JA_audioFader::crossfade_calculation(int i, int j){
     bool connectFadeOut = false;
     bool connectFadeIn = false;
     
@@ -52,7 +52,7 @@ float crossfade_jackaudio::crossfade_calculation(int i, int j){
 }
 
 
-crossfade_jackaudio::crossfade_jackaudio(const void* icon_data = 0, size_t icon_size = 0)
+JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size)
 {
     fDsp = NULL;
     fClient = NULL;
@@ -66,10 +66,7 @@ crossfade_jackaudio::crossfade_jackaudio(const void* icon_data = 0, size_t icon_
     fInputPorts = new jack_port_t*[256];
     fOutputPorts = new jack_port_t*[256];
     
-    doWeFadeOut = false;
-    InCoef = 0.01;
-    OutCoef = 1.0;
-    NumberOfFadeProcess = 0;
+    reset_Values();
     
     if (icon_data) {
         fIconData = malloc(icon_size);
@@ -81,7 +78,7 @@ crossfade_jackaudio::crossfade_jackaudio(const void* icon_data = 0, size_t icon_
     }
 }
 
-crossfade_jackaudio::~crossfade_jackaudio() 
+JA_audioFader::~JA_audioFader() 
 { 
     //stop(); 
     if (fIconData) {
@@ -89,9 +86,9 @@ crossfade_jackaudio::~crossfade_jackaudio()
     }
 }
 
-bool crossfade_jackaudio::init(const char* name, dsp* DSP){ return false;} 
+bool JA_audioFader::init(const char* name, dsp* DSP){ return false;} 
 
-bool crossfade_jackaudio::init(const char* name, dsp* DSP, const char* portsName) 
+bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName) 
 {
     fDsp = DSP;
     
@@ -137,7 +134,7 @@ bool crossfade_jackaudio::init(const char* name, dsp* DSP, const char* portsName
     return true;
 }
 
-bool crossfade_jackaudio::start(){
+bool JA_audioFader::start(){
     if (jack_activate(fClient)) {
         fprintf(stderr, "Cannot activate client");
         return false;
@@ -145,7 +142,7 @@ bool crossfade_jackaudio::start(){
     return true;
 }
 
-void crossfade_jackaudio::init_FadeIn_Audio(dsp* DSP, const char* portsName){
+void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName){
     fDspIn = DSP;
     
     fNumInDspFade  = fDspIn->getNumInputs();
@@ -188,7 +185,7 @@ void crossfade_jackaudio::init_FadeIn_Audio(dsp* DSP, const char* portsName){
     connectionsIn = fConnections;
 }
 
-int crossfade_jackaudio::reconnect(list<pair<string, string> > Connections)
+int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 {        
     list<pair<string, string> >::const_iterator it;
     
@@ -204,7 +201,7 @@ int crossfade_jackaudio::reconnect(list<pair<string, string> > Connections)
 }
 
 // UpDate the list of ports needed by new DSP
-void crossfade_jackaudio::launch_fadeOut()
+void JA_audioFader::launch_fadeOut()
 {
     //Allocation of the intermediate buffers needed for the crossfade
     fIntermediateFadeOut = new float*[fNumOutChans];
@@ -218,11 +215,11 @@ void crossfade_jackaudio::launch_fadeOut()
     set_doWeFadeOut(true); 
 }
 
-void crossfade_jackaudio::launch_fadeIn(){}
-bool crossfade_jackaudio::get_FadeOut(){return get_doWeFadeOut();}
+void JA_audioFader::launch_fadeIn(){}
+bool JA_audioFader::get_FadeOut(){return get_doWeFadeOut();}
 
 // The inFading DSP becomes the current one
-void crossfade_jackaudio::upDate_DSP(){
+void JA_audioFader::upDate_DSP(){
     
     //Erase the extra ports
     if(fNumInChans>fNumInDspFade)
@@ -241,14 +238,18 @@ void crossfade_jackaudio::upDate_DSP(){
     fNumInChans = fNumInDspFade;
     fNumOutChans = fNumOutDspFade;
     
-    fDsp = fDspIn;
+    dsp* DspInt;
+    
+    DspInt = fDsp;
+    fDsp = fDspIn; 
+    fDspIn = DspInt;
     
     delete [] fIntermediateFadeOut;
     delete [] fIntermediateFadeIn;
 }
 
 // jack callbacks
-int	crossfade_jackaudio::process(jack_nframes_t nframes) 
+int	JA_audioFader::process(jack_nframes_t nframes) 
 {
     AVOIDDENORMALS;
     // Retrieve JACK inputs/output audio buffers
@@ -259,7 +260,7 @@ int	crossfade_jackaudio::process(jack_nframes_t nframes)
         fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
     }
     
-    if(doWeFadeOut){
+    if(get_doWeFadeOut()){
         
         //Step 1 : Calculation of intermediate buffers
         
@@ -325,7 +326,7 @@ int	crossfade_jackaudio::process(jack_nframes_t nframes)
 }
 
 // Access to the fade parameter
-list<pair<string, string> > crossfade_jackaudio::get_audio_connections()
+list<pair<string, string> > JA_audioFader::get_audio_connections()
 {
     save_connections();
     return fConnections;

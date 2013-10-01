@@ -8,6 +8,8 @@
 
 #include "audioFader_Implementation.h"
 
+#include <stdio.h>
+
 /******************************************************************************
  *******************************************************************************
  
@@ -27,6 +29,7 @@ void audioFader_Implementation::set_doWeFadeIn(bool val){
 }
 
 void audioFader_Implementation::set_doWeFadeOut(bool val){
+    
     doWeFadeOut = val;
 }
 

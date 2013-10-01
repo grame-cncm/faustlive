@@ -13,9 +13,11 @@
 #include <QMainWindow>
 #include <QObject>
 #include <QPixmap>
+#include <QString>
 
-#include "faust/gui/httpdUI.h"
 #include "faust/audio/dsp.h"
+
+class httpdUI;
 
 using namespace std;
 

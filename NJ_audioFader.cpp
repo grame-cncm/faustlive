@@ -1,14 +1,14 @@
 //
-//  crossfade_netjackaudio.cpp
+//  NJ_audioFader.cpp
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "crossfade_netjackaudio.h"
+#include "NJ_audioFader.h"
 
-crossfade_netjackaudio::crossfade_netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2, QObject* parent = NULL)
+NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_port, int latency, QObject* parent)
 : QObject(parent), netjackaudio(celt, master_ip, master_port, latency)
 {
     fCelt = celt;
@@ -24,12 +24,12 @@ crossfade_netjackaudio::crossfade_netjackaudio(int celt, const std::string maste
     numberRestartAttempts = 0;
 }
 
-crossfade_netjackaudio::~crossfade_netjackaudio(){}
+NJ_audioFader::~NJ_audioFader(){}
 
-int crossfade_netjackaudio::net_restart(void* arg) 
+int NJ_audioFader::net_restart(void* arg) 
 {
     AVOIDDENORMALS;
-    crossfade_netjackaudio* obj = (crossfade_netjackaudio*)arg;
+    NJ_audioFader* obj = (NJ_audioFader*)arg;
     
     //        printf("Network failure, restart...\n");
     
@@ -46,7 +46,7 @@ int crossfade_netjackaudio::net_restart(void* arg)
     return 1;
 }
 
-int crossfade_netjackaudio::net_process(jack_nframes_t buffer_size,
+int NJ_audioFader::net_process(jack_nframes_t buffer_size,
                                         int,
                                         float** audio_input_buffer,
                                         int,
@@ -57,14 +57,14 @@ int crossfade_netjackaudio::net_process(jack_nframes_t buffer_size,
                                         void**,
                                         void* arg) {
     AVOIDDENORMALS;
-    crossfade_netjackaudio* obj = (crossfade_netjackaudio*)arg;
+    NJ_audioFader* obj = (NJ_audioFader*)arg;
     obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
     
     obj->crossfade_Calcul(buffer_size, obj->NumberOutput, audio_output_buffer);
     return 0;
 }
 
-bool crossfade_netjackaudio::init(const char* name, dsp* DSP) {
+bool NJ_audioFader::init(const char* name, dsp* DSP) {
     fDsp = DSP;
     
     NumberOutput = DSP->getNumOutputs();
@@ -100,7 +100,7 @@ bool crossfade_netjackaudio::init(const char* name, dsp* DSP) {
     return true;
 }
 
-bool crossfade_netjackaudio::start() {
+bool NJ_audioFader::start() {
     if (jack_net_slave_activate(fNet)) {
         printf("cannot activate net");
         return false;
@@ -108,21 +108,21 @@ bool crossfade_netjackaudio::start() {
     return true;
 }
 
-void crossfade_netjackaudio::stop() {
+void NJ_audioFader::stop() {
     jack_net_slave_deactivate(fNet);
     printf("NET DEACTiVATE\n");
     jack_net_slave_close(fNet);
     printf("NET CLOSE\n");
 }
 
-void crossfade_netjackaudio::launch_fadeIn(){
+void NJ_audioFader::launch_fadeIn(){
     set_doWeFadeIn(true);
 }
 
-void crossfade_netjackaudio::launch_fadeOut(){
+void NJ_audioFader::launch_fadeOut(){
     set_doWeFadeOut(true);
 }
 
-bool crossfade_netjackaudio::get_FadeOut(){
+bool NJ_audioFader::get_FadeOut(){
     return get_doWeFadeOut();
 }

@@ -21,17 +21,15 @@
 #include "FLToolBar.h"
 #include "Effect.h"
 #include "faust/gui/FUI.h"
-#include "faustqt.h"
 #include "FJUI.h"
 #include "HTTPWindow.h"
 
-#include "crossfade_jackaudio.h"
-#include "crossfade_netjackaudio.h"
-#include "crossfade_coreaudio.h"
+#include "AudioCreator.h"
+#include "AudioManager.h"
+
+class QTGUI;
 
 using namespace std;
-
-enum audioArchi{kCoreaudio, kJackaudio, kNetjackaudio};
 
 class FLWindow : public QMainWindow
 {
@@ -40,39 +38,34 @@ class FLWindow : public QMainWindow
     private : 
 
         //General functions for files and directory management
-        bool deleteDirectoryAndContent(string& directory);
-        string  pathToContent(string path);
+        bool            deleteDirectoryAndContent(string& directory);
+        string          pathToContent(string path);
     
-        bool            shortcut;   //True if ALT is pressed when x button is pressed
+        bool            fShortcut;   //True if ALT is pressed when x button is pressed
     
-        string          appHome;        //Folder of currentSession
+        string          fHome;        //Folder of currentSession
 
-        FLToolBar*       menu;  
+        FLToolBar*      fMenu;  
         void            setMenuBar();
     
-        Effect*         effect;         //Effect currently running in the window
+        Effect*         fEffect;         //Effect currently running in the window
         
-        QTGUI*          interface;      //User control interface
-        FUI*            finterface;     //Graphic parameter saving interface
-        FJUI*           jinterface;     //Audio Connections saving interface
+        QTGUI*          fInterface;      //User control interface
+        FUI*            fRCInterface;     //Graphical parameters saving interface
     
-        HTTPWindow*    httpdWindow;    //Supporting QRcode and httpd address
-        string          IPaddress;      //IP address for TCP protocol
+        HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 
-        int             indexAudio;     //Relationned with the audioArchi enum   
-        audio*          audioClient;    //AudioClient depending on audio architecture
+        AudioManager*   fAudioManager;
+        bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
-        bool            clientOpen;     //In case the 
-        bool            audioSwitched;
-    
-        llvm_dsp*       current_DSP;    //DSP instance of the effect factory running
+        llvm_dsp*       fCurrent_DSP;    //DSP instance of the effect factory running
     
     //Position on screen
-        int             xPos;
-        int             yPos;
+        int             fXPos;
+        int             fYPos;
 
-        string          nameWindow;     //WindowName = Common Base Name + - + index
-        int             windowIndex;    //Unique index corresponding to this window
+        string          fWindowName;     //WindowName = Common Base Name + - + index
+        int             fWindowIndex;    //Unique index corresponding to this window
     
     //Calculate a multiplication coefficient to place the window (and httpdWindow) on screen (avoiding overlapping of the windows)
         int             calculate_Coef();
@@ -102,7 +95,7 @@ class FLWindow : public QMainWindow
     //IDAudio = what architecture audio are we running in?
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& appHome, int IDAudio);
+        FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& appHome);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -123,20 +116,19 @@ class FLWindow : public QMainWindow
     //Recalled = 0 --> the window is a new one without parameters
 
     //Returning false if it fails and fills the errorMsg buffer
-        bool            init_Window(bool init, bool recall, char* errorMsg, int bufferSize, int cprValue, string masterIP, int masterPort, int latency);
+        bool            init_Window(bool init, bool recall, char* errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency);
+        bool            update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error);
+    
+        bool            update_AudioArchitecture(char* error);
+    
     //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
         void            stop_Audio();
-        bool            update_AudioArchitecture(int newIndexAudio, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency);
+        void            start_Audio();
     
-        bool            update_AudioParameters(char* error, int index, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency);
-    
-        bool            init_audioClient(int index, int bufferSize, int compressionValue, string masterIP, int masterPort, int latency);
-    
-        void            reset_audioSwitch();
+        bool            init_audioClient(char* error);
     
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
@@ -144,12 +136,12 @@ class FLWindow : public QMainWindow
         virtual void    dragLeaveEvent ( QDragLeaveEvent * event );   
 
     //Save the graphical and audio connections of current DSP
-        void            save_Window(int index);
+        void            save_Window();
     //Update the FJUI file following the changes table
         void            update_ConnectionFile(list<pair<string,string> > changeTable);
     
     //Recall the parameters (graphical and audio)
-        bool            recall_Window();
+        void            recall_Window();
     
     //Functions to create an httpd interface
         bool            init_Httpd(char* error);

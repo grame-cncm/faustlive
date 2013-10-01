@@ -11,21 +11,15 @@
 #include <list>
 #include <map>
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QMainWindow>
-#include <QObject>
-#include <QTimer>
-#include <QProgressBar>
-#include <QString>
-#include <QStringList>
-#include <QtNetwork>
+#include <QtGui>
 
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
 
 using namespace std;
+
+#define DEFAULTNAME "DefaultName"
 
 //Keeping the information of a Window running in the current Session
 //It provides an easy way of testing the session's content and writing the session file
@@ -55,67 +49,69 @@ class FaustLiveApp : public QApplication
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
-        QMenu *             fileMenu;
-        QMenu *             editMenu;
-        QMenu *             windowsMenu;
-        QMenu *             sessionMenu;
-        QMenu *             viewMenu;
-        QMenu *             helpMenu;
+        QMenu *             fFileMenu;
+        QMenu *             fEditMenu;
+        QMenu *             fWindowsMenu;
+        QMenu *             fSessionMenu;
+        QMenu *             fViewMenu;
+        QMenu *             fHelpMenu;
     
-        QAction*            newAction;
-        QAction*            openAction;
-        QAction **          openExamples;
-        QMenu *             menuOpen_Example;
-        QAction*            openRecentAction;
-        QAction**           recentFileAction;
-        QAction*            exportAction;
+        QAction*            fNewAction;
+        QAction*            fOpenAction;
     
-        QAction*            shutAction;
-        QAction*            shutAllAction;
-        QAction*            closeAllAction;
+        QAction **          fOpenExamples;
+        QMenu *             fMenuOpen_Example;
     
-        QAction*            editAction;
-        QAction*            pasteAction;
-        QAction*            duplicateAction;
+        QAction*            fOpenRecentAction;
+        QAction**           fRecentFileAction;
+        
+        QAction*            fExportAction;
+        QAction*            fShutAction;
+        QAction*            fShutAllAction;
+        QAction*            fCloseAllAction;
     
-        QList<QAction*>     frontWindow;
+        QAction*            fEditAction;
+        QAction*            fPasteAction;
+        QAction*            fDuplicateAction;
     
-        QAction*            takeSnapshotAction;
-        QAction*            recallSnapshotAction;
-        QAction*            importSnapshotAction;
-        QAction*            recallRecentAction;
-        QAction**           RrecentSessionAction;
-        QAction*            importRecentAction;
-        QAction**           IrecentSessionAction;
+        QList<QAction*>     fFrontWindow;
     
-        QAction*            httpdViewAction;
-        QAction*            svgViewAction;
+        QAction*            fTakeSnapshotAction;
+        QAction*            fRecallSnapshotAction;
+        QAction*            fImportSnapshotAction;
+        QAction*            fRecallRecentAction;
+        QAction**           fRrecentSessionAction;
+        QAction*            fImportRecentAction;
+        QAction**           fIrecentSessionAction;
     
-        QAction*            aboutQtAction;
-        QAction*            preferencesAction;
-        QAction*            aboutAction; 
-        QAction*            versionAction;
-        QAction*            presentationAction;
+        QAction*            fHttpdViewAction;
+        QAction*            fSvgViewAction;
+    
+        QAction*            fAboutQtAction;
+        QAction*            fPreferencesAction;
+        QAction*            fAboutAction; 
+        QAction*            fVersionAction;
+        QAction*            fPresentationAction;
     
         void                setup_Menu();
     
-        QProgressBar*       PBar;   //Artificial progress bar to print a goodbye message
+        QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     
     //Appendices Dialogs
-        QMainWindow*        HelpWindow;  //Help Dialog
-        FLErrorWindow*       errorWindow; //Error Dialog
-        QDialog*            presWin;     //Presentation Window
-        QDialog*            compilingMessage;   //Entertaining the user during long operations
-        QDialog*            versionWindow;
-        FLExportManager*    exportDialog;
+        QMainWindow*        fHelpWindow;  //Help Dialog
+        FLErrorWindow*      fErrorWindow; //Error Dialog
+        QDialog*            fPresWin;     //Presentation Window
+        QDialog*            fCompilingMessage;   //Entertaining the user during long operations
+        QDialog*            fVersionWindow;
+        FLExportManager*    fExportDialog;
 
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
-        list<Effect*>       executedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+        list<Effect*>       fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
     
     //Screen parameters
-        int                 screenWidth;
-        int                 screenHeight;
+        int                 fScreenWidth;
+        int                 fScreenHeight;
     
     //To index the windows, the smallest index not used is given to the window
     //With this index is calculate the place of the window on the screen
@@ -126,19 +122,19 @@ class FaustLiveApp : public QApplication
         string              find_smallest_defaultName(string& sourceToCompare, list<string> currentDefault);
     
     //Application Parameters
-        list<WinInSession*>  sessionContent;    //Describes the state of the application 
+        list<WinInSession*>  fSessionContent;    //Describes the state of the application 
     
-        string              WindowBaseName; //Name of Application
-        string              DefaultName;    //The Default Name of all the effects that don't have any proper name
-        string              currentSession; //Path to currentSession Folder
-        string              currentSessionFile; //Path to currentSession DescriptionFile
-        string              currentSourcesFolder; //Folder with the copy of the sources
-        string              currentSVGFolder;   //Folder with the SVG processes
-        string              currentIRFolder;    //Folder with the Bitcode files
+        string              fWindowBaseName; //Name of Application
+        string              fSessionFolder; //Path to currentSession Folder
+        string              fSettingsFolder;   //Path to currentSettings Folder
+        string              fSessionFile; //Path to currentSession DescriptionFile
+        string              fSourcesFolder; //Folder with the copy of the sources
+        string              fSVGFolder;   //Folder with the SVG processes
+        string              fIRFolder;    //Folder with the Bitcode files
         
     //Recent Files Parameters and functions
-        string              homeRecentFiles;    //Path to  Recent Dsp file
-        int                 MaxRecentFiles;    
+        string              fRecentFiles;    //Path to  Recent Dsp file
+        int                 fMaxRecentFiles;    
         list<pair<string, string> >         recentFiles;
         void                recall_Recent_Files(string& filename);
         void                save_Recent_Files();
@@ -155,25 +151,11 @@ class FaustLiveApp : public QApplication
     
     //Preference Menu Objects and Functions
         QDialog*            preference;     //Preference Window
+        AudioCreator*       fAudioCreator;
         string              homeSettings;       //Path of settings file
     
         QLineEdit*          compilModes;
         QLineEdit*          optVal;
-    
-        QComboBox*          audioArchitecture;
-        QLabel*             ASR;        //Audio Sample Rate
-        QLabel*             ABS;        //Audio Buffer Size
-        QTextBrowser*       splRate;
-        QLineEdit*          bufSize;
-    
-        QLabel*             CV;         //Compression Value
-        QLabel*             MIA;        //Master IP Adress
-        QLabel*             MP;         //Master Port
-        QLabel*             LAT;        //LATency
-        QLineEdit*          cprValue;
-        QLineEdit*          mIP;
-        QLineEdit*          mPort;
-        QLineEdit*          lat;
     
         QPushButton*        saveB;
         QPushButton*        cancelB;
@@ -185,15 +167,12 @@ class FaustLiveApp : public QApplication
         QVBoxLayout*        layout5;
     
         //Real Parameters extracted from visual widgets
+        AudioSettings*      fAudioSettings;
+        QGroupBox*          fAudioBox;
+        QLayout*            fAudioLayout;
+    
         string              compilationMode;
         int                 opt_level;
-    
-        int                 indexAudio; //If 0 = CoreAudio ; 1 = Jack ; 2 = NetJack
-        int                 bufferSize;
-        int                 compressionValue;
-        string              masterIP;
-        int                 masterPort;
-        int                 latency;
     
         string              styleChoice;
     
@@ -201,8 +180,7 @@ class FaustLiveApp : public QApplication
         void                save_Settings(string& home);
         void                recall_Settings(string& home);
     
-        void                update_AudioArchitecture(int newIndex, int newBS, int newCV, string newMIA, int newMP, int newLAT);
-        void                update_AudioParameters(int index, int newBS, int newCV, string newMIA, int newMP, int newLAT);
+        void                update_AudioArchitecture();
     
     //Setups of help menu and the presentation interface
         void                init_HelpWindow();
@@ -297,11 +275,9 @@ class FaustLiveApp : public QApplication
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
-    
         void                export_Win(FLWindow* Win);
         void                export_Action();
         void                destroyExportDialog();
-    
         void                shut_Window(); 
         void                shut_AllWindows();
         virtual void        closeAllWindows();
@@ -334,20 +310,16 @@ class FaustLiveApp : public QApplication
         void                import_Recent_Session();
     
     //---------Preferences
-        void                linkClicked(const QUrl& link);
         void                styleClicked();
         void                styleClicked(string style);
         void                Preferences();
-        void                hide_preferenceWindow();
         void                save_Mode();
-        void                currentIndexChange(int index);
     
     //---------Help
         void                apropos();
         void                end_apropos();
         void                version_Action();
         void                show_presentation_Action();
-        void                hide_presentationWin();
     
     //--------Timers
         void                init_Timer_Action();

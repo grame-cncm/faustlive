@@ -23,6 +23,8 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 
+#include "faust/gui/httpdUI.h"
+
 //---------------------------HTTPWINDOW IMPLEMENTATION
 
 HTTPWindow::HTTPWindow(){

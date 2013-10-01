@@ -9,6 +9,8 @@
 #ifndef _FJUI_h
 #define _FJUI_h
 
+#include <iostream>
+#include <fstream>
 #include <list>
 #include <utility>
 
@@ -42,9 +44,13 @@ class FJUI
         
 		while (f.good()) {
 			f >> g >> n;
+            
+//            printf("RECALL = %s ---> %s\n", g.c_str(), n.c_str());
             Connections.push_back(make_pair(g,n));
 		}
 		f.close();
+        
+        
         return Connections;
     }
     

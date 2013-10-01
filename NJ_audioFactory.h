@@ -1,0 +1,25 @@
+//
+//  NJ_audioFactory.h
+//  
+//
+//  Created by Sarah Denoux on 15/07/13.
+//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//
+
+
+#ifndef _NJ_audioFactory_h
+#define _NJ_audioFactory_h
+
+#include "AudioFactory.h"
+
+class NJ_audioFactory : public AudioFactory{
+    
+    public :
+    NJ_audioFactory();
+    ~NJ_audioFactory();
+    
+    virtual AudioSettings* createAudioSettings(string homeFolder, QGroupBox* parent);
+    virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
+};
+
+#endif

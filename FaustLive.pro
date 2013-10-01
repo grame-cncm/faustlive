@@ -1,15 +1,30 @@
 ######################################################################
-# 
+# FAUSTLIVE.PRO
 ######################################################################
+
+# THANKS TO QMAKE, THIS FILE WILL PRODUCE THE MAKEFILE OF FAUSTLIVE APPLICATION
+# IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED, ...
+
+# APPLICATION SETTINGS
+ICON = FaustLiveIcon.icns
+QMAKE_INFO_PLIST = FaustLiveInfo.plist
+system(cp -R Images Libs Examples FaustLive.app/Contents/Resources/)
+
+TEMPLATE = app
+TARGET = FaustLive
+DEPENDPATH += /usr/local/include/faust/gui
+INCLUDEPATH += .
+INCLUDEPATH += /opt/local/include	
+
+QMAKE_CXXFLAGS += -g
+CONFIG -= x86_64
 
 OPT = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
-
-LIBS+= -ljack
-LIBS += -ljacknet
-
 LIBS+= $$LLVMDIR $$OPT
+
 LIBS+=-L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
+QT+=network
 
 LIBS+=-L/usr/local/lib/faust
 LIBS+=-lfaust
@@ -18,78 +33,83 @@ LIBS+=-lHTTPDFaust
 LIBS+=-L/opt/local/lib -lmicrohttpd
 LIBS+=-L/opt/local/lib -lqrencode
 
+CONFIG += JVAR NJVAR CAVAR
 
-TEMPLATE = app
-TARGET = FaustLive
-DEPENDPATH += /usr/local/include/faust/gui
-INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include
+$$CAVAR{
+	message("COREAUDIO NOT LINKED")
+}else{
+	message("COREAUDIO LINKED")
+	LIBS+= 
+	DEFINES += COREAUDIO
+	HEADERS += 	CA_audioFactory.h\
+				CA_audioSettings.h\
+				CA_audioManager.h\
+				CA_audioFader.h \
+				
+	SOURCES += 	CA_audioFactory.cpp \
+				CA_audioSettings.cpp \
+				CA_audioManager.cpp \
+}
 
-CONFIG -= x86_64
+$$JVAR{
+	message("JACK NOT LINKED")
+}else{
+	message("JACK LINKED")
+	LIBS+= -ljack
+	DEFINES += JACK
+	HEADERS += 	JA_audioFactory.h \
+				JA_audioSettings.h \
+				JA_audioManager.h \
+				JA_audioFader.h \
+	
+	SOURCES += 	JA_audioSettings.cpp \
+				JA_audioManager.cpp \
+				JA_audioFactory.cpp \
+				JA_audioFader.cpp \
+}	
 
-QT+=network
+$$NJVAR{
+	message("NETJACK NOT LINKED")
+}else{
+	message("NETJACK LINKED")
+	LIBS += -ljacknet
+	DEFINES += NETJACK
+	HEADERS += 	NJ_audioFactory.h \
+				NJ_audioSettings.h \
+				NJ_audioManager.h \
+				NJ_audioFader.h \
+	
+	SOURCES += 	NJ_audioFactory.cpp \
+				NJ_audioSettings.cpp \
+				NJ_audioManager.cpp \
+				NJ_audioFader.cpp \
+}		
 
-ICON = FaustLiveIcon.icns
-QMAKE_INFO_PLIST = FaustLiveInfo.plist
-
-system(cp -R Images Libs Examples FaustLive.app/Contents/Resources/)
-
-# Input
-
-HEADERS += 	audioSettings.h \
-			audioManager.h \
-			audioFactory.h \
-			CA_audioFactory.h\
-			JA_audioFactory.h \
-			NJ_audioFactory.h \
-			CA_audioSettings.h\
-			JA_audioSettings.h \
-			NJ_audioSettings.h \
-			CA_audioManager.h\
-			JA_audioManager.h \
-			NJ_audioManager.h \
+HEADERS += 	AudioSettings.h \
+			AudioManager.h \
+			AudioFactory.h \
 			AudioCreator.h \
 			audioFader_Interface.h \
 			audioFader_Implementation.h \
-			jack-dsp.h netjack-dsp.h \
-			coreaudio-dsp.h \
-			crossfade_netjackaudio.h \
-			crossfade_jackaudio.h \
-			crossfade_coreaudio.h \
-			faustqt.h \
+			/usr/local/include/faust/gui/faustqt.h \
 			FJUI.h \
 			FLToolBar.h \
 			HTTPWindow.h \
 			FLrenameDialog.h \
 			FLErrorWindow.h \
+			FLExportManager.h \
 			Effect.h \
 			FLWindow.h \ 
 			FaustLiveApp.h \
-			
-SOURCES += 	CA_audioFactory.cpp \
-			JA_audioFactory.cpp \
-			NJ_audioFactory.cpp \
-			CA_audioSettings.cpp \
-			JA_audioSettings.cpp \
-			NJ_audioSettings.cpp \
-			CA_audioManager.cpp \
-			JA_audioManager.cpp \
-			NJ_audioManager.cpp \
-			AudioCreator.cpp \
+							
+SOURCES += 	AudioCreator.cpp \
 			audioFader_Implementation.cpp \
-			jack-dsp.cpp \
-			coreaudio-dsp.cpp \
-			crossfade_netjackaudio.cpp \
-			crossfade_jackaudio.cpp \
-			crossfade_coreaudio.cpp \
 			FLToolBar.cpp \
 			HTTPWindow.cpp \
 			FLrenameDialog.cpp \
 			FLErrorWindow.cpp \
+			FLExportManager.cpp \
 			Effect.cpp \
 			FLWindow.cpp \ 
 			FaustLiveApp.cpp \
 			main.cpp \
-
-
-

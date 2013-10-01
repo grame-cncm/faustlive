@@ -128,6 +128,8 @@ void FLExportManager::postExport(){
     
     emit start_progressing("Connecting with the server...");
     
+    printf("SERVER URL = %s\n", fServerUrl.toString().toStdString().c_str());
+    
     QNetworkRequest requete(fServerUrl);
     QNetworkAccessManager *m = new QNetworkAccessManager;
     
@@ -146,7 +148,7 @@ void FLExportManager::postExport(){
         data += file.readAll();
         data += "\r\n--" + boundary + "--\r\n";
     }
-//    printf("DATA TO SEND = %s\n", data.data());
+    printf("DATA TO SEND = %s\n", data.data());
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
     requete.setRawHeader("Content-Length", QString::number(data.size()).toAscii());
@@ -190,6 +192,7 @@ void FLExportManager::readKey(){
         QByteArray key = response->readAll();
         
         printf("SHA1 KEY = %s\n", key.data());
+        
         getFileFromKey(key.data());
     }
 }
@@ -206,7 +209,7 @@ void FLExportManager::networkError(QNetworkReply::NetworkError msg){
 
 void FLExportManager::getFileFromKey(const char* key){
     
-//    printf("Getting file from SHA1 Key...\n");
+    printf("Getting file from SHA1 Key...\n");
     
     emit start_progressing("Saving your file...");
     
@@ -216,12 +219,15 @@ void FLExportManager::getFileFromKey(const char* key){
     urlString += "/";
     
     if(menu1Export->isChecked()){
+        
+//        printf("MENU1 check\n");
         urlString += exportFormat->currentText();
         fFilenameToSave += exportFormat->currentText().toStdString();
-        
+//        printf("fFilenameToSave = %s\n", fFilenameToSave.c_str());
     }
     else if(menu2Export->isChecked()){
     
+//        printf("MENU2 check\n");
         urlString += exportPlatform->currentText();
         fFilenameToSave += exportPlatform->currentText().toStdString();
         urlString += "/";
@@ -235,6 +241,7 @@ void FLExportManager::getFileFromKey(const char* key){
         
     }
     
+    printf("urlRequest = %s\n", urlString.toStdString().c_str());
     const QUrl url = QUrl(urlString);
     QNetworkRequest requete(url);
     QNetworkAccessManager *m = new QNetworkAccessManager;
@@ -255,9 +262,10 @@ void FLExportManager::endProcess(){
         stop_progressing();
         
         QFileDialog* fileDialog = new QFileDialog;
-        string toSaveFile = fileDialog->getExistingDirectory().toStdString();
+        string toSaveDirectory = fileDialog->getExistingDirectory().toStdString();
         
-        toSaveFile += "/" + fFilenameToSave;
+        
+        string toSaveFile = toSaveDirectory + "/" + fFilenameToSave;
         
 //        printf("toSaveFile = %s\n", toSaveFile.c_str());
         
@@ -274,7 +282,9 @@ void FLExportManager::endProcess(){
             }
         }
         
-        emit processEnded();   
+        string toPrint = "\n" + fFilenameToSave + " was successfully exported in : " + toSaveDirectory;
+        emit error(toPrint.c_str());
+        emit processEnded();
     }
 }
 

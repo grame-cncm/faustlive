@@ -33,7 +33,6 @@ string FaustLiveApp::pathToContent(string path){
     return Content;
 }
 
-
 bool FaustLiveApp::deleteDirectoryAndContent(string& directory){
     
     QDir srcDir(directory.c_str());
@@ -130,59 +129,58 @@ bool FaustLiveApp::isStringInt(const char* word){
 
 FaustLiveApp::FaustLiveApp(int& argc, char** argv) : QApplication(argc, argv){
     
-    WindowBaseName = "FLW";
-    DefaultName = "DefaultName";
+    fWindowBaseName = "FLW";
     
     //Initialization of current Session Path  
     
-    currentSession = getenv("HOME");
-    currentSession += "/CurrentSession";
-    if(!QFileInfo(currentSession.c_str()).exists()){
-        QDir direct(currentSession.c_str());
-        direct.mkdir(currentSession.c_str());
+    fSessionFolder = getenv("HOME");
+    fSessionFolder += "/CurrentSession";
+    if(!QFileInfo(fSessionFolder.c_str()).exists()){
+        QDir direct(fSessionFolder.c_str());
+        direct.mkdir(fSessionFolder.c_str());
     }
-    currentSessionFile = currentSession + "/Description.sffx";
-    if(!QFileInfo(currentSessionFile.c_str()).exists()){
-        QFile f(currentSessionFile.c_str());
+    
+    fSessionFile = fSessionFolder + "/Description.sffx";
+    if(!QFileInfo(fSessionFile.c_str()).exists()){
+        QFile f(fSessionFile.c_str());
         f.open(QFile::ReadOnly);
         f.close();
-        
-        printf("création de description File = %s\n", currentSessionFile.c_str());
     }    
     
-    currentSourcesFolder = currentSession + "/Sources";
-    if(!QFileInfo(currentSourcesFolder.c_str()).exists()){
-        QDir direct(currentSourcesFolder.c_str());
-        direct.mkdir(currentSourcesFolder.c_str());
+    fSourcesFolder = fSessionFolder + "/Sources";
+    if(!QFileInfo(fSourcesFolder.c_str()).exists()){
+        QDir direct(fSourcesFolder.c_str());
+        direct.mkdir(fSourcesFolder.c_str());
     }    
     
-    currentSVGFolder = currentSession + "/SVG";
-    if(!QFileInfo(currentSVGFolder.c_str()).exists()){
-        QDir direct(currentSVGFolder.c_str());
-        direct.mkdir(currentSVGFolder.c_str());
+    fSettingsFolder = fSessionFolder + "/Settings";
+    if(!QFileInfo(fSettingsFolder.c_str()).exists()){
+        QDir direct(fSettingsFolder.c_str());
+        direct.mkdir(fSettingsFolder.c_str());
+    }
+    
+    fSVGFolder = fSessionFolder + "/SVG";
+    if(!QFileInfo(fSVGFolder.c_str()).exists()){
+        QDir direct(fSVGFolder.c_str());
+        direct.mkdir(fSVGFolder.c_str());
     }  
     
-    currentIRFolder = currentSession + "/IR";
-    if(!QFileInfo(currentIRFolder.c_str()).exists()){
-        QDir direct(currentIRFolder.c_str());
-        direct.mkdir(currentIRFolder.c_str());
+    fIRFolder = fSessionFolder + "/IR";
+    if(!QFileInfo(fIRFolder.c_str()).exists()){
+        QDir direct(fIRFolder.c_str());
+        direct.mkdir(fIRFolder.c_str());
     }  
     
-    QDir direc(currentSessionFile.c_str());
+    QDir direc(fSessionFile.c_str());
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
-    screenWidth = screenSize.width();
-    screenHeight = screenSize.height();
+    fScreenWidth = screenSize.width();
+    fScreenHeight = screenSize.height();
     
     //Initializing preference
-    homeSettings = currentSession + "/FaustLive_Settings.rf"; 
-    bufferSize = 512;
-    compressionValue = -1;
-    masterIP = "225.3.19.154";
-    //    masterIP = "127.0.0.1";
-    masterPort = 19000;
-    latency = 2;
+    homeSettings = fSessionFolder + "/FaustLive_Settings.rf"; 
+
     opt_level = 3;
     styleChoice = "Default";
     recall_Settings(homeSettings);
@@ -195,11 +193,11 @@ FaustLiveApp::FaustLiveApp(int& argc, char** argv) : QApplication(argc, argv){
     
     
     //Initializing menu options 
-    MaxRecentFiles = 5;
-    recentFileAction = new QAction* [MaxRecentFiles];
+    fMaxRecentFiles = 5;
+    fRecentFileAction = new QAction* [fMaxRecentFiles];
     MaxRecentSessions = 3;
-    RrecentSessionAction = new QAction* [MaxRecentSessions];
-    IrecentSessionAction = new QAction* [MaxRecentSessions];
+    fRrecentSessionAction = new QAction* [MaxRecentSessions];
+    fIrecentSessionAction = new QAction* [MaxRecentSessions];
 //    frontWindow = new QAction* [200];
     
     
@@ -207,75 +205,78 @@ FaustLiveApp::FaustLiveApp(int& argc, char** argv) : QApplication(argc, argv){
     setQuitOnLastWindowClosed(false);
     
     fMenuBar = new QMenuBar(0);
-    fileMenu = new QMenu;
-    editMenu = new QMenu;
-    windowsMenu = new QMenu;
-    sessionMenu = new QMenu;
-    viewMenu = new QMenu;
-    helpMenu = new QMenu;
+    fFileMenu = new QMenu;
+    fEditMenu = new QMenu;
+    fWindowsMenu = new QMenu;
+    fSessionMenu = new QMenu;
+    fViewMenu = new QMenu;
+    fHelpMenu = new QMenu;
     
     setup_Menu();
     
 //    homeRecents = getenv("HOME");
-    homeRecentFiles = currentSession + "/FaustLive_FileSavings.rf"; 
-    recall_Recent_Files(homeRecentFiles);
+    fRecentFiles = fSessionFolder + "/FaustLive_FileSavings.rf"; 
+    recall_Recent_Files(fRecentFiles);
 //    homeRecents = getenv("HOME");
-    homeRecentSessions = currentSession + "/FaustLive_SessionSavings.rf"; 
+    homeRecentSessions = fSessionFolder + "/FaustLive_SessionSavings.rf"; 
     recall_Recent_Sessions(homeRecentSessions);
     
     //Initializing preference and save dialog
-    errorWindow = new FLErrorWindow();
-    errorWindow->setWindowTitle("ERROR_WINDOW");
-    errorWindow->init_Window();
-    connect(errorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    fErrorWindow = new FLErrorWindow();
+    fErrorWindow->setWindowTitle("ERROR_WINDOW");
+    fErrorWindow->init_Window();
+    connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 }
 
 FaustLiveApp::~FaustLiveApp(){
     
     save_Recent_Files();
     save_Recent_Sessions();
+    save_Settings(homeSettings);
     
-    for(int i=0; i<MaxRecentFiles; i++){
-        delete recentFileAction[i];
+    for(int i=0; i<fMaxRecentFiles; i++){
+        delete fRecentFileAction[i];
     }
     for(int i=0; i<MaxRecentSessions; i++){
-        delete RrecentSessionAction[i];
-        delete IrecentSessionAction[i];
+        delete fRrecentSessionAction[i];
+        delete fIrecentSessionAction[i];
     }
     
-    delete newAction;
-    delete openAction;
-    delete openRecentAction;
-    delete shutAction;
-    delete shutAllAction;
-    delete closeAllAction;
-    delete editAction;
-    delete pasteAction;
-    delete duplicateAction;
-    delete takeSnapshotAction;
-    delete recallSnapshotAction;
-    delete importSnapshotAction;
-    delete httpdViewAction;
-    delete aboutQtAction;
-    delete preferencesAction;
-    delete aboutAction; 
+    delete fAudioCreator;
     
-    delete helpMenu;
-    delete viewMenu;
-    delete editMenu;
-    delete windowsMenu;
-    delete fileMenu;
+    delete fNewAction;
+    delete fOpenAction;
+    delete fOpenRecentAction;
+    delete fShutAction;
+    delete fShutAllAction;
+    delete fCloseAllAction;
+    delete fEditAction;
+    delete fPasteAction;
+    delete fDuplicateAction;
+    delete fTakeSnapshotAction;
+    delete fRecallSnapshotAction;
+    delete fImportSnapshotAction;
+    delete fHttpdViewAction;
+    delete fAboutQtAction;
+    delete fPreferencesAction;
+    delete fAboutAction; 
+    
+    delete fHelpMenu;
+    delete fViewMenu;
+    delete fEditMenu;
+    delete fWindowsMenu;
+    delete fFileMenu;
     delete fMenuBar;
     
     delete initTimer;
     
-    if(presWin != NULL)
-        delete presWin;
+    if(fPresWin != NULL)
+        delete fPresWin;
     
-    delete HelpWindow;
-    delete errorWindow;
+    delete fHelpWindow;
+    delete fErrorWindow;
     
-    sessionContent.clear();
+    fSessionContent.clear();
 }
 
 //---------------------
@@ -284,17 +285,17 @@ void FaustLiveApp::setup_Menu(){
     
     //----------------FILE
     
-    newAction = new QAction(tr("&New Default Window"), this);
-    newAction->setShortcut(tr("Ctrl+N"));
-    newAction->setToolTip(tr("Open a new empty file"));
-    connect(newAction, SIGNAL(triggered()), this, SLOT(create_Empty_Window()));
+    fNewAction = new QAction(tr("&New Default Window"), this);
+    fNewAction->setShortcut(tr("Ctrl+N"));
+    fNewAction->setToolTip(tr("Open a new empty file"));
+    connect(fNewAction, SIGNAL(triggered()), this, SLOT(create_Empty_Window()));
     
-    openAction = new QAction(tr("&Open..."),this);
-    openAction->setShortcut(tr("Ctrl+O"));
-    openAction->setToolTip(tr("Open a DSP file"));
-    connect(openAction, SIGNAL(triggered()), this, SLOT(open_New_Window()));
+    fOpenAction = new QAction(tr("&Open..."),this);
+    fOpenAction->setShortcut(tr("Ctrl+O"));
+    fOpenAction->setToolTip(tr("Open a DSP file"));
+    connect(fOpenAction, SIGNAL(triggered()), this, SLOT(open_New_Window()));
     
-    menuOpen_Example = new QMenu(tr("&Open Example"),fileMenu);
+    fMenuOpen_Example = new QMenu(tr("&Open Example"), fFileMenu);
     
     QString examplesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath();
     examplesPath += "/Resources/Examples";
@@ -308,180 +309,180 @@ void FaustLiveApp::setup_Menu(){
     QFileInfoList::iterator it;
     int i = 0; 
     
-    openExamples = new QAction* [children.size()];
+    fOpenExamples = new QAction* [children.size()];
     
     for(it = children.begin(); it != children.end(); it++){
         
-        openExamples[i] = new QAction(it->baseName(), menuOpen_Example);
-        openExamples[i]->setData(QVariant(it->absoluteFilePath()));
-        connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
+        fOpenExamples[i] = new QAction(it->baseName(), fMenuOpen_Example);
+        fOpenExamples[i]->setData(QVariant(it->absoluteFilePath()));
+        connect(fOpenExamples[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
         
-        menuOpen_Example->addAction(openExamples[i]);
+        fMenuOpen_Example->addAction(fOpenExamples[i]);
         i++;
     }
     
-    fileMenu->addAction(menuOpen_Example->menuAction());
+    fFileMenu->addAction(fMenuOpen_Example->menuAction());
     
-    openRecentAction = new QAction(tr("&Open Recent..."),this);
-    openRecentAction->setEnabled(false);
-    openRecentAction->setToolTip(tr("Open a recently opened DSP file"));
+    fOpenRecentAction = new QAction(tr("&Open Recent..."),this);
+    fOpenRecentAction->setEnabled(false);
+    fOpenRecentAction->setToolTip(tr("Open a recently opened DSP file"));
     
-    for(int i=0; i<MaxRecentFiles; i++){
-        recentFileAction[i] = new QAction(this);
-        recentFileAction[i]->setVisible(false);
-        connect(recentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
+    for(int i=0; i<fMaxRecentFiles; i++){
+        fRecentFileAction[i] = new QAction(this);
+        fRecentFileAction[i]->setVisible(false);
+        connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
     }
     
-    exportAction = new QAction(tr("&Export As..."), this);
-    exportAction->setShortcut(tr("Ctrl+P"));
-    exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
-    connect(exportAction, SIGNAL(triggered()), this, SLOT(export_Action()));
+    fExportAction = new QAction(tr("&Export As..."), this);
+    fExportAction->setShortcut(tr("Ctrl+P"));
+    fExportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
+    connect(fExportAction, SIGNAL(triggered()), this, SLOT(export_Action()));
     
-    shutAction = new QAction(tr("&Close Window"),this);
-    shutAction->setShortcut(tr("Ctrl+W"));
-    shutAction->setToolTip(tr("Close the current Window"));
-    connect(shutAction, SIGNAL(triggered()), this, SLOT(shut_Window()));
+    fShutAction = new QAction(tr("&Close Window"),this);
+    fShutAction->setShortcut(tr("Ctrl+W"));
+    fShutAction->setToolTip(tr("Close the current Window"));
+    connect(fShutAction, SIGNAL(triggered()), this, SLOT(shut_Window()));
     
-    shutAllAction = new QAction(tr("&Close All Windows"),this);
-    shutAllAction->setShortcut(tr("Ctrl+Alt+W"));
-    shutAllAction->setToolTip(tr("Close all the Windows"));
-    connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows()));
+    fShutAllAction = new QAction(tr("&Close All Windows"),this);
+    fShutAllAction->setShortcut(tr("Ctrl+Alt+W"));
+    fShutAllAction->setToolTip(tr("Close all the Windows"));
+    connect(fShutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows()));
     
-    closeAllAction = new QAction(tr("&Closing"),this);
-    closeAllAction = new QAction(tr("&Quit FaustLive"),this);
-    closeAllAction->setToolTip(tr("Close the application"));   
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+    fCloseAllAction = new QAction(tr("&Closing"),this);
+    fCloseAllAction = new QAction(tr("&Quit FaustLive"),this);
+    fCloseAllAction->setToolTip(tr("Close the application"));   
+    connect(fCloseAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
     
-    fileMenu = fMenuBar->addMenu(tr("&File"));
-    fileMenu->addAction(newAction);    
-    fileMenu->addSeparator();
-    fileMenu->addAction(openAction);
-    fileMenu->addAction(menuOpen_Example->menuAction());
-    fileMenu->addSeparator();
-    fileMenu->addAction(openRecentAction);
-    for(int i=0; i<MaxRecentFiles; i++){
-        fileMenu->addAction(recentFileAction[i]);
+    fFileMenu = fMenuBar->addMenu(tr("&File"));
+    fFileMenu->addAction(fNewAction);    
+    fFileMenu->addSeparator();
+    fFileMenu->addAction(fOpenAction);
+    fFileMenu->addAction(fMenuOpen_Example->menuAction());
+    fFileMenu->addSeparator();
+    fFileMenu->addAction(fOpenRecentAction);
+    for(int i=0; i<fMaxRecentFiles; i++){
+        fFileMenu->addAction(fRecentFileAction[i]);
     }
-    fileMenu->addSeparator();
-    fileMenu->addAction(exportAction);
-    fileMenu->addSeparator();
-    fileMenu->addAction(shutAction);
-    fileMenu->addAction(shutAllAction);
+    fFileMenu->addSeparator();
+    fFileMenu->addAction(fExportAction);
+    fFileMenu->addSeparator();
+    fFileMenu->addAction(fShutAction);
+    fFileMenu->addAction(fShutAllAction);
     
     fMenuBar->addSeparator();
-    fileMenu->addAction(closeAllAction);
+    fFileMenu->addAction(fCloseAllAction);
     
     //-----------------EDIT
     
-    editAction = new QAction(tr("&Edit Faust Source"), this);
-    editAction->setShortcut(tr("Ctrl+E"));
-    editAction->setToolTip(tr("Edit the source"));
-    connect(editAction, SIGNAL(triggered()), this, SLOT(edit_Action()));
+    fEditAction = new QAction(tr("&Edit Faust Source"), this);
+    fEditAction->setShortcut(tr("Ctrl+E"));
+    fEditAction->setToolTip(tr("Edit the source"));
+    connect(fEditAction, SIGNAL(triggered()), this, SLOT(edit_Action()));
     
-    pasteAction = new QAction(tr("&Paste"),this);
-    pasteAction->setShortcut(tr("Ctrl+V"));
-    pasteAction->setToolTip(tr("Paste a DSP"));
-    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste_Text()));
+    fPasteAction = new QAction(tr("&Paste"),this);
+    fPasteAction->setShortcut(tr("Ctrl+V"));
+    fPasteAction->setToolTip(tr("Paste a DSP"));
+    connect(fPasteAction, SIGNAL(triggered()), this, SLOT(paste_Text()));
     
-    duplicateAction = new QAction(tr("&Duplicate"),this);
-    duplicateAction->setShortcut(tr("Ctrl+D"));
-    duplicateAction->setToolTip(tr("Duplicate current DSP"));
-    connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate_Window()));
+    fDuplicateAction = new QAction(tr("&Duplicate"),this);
+    fDuplicateAction->setShortcut(tr("Ctrl+D"));
+    fDuplicateAction->setToolTip(tr("Duplicate current DSP"));
+    connect(fDuplicateAction, SIGNAL(triggered()), this, SLOT(duplicate_Window()));
     
-    editMenu = fMenuBar->addMenu(tr("&Edit"));
-    editMenu->addAction(editAction);
-    editMenu->addSeparator();
-    editMenu->addAction(pasteAction);
-    editMenu->addSeparator();
-    editMenu->addAction(duplicateAction);
+    fEditMenu = fMenuBar->addMenu(tr("&Edit"));
+    fEditMenu->addAction(fEditAction);
+    fEditMenu->addSeparator();
+    fEditMenu->addAction(fPasteAction);
+    fEditMenu->addSeparator();
+    fEditMenu->addAction(fDuplicateAction);
     fMenuBar->addSeparator();
     
     fMenuBar->addSeparator();
     
     //-----------------WINDOWS
     
-    windowsMenu = fMenuBar->addMenu(tr("&Windows"));
+    fWindowsMenu = fMenuBar->addMenu(tr("&Windows"));
     
     fMenuBar->addSeparator();
     //------------------SESSION
     
-    takeSnapshotAction = new QAction(tr("&Take Snapshot"),this);
-    takeSnapshotAction->setShortcut(tr("Ctrl+S"));
-    takeSnapshotAction->setToolTip(tr("Save current state"));
-    connect(takeSnapshotAction, SIGNAL(triggered()), this, SLOT(take_Snapshot()));
+    fTakeSnapshotAction = new QAction(tr("&Take Snapshot"),this);
+    fTakeSnapshotAction->setShortcut(tr("Ctrl+S"));
+    fTakeSnapshotAction->setToolTip(tr("Save current state"));
+    connect(fTakeSnapshotAction, SIGNAL(triggered()), this, SLOT(take_Snapshot()));
     
-    recallSnapshotAction = new QAction(tr("&Recall Snapshot..."),this);
-    recallSnapshotAction->setShortcut(tr("Ctrl+R"));
-    recallSnapshotAction->setToolTip(tr("Close all the opened window and open your snapshot"));
-    connect(recallSnapshotAction, SIGNAL(triggered()), this, SLOT(recallSnapshotFromMenu()));
+    fRecallSnapshotAction = new QAction(tr("&Recall Snapshot..."),this);
+    fRecallSnapshotAction->setShortcut(tr("Ctrl+R"));
+    fRecallSnapshotAction->setToolTip(tr("Close all the opened window and open your snapshot"));
+    connect(fRecallSnapshotAction, SIGNAL(triggered()), this, SLOT(recallSnapshotFromMenu()));
     
-    recallRecentAction = new QAction(tr("&Recall Recent..."),this);
-    recallRecentAction->setEnabled(false);
+    fRecallRecentAction = new QAction(tr("&Recall Recent..."),this);
+    fRecallRecentAction->setEnabled(false);
     
     for(int i=0; i<MaxRecentSessions; i++){
-        RrecentSessionAction[i] = new QAction(this);
-        RrecentSessionAction[i]->setVisible(false);
-        connect(RrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
+        fRrecentSessionAction[i] = new QAction(this);
+        fRrecentSessionAction[i]->setVisible(false);
+        connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
         
-        IrecentSessionAction[i] = new QAction(this);
-        IrecentSessionAction[i]->setVisible(false);
-        connect(IrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
+        fIrecentSessionAction[i] = new QAction(this);
+        fIrecentSessionAction[i]->setVisible(false);
+        connect(fIrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
     }
     
-    importSnapshotAction = new QAction(tr("&Import Snapshot..."),this);
-    importSnapshotAction->setShortcut(tr("Ctrl+I"));
-    importSnapshotAction->setToolTip(tr("Import your snapshot in the current session"));
-    connect(importSnapshotAction, SIGNAL(triggered()), this, SLOT(importSnapshotFromMenu()));
+    fImportSnapshotAction = new QAction(tr("&Import Snapshot..."),this);
+    fImportSnapshotAction->setShortcut(tr("Ctrl+I"));
+    fImportSnapshotAction->setToolTip(tr("Import your snapshot in the current session"));
+    connect(fImportSnapshotAction, SIGNAL(triggered()), this, SLOT(importSnapshotFromMenu()));
     
-    importRecentAction = new QAction(tr("&Import Recent..."),this);
-    importRecentAction->setEnabled(false);
+    fImportRecentAction = new QAction(tr("&Import Recent..."),this);
+    fImportRecentAction->setEnabled(false);
     
-    sessionMenu = fMenuBar->addMenu(tr("&Snapshot"));
-    sessionMenu->addAction(takeSnapshotAction);
-    sessionMenu->addSeparator();
-    sessionMenu->addAction(recallSnapshotAction);
-    sessionMenu->addAction(recallRecentAction);
-    sessionMenu->addAction(recallRecentAction);
+    fSessionMenu = fMenuBar->addMenu(tr("&Snapshot"));
+    fSessionMenu->addAction(fTakeSnapshotAction);
+    fSessionMenu->addSeparator();
+    fSessionMenu->addAction(fRecallSnapshotAction);
+    fSessionMenu->addAction(fRecallRecentAction);
+    fSessionMenu->addAction(fRecallRecentAction);
     for(int i=0; i<MaxRecentSessions; i++){
-        sessionMenu->addAction(RrecentSessionAction[i]);
+        fSessionMenu->addAction(fRrecentSessionAction[i]);
     }
-    sessionMenu->addSeparator();
-    sessionMenu->addAction(importSnapshotAction);
-    sessionMenu->addAction(importRecentAction);
+    fSessionMenu->addSeparator();
+    fSessionMenu->addAction(fImportSnapshotAction);
+    fSessionMenu->addAction(fImportRecentAction);
     for(int i=0; i<MaxRecentSessions; i++){
-        sessionMenu->addAction(IrecentSessionAction[i]);
+        fSessionMenu->addAction(fIrecentSessionAction[i]);
     }
     
     fMenuBar->addSeparator();
     
     //---------------------VIEW
     
-    httpdViewAction = new QAction(tr("&View QRcode"),this);
-    httpdViewAction->setShortcut(tr("Ctrl+K"));
-    httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
-    connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View_Window()));
+    fHttpdViewAction = new QAction(tr("&View QRcode"),this);
+    fHttpdViewAction->setShortcut(tr("Ctrl+K"));
+    fHttpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
+    connect(fHttpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View_Window()));
     
-    svgViewAction = new QAction(tr("&View SVG Diagram"),this);
-    svgViewAction->setShortcut(tr("Ctrl+G"));
-    svgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
-    connect(svgViewAction, SIGNAL(triggered()), this, SLOT(svg_View_Action()));
+    fSvgViewAction = new QAction(tr("&View SVG Diagram"),this);
+    fSvgViewAction->setShortcut(tr("Ctrl+G"));
+    fSvgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
+    connect(fSvgViewAction, SIGNAL(triggered()), this, SLOT(svg_View_Action()));
     
-    viewMenu = fMenuBar->addMenu(tr("&View"));
-    viewMenu->addAction(httpdViewAction);
-    viewMenu->addSeparator();
-    viewMenu->addAction(svgViewAction);
+    fViewMenu = fMenuBar->addMenu(tr("&View"));
+    fViewMenu->addAction(fHttpdViewAction);
+    fViewMenu->addSeparator();
+    fViewMenu->addAction(fSvgViewAction);
     
     fMenuBar->addSeparator();
     
     //---------------------MAIN MENU
     
-    aboutQtAction = new QAction(tr("&About Qt"), this);
-    aboutQtAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    fAboutQtAction = new QAction(tr("&About Qt"), this);
+    fAboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(fAboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
     
-    preferencesAction = new QAction(tr("&Preferences"), this);
-    preferencesAction->setToolTip(tr("Set the preferences of the application"));
-    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
+    fPreferencesAction = new QAction(tr("&Preferences"), this);
+    fPreferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(fPreferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
     
     preference = new QDialog;
     preference->setWindowFlags(Qt::FramelessWindowHint);
@@ -489,39 +490,40 @@ void FaustLiveApp::setup_Menu(){
     
     //--------------------HELP
     
-    HelpWindow = new QMainWindow;
-    HelpWindow->setWindowFlags(Qt::FramelessWindowHint);
+    fHelpWindow = new QMainWindow;
+    fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
+    fHelpWindow->setGeometry(fScreenWidth/2, 312, 0, 0);
     this->init_HelpWindow();
     
-    aboutAction = new QAction(tr("&Help..."), this);
-    aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), this, SLOT(apropos()));
+    fAboutAction = new QAction(tr("&Help..."), this);
+    fAboutAction->setToolTip(tr("Show the library's About Box"));
+    connect(fAboutAction, SIGNAL(triggered()), this, SLOT(apropos()));
     
-    versionWindow = new QDialog;
+    fVersionWindow = new QDialog;
     
-    versionAction = new QAction(tr("&Version"), this);
-    versionAction->setToolTip(tr("Show the version of the libraries used"));
-    connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
+    fVersionAction = new QAction(tr("&Version"), this);
+    fVersionAction->setToolTip(tr("Show the version of the libraries used"));
+    connect(fVersionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
     
-    presentationAction = new QAction(tr("&About FaustLive"), this);
-    presentationAction->setToolTip(tr("Show the presentation Menu"));
-    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+    fPresentationAction = new QAction(tr("&About FaustLive"), this);
+    fPresentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(fPresentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
     
-    helpMenu = fMenuBar->addMenu(tr("&Help"));
+    fHelpMenu = fMenuBar->addMenu(tr("&Help"));
     
-    helpMenu->addAction(aboutQtAction);
-    helpMenu->addSeparator();
-    helpMenu->addAction(aboutAction);
-    helpMenu->addAction(versionAction);
-    helpMenu->addSeparator();
-    helpMenu->addAction(presentationAction);
-    helpMenu->addSeparator();
-    helpMenu->addAction(preferencesAction);
+    fHelpMenu->addAction(fAboutQtAction);
+    fHelpMenu->addSeparator();
+    fHelpMenu->addAction(fAboutAction);
+    fHelpMenu->addAction(fVersionAction);
+    fHelpMenu->addSeparator();
+    fHelpMenu->addAction(fPresentationAction);
+    fHelpMenu->addSeparator();
+    fHelpMenu->addAction(fPreferencesAction);
 }
 
 void FaustLiveApp::errorPrinting(const char* msg){
     
-    errorWindow->print_Error(msg);
+    fErrorWindow->print_Error(msg);
 }
 
 void FaustLiveApp::init_Timer_Action(){
@@ -529,9 +531,9 @@ void FaustLiveApp::init_Timer_Action(){
     
     if(FLW_List.size()==0){
         
-        if(QFileInfo(currentSessionFile.c_str()).exists()){
+        if(QFileInfo(fSessionFile.c_str()).exists()){
             
-            QFile f(currentSessionFile.c_str());
+            QFile f(fSessionFile.c_str());
             QString text("");
             
             if(f.open(QFile::ReadOnly)){
@@ -547,8 +549,8 @@ void FaustLiveApp::init_Timer_Action(){
                 show_presentation_Action();
             }
             else{
-                sessionContent.clear();
-                recall_Session(currentSessionFile);
+                fSessionContent.clear();
+                recall_Session(fSessionFile);
             }
         }
         else{
@@ -615,8 +617,8 @@ void FaustLiveApp::calculate_position(int index, int* x, int* y){
         multiplCoef-=20;
     }
     
-    *x = screenWidth/3 + multiplCoef*10;
-    *y = screenHeight/3 + multiplCoef*10;
+    *x = fScreenWidth/3 + multiplCoef*10;
+    *y = fScreenHeight/3 + multiplCoef*10;
 }
 
 list<string> FaustLiveApp::get_currentDefault(){
@@ -625,9 +627,9 @@ list<string> FaustLiveApp::get_currentDefault(){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin(); it != sessionContent.end() ; it++){
+    for(it = fSessionContent.begin(); it != fSessionContent.end() ; it++){
         
-        if((*it)->name.find(DefaultName)!=string::npos)
+        if((*it)->name.find(DEFAULTNAME)!=string::npos)
             currentDefault.push_back((*it)->name);
     }
     
@@ -646,7 +648,8 @@ string FaustLiveApp::find_smallest_defaultName(string& sourceToCompare, list<str
         stringstream ss;
         ss << index;
         
-        nomEffet = DefaultName + "-" + ss.str();
+        nomEffet = DEFAULTNAME;
+        nomEffet += "-" + ss.str();
         
         list<string>::iterator it;
         
@@ -670,13 +673,9 @@ FLWindow* FaustLiveApp::getActiveWin(){
     list<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        //The update of Effect is made in Active Window
-        
-        //        printf("WINDOW = %p // is Active? = %i\n", *it, (*it)->isActiveWindow());
-        
-        if((*it)->isActiveWindow()){
+
+        if((*it)->isActiveWindow())
             return *it;
-        }
     }
     
     return NULL;
@@ -786,7 +785,7 @@ string FaustLiveApp::getNameEffectFromSource(string sourceToCompare){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++){
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
         if((*it)->source.compare(sourceToCompare) == 0)
             return (*it)->name;
@@ -798,7 +797,7 @@ bool FaustLiveApp::isEffectInCurrentSession(string sourceToCompare){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++){
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
         if((*it)->source.compare(sourceToCompare) == 0)
             return true;
@@ -813,7 +812,7 @@ list<string> FaustLiveApp::getNameRunningEffects(){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++)
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++)
         returning.push_back((*it)->name);   
     
     return returning;
@@ -825,9 +824,9 @@ bool FaustLiveApp::isEffectNameInCurrentSession(string& sourceToCompare ,string&
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++){
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
-        if((*it)->name.compare(nom)==0 && ((*it)->source.compare(sourceToCompare) != 0 || (*it)->name.find(DefaultName) != string::npos))
+        if((*it)->name.compare(nom)==0 && ((*it)->source.compare(sourceToCompare) != 0 || (*it)->name.find(DEFAULTNAME) != string::npos))
             return true;
     }
     return false;
@@ -848,7 +847,7 @@ Effect* FaustLiveApp::getEffectFromSource(string& source, string& nameEffect, st
     if(source.find(".dsp") != string::npos){
         
         list<Effect*>::iterator it;
-        for(it = executedEffects.begin(); it!= executedEffects.end(); it++){
+        for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
             if(source.compare((*it)->getSource()) == 0){
                 
                 if(isEffectInCurrentSession((*it)->getSource())){
@@ -915,15 +914,15 @@ Effect* FaustLiveApp::getEffectFromSource(string& source, string& nameEffect, st
     Effect* myNewEffect = new Effect(init, fichierSource, nameEffect);
     //    list<string> runningEffects = getNameRunningEffects();
     
-    printf("PARAMETERS = SVG %s// IR %s // Options %s // opt =%i \n", currentSVGFolder.c_str(), currentIRFolder.c_str(), compilationOptions.c_str(), opt_Val);
+    printf("PARAMETERS = SVG %s// IR %s // Options %s // opt =%i \n", fSVGFolder.c_str(), fIRFolder.c_str(), compilationOptions.c_str(), opt_Val);
     
-    if(myNewEffect->init(currentSVGFolder, currentIRFolder, compilationOptions, opt_Val, error)){
+    if(myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error)){
         
         StopProgressSlot();
         
         connect(myNewEffect, SIGNAL(effectChanged()), this, SLOT(synchronize_Window()));
         
-        executedEffects.push_back(myNewEffect);
+        fExecutedEffects.push_back(myNewEffect);
         
         return myNewEffect;
     }
@@ -954,7 +953,7 @@ list<int> FaustLiveApp::WindowCorrespondingToEffect(Effect* eff){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++){
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
         if((*it)->source.compare(eff->getSource()) == 0)
             returning.push_back((*it)->ID);
@@ -966,15 +965,21 @@ void FaustLiveApp::removeFilesOfWin(string sourceName, string effName){
     
     QFile::remove(sourceName.c_str());
     
-    string irFile = currentIRFolder + "/" + effName;
+    string irFile = fIRFolder + "/" + effName;
     QFile::remove(irFile.c_str());
     
-    string svgFolder = currentSVGFolder + "/" + effName + "-svg";
+    string svgFolder = fSVGFolder + "/" + effName + "-svg";
     deleteDirectoryAndContent(svgFolder);
     
 }
 
 void FaustLiveApp::synchronize_Window(){ 
+    
+    list<FLWindow*>::iterator iter;
+    
+//    for (iter = FLW_List.begin(); iter != FLW_List.end(); iter++)
+//        (*iter)->save_Window();
+    
     
     Effect* modifiedEffect = (Effect*)QObject::sender();
     
@@ -993,16 +998,16 @@ void FaustLiveApp::synchronize_Window(){
         
         //        display_CompilingProgress("Updating your DSP...");
         
-        bool update = modifiedEffect->update_Factory(opt_level, error, currentSVGFolder, currentIRFolder);
+        bool update = modifiedEffect->update_Factory(opt_level, error, fSVGFolder, fIRFolder);
         
         if(!update){
             //            StopProgressSlot();
-            errorWindow->print_Error(error);
+            fErrorWindow->print_Error(error);
             modifiedEffect->launch_Watcher();
             return;
         }
         else if(strcmp(error, "") != 0){
-            errorWindow->print_Error(error);
+            fErrorWindow->print_Error(error);
         }
         
         //        StopProgressSlot();
@@ -1015,8 +1020,8 @@ void FaustLiveApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-                    if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getCompilationOptions(), modifiedEffect->getOptValue(),error, bufferSize, compressionValue, masterIP, masterPort, latency)){
-                        errorWindow->print_Error(error);
+                    if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getCompilationOptions(), modifiedEffect->getOptValue(),error)){
+                        fErrorWindow->print_Error(error);
                         break;
                     }
                     else{
@@ -1027,7 +1032,7 @@ void FaustLiveApp::synchronize_Window(){
                         addWinToSessionFile(*it2);
                         
                         string oldSource = modifiedEffect->getSource();
-                        string newSource = currentSourcesFolder + "/" + modifiedEffect->getName() + ".dsp";
+                        string newSource = fSourcesFolder + "/" + modifiedEffect->getName() + ".dsp";
                         printf("SYNCHRONIZE COPIES = %s TO %s\n", oldSource.c_str(), newSource.c_str());
                         update_Source(oldSource, newSource);
                         break;
@@ -1045,9 +1050,9 @@ void FaustLiveApp::synchronize_Window(){
         modifiedEffect->stop_Watcher();
         
         snprintf(error, 255, "WARNING = %s has been deleted or moved\n You are now working on its copy.", modifiedSource.c_str());
-        errorWindow->print_Error(error);
+        fErrorWindow->print_Error(error);
         
-        string toReplace = currentSourcesFolder + "/" + modifiedEffect->getName() +".dsp";
+        string toReplace = fSourcesFolder + "/" + modifiedEffect->getName() +".dsp";
         //        string oldSource = modifiedEffect->getSource();
         //        list<pair<string,string> > sourceChanges;
         //        sourceChanges.push_back(make_pair(oldSource, toReplace));
@@ -1097,26 +1102,27 @@ void FaustLiveApp::create_New_Window(string& source){
     snprintf(error, 255, "");
     
     string empty("");
-    Effect* first = getEffectFromSource(source, empty, currentSourcesFolder, compilationMode, opt_level ,error, false); 
+    Effect* first = getEffectFromSource(source, empty, fSourcesFolder, compilationMode, opt_level ,error, false); 
     
     if(first != NULL){
         
         bool optionChanged = (compilationMode.compare(first->getCompilationOptions()) != 0 || opt_level != (first->getOptValue())) && !isEffectInCurrentSession(first->getSource());
         
         //ICI ON VA FAIRE LA COPIE DU FICHIER SOURCE
-        string copySource = currentSourcesFolder +"/" + first->getName() + ".dsp";
+        string copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
         string toCopy = first->getSource();
         
         update_Source(toCopy, copySource);
         
         if(strcmp(error, "") != 0){
-            errorWindow->print_Error(error);
+            fErrorWindow->print_Error(error);
         }
         
         int x, y;
         calculate_position(val, &x, &y);
         
-        FLWindow* win = new FLWindow(WindowBaseName, val, first, x, y, currentSession, indexAudio);
+        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
+        
         connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
         
         connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
@@ -1124,7 +1130,7 @@ void FaustLiveApp::create_New_Window(string& source){
         connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
         connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
         
-        if(win->init_Window(init, false, error, bufferSize, compressionValue, masterIP, masterPort, latency)){
+        if(win->init_Window(init, false, error)){
             FLW_List.push_back(win);
             addWinToSessionFile(win);
             first->launch_Watcher();
@@ -1135,11 +1141,11 @@ void FaustLiveApp::create_New_Window(string& source){
         }
         else{
             delete win;
-            errorWindow->print_Error(error); 
+            fErrorWindow->print_Error(error); 
         }
     }
     else
-        errorWindow->print_Error(error);
+        fErrorWindow->print_Error(error);
     
 }
 
@@ -1201,7 +1207,7 @@ void FaustLiveApp::open_Example_Action(){
     
     if(QFileInfo(path.c_str()).exists()){
         
-        presWin->hide();
+        fPresWin->hide();
         
         FLWindow* win = getActiveWin();
         
@@ -1216,7 +1222,7 @@ void FaustLiveApp::open_Example_Action(){
 
 void FaustLiveApp::save_Recent_Files(){
     
-    QFile f(homeRecentFiles.c_str());
+    QFile f(fRecentFiles.c_str());
     
     if(f.open(QFile::WriteOnly | QFile::Truncate)){
         
@@ -1272,13 +1278,13 @@ void FaustLiveApp::update_Recent_File(){
     
     for (it = recentFiles.begin(); it != recentFiles.end(); it++) {
         
-        if(j<MaxRecentFiles){
+        if(j<fMaxRecentFiles){
             
             QString text;
             text += it->second.c_str();
-            recentFileAction[j]->setText(text);
-            recentFileAction[j]->setData(it->first.c_str());
-            recentFileAction[j]->setVisible(true);
+            fRecentFileAction[j]->setText(text);
+            fRecentFileAction[j]->setData(it->first.c_str());
+            fRecentFileAction[j]->setVisible(true);
             
             j++;
         }
@@ -1301,16 +1307,15 @@ void FaustLiveApp::open_Recent_File(){
 //---------------Export
 
 void FaustLiveApp::export_Win(FLWindow* win){
-
-    exportDialog = new FLExportManager(QUrl("http://localhost:8888"), win->get_Effect()->getSource(), win->get_Effect()->getName());
     
-    connect(exportDialog, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
-    connect(exportDialog, SIGNAL(start_progressing(const char*)), this, SLOT(display_CompilingProgress(const char*)));
-    connect(exportDialog, SIGNAL(stop_progressing()), this, SLOT(StopProgressSlot()));
-    connect(exportDialog, SIGNAL(processEnded()), this, SLOT(destroyExportDialog()));
-
-    exportDialog->init();
-//    exportDialog->exec();
+    fExportDialog = new FLExportManager(QUrl("http://localhost:8888"), win->get_Effect()->getSource(), win->get_Effect()->getName());
+    
+    connect(fExportDialog, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+    connect(fExportDialog, SIGNAL(start_progressing(const char*)), this, SLOT(display_CompilingProgress(const char*)));
+    connect(fExportDialog, SIGNAL(stop_progressing()), this, SLOT(StopProgressSlot()));
+    connect(fExportDialog, SIGNAL(processEnded()), this, SLOT(destroyExportDialog()));
+    
+    fExportDialog->init();
 }
 
 void FaustLiveApp::export_Action(){ 
@@ -1322,8 +1327,9 @@ void FaustLiveApp::export_Action(){
 }
 
 void FaustLiveApp::destroyExportDialog(){
-    delete exportDialog;
+    delete fExportDialog;
 }
+
 
 //--------------CLOSE
 
@@ -1342,10 +1348,10 @@ void FaustLiveApp::display_Progress(){
         QLabel* text = new QLabel(tr("Saving your session..."), savingMessage);
         text->setStyleSheet("*{color : black}");
         text->setAlignment(Qt::AlignCenter);
-        PBar = new QProgressBar(savingMessage);
-        PBar->setAlignment(Qt::AlignCenter);
-        PBar->setRange(0,100);
-        PBar->setValue(0);
+        fPBar = new QProgressBar(savingMessage);
+        fPBar->setAlignment(Qt::AlignCenter);
+        fPBar->setRange(0,100);
+        fPBar->setValue(0);
         
         QVBoxLayout* layoutSave = new QVBoxLayout;
         
@@ -1353,7 +1359,7 @@ void FaustLiveApp::display_Progress(){
         layoutSave->addWidget(new QLabel(tr("")));
         layoutSave->addWidget(text);
         layoutSave->addWidget(new QLabel(tr("")));
-        layoutSave->addWidget(PBar);
+        layoutSave->addWidget(fPBar);
         savingMessage->setLayout(layoutSave);
         
         savingMessage->adjustSize();
@@ -1369,12 +1375,14 @@ void FaustLiveApp::display_Progress(){
 
 void FaustLiveApp::update_ProgressBar(){
     
-    int value = PBar->value();
-    int maximum = PBar->maximum();
+    int value = fPBar->value();
+    int maximum = fPBar->maximum();
+    
     if (value < maximum){
         value ++;
-        PBar->setValue(value);
+        fPBar->setValue(value);
     }
+    
     if(value >= maximum){
         this->quit();
     }
@@ -1387,16 +1395,19 @@ void FaustLiveApp::closeAllWindows(){
     display_Progress();
     
     update_CurrentSession();
-    sessionContentToFile(currentSessionFile);
+    sessionContentToFile(fSessionFile);
     
     list<FLWindow*>::iterator it;
+    
+    for(it = FLW_List.begin(); it != FLW_List.end(); it++)
+        (*it)->save_Window();
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++){
         
         string toto = (*it)->get_Effect()->getSource();
         string tutu = (*it)->get_Effect()->getName();
         
-        if(toto.find(currentSourcesFolder) == string::npos)
+        if(toto.find(fSourcesFolder) == string::npos)
             set_Current_File(toto, tutu);
         
         (*it)->close_Window();
@@ -1405,10 +1416,10 @@ void FaustLiveApp::closeAllWindows(){
     FLW_List.clear();
     
     list<Effect*>::iterator it2;
-    for(it2 = executedEffects.begin() ;it2 != executedEffects.end(); it2++)
+    for(it2 = fExecutedEffects.begin() ;it2 != fExecutedEffects.end(); it2++)
         delete (*it2);
     
-    executedEffects.clear();
+    fExecutedEffects.clear();
     
 }
 
@@ -1418,7 +1429,7 @@ void FaustLiveApp::common_shutAction(FLWindow* win){
     
     string toto = win->get_Effect()->getSource();
     string tutu = win->get_Effect()->getName();
-    if(toto.find(currentSourcesFolder) == string::npos)
+    if(toto.find(fSourcesFolder) == string::npos)
         set_Current_File(toto, tutu);
     
     deleteWinFromSessionFile(win);
@@ -1428,15 +1439,15 @@ void FaustLiveApp::common_shutAction(FLWindow* win){
     QFileInfo ff((win)->get_Effect()->getSource().c_str());
     string toCompare = ff.absolutePath().toStdString();
     
-    if(toCompare.compare(currentSourcesFolder) == 0 && !isEffectInCurrentSession((win)->get_Effect()->getSource())){
-        executedEffects.remove((win)->get_Effect());
+    if(toCompare.compare(fSourcesFolder) == 0 && !isEffectInCurrentSession((win)->get_Effect()->getSource())){
+        fExecutedEffects.remove((win)->get_Effect());
         //        QFile::remove((win)->get_Effect()->getSource().c_str());
         removeFilesOfWin((win)->get_Effect()->getSource().c_str(), (win)->get_Effect()->getName().c_str());
         toDelete = (win)->get_Effect();
     }
     else if(!isEffectInCurrentSession((win)->get_Effect()->getSource())){
         (win)->get_Effect()->stop_Watcher();
-        string toErase = currentSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
+        string toErase = fSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
         //        QFile::remove(toErase.c_str());
         removeFilesOfWin(toErase, (win)->get_Effect()->getName());
     }
@@ -1462,8 +1473,8 @@ void FaustLiveApp::shut_AllWindows(){
 
 void FaustLiveApp::shut_Window(){
     
-    if(errorWindow->isActiveWindow())
-        errorWindow->hideWin();
+    if(fErrorWindow->isActiveWindow())
+        fErrorWindow->hideWin();
     //    else if(preference->isActive())
     //        hide_preferenceWindow();
     
@@ -1514,7 +1525,7 @@ void FaustLiveApp::edit(FLWindow* win){
     string error = source + " could not be opened!";
     
     if(system(cmd.c_str()))
-        errorWindow->print_Error(error.c_str());
+        fErrorWindow->print_Error(error.c_str());
 }
 
 void FaustLiveApp::edit_Action(){
@@ -1540,7 +1551,7 @@ void FaustLiveApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(WindowBaseName, val, commonEffect, x, y, currentSession, indexAudio);
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
     
     connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
     connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
@@ -1549,19 +1560,19 @@ void FaustLiveApp::duplicate(FLWindow* window){
     connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     
     //Save then Copy of duplicated window's parameters
-    window->save_Window(indexAudio);
+    window->save_Window();
     
     string toFind = window->get_nameWindow();
     string toReplace = win->get_nameWindow();
     
-    string savingsPath = currentSession + "/" + toFind + "/" + toFind + ".rc";
+    string savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".rc";
     QFile toCpy(savingsPath.c_str());
-    string path = currentSession + "/" + toReplace + "/" + toReplace + ".rc";
+    string path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".rc";
     toCpy.copy(path.c_str());
     
-    savingsPath = currentSession + "/" + toFind + "/" + toFind + ".jc";
+    savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".jc";
     QFile toCy(savingsPath.c_str());
-    path = currentSession + "/" + toReplace + "/" + toReplace + ".jc";
+    path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".jc";
     toCy.copy(path.c_str());
     
     //Replacement of WindowName in the audio Connections File to reconnect the new window as the duplicated one.
@@ -1572,15 +1583,15 @@ void FaustLiveApp::duplicate(FLWindow* window){
     char error[256];
     snprintf(error, 255, "");
     
-    if(win->init_Window(false, true, error, bufferSize, compressionValue, masterIP, masterPort, latency)){
+    if(win->init_Window(false, true, error)){
         FLW_List.push_back(win);
         addWinToSessionFile(win);
     }
     else{
-        string toDelete = currentSession + "/" + win->get_nameWindow(); 
+        string toDelete = fSessionFolder + "/" + win->get_nameWindow(); 
         deleteDirectoryAndContent(toDelete);
         delete win;
-        errorWindow->print_Error(error); 
+        fErrorWindow->print_Error(error); 
     }
     
     //Whatever happens, the watcher has to be started (at least for the duplicated window that needs it)
@@ -1606,7 +1617,7 @@ void FaustLiveApp::update_SourceInWin(FLWindow* win, string source){
     leavingEffect->stop_Watcher();
     deleteWinFromSessionFile(win);
     
-    Effect* newEffect = getEffectFromSource(source, empty, currentSourcesFolder, compilationMode, opt_level, error, false);
+    Effect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, compilationMode, opt_level, error, false);
     
     bool optionChanged;
     
@@ -1614,23 +1625,23 @@ void FaustLiveApp::update_SourceInWin(FLWindow* win, string source){
         optionChanged = (compilationMode.compare(newEffect->getCompilationOptions()) != 0 || opt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
     
     
-    if(newEffect == NULL || (!(win)->update_Window(newEffect, compilationMode, opt_level,error, bufferSize, compressionValue, masterIP, masterPort, latency))){
+    if(newEffect == NULL || (!(win)->update_Window(newEffect, compilationMode, opt_level,error))){
         //If the change fails, the leaving effect has to be reimplanted
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);
-        errorWindow->print_Error(error);
+        fErrorWindow->print_Error(error);
         return;
     }
     else{
         
         //ICI ON VA FAIRE LA COPIE DU FICHIER SOURCE
-        string copySource = currentSourcesFolder +"/" + newEffect->getName() + ".dsp";
+        string copySource = fSourcesFolder +"/" + newEffect->getName() + ".dsp";
         string toCopy = newEffect->getSource();
         
         update_Source(toCopy, copySource);
         
         if(strcmp(error, "") != 0){
-            errorWindow->print_Error(error);
+            fErrorWindow->print_Error(error);
         }
         
         //If the change is successfull : 
@@ -1641,7 +1652,7 @@ void FaustLiveApp::update_SourceInWin(FLWindow* win, string source){
         
         //If leaving effect is not used elsewhere : 
         if(!isEffectInCurrentSession(inter)){                        
-            if(toCompare.compare(currentSourcesFolder) == 0){
+            if(toCompare.compare(fSourcesFolder) == 0){
                 
                 //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
                 //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
@@ -1649,12 +1660,12 @@ void FaustLiveApp::update_SourceInWin(FLWindow* win, string source){
                     removeFilesOfWin(leavingEffect->getSource(), leavingEffect->getName().c_str());
                 //                        QFile::remove(leavingEffect->getSource().c_str());
                 
-                executedEffects.remove(leavingEffect);
+                fExecutedEffects.remove(leavingEffect);
                 delete leavingEffect;
             }
             else{
                 //The copy made of the source is erased
-                string toErase = currentSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
+                string toErase = fSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
                 //                    QFile::remove(toErase.c_str());
                 removeFilesOfWin(toErase, leavingEffect->getName());
             }
@@ -1723,14 +1734,14 @@ void FaustLiveApp::redirect_RCAction(const QPoint & p){
     
     QMenu* rcMenu = new QMenu();
     
-    rcMenu->addAction(editAction);
-    rcMenu->addAction(pasteAction);
-    rcMenu->addAction(duplicateAction);
+    rcMenu->addAction(fEditAction);
+    rcMenu->addAction(fPasteAction);
+    rcMenu->addAction(fDuplicateAction);
     rcMenu->addSeparator();
-    rcMenu->addAction(httpdViewAction);
-    rcMenu->addAction(svgViewAction);
+    rcMenu->addAction(fHttpdViewAction);
+    rcMenu->addAction(fSvgViewAction);
     rcMenu->addSeparator();
-    rcMenu->addAction(exportAction);
+    rcMenu->addAction(fExportAction);
     
     rcMenu->exec(p);
 }
@@ -1749,7 +1760,7 @@ void FaustLiveApp::sessionContentToFile(string filename){
         
         QTextStream textWriting(&f);
         
-        for(it = sessionContent.begin() ; it != sessionContent.end() ; it ++){
+        for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
             
             //            printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
             
@@ -1826,7 +1837,7 @@ void FaustLiveApp::recall_Session(string filename){
     
     fileToSessionContent(filename, &snapshotContent);
     
-    if(filename.compare(currentSessionFile) == 0){
+    if(filename.compare(fSessionFile) == 0){
         
         //Reset current Session File to avoid the return true in all the isInCurrentSession? when recalling currentSession
         
@@ -1849,11 +1860,11 @@ void FaustLiveApp::recall_Session(string filename){
         stringstream s1;
         s1<<it2->first;
         
-        string nameW = WindowBaseName + "-" + s1.str();
+        string nameW = fWindowBaseName + "-" + s1.str();
         
         stringstream s2;
         s2<<it2->second;
-        string newNameW = WindowBaseName + "-" + s2.str();
+        string newNameW = fWindowBaseName + "-" + s2.str();
         
         windowNameChanges.push_back(make_pair(nameW, newNameW));
     }
@@ -1861,20 +1872,20 @@ void FaustLiveApp::recall_Session(string filename){
     list<std::pair<string,string> > nameChanges = establish_nameChanges(&snapshotContent);
     
     //In case of Snapshot Restoration, sources and window parameters Folders have to be copied in currentSession
-    if((QFileInfo(filename.c_str()).absolutePath().toStdString()).compare(currentSession) != 0){
+    if((QFileInfo(filename.c_str()).absolutePath().toStdString()).compare(fSessionFolder) != 0){
         establish_sourceChanges(nameChanges, &snapshotContent);
         
         QFileInfo sourceDir(filename.c_str());
         string snapshotSourcesFolder = sourceDir.absolutePath().toStdString() + "/Sources"; 
-        copy_AllSources(snapshotSourcesFolder, currentSourcesFolder, nameChanges,".dsp");
+        copy_AllSources(snapshotSourcesFolder, fSourcesFolder, nameChanges,".dsp");
         string snapshotIRFolder = sourceDir.absolutePath().toStdString() + "/IR"; 
-        copy_AllSources(snapshotIRFolder, currentIRFolder, nameChanges, "");
+        copy_AllSources(snapshotIRFolder, fIRFolder, nameChanges, "");
         string snapshotSVGFolder = sourceDir.absolutePath().toStdString() + "/SVG";         
-        copy_SVGFolders(snapshotSVGFolder, currentSVGFolder, nameChanges);
+        copy_SVGFolders(snapshotSVGFolder, fSVGFolder, nameChanges);
         
         string snapshotFolder = sourceDir.absolutePath().toStdString();
         
-        copy_WindowsFolders(snapshotFolder, currentSession, windowNameChanges);
+        copy_WindowsFolders(snapshotFolder, fSessionFolder, windowNameChanges);
         
         
     }//Otherwise, one particular case has to be taken into account. If the content was modified and the Effect NOT recharged from source. The original has to be recopied!
@@ -1893,7 +1904,7 @@ void FaustLiveApp::recall_Session(string filename){
         
         (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
         
-        Effect* newEffect = getEffectFromSource((*it)->source, (*it)->name, currentSourcesFolder, (*it)->compilationOptions, (*it)->opt_level, error, true);
+        Effect* newEffect = getEffectFromSource((*it)->source, (*it)->name, fSourcesFolder, (*it)->compilationOptions, (*it)->opt_level, error, true);
         //            printf("THE new Factory = %p\n", newEffect->getFactory());
         
         //ICI ON NE VA PAS FAIRE LA COPIE DU FICHIER SOURCE!!!
@@ -1901,10 +1912,10 @@ void FaustLiveApp::recall_Session(string filename){
         if(newEffect != NULL){
             
             if(strcmp(error, "") != 0){
-                errorWindow->print_Error(error);
+                fErrorWindow->print_Error(error);
             }
             
-            FLWindow* win = new FLWindow(WindowBaseName, (*it)->ID, newEffect, (*it)->x*screenWidth, (*it)->y*screenHeight, currentSession, indexAudio);
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder);
             
             connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
             connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
@@ -1917,12 +1928,12 @@ void FaustLiveApp::recall_Session(string filename){
             win->update_ConnectionFile(windowNameChanges);
             win->update_ConnectionFile(nameChanges);
             
-            if(win->init_Window(false, true, error, bufferSize, compressionValue, masterIP, masterPort, latency)){
+            if(win->init_Window(false, true, error)){
                 //                    printf("The new DSP INstance = %p\n", win->current_DSP);
                 FLW_List.push_back(win);
                 newEffect->launch_Watcher();
                 addWinToSessionFile(win);
-                win->save_Window(indexAudio);
+                win->save_Window();
                 
                 //In case the compilation options have changed...
                 if((*it)->compilationOptions.compare(newEffect->getCompilationOptions()) != 0)
@@ -1931,11 +1942,11 @@ void FaustLiveApp::recall_Session(string filename){
             else{
                 //                    printf("deleting DSP... : %p\n", win->current_DSP);
                 delete win;
-                errorWindow->print_Error(error);    
+                fErrorWindow->print_Error(error);    
             }
         }
         else{
-            errorWindow->print_Error(error);
+            fErrorWindow->print_Error(error);
         }
     }
     //    sessionContent.merge(snapshotContent);
@@ -1998,17 +2009,17 @@ void FaustLiveApp::update_Recent_Session(){
             QString path = QFileInfo(recentSessions[j]).baseName();
             
             QString text = tr("&%1 %2").arg(j+1).arg(path);
-            RrecentSessionAction[j]->setText(text);
-            RrecentSessionAction[j]->setData(recentSessions[j]);
-            RrecentSessionAction[j]->setVisible(true);
+            fRrecentSessionAction[j]->setText(text);
+            fRrecentSessionAction[j]->setData(recentSessions[j]);
+            fRrecentSessionAction[j]->setVisible(true);
             
-            IrecentSessionAction[j]->setText(text);
-            IrecentSessionAction[j]->setData(recentSessions[j]);
-            IrecentSessionAction[j]->setVisible(true);
+            fIrecentSessionAction[j]->setText(text);
+            fIrecentSessionAction[j]->setData(recentSessions[j]);
+            fIrecentSessionAction[j]->setVisible(true);
         }
         else{
-            RrecentSessionAction[j]->setVisible(false);
-            IrecentSessionAction[j]->setVisible(false);
+            fRrecentSessionAction[j]->setVisible(false);
+            fIrecentSessionAction[j]->setVisible(false);
         }
     }
 }
@@ -2053,48 +2064,48 @@ void FaustLiveApp::addWinToSessionFile(FLWindow* win){
     intermediate->ID = win->get_indexWindow();
     intermediate->source = win->get_Effect()->getSource().c_str();
     intermediate->name = win->get_Effect()->getName().c_str();
-    intermediate->x = (float)win->get_x()/(float)screenWidth;
-    intermediate->y = (float)win->get_y()/(float)screenHeight;
+    intermediate->x = (float)win->get_x()/(float)fScreenWidth;
+    intermediate->y = (float)win->get_y()/(float)fScreenHeight;
     intermediate->compilationOptions = compilationOptions.c_str();
     intermediate->opt_level = win->get_Effect()->getOptValue();
     
     
-    int i = frontWindow.size();
+    int i = fFrontWindow.size();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
     name+= win->get_Effect()->getName().c_str();
     
-    QAction* fifiWindow = new QAction(name, windowsMenu);
-    frontWindow.push_back(fifiWindow);
+    QAction* fifiWindow = new QAction(name, fWindowsMenu);
+    fFrontWindow.push_back(fifiWindow);
     
     fifiWindow->setData(QVariant(win->get_nameWindow().c_str()));
     connect(fifiWindow, SIGNAL(triggered()), win, SLOT(frontShow()));
     
-    windowsMenu->addAction(fifiWindow);
+    fWindowsMenu->addAction(fifiWindow);
     
     //    printf("ADDING ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", intermediate->ID, intermediate->source.c_str(), intermediate->name.c_str(), intermediate->x, intermediate->y, intermediate->compilationOptions.c_str());
     
-    sessionContent.push_back(intermediate);
+    fSessionContent.push_back(intermediate);
 }
 
 void FaustLiveApp::deleteWinFromSessionFile(FLWindow* win){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin() ; it != sessionContent.end() ; it++){
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it++){
         
         if((*it)->ID == win->get_indexWindow()){
             //            printf("REMOVING = %i\n", win->get_indexWindow());
-            sessionContent.remove(*it);
+            fSessionContent.remove(*it);
             
             QAction* toRemove = NULL;
             
             QList<QAction*>::iterator it;
-            for(it = frontWindow.begin(); it != frontWindow.end() ; it++){
+            for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
                 if((*it)->data().toString().toStdString().compare(win->get_nameWindow()) == 0){
-                    windowsMenu->removeAction(*it);
-                    frontWindow.removeOne(*it);
+                    fWindowsMenu->removeAction(*it);
+                    fFrontWindow.removeOne(*it);
                     //                    toRemove = *it;
                     break;
                 }
@@ -2107,7 +2118,7 @@ void FaustLiveApp::deleteWinFromSessionFile(FLWindow* win){
 
 void FaustLiveApp::reset_CurrentSession(){
     
-    QDir srcDir(currentSession.c_str());
+    QDir srcDir(fSessionFolder.c_str());
     
     QFileInfoList children = srcDir.entryInfoList(QDir::Dirs | QDir::Drives | QDir::NoDotAndDotDot);
     
@@ -2120,20 +2131,20 @@ void FaustLiveApp::reset_CurrentSession(){
         deleteDirectoryAndContent(toRemove);
     }
     
-    QDir nv(currentSession.c_str());
-    QString ss(currentSession.c_str());
+    QDir nv(fSessionFolder.c_str());
+    QString ss(fSessionFolder.c_str());
     ss += "/Sources";
     nv.mkdir(ss);
     
-    QString svg(currentSession.c_str());
+    QString svg(fSessionFolder.c_str());
     svg += "/SVG";
     nv.mkdir(svg);
     
-    QString ir(currentSession.c_str());
+    QString ir(fSessionFolder.c_str());
     ir += "/IR";
     nv.mkdir(ir);
     
-    sessionContent.clear();
+    fSessionContent.clear();
     
     recall_Settings(homeSettings);
 }
@@ -2146,7 +2157,7 @@ void FaustLiveApp::update_CurrentSession(){
         
         deleteWinFromSessionFile(*it);
         addWinToSessionFile(*it);
-        (*it)->save_Window(indexAudio);
+        (*it)->save_Window();
     }
 }
 
@@ -2163,12 +2174,12 @@ void FaustLiveApp::currentSessionRestoration(list<WinInSession*>* session){
     for(it = session->begin() ; it != session->end() ; it++){
         
         string contentOrigin = pathToContent((*it)->source);
-        string sourceSaved = currentSourcesFolder + "/" + (*it)->name + ".dsp";
+        string sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
         string contentSaved = pathToContent(sourceSaved);
         
         QFileInfo infoSource((*it)->source.c_str());
         //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
-        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(currentSourcesFolder) != 0 && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0) ){
+        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(fSourcesFolder) != 0 && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0) ){
             
             string mesg;
             bool contentModif = false;
@@ -2196,7 +2207,7 @@ void FaustLiveApp::currentSessionRestoration(list<WinInSession*>* session){
             if (existingNameMessage->clickedButton() == cancel_Button) {
                 delete existingNameMessage;
                 
-                string toErase = currentSourcesFolder + "/" + (*it)->name + ".dsp";
+                string toErase = fSourcesFolder + "/" + (*it)->name + ".dsp";
                 removeFilesOfWin(toErase, (*it)->name);
                 if(!contentModif){
                     deleteLineIndexed((*it)->ID);
@@ -2204,24 +2215,24 @@ void FaustLiveApp::currentSessionRestoration(list<WinInSession*>* session){
                     //                    removeFilesOfWin(toErase, (*it)->name);
                 }
                 else{
-                    string newSource = currentSourcesFolder + "/" + (*it)->name + ".dsp";
+                    string newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
                     QFile file((*it)->source.c_str());
                     file.copy(newSource.c_str());
                 }
             }    
             else{
                 delete existingNameMessage;
-                string newSource = currentSourcesFolder + "/" + (*it)->name + ".dsp";
+                string newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
                 sourceChanges.push_back(make_pair((*it)->source, newSource));
                 (*it)->source = newSource;
             }
         }
         //If the source was in the Source Folder and couldn't be found, it can't be reloaded.
-        else if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(currentSourcesFolder) == 0 && !infoSource.exists()){
+        else if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(fSourcesFolder) == 0 && !infoSource.exists()){
             
             deleteLineIndexed((*it)->ID);
             string msg = (*it)->name + " could not be reload. The File is lost!"; 
-            errorWindow->print_Error(msg.c_str());
+            fErrorWindow->print_Error(msg.c_str());
         }
         else if(updated.find((*it)->source) != updated.end()){
             
@@ -2249,10 +2260,10 @@ void FaustLiveApp::take_Snapshot(){
     if(filename.compare("") != 0){
         
         update_CurrentSession();
-        sessionContentToFile(currentSessionFile);
+        sessionContentToFile(fSessionFile);
         
         //Copy of current Session under a new name, at a different location
-        cpDir(currentSession.c_str(), filename.c_str());
+        cpDir(fSessionFolder.c_str(), filename.c_str());
         //
         //        string descriptionFile = filename + "/Description.sffx";
         
@@ -2268,7 +2279,7 @@ void FaustLiveApp::take_Snapshot(){
         error = myCmd.readAllStandardError();
         
         if(strcmp(error.data(), "") != 0)
-            errorWindow->print_Error(error.data());
+            fErrorWindow->print_Error(error.data());
         
         QProcess myCmd2;
         QByteArray error2;
@@ -2282,7 +2293,7 @@ void FaustLiveApp::take_Snapshot(){
         error2 = myCmd2.readAllStandardError();
         
         if(strcmp(error2.data(), "") != 0)
-            errorWindow->print_Error(error2.data());
+            fErrorWindow->print_Error(error2.data());
         
         string sessionName =  filename + ".tar ";
         set_Current_Session(sessionName);
@@ -2312,7 +2323,7 @@ void FaustLiveApp::snapshotRestoration(string& file, list<WinInSession*>* sessio
         string contentSaved = pathToContent(sourceSaved);
         
         //If one source (not in the Source folder) couldn't be found, the User is informed that we are now working on the copy
-        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(currentSourcesFolder) != 0  && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0)){
+        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(fSourcesFolder) != 0  && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0)){
             
             char error[256];
             
@@ -2322,8 +2333,8 @@ void FaustLiveApp::snapshotRestoration(string& file, list<WinInSession*>* sessio
             else if(contentSaved.compare(contentOrigin) != 0)
                 snprintf(error, 255, "WARNING = The content of %s has been modified! It is reloaded from a copied file.", (*it)->source.c_str());
             
-            errorWindow->print_Error(error);
-            string newSource = currentSourcesFolder + "/" + (*it)->name + ".dsp";
+            fErrorWindow->print_Error(error);
+            string newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
             updated[(*it)->source] = true;       
             sourceChanges.push_back(make_pair((*it)->source, newSource));
             
@@ -2381,7 +2392,7 @@ void FaustLiveApp::recall_Snapshot(string filename, bool importOption){
     error = myCmd.readAllStandardError();
     
     if(strcmp(error.data(), "") != 0)
-        errorWindow->print_Error(error.data());
+        fErrorWindow->print_Error(error.data());
     
     if(!importOption){
         shut_AllWindows(); 
@@ -2406,7 +2417,7 @@ void FaustLiveApp::recall_Snapshot(string filename, bool importOption){
     error = myCmd.readAllStandardError();
     
     if(strcmp(error2.data(), "") != 0)
-        errorWindow->print_Error(error2.data());
+        fErrorWindow->print_Error(error2.data());
 }
 
 //---------------RENAMING AND ALL FUNCTIONS TO IMPORT
@@ -2415,11 +2426,11 @@ void FaustLiveApp::deleteLineIndexed(int index){
     
     list<WinInSession*>::iterator it;
     
-    for(it = sessionContent.begin(); it != sessionContent.end() ; it++){
+    for(it = fSessionContent.begin(); it != fSessionContent.end() ; it++){
         
         //Check if line wasn't empty
         if((*it)->ID == index){
-            sessionContent.remove(*it);
+            fSessionContent.remove(*it);
             break;    
         }
     }
@@ -2469,7 +2480,7 @@ list<std::pair<string,string> > FaustLiveApp::establish_nameChanges(list<WinInSe
         string newName = (*it)->name;
         
         //1- If the source is already is current Session (& not pointing in Sources Folder) ==> getName already given
-        if(isEffectInCurrentSession((*it)->source) && QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(currentSourcesFolder) != 0){
+        if(isEffectInCurrentSession((*it)->source) && QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) != 0){
             
             newName = getNameEffectFromSource((*it)->source);
             nameChanges.push_front(make_pair((*it)->name, newName));
@@ -2495,7 +2506,7 @@ list<std::pair<string,string> > FaustLiveApp::establish_nameChanges(list<WinInSe
         //==> if the Name is not used in current Session, we keep it and inform of its use
         //==>if it is used, it is renamed as the smallest available and we inform of its use
         
-        else if(newName.find(DefaultName) != string::npos){
+        else if(newName.find(DEFAULTNAME) != string::npos){
             bool found = false;
             list<string>::iterator it2;
             for(it2 = currentDefault.begin(); it2 != currentDefault.end(); it2++){
@@ -2522,7 +2533,7 @@ list<std::pair<string,string> > FaustLiveApp::establish_nameChanges(list<WinInSe
             }
         }
         //4- If the source is in current Folder and its name is already used, it has to be renamed
-        else if(QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(currentSourcesFolder) == 0){
+        else if(QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) == 0){
             
             string intermediateSource = "";
             while(isEffectNameInCurrentSession(intermediateSource, newName)){
@@ -2575,14 +2586,14 @@ void FaustLiveApp::establish_sourceChanges(list<std::pair<string,string> > nameC
         
         for(it = session->begin(); it != session->end() ; it++){
             
-            if(QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(currentSourcesFolder)== 0){
+            if(QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder)== 0){
                 
                 string inter = it2->first;
                 QFileInfo sourceInfo((*it)->source.c_str());
                 string inter2 = sourceInfo.baseName().toStdString();
                 
                 if(inter2.compare(inter) == 0){
-                    string inter = currentSourcesFolder + "/" + it2->second + ".dsp";
+                    string inter = fSourcesFolder + "/" + it2->second + ".dsp";
                     (*it)->source = inter;
                 }
             }
@@ -2712,7 +2723,7 @@ void FaustLiveApp::viewHttpd(FLWindow* win){
     char error[256];
     
     if(!win->init_Httpd(error))
-        errorWindow->print_Error(error);
+        fErrorWindow->print_Error(error);
 }
 
 void FaustLiveApp::httpd_View_Window(){
@@ -2722,19 +2733,19 @@ void FaustLiveApp::httpd_View_Window(){
     if(win != NULL)
         viewHttpd(win);
     else
-        errorWindow->print_Error("No active Window");
+        fErrorWindow->print_Error("No active Window");
 }
 
 void FaustLiveApp::viewSvg(FLWindow* win){
     
     string source = win->get_Effect()->getSource();
-    string pathToOpen = currentSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
+    string pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
     
     string cmd = "open " + pathToOpen;
     string error = pathToOpen + " could not be opened!";
     
     if(system(cmd.c_str()))
-        errorWindow->print_Error(error.c_str());
+        fErrorWindow->print_Error(error.c_str());
 }
 
 void FaustLiveApp::svg_View_Action(){
@@ -2797,18 +2808,18 @@ void FaustLiveApp::init_HelpWindow(){
     
     //----------------------Global
     
-    HelpWindow->setWindowTitle(QString::fromUtf8("FAUST LIVE HELP"));
+    fHelpWindow->setWindowTitle(QString::fromUtf8("FAUST LIVE HELP"));
     
-    groupBox = new QGroupBox(HelpWindow);
+    groupBox = new QGroupBox(fHelpWindow);
     
     MyTabWidget = new QTabWidget(groupBox);
     layout->addWidget(MyTabWidget);
     
-    QMetaObject::connectSlotsByName(HelpWindow);
+    QMetaObject::connectSlotsByName(fHelpWindow);
     
-    HelpWindow->setGeometry(QRect(screenWidth/4, 0, screenWidth/2, screenHeight*3/4));
+    fHelpWindow->setGeometry(QRect(fScreenWidth/4, 0, fScreenWidth/2, fScreenHeight*3/4));
     
-    pushButton = new QPushButton("OK", HelpWindow);
+    pushButton = new QPushButton("OK", fHelpWindow);
     pushButton->connect(pushButton, SIGNAL(clicked()), this, SLOT(end_apropos()));
     
     //---------------------General
@@ -2824,7 +2835,7 @@ void FaustLiveApp::init_HelpWindow(){
     MyTabWidget->addTab(tab_1, QString());
     MyTabWidget->setTabText(MyTabWidget->indexOf(tab_1), QApplication::translate("HelpMenu", "General", 0, QApplication::UnicodeUTF8));
     
-    MyTabWidget->setMaximumSize(screenWidth/2, screenHeight*3/4);
+    MyTabWidget->setMaximumSize(fScreenWidth/2, fScreenHeight*3/4);
     
     plainTextEdit_7->setReadOnly(true);
     lineEdit->setReadOnly(true);
@@ -3016,18 +3027,18 @@ void FaustLiveApp::init_HelpWindow(){
     layout->addWidget(pushButton);
     layout->setSizeConstraint(QLayout::SetNoConstraint);
     groupBox->setLayout(layout);
-    groupBox->setGeometry(QRect(screenWidth/4, 0, screenWidth/4, screenHeight/4));
-    HelpWindow->setCentralWidget(groupBox);
+    groupBox->setGeometry(QRect(fScreenWidth/4, 0, fScreenWidth/4, fScreenHeight/4));
+    fHelpWindow->setCentralWidget(groupBox);
     
     MyTabWidget->setCurrentIndex(0);
 }
 
 void FaustLiveApp::apropos(){
-    HelpWindow->show();
+    fHelpWindow->show();
 }
 
 void FaustLiveApp::end_apropos(){
-    HelpWindow->hide(); 
+    fHelpWindow->hide(); 
 }
 
 void FaustLiveApp::version_Action(){
@@ -3043,12 +3054,12 @@ void FaustLiveApp::version_Action(){
     text += "\n""- LLVM Compiler ";
     text += "3.1";
     
-    QPlainTextEdit* versionText = new QPlainTextEdit(tr(text.c_str()), versionWindow);
+    QPlainTextEdit* versionText = new QPlainTextEdit(tr(text.c_str()), fVersionWindow);
     
     layoutGeneral->addWidget(versionText);
-    versionWindow->setLayout(layoutGeneral);
+    fVersionWindow->setLayout(layoutGeneral);
     
-    versionWindow->exec();
+    fVersionWindow->exec();
     
     delete versionText;
     delete layoutGeneral;
@@ -3087,7 +3098,7 @@ void FaustLiveApp::init_presentationWindow(){
     mainLayout->addWidget(gridBox);
     mainLayout->addWidget(textBox);
     
-    presWin->setLayout(mainLayout);
+    fPresWin->setLayout(mainLayout);
     
     //------------------------ICON
     
@@ -3229,7 +3240,7 @@ void FaustLiveApp::init_presentationWindow(){
     
     QPushButton* cancel = new QPushButton("Cancel");
     cancel->setStyleSheet("*{background-color: transparent;}");
-    connect(cancel, SIGNAL(clicked()), this, SLOT(hide_presentationWin()));
+    connect(cancel, SIGNAL(clicked()), fPresWin, SLOT(hide()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
@@ -3280,56 +3291,34 @@ void FaustLiveApp::init_presentationWindow(){
 }
 
 void FaustLiveApp::new_Window_pres(){
-    presWin->hide();
+    fPresWin->hide();
     //    reset_CurrentSession();
     create_Empty_Window();
 }
 
 void FaustLiveApp::open_Window_pres(){
-    presWin->hide();   
+    fPresWin->hide();   
     //    reset_CurrentSession();
     open_New_Window();
 }
 
 void FaustLiveApp::open_Session_pres(){
-    presWin->hide();
+    fPresWin->hide();
     //    reset_CurrentSession();
     recallSnapshotFromMenu();
 }
 
 void FaustLiveApp::show_presentation_Action(){
     
-    presWin = new QDialog;
-    presWin->setWindowFlags(Qt::FramelessWindowHint);
+    fPresWin = new QDialog;
+    fPresWin->setWindowFlags(Qt::FramelessWindowHint);
     init_presentationWindow();
     
-    presWin->show();
-    presWin->raise();
-}
-
-void FaustLiveApp::hide_presentationWin(){
-    presWin->hide();
+    fPresWin->show();
+    fPresWin->raise();
 }
 
 //--------------------------------PREFERENCES---------------------------------------
-
-void FaustLiveApp::linkClicked(const QUrl& link){
-    
-    string myLink = link.path().toStdString();
-    
-    int pos = 0;
-    pos = myLink.find("\\");
-    
-    while(pos != string::npos){
-        myLink.insert(pos + 1, 1, ' ');
-        pos = myLink.find("\\", pos+2);
-    }
-    
-    string myCmd = "open -a " + myLink;
-    system(myCmd.c_str());
-    
-    splRate->reload();
-}
 
 void FaustLiveApp::styleClicked(){
     
@@ -4040,11 +4029,8 @@ void FaustLiveApp::styleClicked(string style){
 }
 
 void FaustLiveApp::Preferences(){
-    
-    audioArchitecture->setCurrentIndex(indexAudio);
-    currentIndexChange(indexAudio);
-    
-    int val = preference->exec();
+        
+    preference->exec();
 }
 
 void FaustLiveApp::init_PreferenceWindow(){
@@ -4063,15 +4049,11 @@ void FaustLiveApp::init_PreferenceWindow(){
     myTab->addTab(menu2, tr("Audio Preferences"));
     myTab->addTab(menu3, tr("Style Preferences"));
     
+    fAudioBox = new QGroupBox(menu2);
+    fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
+    
     compilModes = new QLineEdit(menu1);
     optVal = new QLineEdit(menu1);
-    
-    audioArchitecture = new QComboBox(menu2);
-    
-    audioArchitecture->addItem("Core Audio");
-    //    audioArchitecture->setItemData(0, 0, Qt::UserRole-1);
-    audioArchitecture->addItem("Jack");
-    audioArchitecture->addItem("NetJack");
     
     QWidget* intermediateWidget = new QWidget(preference);
     
@@ -4082,8 +4064,7 @@ void FaustLiveApp::init_PreferenceWindow(){
     saveB->setDefault(true);
     
     connect(saveB, SIGNAL(released()), this, SLOT(save_Mode()));
-    connect(cancelB, SIGNAL(released()), this, SLOT(hide_preferenceWindow()));
-    connect(audioArchitecture, SIGNAL(activated(int)), this, SLOT(currentIndexChange(int)));
+    connect(cancelB, SIGNAL(released()), preference, SLOT(hide()));
     
     recall_Settings(homeSettings);
     
@@ -4107,9 +4088,6 @@ void FaustLiveApp::init_PreferenceWindow(){
     QLabel* la2 = new QLabel(tr("Optimization Value of compilation"));
     layout->addRow(la2, optVal);
     layout->addRow(new QLabel(tr("")));
-    layout2->addRow(new QLabel(tr("")));
-    QLabel* la3 = new QLabel(tr("Audio Architecture"));
-    layout2->addRow(la3, audioArchitecture);
     
     QPlainTextEdit* container = new QPlainTextEdit(menu3);
     container->setReadOnly(true);
@@ -4182,69 +4160,6 @@ void FaustLiveApp::init_PreferenceWindow(){
     layout5->addWidget(container);
     menu3->setLayout(layout5);
     
-    stringstream ll, bf, ss;
-    string urlText("");
-    QString sheet("");
-    
-    switch (indexAudio) {
-        case kCoreaudio:
-            
-            bf << bufferSize;  
-            printf("buf size = %i\n", bufferSize);
-            bufSize = new QLineEdit(bf.str().c_str());
-            bufSize->setText(bf.str().c_str());
-            
-            splRate = new QTextBrowser;
-            
-            urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
-            sheet = QString::fromLatin1("a{ text-decoration: underline; color: black; font: Menlo; font-size: 14px }");
-            splRate->document()->setDefaultStyleSheet(sheet);
-            splRate->setStyleSheet("*{color: black; font: Menlo; font-size: 14px; background-color : white; }");
-            
-            
-            splRate->setOpenExternalLinks(false);
-            splRate->setHtml(urlText.c_str());
-            splRate->setFixedHeight(50);
-            connect(splRate, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(linkClicked(const QUrl&)));
-            
-            ASR = new QLabel(tr("Audio Sample Rate"));
-            ABS = new QLabel(tr("Audio Buffer Size"));
-            
-            layout2->addRow(ABS, bufSize);
-            layout2->addRow(splRate);
-            break;
-            
-        case kNetjackaudio:
-            
-            ss << compressionValue;
-            bf << masterPort;
-            ll << latency;            
-            
-            cprValue = new QLineEdit(ss.str().c_str());
-            cprValue->setText(ss.str().c_str());
-            CV = new QLabel(tr("Compression Value"));
-            layout2->addRow(CV, cprValue);
-            
-            mIP = new QLineEdit(masterIP.c_str());
-            mIP->setText(masterIP.c_str());
-            MIA = new QLabel(tr("Master IP adress"));
-            layout2->addRow(MIA, mIP);
-            
-            mPort = new QLineEdit(bf.str().c_str());
-            mPort->setText(bf.str().c_str());
-            MP = new QLabel(tr("Master Port"));
-            layout2->addRow(MP, mPort);
-            
-            lat = new QLineEdit(ll.str().c_str());
-            lat->setText(ll.str().c_str());
-            LAT = new QLabel(tr("Latency"));
-            layout2->addRow(LAT, lat);
-            
-            break;
-        default:
-            break;
-    }
-    
     layout3->addRow(myTab);
     
     intermediateLayout->addWidget(cancelB);
@@ -4255,115 +4170,11 @@ void FaustLiveApp::init_PreferenceWindow(){
     layout3->addRow(intermediateWidget);
     
     menu1->setLayout(layout);
+    
+    layout2->addWidget(fAudioBox);
     menu2->setLayout(layout2);
+    
     preference->setLayout(layout3);
-    
-    //    audioArchitecture->setCurrentIndex(indexAudio);
-}
-
-void FaustLiveApp::currentIndexChange(int index){
-    
-    //    audioArchitecture->setCurrentIndex(index);
-    
-    //    printf("TEXT = %s\n", audioArchitecture->currentText().toStdString().c_str());
-    
-    delete splRate;
-    splRate = NULL;
-    delete bufSize;
-    bufSize = NULL;
-    delete ASR;
-    ASR= NULL;
-    delete ABS;
-    ABS = NULL;
-    delete cprValue;
-    cprValue = NULL;
-    delete mIP;
-    mIP = NULL;
-    delete mPort;
-    mPort = NULL;
-    delete lat;
-    lat = NULL;
-    delete CV;
-    CV = NULL;
-    delete MIA;
-    MIA = NULL;
-    delete MP;
-    MP = NULL;
-    delete LAT;
-    LAT = NULL;
-    
-    string urlText;
-    QString sheet;
-    
-    if(index == 2){
-        
-        cprValue = new QLineEdit;
-        mIP = new QLineEdit;
-        mPort = new QLineEdit;
-        lat = new QLineEdit;
-        CV = new QLabel(tr("Compression Value"));
-        //        CV->setStyleSheet("*{color:white;}");
-        MIA = new QLabel(tr("Master IP adress"));
-        //        MIA->setStyleSheet("*{color:white;}");
-        MP = new QLabel(tr("Master Port"));
-        //        MP->setStyleSheet("*{color:white;}");
-        LAT = new QLabel(tr("Latency"));
-        //        LAT->setStyleSheet("*{color:white;}");
-        
-        stringstream ss;
-        ss << compressionValue;
-        
-        cprValue->setText(ss.str().c_str());
-        
-        mIP->setText(masterIP.c_str());
-        
-        stringstream bf;
-        bf << masterPort;
-        
-        mPort->setText(bf.str().c_str());
-        
-        stringstream ll;
-        ll << latency;
-        
-        lat->setText(ll.str().c_str());
-        
-        layout2->insertRow(4, CV, cprValue);
-        layout2->insertRow(5, MIA, mIP);
-        layout2->insertRow(6, MP, mPort);
-        layout2->insertRow(7, LAT, lat);
-    }
-    else if(index == 0){
-        
-        splRate = new QTextBrowser;
-        bufSize = new QLineEdit;
-        ASR = new QLabel(tr("Audio Sample Rate"));
-        ABS = new QLabel(tr("Audio Buffer Size"));
-        
-        sheet = QString::fromLatin1("a{ text-decoration: underline; color: black; font: Menlo; font-size: 14px }");
-        splRate->document()->setDefaultStyleSheet(sheet);
-        
-        urlText = "To modify the sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
-        
-        splRate->setOpenExternalLinks(false);
-        splRate->setHtml(urlText.c_str());
-        splRate->setFixedHeight(50);
-        connect(splRate, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(linkClicked(const QUrl&)));
-        
-        stringstream bf;
-        bf << bufferSize;
-        
-        if(bf.str().compare("") == 0 || bf.str().compare("0") == 0)
-            bf.str() = "512";
-        
-        bufSize->setText(bf.str().c_str());
-        
-        layout2->insertRow(4, ABS, bufSize);
-        layout2->insertRow(5, splRate);
-    }
-}
-
-void FaustLiveApp::hide_preferenceWindow(){
-    preference->hide();
 }
 
 void FaustLiveApp::save_Mode(){
@@ -4376,73 +4187,14 @@ void FaustLiveApp::save_Mode(){
     else
         opt_level = 3;
     
-    int newIndex = audioArchitecture->currentIndex();
-    //    printf("NEW INDEX = %i\n", newIndex);
-    
-    int newBS = bufferSize;
-    int newCV = compressionValue;
-    int newMP = masterPort;
-    int newLAT = latency; 
-    string newMIA = masterIP;
-    
-    if(newIndex == 0){
-        const char* inter2 = bufSize->text().toStdString().c_str();
-        if(isStringInt(inter2)){
-            newBS = atoi(inter2);
-            if(newBS == 0)
-                newBS = 512;
-        }
-        else
-            newBS = 512;
+    preference->hide();
+
+    if(fAudioCreator->didSettingChanged()){
+        printf("WE ARE GOING TO UPDATE....\n");
+        update_AudioArchitecture();
     }
-    else if(newIndex == 2){
-        
-        const char* inter = cprValue->text().toStdString().c_str();
-        if(isStringInt(inter)){
-            newCV = atoi(inter);
-            if(newCV == 0)
-                newCV = -1;
-        }
-        else
-            newCV = -1;
-        
-        const char* inter2 = mPort->text().toStdString().c_str();
-        if(isStringInt(inter2)){
-            newMP = atoi(inter2);
-            if(newMP == 0)
-                newMP = 19000;
-        }
-        else
-            newMP = 19000;   
-        
-        if(mIP->text().toStdString().compare("") == 0)
-            newMIA = "225.3.19.154";
-        else
-            newMIA = mIP->text().toStdString();
-        
-        const char* inter3 = lat->text().toStdString().c_str();
-        if(isStringInt(inter3)){
-            newLAT = atoi(inter3);
-            if(newLAT == 0)
-                newLAT = 2;
-        }
-        else
-            newLAT = 2;   
-    }
-    
-    hide_preferenceWindow();
-    
-    if(indexAudio != newIndex){
-        
-        //        printf("newBS = %i\n", newBS);
-        update_AudioArchitecture(newIndex, newBS, newCV, newMIA, newMP, newLAT);
-    }
-    else if( (indexAudio == 0 && (bufferSize != newBS)) || ( indexAudio == 2 && (compressionValue != newCV || newMIA.compare(masterIP) != 0 || masterPort != newMP || latency != newLAT)) ){
-        
-        update_AudioParameters(newIndex, newBS, newCV, newMIA, newMP, newLAT);
-    }
-    
-    save_Settings(homeSettings);
+    else
+        fAudioCreator->reset_Settings();
 }
 
 void FaustLiveApp::save_Settings(string& home){
@@ -4468,18 +4220,15 @@ void FaustLiveApp::save_Settings(string& home){
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
         QTextStream textWriting(&f);
-        QString toSave = masterIP.c_str();
-        if(toSave == "")
-            toSave = '/';
         
-        textWriting<<modeText.c_str()<<' '<<opt_level<<' '<<indexAudio <<' '<< bufferSize <<' '<<compressionValue <<' '<< toSave <<' '<< masterPort <<' '<<latency<<' '<<styleChoice.c_str()<<endl;
+        textWriting<<modeText.c_str()<<' '<<opt_level<<styleChoice.c_str();
         
         f.close();
     }
 }
 
 void FaustLiveApp::recall_Settings(string& home){
-    
+
     QString ModeText;
     
     QFile f(home.c_str()); 
@@ -4487,16 +4236,11 @@ void FaustLiveApp::recall_Settings(string& home){
     if(f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
-        QString intermediate;
         QString styleIntermediate;
         
-        textReading>>ModeText>>opt_level>>indexAudio>>bufferSize>>compressionValue >> intermediate >> masterPort>> latency>>styleIntermediate;
-        
-        masterIP = intermediate.toStdString();
+        textReading>>ModeText>>opt_level>>styleIntermediate;
+
         styleChoice = styleIntermediate.toStdString();
-        
-        if(masterIP.compare("/") == 0)
-            masterIP = "";
         
         f.close();
     }
@@ -4519,36 +4263,34 @@ void FaustLiveApp::recall_Settings(string& home){
     compilationMode = modeText;
 }
 
-void FaustLiveApp::update_AudioArchitecture(int newIndex, int newBS, int newCV, string newMIA, int newMP, int newLAT){
-    
-    //    printf("Update_Audio FaustLive : newBS = %i\n", newBS);
+void FaustLiveApp::update_AudioArchitecture(){
     
     list<FLWindow*>::iterator it;
+    list<FLWindow*>::iterator updateFailPointer;
     
     bool updateSuccess = true;
+    string errorToPrint;
     char error[256];
     snprintf(error, 255, "");
     
     display_CompilingProgress("Updating Audio Architecture...");
     
-    //    list<FLWindow*> toDelete;
-    
     //Save all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->save_Window(indexAudio);
+        (*it)->save_Window();
     
     //Stop all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
         (*it)->stop_Audio();
     
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->reset_audioSwitch();   
-    
     //Try to init new audio architecture
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
         
-        if(!(*it)->update_AudioArchitecture(newIndex, newBS, newCV, newMIA, newMP, newLAT)){
+        printf("UPDATE AUDIO \n");
+        
+        if(!(*it)->update_AudioArchitecture(error)){
             updateSuccess = false;
+            updateFailPointer = it;
             break;
         }
     }
@@ -4558,173 +4300,56 @@ void FaustLiveApp::update_AudioArchitecture(int newIndex, int newBS, int newCV, 
     //If init failed, reinit old audio Architecture
     if(!updateSuccess){
         
-        //        toDelete.clear();
+        printf("Update Audio failed\n");
+        errorToPrint = "Update not successfull";
+    
+        fErrorWindow->print_Error(errorToPrint.c_str());
+        fErrorWindow->print_Error(error);
         
-        switch(newIndex){
-            case kCoreaudio:
-                snprintf(error, 255, "%s", "Impossible to init Core Audio Client");
-                break;
-            case kJackaudio:
-                snprintf(error, 255, "%s", "Impossible to init Jack Client");
-                break;
-            case kNetjackaudio:
-                snprintf(error, 255, "%s", "Impossible to init remote Net Jack Client.\nMake sure the server is running!");
-            default:
-                break;
-        }
-        
-        errorWindow->print_Error(error);
+        for(it = FLW_List.begin() ; it != updateFailPointer; it++)
+            (*it)->stop_Audio();
+
+        fAudioCreator->reset_Settings();    
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
             
-            if(!(*it)->init_audioClient(indexAudio, bufferSize, compressionValue, masterIP, masterPort, latency))
+            if(!(*it)->update_AudioArchitecture(error))
             {
                 reinitSuccess = false;
                 break;
             }
         }
         
-        snprintf(error, 255, "");
-        
         if(!reinitSuccess){
             
             shut_AllWindows();
-            switch(indexAudio){
-                case kCoreaudio:
-                    snprintf(error, 255, "%s", "\nImpossible to restart CoreAudio.");
-                    break;
-                case kJackaudio:
-                    snprintf(error, 255, "%s", "\nImpossible to restart Jack.");
-                    break;
-                case kNetjackaudio:
-                    snprintf(error, 255, "%s", "\nImpossible to restart NetJack.");
-                default:
-                    break;
-            }
+            
+            errorToPrint += fAudioCreator->get_ArchiName();
+            errorToPrint = " could not be reinitialize";
+            
+            fErrorWindow->print_Error(errorToPrint.c_str());
+            fErrorWindow->print_Error(error);
         }
         else{
             
-            switch(indexAudio){
-                case kCoreaudio:
-                    snprintf(error, 255, "%s", "\nStill running with CoreAudio.");
-                    break;
-                case kJackaudio:
-                    snprintf(error, 255, "%s", "\nStill running with Jack.");
-                    break;
-                case kNetjackaudio:
-                    snprintf(error, 255, "%s", "\nStill running with NetJack.");
-                default:
-                    break;
-            }
+            for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+                (*it)->start_Audio();
+            
+            errorToPrint = fAudioCreator->get_ArchiName();
+            errorToPrint += " was reinitialized";
+            fErrorWindow->print_Error(errorToPrint.c_str());
+            
         }
-        
-        errorWindow->print_Error(error);   
-    }
-    else{
-        indexAudio = newIndex;
-        
-        if(indexAudio == 0)
-            bufferSize = newBS;
-        
-        else if(indexAudio == 2){
-            compressionValue = newCV;
-            masterIP = newMIA;
-            masterPort = newMP;
-            latency = newLAT;
-        }
-    }
-    
-    StopProgressSlot();
-}
 
-void FaustLiveApp::update_AudioParameters(int index, int newBS, int newCV, string newMIA, int newMP, int newLAT){
-    
-    bool updateSuccess = true;
-    char error[256];
-    snprintf(error, 255, "");
-    
-    list<FLWindow*>::iterator it;
-    
-    display_CompilingProgress("Updating Audio Parameters...");
-    
-    //Save all audio clients
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->save_Window(indexAudio);
-    
-    //Stop all audio clients
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
-        
-        printf("LAUNCH STOP AUDIO\n");
-        (*it)->stop_Audio();
-    }
-    
-    //Reset switch indicator
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->reset_audioSwitch();    
-    
-    //Try to init new audio architecture
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
-        
-        if(!(*it)->update_AudioParameters(error, index, newBS, newCV, newMIA, newMP, newLAT)){
-            updateSuccess = false;
-            break;
-        }
-    }
-    
-    bool reinitSuccess = true;
-    
-    //If init failed, reinit old audio Architecture
-    if(!updateSuccess){
-        
-        switch(index){
-            case kCoreaudio:
-                snprintf(error, 255, "%s", "Impossible to init Core Audio Client with new parameters.");
-                break;
-            case kNetjackaudio:
-                snprintf(error, 255, "%s", "Impossible to init remote Net Jack Client with new parameters.");
-            default:
-                break;
-        }
-        
-        errorWindow->print_Error(error);
-        
-        for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
-            
-            if(!(*it)->init_audioClient(index, bufferSize, compressionValue, masterIP, masterPort, latency))
-            {
-                reinitSuccess = false;
-                break;
-            }
-        }
-        
-        snprintf(error, 255, "");
-        
-        if(!reinitSuccess){
-            
-            shut_AllWindows();
-            switch(index){
-                case kCoreaudio:
-                    snprintf(error, 255, "%s", "\nImpossible to restart CoreAudio with previous parameters.");
-                    break;
-                case kNetjackaudio:
-                    snprintf(error, 255, "%s", "\nImpossible to restart NetJack with previous parameters.");
-                default:
-                    break;
-            }
-            errorWindow->print_Error(error);   
-        }
     }
     else{
         
-        if(indexAudio == 0)
-            bufferSize = newBS;
+        for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+            (*it)->start_Audio();
+        fAudioCreator->saveCurrentSettings();
         
-        else if(indexAudio == 2){
-            compressionValue = newCV;
-            masterIP = newMIA;
-            masterPort = newMP;
-            latency = newLAT;
-        }
+        errorToPrint = "Update successfull";
+        fErrorWindow->print_Error(errorToPrint.c_str());
     }
     
     StopProgressSlot();
@@ -4733,12 +4358,12 @@ void FaustLiveApp::update_AudioParameters(int index, int newBS, int newCV, strin
 //--------------------------LONG WAITING PROCESSES------------------------------
 
 void FaustLiveApp::display_CompilingProgress(const char* msg){
-    compilingMessage = new QDialog();
-    compilingMessage->setWindowFlags(Qt::FramelessWindowHint);
+    fCompilingMessage = new QDialog();
+    fCompilingMessage->setWindowFlags(Qt::FramelessWindowHint);
     
     QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
     tittle->setAlignment(Qt::AlignCenter);
-    QLabel* text = new QLabel(tr(msg), compilingMessage);
+    QLabel* text = new QLabel(tr(msg), fCompilingMessage);
     text->setAlignment(Qt::AlignCenter);
     text->setStyleSheet("*{color: black}");
     
@@ -4748,15 +4373,15 @@ void FaustLiveApp::display_CompilingProgress(const char* msg){
     layoutSave->addWidget(new QLabel(tr("")));
     layoutSave->addWidget(text);
     layoutSave->addWidget(new QLabel(tr("")));
-    compilingMessage->setLayout(layoutSave);
+    fCompilingMessage->setLayout(layoutSave);
     
-    compilingMessage->adjustSize();
-    compilingMessage->show();
-    compilingMessage->raise();
+    fCompilingMessage->adjustSize();
+    fCompilingMessage->show();
+    fCompilingMessage->raise();
 }
 
 void FaustLiveApp::StopProgressSlot()
 {
-    compilingMessage->hide();
-    delete compilingMessage;
+    fCompilingMessage->hide();
+    delete fCompilingMessage;
 }
