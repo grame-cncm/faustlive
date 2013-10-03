@@ -22,14 +22,14 @@ all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
 
 all.commands += $(shell cp -R Images Examples FaustLive.app/Contents/Resources/)
 
-MYFILES = $$system(ls $$FAUSTDIR | grep .lib)
+MYFILES = $$system(ls $$FAUSTDIR/*.lib)
 
 # SUBSTR = .lib
 
 # VAR = $$find(MYFILES, $$SUBSTR)
 
 for(FILE, MYFILES) {
-	all.commands += $(shell cp $$FAUSTDIR/$$FILE FaustLive.app/Contents/Resources/Libs)
+	all.commands += $(shell cp $$FILE FaustLive.app/Contents/Resources/Libs)
 }
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
