@@ -8,6 +8,10 @@
 
 #include "AudioCreator.h"
 
+#include "AudioSettings.h"
+#include "AudioManager.h"
+#include "AudioFactory.h"
+
 #ifdef COREAUDIO
     #include "CA_audioFactory.h"
 #endif

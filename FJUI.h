@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// Interface to save Jack Connections in a file
+
 #ifndef _FJUI_h
 #define _FJUI_h
 
@@ -29,7 +31,7 @@ class FJUI
         std::list<std::pair<string, string> > ::const_iterator it;
         
 		for (it=Connections.begin(); it!=Connections.end(); it++) {
-			f << it->first.c_str() << ' ' << it->second.c_str() << endl;
+			f << endl<< it->first.c_str() << ' ' << it->second.c_str();
         }
 		f.close();
 	}

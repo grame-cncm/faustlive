@@ -1,7 +1,8 @@
 
 ============================== FAUSTLIVE =========================
 
-The goal of this project is to build an application that embeds Faust and LLVM compiler to provide dynamical compilation of the Faust langage.
+The goal of this project is to build an application that embeds Faust and LLVM compiler 
+to provide dynamical compilation of the Faust langage.
 
 ----------------LINKED LIBRARIES------------------
 
@@ -30,12 +31,16 @@ cd projetDIR
 qmake -spec macx-g++ "CAVAR=1" "JVAR=1" "NJVAR=1"
 make
 
-To create a self-contained qt application, you can deploy the application with : macdeployqt NAMEofAppBUNDLE
+To create a self-contained qt application, you can deploy the application with :
+	 macdeployqt NAMEofAppBUNDLE
 
------------------WARNING
+-----------------WARNINGS
 
-If you want to recompile with new compilation options, you will have to execute "make clean" before doing the qmake and make
+1) If you want to recompile with new compilation options, you will have to execute 
+	"make clean" before doing the qmake and make
 
+2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
+	if the version changes. For now llvm 3.1 is used
 
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 

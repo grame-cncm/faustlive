@@ -31,7 +31,7 @@ float JA_audioFader::crossfade_calculation(int i, int j){
             break;
         }
     }
-    for (it = connectionsIn.begin(); it != connectionsIn.end(); it++){
+    for (it = fConnectionsIn.begin(); it != fConnectionsIn.end(); it++){
         
         string jackPort(jack_port_name(fOutputPorts[j]));
         
@@ -42,11 +42,11 @@ float JA_audioFader::crossfade_calculation(int i, int j){
     }
     
     if(connectFadeIn && connectFadeOut)
-        return (fIntermediateFadeIn[j][i]*InCoef) + (fIntermediateFadeOut[j][i]/OutCoef);
+        return (fIntermediateFadeIn[j][i]*fInCoef) + (fIntermediateFadeOut[j][i]/fOutCoef);
     else if(connectFadeIn)
-        return (fIntermediateFadeIn[j][i]*InCoef);
+        return (fIntermediateFadeIn[j][i]*fInCoef);
     else if(connectFadeOut)
-        return (fIntermediateFadeOut[j][i]/OutCoef);
+        return (fIntermediateFadeOut[j][i]/fOutCoef);
     else
         return 0;
 }
@@ -112,7 +112,7 @@ bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName)
     fNumInChans  = fDsp->getNumInputs();
     fNumOutChans = fDsp->getNumOutputs();
     
-    bufferSize = jack_get_buffer_size(fClient);
+    fBufferSize = jack_get_buffer_size(fClient);
     
     //        fInput_ports = new jack_port_t*[fNumInChans];
     //      fOutput_ports = new jack_port_t*[fNumOutChans];
@@ -128,7 +128,7 @@ bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName)
         fOutputPorts[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     }
     
-    portName = portsName;
+//    portName = portsName;
     
     fDsp->init(jack_get_sample_rate(fClient));
     return true;
@@ -182,22 +182,17 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName){
     
     fDspIn->init(jack_get_sample_rate(fClient));
     save_connections();
-    connectionsIn = fConnections;
+    fConnectionsIn = fConnections;
 }
 
 int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 {        
     list<pair<string, string> >::const_iterator it;
     
-    int returning = 0;
-    
-    for (it = Connections.begin(); it != Connections.end(); it++){
-        int result = jack_connect(fClient, it->first.c_str(), it->second.c_str());
-        if(result != 0)
-            returning = result;
-    }
-    
-    return returning;
+    for (it = Connections.begin(); it != Connections.end(); it++)
+        jack_connect(fClient, it->first.c_str(), it->second.c_str());
+        
+    return 0;
 }
 
 // UpDate the list of ports needed by new DSP
@@ -206,11 +201,11 @@ void JA_audioFader::launch_fadeOut()
     //Allocation of the intermediate buffers needed for the crossfade
     fIntermediateFadeOut = new float*[fNumOutChans];
     for(int i=0; i<fNumOutChans; i++)
-        fIntermediateFadeOut[i] = new float[bufferSize];
+        fIntermediateFadeOut[i] = new float[fBufferSize];
     
     fIntermediateFadeIn = new float*[fNumOutDspFade];
     for(int i=0; i<fNumOutDspFade;i++)
-        fIntermediateFadeIn[i] = new float[bufferSize];
+        fIntermediateFadeIn[i] = new float[fBufferSize];
     
     set_doWeFadeOut(true); 
 }
@@ -287,11 +282,11 @@ int	JA_audioFader::process(jack_nframes_t nframes)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 
                 for (int j = fNumOutChans; j < fNumOutDspFade; j++)
-                    fOutFinal[j][i] = fIntermediateFadeIn[j][i]*InCoef;
+                    fOutFinal[j][i] = fIntermediateFadeIn[j][i]*fInCoef;
                 
-                if(InCoef < 1)
-                    InCoef = InCoef*FadeInCoefficient;  
-                OutCoef = OutCoef*FadeOutCoefficient;  
+                if(fInCoef < 1)
+                    fInCoef = fInCoef*kFadeInCoefficient;  
+                fOutCoef = fOutCoef*kFadeOutCoefficient;  
             }
         } 
         
@@ -301,11 +296,11 @@ int	JA_audioFader::process(jack_nframes_t nframes)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 
                 for (int j = fNumOutDspFade; j < fNumOutChans; j++)
-                    fOutFinal[j][i] = fIntermediateFadeOut[j][i]/OutCoef;
+                    fOutFinal[j][i] = fIntermediateFadeOut[j][i]/fOutCoef;
                 
-                if(InCoef < 1)   
-                    InCoef = InCoef*FadeInCoefficient;  
-                OutCoef = OutCoef*FadeOutCoefficient;        
+                if(fInCoef < 1)   
+                    fInCoef = fInCoef*kFadeInCoefficient;  
+                fOutCoef = fOutCoef*kFadeOutCoefficient;        
             }   
         }
         increment_crossFade();

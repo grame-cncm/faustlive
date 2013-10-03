@@ -6,18 +6,12 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class is an abstract description of the Settings specific to an audio architecture.
 
 #ifndef _AudioSettings_h
 #define _AudioSettings_h
 
-#include <string>
-
-#include <QObject>
-#include <QGroupBox>
-#include <QLayout>
-#include <QUrl>
-
-using namespace std;
+#include <QtGui>
 
 class AudioSettings : public QObject{
 
@@ -25,25 +19,25 @@ class AudioSettings : public QObject{
     
     protected:
 
-            string              fSavingFile;
+        std::string              fSavingFile;
     
     public :
-        AudioSettings(string home, QGroupBox* parent){}
-        ~AudioSettings(){}
     
-    virtual void readSettings() = 0;
-    virtual void writeSettings() = 0;
-    virtual void setCurrentSettings() = 0;
-    virtual void getCurrentSettings() = 0;
+        AudioSettings(std::string home, QGroupBox* parent){}
+        virtual ~AudioSettings(){}
     
-    virtual bool isEqual(AudioSettings* as) = 0;
-    virtual bool operator==(AudioSettings& as){return isEqual(&as);}
+        virtual void readSettings() = 0;
+        virtual void writeSettings() = 0;
+        virtual void setCurrentSettings() = 0;
+        virtual void getCurrentSettings() = 0;
     
-    virtual string get_ArchiName() = 0;
+        virtual bool isEqual(AudioSettings* as) = 0;
+        virtual bool operator==(AudioSettings& as){return isEqual(&as);}
+    
+        virtual std::string get_ArchiName() = 0;
 
     protected slots:
-    virtual void linkClicked(const QUrl&){}
-    virtual void yaouh(const QString& text){}
+        virtual void linkClicked(const QUrl&){}
 };
 
 #endif

@@ -1,37 +1,42 @@
 //
-//  audioFader_Implementation.h
+//  AudioFader_Implementation.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _audioFader_Implementation_h
-#define _audioFader_Implementation_h
+// audioFader_Implementation contains the variables needed by the audio classes that want to implement a crossfade audio. 
+// Some calculation functions are common to the architecture audio that use 2 audio clients for their crossfade (e.g : Netjack, Coreaudio)
 
-#define NumberOfCrossFadeProcess 30
-#define FadeInCoefficient 1.000356
-#define FadeOutCoefficient 1.000186
+#ifndef _AudioFader_Implementation_h
+#define _AudioFader_Implementation_h
 
-class audioFader_Implementation
+#define kNumberOfCrossFadeProcess 30
+#define kFadeInCoefficient 1.000356
+#define kFadeOutCoefficient 1.000186
+
+class AudioFader_Implementation
 {
     protected:
     
-    bool    doWeFadeOut;
-    bool    doWeFadeIn;
+    bool    fDoWeFadeOut;
+    bool    fDoWeFadeIn;
     
-    float   InCoef;                 // Coefficients of multiplication   
-    float   OutCoef;                // during audio crossfade
-    int     NumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
+    float   fInCoef;                 // Coefficients of multiplication   
+    float   fOutCoef;                // during audio crossfade
+    int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
     
-    void increment_crossFade();
-    void reset_Values();
-    void crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
+    void    reset_Values();
+    void    increment_crossFade();
+    
+    //Specific to the 2 clients crossfade
+    void    crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
     
     public:
     
-        audioFader_Implementation();
-        ~audioFader_Implementation();
+        AudioFader_Implementation();
+        ~AudioFader_Implementation();
     
         void set_doWeFadeOut(bool val);
         void set_doWeFadeIn(bool val);

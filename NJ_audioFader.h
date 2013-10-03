@@ -6,20 +6,22 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class re-implement the netjackaudio calcul process to be adaptated to FadeIn and FadeOut processes
+
 #ifndef _NJ_audioFader_h
 #define _NJ_audioFader_h
 
 #include <QObject>
 #include "faust/audio/netjack-dsp.h"
-#include "audioFader_Interface.h"
-#include "audioFader_Implementation.h"
+#include "AudioFader_Interface.h"
+#include "AudioFader_Implementation.h"
 
-class NJ_audioFader : public QObject, public netjackaudio, public audioFader_Interface, public audioFader_Implementation
+class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Interface, public AudioFader_Implementation
 {
     Q_OBJECT
         
-    int     NumberOutput;           // DSP's number of outputs
-    int     numberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
+    int     fNumberOutput;           // DSP's number of outputs
+    int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
     
     static int net_restart(void* arg);
     

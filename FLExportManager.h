@@ -5,25 +5,15 @@
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
+// FLExportManager is the interface that establish a connection with faustweb-server to export a faust application. 
 
 #ifndef _FLExportManager_h
 #define _FLExportManager_h
 
 #include <string>
 
-#include <QObject>
-#include <QDialog>
+#include <QtGui>
 #include <QtNetwork>
-
-#include <QGroupBox>
-#include <QComboBox>
-#include <QFormLayout>
-#include <QLabel>
-#include <QString>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QFileDialog>
-#include <QPushButton>
 
 using namespace std;
 
@@ -40,16 +30,16 @@ class FLExportManager : public QObject{
     
     //Export graphical parameters 
     
-        QDialog*        dialogWindow;
+        QDialog*        fDialogWindow;
     
-        QGroupBox*      menu1Export;
-        QGroupBox*      menu2Export;
-        QComboBox*      exportFormat;
-        QComboBox*      exportPlatform;
-        QComboBox*      exportArchi;
-        QComboBox*      exportChoice;
+        QGroupBox*      fMenu1Export;
+        QGroupBox*      fMenu2Export;
+        QComboBox*      fExportFormat;
+        QComboBox*      fExportPlatform;
+        QComboBox*      fExportArchi;
+        QComboBox*      fExportChoice;
     
-        QPushButton*    save;
+        QPushButton*    fSaveButton;
     
     public :
     
@@ -60,7 +50,7 @@ class FLExportManager : public QObject{
         
     signals:
     
-        void             error(const char*);
+        void            error(const char*);
         void            start_progressing(const char*);
         void            stop_progressing();
         void            processEnded();

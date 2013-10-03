@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class describes the Settings of a jackaudio, which are non-existant 
 
 #ifndef _JA_audioSettings_h
 #define _JA_audioSettings_h
@@ -15,7 +16,7 @@
 class JA_audioSettings : public AudioSettings{
 
     public :
-        JA_audioSettings(string home, QGroupBox* parent);
+    JA_audioSettings(std::string home, QGroupBox* parent);
     
         virtual ~JA_audioSettings();
     
@@ -26,7 +27,7 @@ class JA_audioSettings : public AudioSettings{
     
         virtual bool isEqual(AudioSettings* as);
     
-        virtual string get_ArchiName();
+        virtual std::string get_ArchiName();
 };
 
 #endif

@@ -6,46 +6,35 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// AudioManager is an ameliorated audio. It controls one or two specific audio(s) to implement a crossfade audio between 2 dsp. 
 
 #ifndef _AudioManager_h
 #define _AudioManager_h
 
-#include "AudioSettings.h"
 #include "faust/audio/audio.h"
-//#include "faust/audio/dsp.h"
 
 #include <QObject>
+
+class AudioSettings;
 
 class AudioManager : public QObject, public audio{
 
     Q_OBJECT
     
-    AudioSettings*  fParams;
-    
     public :
     
-    AudioManager(AudioSettings* as){
-    
-        fParams = as;
-    }
+    AudioManager(AudioSettings* as){}
     virtual ~AudioManager(){}
     
-    virtual bool init(const char*, dsp* DSP){}
-    virtual bool start(){}
-    virtual void stop(){}
+    virtual bool initAudio(char* error, const char* name, dsp* DSP, const char* port_name) = 0;
+
+    virtual bool init_FadeAudio(char* error, const char* name, dsp* DSP) = 0;
+    virtual void start_Fade() = 0;
+    virtual void wait_EndFade() = 0;
     
-    virtual bool initAudio(char* error, const char* name, dsp* DSP, const char* port_name){}
-    
-    virtual bool init_FadeAudio(char* error, const char* name, dsp* DSP){}
-    
-    virtual void connect_Audio(string homeFolder){}
-    
-    virtual void save_Connections(string homeFolder){}
-    
-    virtual void change_Connections(string homeFolder, list<pair<string, string> > changeTable){}
-    
-    virtual void start_Fade(){}
-    virtual void wait_EndFade(){}
+    virtual void connect_Audio(std::string homeFolder){}
+    virtual void save_Connections(std::string homeFolder){}
+    virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){}
     
     signals : 
     

@@ -5,25 +5,23 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// FAUSTLIVE WINDOW. This class describes the behavior of a window that contains a DSP. 
+// Its principal characteristics are : 
+//      - to accept drag'n drop
+//      - to accept right click
+//      - to enable a control within distance of its interface through http protocol (see HTTPDWindow)
+
 #ifndef _FLWindow_h
 #define _FLWindow_h
 
 #include <string>
-#include <QObject>
-#include <QMainWindow>
-#include <QKeyEvent>
-#include <QCloseEvent>
-#include <QDropEvent>
-#include <QDragEnterEvent>
-#include <QDragLeaveEvent>
-#include <QContextMenuEvent>
+#include <QtGui>
+
+#include "faust/gui/FUI.h"
 
 #include "FLToolBar.h"
-#include "Effect.h"
-#include "faust/gui/FUI.h"
-#include "FJUI.h"
+#include "FLEffect.h"
 #include "HTTPWindow.h"
-
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
@@ -48,7 +46,7 @@ class FLWindow : public QMainWindow
         FLToolBar*      fMenu;  
         void            setMenuBar();
     
-        Effect*         fEffect;         //Effect currently running in the window
+        FLEffect*         fEffect;         //Effect currently running in the window
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
@@ -95,7 +93,7 @@ class FLWindow : public QMainWindow
     //IDAudio = what architecture audio are we running in?
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& appHome);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -120,7 +118,7 @@ class FLWindow : public QMainWindow
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error);
+        bool            update_Window(FLEffect* newEffect, string compilationOptions, int optVal, char* error);
     
         bool            update_AudioArchitecture(char* error);
     
@@ -149,7 +147,7 @@ class FLWindow : public QMainWindow
     //Accessors to parameters
         string          get_nameWindow();
         int             get_indexWindow();
-        Effect*         get_Effect();
+        FLEffect*         get_Effect();
         int             get_x();
         int             get_y();
         bool            is_Default();

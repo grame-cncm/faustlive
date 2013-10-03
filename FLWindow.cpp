@@ -17,7 +17,7 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, Effect* eff, int x, int y, string& home){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home){
     
     fShortcut = false;
     fEffect = eff;
@@ -373,15 +373,11 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int optVal, char* error){
-    
-    //    printf("yPos = %i\n", yPos);
+bool FLWindow::update_Window(FLEffect* newEffect, string compilationOptions, int optVal, char* error){
     
     //Step 1 : Save the parameters of the actual interface
     fXPos = this->geometry().x();
     fYPos = this->geometry().y();
-    //    printf("yPos = %i\n", yPos);
-    
     save_Window(); 
     
     //Step 2 : Delete the actual interface
@@ -394,21 +390,21 @@ bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int o
     //Step 4 : creating the new DSP instance
     llvm_dsp* charging_DSP = createDSPInstance(newEffect->getFactory());
     //    printf("charging DSP = %p\n", charging_DSP);
+    if (fCurrent_DSP == NULL)
+        return false;
+    
+    //Step 5 : get the new compilation parameters
     string textOptions = fEffect->getCompilationOptions();
     if(textOptions.compare(" ") == 0)
         textOptions = "";
-    
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(optVal);
-    
-    if (fCurrent_DSP == NULL)
-        return false;
     
     if(fRCInterface){
         
         if(!fAudioManager->init_FadeAudio(error, fEffect->getName().c_str(), charging_DSP)){
             
-            printf("INIT FADE AUDIO FAILED\n");
+//            printf("INIT FADE AUDIO FAILED\n");
             
             //Step 6 : Recall the parameters of the window
             string intermediate = fWindowName + " : " + fEffect->getName();
@@ -428,20 +424,15 @@ bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int o
             return false;
         }
         
-        //Step 7: Crossfade audio between outcoming and incoming DSP   
-        
-        recall_Window();
-        
-        //Step 6 : Recall the parameters of the window
+        //Step 6 : Set the new interface
         string inter = fWindowName + " : " + newEffect->getName();
         
         fInterface = new QTGUI(this, inter.c_str());
         
         charging_DSP->buildUserInterface(fRCInterface);
-//        current_DSP->buildUserInterface(finterface);
         charging_DSP->buildUserInterface(fInterface);
         
-        //Step 6 : Recall the parameters of the window
+        //Step 7 : Recall the parameters of the window
         
         recall_Window();
         
@@ -456,16 +447,17 @@ bool FLWindow::update_Window(Effect* newEffect, string compilationOptions, int o
         //Step 8 : Change the current DSP as the dropped one
         llvm_dsp* VecInt;
         
-        printf("CURRENT DSP = %p\n", fCurrent_DSP);
-        printf("CHARGING DSP = %p\n", charging_DSP);
+//        printf("CURRENT DSP = %p\n", fCurrent_DSP);
+//        printf("CHARGING DSP = %p\n", charging_DSP);
         
         VecInt = fCurrent_DSP;
         fCurrent_DSP = charging_DSP; 
         charging_DSP = VecInt;
         
-        printf("deleting DSP leaving = %p\n", charging_DSP);
+//        printf("deleting DSP leaving = %p\n", charging_DSP);
         deleteDSPInstance(charging_DSP);
         fEffect = newEffect;
+        
         //Step 9 : Launch User Interface
         fInterface->run();
         return true;
@@ -490,11 +482,10 @@ void FLWindow::start_Audio(){
     
     fAudioManager->start();
     
-    
-    printf("CONNECT\n");
-    
     string connectFile = fHome + "/" + fWindowName + ".jc";
+
     fAudioManager->connect_Audio(connectFile);
+    printf("CONNECT = %s\n", connectFile.c_str());
     
     fClientOpen = true;
 }
@@ -568,7 +559,7 @@ int FLWindow::get_indexWindow(){
     return fWindowIndex;
 }
 
-Effect* FLWindow::get_Effect(){
+FLEffect* FLWindow::get_Effect(){
     return fEffect;
 }
 

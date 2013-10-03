@@ -1,19 +1,21 @@
 //
-//  NJ_audioFader.h
+//  CA_audioFader.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _NJ_audioFader_h
-#define _NJ_audioFader_h
+// These classes re-implement the coreaudio calcul process to be adaptated to FadeIn and FadeOut processes
+
+#ifndef _CA_audioFader_h
+#define _CA_audioFader_h
 
 #include "faust/audio/coreaudio-dsp.h"
-#include "audioFader_Interface.h"
-#include "audioFader_Implementation.h"
+#include "AudioFader_Interface.h"
+#include "AudioFader_Implementation.h"
 
-class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public audioFader_Implementation{
+class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader_Implementation{
     
 public:
     virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
@@ -38,7 +40,7 @@ public:
 };
 
 
-class CA_audioFader : public audio, public audioFader_Interface
+class CA_audioFader : public audio, public AudioFader_Interface
 {
     
 protected:

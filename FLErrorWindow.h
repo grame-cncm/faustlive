@@ -5,6 +5,7 @@
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
+// This Window is the interface to comunicate the errors or other messages to the user 
 
 #ifndef _FLErrorWindow_h
 #define _FLErrorWindow_h
@@ -21,17 +22,16 @@
 
 using namespace std;
 
-//To display easily the errors during the execution
 class FLErrorWindow : public QMainWindow{
     
     Q_OBJECT
     
     private :
-        QVBoxLayout*    layout;
-        QWidget*        widget;
-        QTextEdit*      errorText;
-        bool            shortcut;
-        QPushButton*    button;
+        QVBoxLayout*    fLayout;
+        QWidget*        fWidget;
+        QTextEdit*      fErrorText;
+        bool            fShortcut;
+        QPushButton*    fButton;
     
     public :
     

@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// HTTPWindow creates a QrCode which correspond to an httpd interface of your faust application so that you can control it within distance. 
+
 #ifndef _HTTPWindow_h
 #define _HTTPWindow_h
 
@@ -27,11 +29,11 @@ class HTTPWindow : public QMainWindow{
     
     private : 
     
-    string      IPaddress;
-    char*       winTitle;
-    httpdUI*    httpdinterface; //Httpd interface for distance control
-    QPixmap     myQrCode;
-    bool        shortcut;
+    string      fIPaddress;
+    char*       fTitle;
+    httpdUI*    fInterface; //Httpd interface for distance control
+    QPixmap     fQrCode;
+    bool        fShortcut;
     
     public : 
     
@@ -41,32 +43,32 @@ class HTTPWindow : public QMainWindow{
     
     ~HTTPWindow();
     
-    void displayQRCode(char* url);
+    void        displayQRCode(char* url);
     
-    void frontShow_Httpd(string windowTitle);
+    void        frontShow_Httpd(string windowTitle);
     
-    void display_HttpdWindow(int x, int y);
+    void        display_HttpdWindow(int x, int y);
     
-    bool is_httpdWindow_active();
+    bool        is_httpdWindow_active();
     
-    void hide_httpdWindow();
+    void        hide_httpdWindow();
 
-    void search_IPadress();
+    void        search_IPadress();
     
-    bool build_httpdInterface(char* error, string windowTitle, dsp* current_DSP);
+    bool        build_httpdInterface(char* error, string windowTitle, dsp* current_DSP);
     
-    void launch_httpdInterface();
+    void        launch_httpdInterface();
     
-    void toPNG();
+    void        toPNG();
     
     virtual void contextMenuEvent(QContextMenuEvent* ev);
     
-    void    keyPressEvent(QKeyEvent* event);
-    void    keyReleaseEvent(QKeyEvent* event);
-    void    closeEvent(QCloseEvent* event);
+    void        keyPressEvent(QKeyEvent* event);
+    void        keyReleaseEvent(QKeyEvent* event);
+    void        closeEvent(QCloseEvent* event);
     
 signals:
-    void    closeAll();
+    void        closeAll();
 };
 
 #endif

@@ -6,18 +6,22 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class describes the Settings of netjack clients : 
+//  - Its compression Value
+//  - Its IPadress
+//  - Its Port
+//  - Its Latencty
+// All of them are described visually by a QLineEdit
 
 #ifndef _NJ_audioSettings_h
 #define _NJ_audioSettings_h
 
 #include "AudioSettings.h"
 
-#include <QLineEdit>
-#include <QFormLayout>
-#include <QLabel>
-#include <QString>
-#include <QFile>
-#include <QTextStream>
+#include <string>
+#include <QtGui>
+
+using namespace std;
 
 #define NJ_SAVINGFILE "NJ_Settings.rf"
 

@@ -29,18 +29,18 @@
 
 HTTPWindow::HTTPWindow(){
     
-    IPaddress = "localhost";
-    shortcut = false;
-    httpdinterface = NULL;
-    winTitle ="";
+    fIPaddress = "localhost";
+    fShortcut = false;
+    fInterface = NULL;
+    fTitle ="";
 }
 
 HTTPWindow::~HTTPWindow(){
-    if(httpdinterface){
-        delete httpdinterface;
+    if(fInterface){
+        delete fInterface;
     }
     
-    //    delete winTitle;
+    //    delete fTitle;
 }
 
 void HTTPWindow::displayQRCode(char* url){
@@ -75,9 +75,9 @@ void HTTPWindow::displayQRCode(char* url){
     QImage big = image.scaledToWidth(qrc->width*8);
     QLabel* myLabel = new QLabel(centralWidget);
     
-    myQrCode = QPixmap::fromImage(big);
+    fQrCode = QPixmap::fromImage(big);
     
-    myLabel->setPixmap(myQrCode);
+    myLabel->setPixmap(fQrCode);
     
     //----Written Address
     
@@ -117,10 +117,10 @@ void HTTPWindow::display_HttpdWindow(int x, int y){
     move(x, y);
     
     char url[256];
-    snprintf(url, 255, "%s:%i", IPaddress.c_str(), httpdinterface->getTCPPort());
+    snprintf(url, 255, "%s:%i", fIPaddress.c_str(), fInterface->getTCPPort());
     
     displayQRCode(url);
-    frontShow_Httpd(winTitle);   
+    frontShow_Httpd(fTitle);   
 }
 
 bool HTTPWindow::is_httpdWindow_active(){
@@ -134,7 +134,7 @@ void HTTPWindow::hide_httpdWindow(){
 void HTTPWindow::search_IPadress(){
     
     //If IPadress was already found
-    if(strcmp(IPaddress.c_str(), "localhost")  != 0){}
+    if(strcmp(fIPaddress.c_str(), "localhost")  != 0){}
     
     //If not, looking for it
     else{
@@ -143,10 +143,10 @@ void HTTPWindow::search_IPadress(){
         sock.connectToHost("8.8.8.8", 53); // google DNS, or something else reliable
         if (sock.waitForConnected(5000)) {
             IP = sock.localAddress();
-            IPaddress = IP.toString().toStdString();
+            fIPaddress = IP.toString().toStdString();
         }
         else {
-            IPaddress = "localhost";
+            fIPaddress = "localhost";
         }
     }
 }
@@ -154,21 +154,21 @@ void HTTPWindow::search_IPadress(){
 bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* current_DSP){
     
     //Allocation of HTTPD interface
-    if(httpdinterface != NULL)
-        delete httpdinterface;
+    if(fInterface != NULL)
+        delete fInterface;
     
-    winTitle = new char[strlen(windowTitle.c_str())+1];
-    strcpy(winTitle, windowTitle.c_str());
+    fTitle = new char[strlen(windowTitle.c_str())+1];
+    strcpy(fTitle, windowTitle.c_str());
     
-    httpdinterface = new httpdUI(winTitle, 1, &winTitle);
+    fInterface = new httpdUI(fTitle, 1, &fTitle);
     
 //    printf("Là 1\n");
 //    sleep(10);
 //    
-    if(httpdinterface){
+    if(fInterface){
 //        printf("Là 2\n");
 //        sleep(10);
-        current_DSP->buildUserInterface(httpdinterface);
+        current_DSP->buildUserInterface(fInterface);
 //        printf("Là 3\n");
 //        sleep(10);
 //        printf("Là 4\n");
@@ -182,19 +182,19 @@ bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* curr
 }
 
 void HTTPWindow::launch_httpdInterface(){
-    httpdinterface->run();
+    fInterface->run();
 }
 
 void HTTPWindow::toPNG(){
     
     string fileName = getenv("HOME");
     fileName +="/Desktop/";
-    fileName += winTitle;
+    fileName += fTitle;
     fileName += ".png";
     
     QFile file(fileName.c_str());
     file.open(QIODevice::WriteOnly);
-    myQrCode.save(&file, "PNG");
+    fQrCode.save(&file, "PNG");
 }
 
 void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
@@ -217,19 +217,19 @@ void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
 void HTTPWindow::keyPressEvent(QKeyEvent* event){ 
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = true;
+        fShortcut = true;
 }
 
 void HTTPWindow::keyReleaseEvent(QKeyEvent* event){
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = false;
+        fShortcut = false;
 }
 
 void HTTPWindow::closeEvent(QCloseEvent* event){
     
     this->hide();
     
-    if(shortcut)
+    if(fShortcut)
         emit closeAll();
 }

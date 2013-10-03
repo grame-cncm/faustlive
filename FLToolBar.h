@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// ToolBar of the FaustLive Windows. 
+
 #ifndef _FLToolBar_h
 #define _FLToolBar_h
 
@@ -28,23 +30,23 @@ class FLToolBar : public QToolBar{
     
     private:
     
-        bool        isStringInt(const char* word);
+        bool                isStringInt(const char* word);
     
-        QTreeWidget*    myTreeWidget;
-        QTreeWidgetItem * item;
-        QTreeWidgetItem * item2;
-        QLineEdit*      optionLine;     //Allows the addition of compilation options
-        QLineEdit*      optValLine;     //And the change of the llvm optimization level
+        QTreeWidget*        fTreeWidget;
+        QTreeWidgetItem *   fItem;
+        QTreeWidgetItem *   fItem2;
+        QLineEdit*          fOptionLine;     //Allows the addition of compilation options
+        QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
     
     
-        QWidget*        widget1;
-        QWidget*        widget2;
-        QLabel*         myText;
-        QLabel*         myOptText;
-        QVBoxLayout*    layout1;
-        QVBoxLayout*    layout2;
-        QAction*        action1;
-        QAction*        action2;
+        QWidget*            fWidget1;
+        QWidget*            fWidget2;
+        QLabel*             fText;
+        QLabel*             fOptText;
+        QVBoxLayout*        fLayout1;
+        QVBoxLayout*        fLayout2;
+        QAction*            fAction1;
+        QAction*            fAction2;
     
     public:
     

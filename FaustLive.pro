@@ -3,12 +3,11 @@
 ######################################################################
 
 # THANKS TO QMAKE, THIS FILE WILL PRODUCE THE MAKEFILE OF FAUSTLIVE APPLICATION
-# IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED, ...
+# IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED
 
 # APPLICATION SETTINGS
-ICON = FaustLiveIcon.icns
-QMAKE_INFO_PLIST = FaustLiveInfo.plist
-system(cp -R Images Libs Examples FaustLive.app/Contents/Resources/)
+
+FAUSTDIR = /usr/local/lib/faust
 
 TEMPLATE = app
 TARGET = FaustLive
@@ -16,7 +15,28 @@ DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 
+ICON = FaustLiveIcon.icns
+QMAKE_INFO_PLIST = FaustLiveInfo.plist
+
+all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
+
+all.commands += $(shell cp -R Images Examples FaustLive.app/Contents/Resources/)
+
+MYFILES = $$system(ls $$FAUSTDIR)
+
+SUBSTR = .lib
+
+VAR = $$find(MYFILES, $$SUBSTR)
+
+for(FILE, VAR) {
+	all.commands += $(shell cp $$FAUSTDIR/$$FILE FaustLive.app/Contents/Resources/Libs)
+}
+
+all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
+
 QMAKE_CXXFLAGS += -g
+QMAKE_EXTRA_TARGETS += all
+
 CONFIG -= x86_64
 
 OPT = $$system(llvm-config --libs)
@@ -89,8 +109,8 @@ HEADERS += 	AudioSettings.h \
 			AudioManager.h \
 			AudioFactory.h \
 			AudioCreator.h \
-			audioFader_Interface.h \
-			audioFader_Implementation.h \
+			AudioFader_Interface.h \
+			AudioFader_Implementation.h \
 			/usr/local/include/faust/gui/faustqt.h \
 			FJUI.h \
 			FLToolBar.h \
@@ -98,18 +118,18 @@ HEADERS += 	AudioSettings.h \
 			FLrenameDialog.h \
 			FLErrorWindow.h \
 			FLExportManager.h \
-			Effect.h \
+			FLEffect.h \
 			FLWindow.h \ 
-			FaustLiveApp.h \
+			FLApp.h \
 							
 SOURCES += 	AudioCreator.cpp \
-			audioFader_Implementation.cpp \
+			AudioFader_Implementation.cpp \
 			FLToolBar.cpp \
 			HTTPWindow.cpp \
 			FLrenameDialog.cpp \
 			FLErrorWindow.cpp \
 			FLExportManager.cpp \
-			Effect.cpp \
+			FLEffect.cpp \
 			FLWindow.cpp \ 
-			FaustLiveApp.cpp \
+			FLApp.cpp \
 			main.cpp \

@@ -8,8 +8,8 @@
 
 #include "JA_audioSettings.h"
 
+JA_audioSettings::JA_audioSettings(std::string home, QGroupBox* parent) : AudioSettings(home, parent){}
 
-JA_audioSettings::JA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){}
 JA_audioSettings::~JA_audioSettings(){}
 
 void JA_audioSettings::readSettings(){}
@@ -22,7 +22,6 @@ bool JA_audioSettings::isEqual(AudioSettings* as){
     return true;
 }
 
-
-string JA_audioSettings::get_ArchiName(){
+std::string JA_audioSettings::get_ArchiName(){
     return "Jackaudio";
 }

@@ -24,11 +24,12 @@ JA_audioManager::~JA_audioManager(){
     delete fCurrentAudio;
 }
 
-bool JA_audioManager::init(const char* name, dsp* DSP){}
+bool JA_audioManager::init(const char* name, dsp* DSP){return false;}
 
 bool JA_audioManager::start(){
     return fCurrentAudio->start();
 }
+
 void JA_audioManager::stop(){
     fCurrentAudio->stop();
 }
@@ -45,6 +46,8 @@ bool JA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const c
 
 bool JA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
 
+    snprintf(error, 255, "%s", "");
+    
     fCurrentAudio->init_FadeIn_Audio(DSP, name);
     return true;
 }

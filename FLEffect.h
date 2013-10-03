@@ -1,55 +1,57 @@
 //
-//  Effect.h
+//  FLEffect.h
 //  
 //
 //  Created by Sarah Denoux on 30/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _Effect_h
-#define _Effect_h
+// An Effect takes care of the compilation of a DSP. Moreover, it is notify in case, the DSP has been modified. 
 
-#include "faust/llvm-dsp.h"
+#ifndef _FLEffect_h
+#define _FLEffect_h
+
 #include <string.h>
-
-#include <QObject>
-#include <QDateTime>
-#include <QFileSystemWatcher>
-#include <QTimer>
+#include <QtGui>
+#include "faust/llvm-dsp.h"
 
 using namespace std;
 
-class Effect : public QObject
+class FLEffect : public QObject
 {
     Q_OBJECT
     
     private:
     
     //Indicator of a special situation where the effect is build from saved bitcode
-        bool                isRecalled;
+        bool                fRecalled;
     
     //File holding the Faust Code
-        string              fichierSource;  
+        string              fSource;  
     //Name of the effect 
-        string              nomEffet;       
+        string              fName;       
     //Compilation Options of the Faust compiler
-        string              compilationOptions; 
+        string              fCompilationOptions; 
     //Optimization value for the llvm compilation
-        int                 opt_level;      
+        int                 fOpt_level;      
        
     //Llvm Factory corresponding to file
-        llvm_dsp_factory*   factory;        
+        llvm_dsp_factory*   fFactory;        
     //When an effect factory is updated, the old one has to be kept, so that it can be desallocated    
-        llvm_dsp_factory*   oldFactory;     
+        llvm_dsp_factory*   fOldFactory;     
     
     //Watching the modifications made on the file (so that the factory can be automatically rebuild)
-        QFileSystemWatcher* watcher;        
+        QFileSystemWatcher* fWatcher;        
         
     //When the event of a modification is sent, it is offen send twice in a row and we want to act only once
-        QTimer*             synchroTimer;   
-    //Indicator the ensure the re-build of the factory due to a compilation  option change
-        bool                forceSynchro;
+        QTimer*             fSynchroTimer;  
+    
+    //Indicator that ensures that the re-build of the factory is only due to a compilation option change 
+        bool                fForceSynchro;
 
+    //The creationDate allows us to ensure that the signal of modification we receive from the watcher is really due to a change and not only the opening of the editor
+        QDateTime           fCreationDate;
+    
     
     //The compilation options are decomposed in a table
         int         get_numberParameters(string compilOptions);
@@ -58,13 +60,10 @@ class Effect : public QObject
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
         bool        buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder); 
-        
-    //The creationDate allows us to ensure that the signal of modification we receive from the watcher is really due to a change and not only the opening of the editor
-        QDateTime   creationDate;
     
     public:
-        Effect(bool recallVal, string sourceFile, string name = "");
-        ~Effect();
+        FLEffect(bool recallVal, string sourceFile, string name = "");
+        ~FLEffect();
     
     //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
     //currentSVGFolder = where to create the SVG-Folder tied to the factory 
@@ -76,7 +75,7 @@ class Effect : public QObject
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
     //Re-Build of the factory from the source file
-        bool        update_Factory(int opt_level, char* error, string currentSVGFolder, string currentIRFolder);
+        bool        update_Factory(char* error, string currentSVGFolder, string currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted
         void        erase_OldFactory();
     

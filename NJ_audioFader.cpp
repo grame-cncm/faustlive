@@ -16,12 +16,8 @@ NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_p
     fMasterPort = master_port;
     fLatency = latency;
     
-    doWeFadeOut = false;
-    doWeFadeIn = false;
-    InCoef = 0.01;
-    OutCoef = 1;
-    NumberOfFadeProcess = 0;
-    numberRestartAttempts = 0;
+    reset_Values();
+    fNumberRestartAttempts = 0;
 }
 
 NJ_audioFader::~NJ_audioFader(){}
@@ -33,14 +29,14 @@ int NJ_audioFader::net_restart(void* arg)
     
     //        printf("Network failure, restart...\n");
     
-    if(obj->numberRestartAttempts < 10){
+    if(obj->fNumberRestartAttempts < 10){
         obj->emit error("Network failure, restart...");    
-        obj->numberRestartAttempts++;
+        obj->fNumberRestartAttempts++;
         return 0;
     }
     else{
         obj->emit error("Impossible to restart Network");
-        obj->numberRestartAttempts = 0;
+        obj->fNumberRestartAttempts = 0;
     }
     
     return 1;
@@ -60,14 +56,14 @@ int NJ_audioFader::net_process(jack_nframes_t buffer_size,
     NJ_audioFader* obj = (NJ_audioFader*)arg;
     obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
     
-    obj->crossfade_Calcul(buffer_size, obj->NumberOutput, audio_output_buffer);
+    obj->crossfade_Calcul(buffer_size, obj->fNumberOutput, audio_output_buffer);
     return 0;
 }
 
 bool NJ_audioFader::init(const char* name, dsp* DSP) {
     fDsp = DSP;
     
-    NumberOutput = DSP->getNumOutputs();
+    fNumberOutput = DSP->getNumOutputs();
     
     
     //Potentiellement il va falloir modifier la valeur du time out pour être sur qu'on 

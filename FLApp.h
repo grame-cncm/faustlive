@@ -5,6 +5,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// FLApp is the centerpiece of FaustLive. The class controls all the windows, menu and actions of a user. 
+
 #ifndef _FaustLiveApp_h
 #define _FaustLiveApp_h
 
@@ -21,6 +23,9 @@ using namespace std;
 
 #define DEFAULTNAME "DefaultName"
 
+#define kMAXRECENTFILES 4
+#define kMAXRECENTSESSIONS 3
+
 //Keeping the information of a Window running in the current Session
 //It provides an easy way of testing the session's content and writing the session file
 struct WinInSession{
@@ -34,7 +39,7 @@ struct WinInSession{
     int opt_level;
 };
 
-class FaustLiveApp : public QApplication
+class FLApp : public QApplication
 {
     Q_OBJECT
     
@@ -44,8 +49,8 @@ class FaustLiveApp : public QApplication
         bool                deleteDirectoryAndContent(string& directory);
         bool                rmDir(const QString &dirPath);
     
-    bool cpDir(const QString &srcPath, const QString &dstPath);
-    bool isStringInt(const char* word);
+        bool                cpDir(const QString &srcPath, const QString &dstPath);
+        bool                isStringInt(const char* word);
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
@@ -107,7 +112,7 @@ class FaustLiveApp : public QApplication
 
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
-        list<Effect*>       fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+        list<FLEffect*>       fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
     
     //Screen parameters
         int                 fScreenWidth;
@@ -133,48 +138,35 @@ class FaustLiveApp : public QApplication
         string              fIRFolder;    //Folder with the Bitcode files
         
     //Recent Files Parameters and functions
-        string              fRecentFiles;    //Path to  Recent Dsp file
-        int                 fMaxRecentFiles;    
-        list<pair<string, string> >         recentFiles;
+        string              fRecentsFile;    //Path to  Recent Dsp file
+        list<pair<string, string> >         fRecentFiles;
         void                recall_Recent_Files(string& filename);
         void                save_Recent_Files();
         void                set_Current_File(string& pathName, string& effName);
         void                update_Recent_File();
     
     //When the application is launched without parameter, this timer will start a initialized window
-        QTimer*             initTimer;
-        QTimer*             endTimer;
+        QTimer*             fInitTimer;
+        QTimer*             fEndTimer;
 
     //To be stored in a file, the compilation options have to be converted
         string              convert_compilationOptions(string compilationOptions);
         string              restore_compilationOptions(string   compilationOptions);
     
     //Preference Menu Objects and Functions
-        QDialog*            preference;     //Preference Window
+        QDialog*            fPrefDialog;     //Preference Window
         AudioCreator*       fAudioCreator;
-        string              homeSettings;       //Path of settings file
-    
-        QLineEdit*          compilModes;
-        QLineEdit*          optVal;
-    
-        QPushButton*        saveB;
-        QPushButton*        cancelB;
-
-        QFormLayout*        layout;
-        QFormLayout*        layout2;
-        QFormLayout*        layout3;
-        QGridLayout*        layout4;
-        QVBoxLayout*        layout5;
-    
-        //Real Parameters extracted from visual widgets
-        AudioSettings*      fAudioSettings;
         QGroupBox*          fAudioBox;
-        QLayout*            fAudioLayout;
     
-        string              compilationMode;
-        int                 opt_level;
+        string              fHomeSettings;       //Path of settings file
     
-        string              styleChoice;
+        QLineEdit*          fCompilModes;
+        QLineEdit*          fOptVal;
+    
+        string              fCompilationMode;
+        int                 fOpt_level;
+    
+        string              fStyleChoice;
     
         void                init_PreferenceWindow();
         void                save_Settings(string& home);
@@ -185,13 +177,12 @@ class FaustLiveApp : public QApplication
     //Setups of help menu and the presentation interface
         void                init_HelpWindow();
         void                init_presentationWindow();
-        //If the user chooses to open an example, it is stored 
-        string              exampleToOpen;
+    //If the user chooses to open an example, it is stored 
+        string              fExampleToOpen;
 
     //Recent Sessions Parameters and functions
-        string              homeRecentSessions;   
-        int                 MaxRecentSessions;
-        QStringList         recentSessions;
+        string              fHomeRecentSessions;
+        QStringList         fRecentSessions;
         void                save_Recent_Sessions();
         void                recall_Recent_Sessions(string& filename); 
         void                set_Current_Session(string& pathName);
@@ -242,7 +233,7 @@ class FaustLiveApp : public QApplication
     string                  renameEffect(string nomEffet, list<string> runningEffects);
     
     
-    Effect*                 getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
+    FLEffect*                 getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
     
     //-----------------Questions about the current State
     
@@ -252,7 +243,7 @@ class FaustLiveApp : public QApplication
         string              getNameEffectFromSource(string sourceToCompare);
         bool                isEffectNameInCurrentSession(string& sourceToCompare, string& name);
         list<string>        getNameRunningEffects();
-        list<int>           WindowCorrespondingToEffect(Effect* eff);
+        list<int>           WindowCorrespondingToEffect(FLEffect* eff);
         void                removeFilesOfWin(string sourceName, string effName);
 
         FLWindow*           getActiveWin();
@@ -271,6 +262,10 @@ class FaustLiveApp : public QApplication
         void                open_Window_pres();
         void                open_Session_pres();
 
+    //---------Click On an example
+        void                itemClick(QListWidgetItem *item);
+        void                itemDblClick(QListWidgetItem* item);
+    
     //---------File
         void                create_Empty_Window();
         void                open_New_Window();
@@ -314,6 +309,7 @@ class FaustLiveApp : public QApplication
         void                styleClicked(string style);
         void                Preferences();
         void                save_Mode();
+        void                cancelPref();
     
     //---------Help
         void                apropos();
@@ -331,17 +327,14 @@ class FaustLiveApp : public QApplication
     
     //--------Error received
         void                errorPrinting(const char* msg);
-        
-        void                itemClick(QListWidgetItem *item);
-        void                itemDblClick(QListWidgetItem* item);
     
     //--------RightClickEvent
         void                redirect_RCAction(const QPoint & p);
     
     public : 
 
-        FaustLiveApp(int& argc, char** argv);
-        virtual ~FaustLiveApp();
+                            FLApp(int& argc, char** argv);
+        virtual             ~FLApp();
     
         void                create_New_Window(string& name);
         void                common_shutAction(FLWindow* win);

@@ -10,19 +10,19 @@
 
 FLExportManager::FLExportManager(QUrl server, string file, string filename){
 
-    dialogWindow = new QDialog;
+    fDialogWindow = new QDialog;
     
     fServerUrl = server;
     fFileToExport = file;
     fFilenameToExport = filename;
     fFilenameToSave = fFilenameToExport + "_";
     
-    dialogWindow->setWindowFlags(Qt::FramelessWindowHint);
+    fDialogWindow->setWindowFlags(Qt::FramelessWindowHint);
 }
 
 FLExportManager::~FLExportManager(){
 
-    delete dialogWindow;
+    delete fDialogWindow;
 }
     
 void FLExportManager::init(){
@@ -46,85 +46,85 @@ void FLExportManager::init(){
     groupTitle2 += fFilenameToExport.c_str();
     groupTitle2 += " in ...";
     
-    menu1Export = new QGroupBox(groupTitle1, dialogWindow);
-    menu1Export->setCheckable(true);
-    connect(menu1Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
+    fMenu1Export = new QGroupBox(groupTitle1, fDialogWindow);
+    fMenu1Export->setCheckable(true);
+    connect(fMenu1Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
     
-    menu2Export = new QGroupBox(groupTitle2, dialogWindow);
-    menu2Export->setCheckable(true);
-    connect(menu2Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
+    fMenu2Export = new QGroupBox(groupTitle2, fDialogWindow);
+    fMenu2Export->setCheckable(true);
+    connect(fMenu2Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
     
     QFormLayout* menu1Layout = new QFormLayout;
     QFormLayout* menu2Layout = new QFormLayout;
     
-    exportFormat = new QComboBox(menu1Export);
-    exportFormat->addItem("src.cpp");
-    exportFormat->addItem("svg.zip");
-    exportFormat->addItem("mdoc.zip");
+    fExportFormat = new QComboBox(fMenu1Export);
+    fExportFormat->addItem("src.cpp");
+    fExportFormat->addItem("svg.zip");
+    fExportFormat->addItem("mdoc.zip");
     
-    menu1Layout->addRow(new QLabel("Format"), exportFormat);
-    menu1Export->setLayout(menu1Layout);
-    exportLayout->addRow(menu1Export);
+    menu1Layout->addRow(new QLabel("Format"), fExportFormat);
+    fMenu1Export->setLayout(menu1Layout);
+    exportLayout->addRow(fMenu1Export);
     
     exportLayout->addRow(new QLabel(""));
     exportLayout->addRow(new QLabel(""));
     
-    exportPlatform = new QComboBox(menu2Export);
-    exportPlatform->addItem("osx");
-    exportPlatform->addItem("windows");
-    exportPlatform->addItem("linux");
+    fExportPlatform = new QComboBox(fMenu2Export);
+    fExportPlatform->addItem("osx");
+    fExportPlatform->addItem("windows");
+    fExportPlatform->addItem("linux");
     
-    exportArchi = new QComboBox(menu2Export);
-    exportArchi->addItem("coreaudio-qt");
-    exportArchi->addItem("jack-qt");
-    exportArchi->addItem("supercollider");
-    exportArchi->addItem("vst");
-    exportArchi->addItem("csound");
-    exportArchi->addItem("max-msp");
-    exportArchi->addItem("puredata");
-    exportArchi->addItem("vsti");
+    fExportArchi = new QComboBox(fMenu2Export);
+    fExportArchi->addItem("coreaudio-qt");
+    fExportArchi->addItem("jack-qt");
+    fExportArchi->addItem("supercollider");
+    fExportArchi->addItem("vst");
+    fExportArchi->addItem("csound");
+    fExportArchi->addItem("max-msp");
+    fExportArchi->addItem("puredata");
+    fExportArchi->addItem("vsti");
     
-    exportChoice = new QComboBox(menu2Export);
-    exportChoice->addItem("binary.zip");
-    exportChoice->addItem("src.cpp");
+    fExportChoice = new QComboBox(fMenu2Export);
+    fExportChoice->addItem("binary.zip");
+    fExportChoice->addItem("src.cpp");
     
-    menu2Layout->addRow(new QLabel("Platform"), exportPlatform);
-    menu2Layout->addRow(new QLabel("Architecture"), exportArchi);
-    menu2Layout->addRow(new QLabel("source or binary"), exportChoice);
+    menu2Layout->addRow(new QLabel("Platform"), fExportPlatform);
+    menu2Layout->addRow(new QLabel("Architecture"), fExportArchi);
+    menu2Layout->addRow(new QLabel("source or binary"), fExportChoice);
     
-    menu2Export->setLayout(menu2Layout);
-    exportLayout->addRow(menu2Export);
+    fMenu2Export->setLayout(menu2Layout);
+    exportLayout->addRow(fMenu2Export);
     
-    QWidget* intermediateWidget = new QWidget(dialogWindow);
+    QWidget* intermediateWidget = new QWidget(fDialogWindow);
     QHBoxLayout* intermediateLayout = new QHBoxLayout;
     
     QPushButton* cancel = new QPushButton(tr("Cancel"), intermediateWidget);
     cancel->setDefault(false);;
     
-    save = new QPushButton(tr("Export"), intermediateWidget);
-    save->setDefault(true);
+    fSaveButton = new QPushButton(tr("Export"), intermediateWidget);
+    fSaveButton->setDefault(true);
     
-    connect(save, SIGNAL(released()), this, SLOT(postExport()));
-    connect(cancel, SIGNAL(released()), dialogWindow, SLOT(hide()));
+    connect(fSaveButton, SIGNAL(released()), this, SLOT(postExport()));
+    connect(cancel, SIGNAL(released()), fDialogWindow, SLOT(hide()));
     
     intermediateLayout->addWidget(cancel);
     intermediateLayout->addWidget(new QLabel(tr("")));
-    intermediateLayout->addWidget(save);
+    intermediateLayout->addWidget(fSaveButton);
     
     intermediateWidget->setLayout(intermediateLayout);
     exportLayout->addRow(intermediateWidget);
     
-    dialogWindow->setLayout(exportLayout);
+    fDialogWindow->setLayout(exportLayout);
     
-    menu1Export->setChecked(true);
-    menu2Export->setChecked(false);
+    fMenu1Export->setChecked(true);
+    fMenu2Export->setChecked(false);
     
-    dialogWindow->setVisible(true);
+    fDialogWindow->setVisible(true);
 }
         
 void FLExportManager::postExport(){
     
-    dialogWindow->hide();
+    fDialogWindow->hide();
     
     emit start_progressing("Connecting with the server...");
     
@@ -162,24 +162,24 @@ void FLExportManager::postExport(){
 void FLExportManager::exportChecked(bool on){
     
     if(on){
-        if(save)
-            save->setEnabled(true);
+        if(fSaveButton)
+            fSaveButton->setEnabled(true);
         
         QGroupBox* group = (QGroupBox*)QObject::sender();
         
-        if(group == menu1Export){
-            if(menu2Export->isChecked()){
-                menu2Export->setChecked(false);
+        if(group == fMenu1Export){
+            if(fMenu2Export->isChecked()){
+                fMenu2Export->setChecked(false);
             }
         }
-        else if(group == menu2Export){
-            if(menu1Export->isChecked()){
-                menu1Export->setChecked(false);
+        else if(group == fMenu2Export){
+            if(fMenu1Export->isChecked()){
+                fMenu1Export->setChecked(false);
             }
         }
     }
-    else if(!menu2Export->isChecked() && !menu1Export->isChecked())
-        save->setEnabled(false);
+    else if(!fMenu2Export->isChecked() && !fMenu1Export->isChecked())
+        fSaveButton->setEnabled(false);
 }
 
 void FLExportManager::readKey(){
@@ -218,26 +218,26 @@ void FLExportManager::getFileFromKey(const char* key){
     urlString += key;
     urlString += "/";
     
-    if(menu1Export->isChecked()){
+    if(fMenu1Export->isChecked()){
         
 //        printf("MENU1 check\n");
-        urlString += exportFormat->currentText();
-        fFilenameToSave += exportFormat->currentText().toStdString();
+        urlString += fExportFormat->currentText();
+        fFilenameToSave += fExportFormat->currentText().toStdString();
 //        printf("fFilenameToSave = %s\n", fFilenameToSave.c_str());
     }
-    else if(menu2Export->isChecked()){
+    else if(fMenu2Export->isChecked()){
     
 //        printf("MENU2 check\n");
-        urlString += exportPlatform->currentText();
-        fFilenameToSave += exportPlatform->currentText().toStdString();
+        urlString += fExportPlatform->currentText();
+        fFilenameToSave += fExportPlatform->currentText().toStdString();
         urlString += "/";
         fFilenameToSave += "_";
-        urlString += exportArchi->currentText();
-        fFilenameToSave += exportArchi->currentText().toStdString();
+        urlString += fExportArchi->currentText();
+        fFilenameToSave += fExportArchi->currentText().toStdString();
         urlString += "/";
         fFilenameToSave += "_";
-        urlString += exportChoice->currentText();
-        fFilenameToSave += exportChoice->currentText().toStdString();
+        urlString += fExportChoice->currentText();
+        fFilenameToSave += fExportChoice->currentText().toStdString();
         
     }
     

@@ -6,14 +6,14 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// Dialog that asks the user to rename its application if the name already exists. 
+
 #ifndef _FLrenameDialog_h
 #define _FLrenameDialog_h
 
 #include <string>
 
-#include <QDialog>
-#include <QLineEdit>
-#include <QPushButton>
+#include <QtGui>
 
 using namespace std;
 
@@ -24,18 +24,18 @@ class FLrenameDialog : public QDialog{
     
     public :
     
-    string newName;
-    QLineEdit* filenameBox;
-    QPushButton* yes_Button;
+    string          fNewName;
+    QLineEdit*      fFilenameBox;
+    QPushButton*    fYes_Button;
     
-    FLrenameDialog(string& name,QWidget* parent = NULL);
-    ~FLrenameDialog();
-    string getNewName();
+                    FLrenameDialog(string& name,QWidget* parent = NULL);
+                    ~FLrenameDialog();
+    string          getNewName();
     
     public slots : 
     
-    virtual void accept();
-    void enable_Button(const QString& text);
+    virtual void    accept();
+    void            enable_Button(const QString& text);
     
 };
 #endif

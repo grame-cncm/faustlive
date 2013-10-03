@@ -6,20 +6,16 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "CA_audioManager.h"
-
+#include "CA_audioSettings.h"
 #include "CA_audioFader.h"
+#include "CA_audioManager.h"
 
 CA_audioManager::CA_audioManager(AudioSettings* as) : AudioManager(as){
 
     fSettings = dynamic_cast<CA_audioSettings*>(as);
     
-    printf("AUDIO MANAGER, fBufferSize = %i\n", fSettings->get_BufferSize());
-//    printf("FSETTINGS in AudioManager = %p\n", fSettings);
-    
     fCurrentAudio = new CA_audioFader(fSettings->get_BufferSize());
     
-//    printf("coreaudio created\n");
 }
 
 CA_audioManager::~CA_audioManager(){

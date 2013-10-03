@@ -14,57 +14,57 @@
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLErrorWindow::FLErrorWindow(){
-    errorText = new QTextEdit(this);
-    shortcut = false;
+    fErrorText = new QTextEdit(this);
+    fShortcut = false;
 }
 
 FLErrorWindow::~FLErrorWindow(){
-    delete errorText;
+    delete fErrorText;
 }
 
 void FLErrorWindow::init_Window(){
     
-    widget = new QWidget(this);
-    button = new QPushButton(tr("OK"), this);
-    connect(button, SIGNAL(clicked()), this, SLOT(hideWin()));
-    layout = new QVBoxLayout();
+    fWidget = new QWidget(this);
+    fButton = new QPushButton(tr("OK"), this);
+    connect(fButton, SIGNAL(clicked()), this, SLOT(hideWin()));
+    fLayout = new QVBoxLayout();
     
     QFont font;
     font.setFamily(QString::fromUtf8("Menlo"));
     font.setPointSize(12);
-    errorText->setFont(font);
+    fErrorText->setFont(font);
     
-    errorText->setReadOnly(true);
+    fErrorText->setReadOnly(true);
     
     QSize screenSize = QApplication::desktop()->geometry().size();
     this->setGeometry(screenSize.width()*3/4 , 0,screenSize.width()/4,screenSize.height()/10);
-    this->setCentralWidget(widget);
+    this->setCentralWidget(fWidget);
     
-    layout->addWidget(errorText);
-    layout->addWidget(button);
+    fLayout->addWidget(fErrorText);
+    fLayout->addWidget(fButton);
     
-    widget->setLayout(layout);
+    fWidget->setLayout(fLayout);
 }
 
 void FLErrorWindow::closeEvent(QCloseEvent* event){
     
     this->hideWin();
     
-    if(shortcut)
+    if(fShortcut)
         emit closeAll();
 }
 
 void FLErrorWindow::hideWin(){
-    errorText->setPlainText("");
+    fErrorText->setPlainText("");
     hide();
 }
 
 void FLErrorWindow::print_Error(const char* text){
     
-    QString inter = errorText->toPlainText(); 
+    QString inter = fErrorText->toPlainText(); 
     string wholeText = inter.toStdString() +"\n" +text;
     
-    errorText->setPlainText(wholeText.c_str());
+    fErrorText->setPlainText(wholeText.c_str());
     this->adjustSize();
     show();
     raise(); 
@@ -73,12 +73,12 @@ void FLErrorWindow::print_Error(const char* text){
 void FLErrorWindow::keyPressEvent(QKeyEvent* event){ 
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = true;
+        fShortcut = true;
 }
 
 void FLErrorWindow::keyReleaseEvent(QKeyEvent* event){
     
     if(event->key() == Qt::Key_Alt)
-        shortcut = false;
+        fShortcut = false;
 }
 

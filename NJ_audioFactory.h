@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// Concrete factory specific to NetJackAudio
+// It can create 2 "products" : AudioSettings (NJ_AudioSettings) and AudioManager (NJ_audioManager)
 
 #ifndef _NJ_audioFactory_h
 #define _NJ_audioFactory_h
@@ -18,7 +20,7 @@ class NJ_audioFactory : public AudioFactory{
     NJ_audioFactory();
     ~NJ_audioFactory();
     
-    virtual AudioSettings* createAudioSettings(string homeFolder, QGroupBox* parent);
+    virtual AudioSettings* createAudioSettings(std::string homeFolder, QGroupBox* parent);
     virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
 };
 

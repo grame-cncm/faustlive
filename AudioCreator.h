@@ -7,17 +7,20 @@
 //
 
 //This class is a SINGLETON (as described in DESIGN PATTERNS)
-//MoreOver, it is the 'client' of an abstract factory
-
+//
+//The goal of this class is to control the type of audio architecture used in the application. Therefore it creates the right type of audioFactory
 
 #ifndef _AudioCreator_h
 #define _AudioCreator_h
 
-#include "AudioSettings.h"
-#include "AudioManager.h"
-#include "AudioFactory.h"
-
+#include <string>
 #include <QtGui>
+
+class AudioSettings;
+class AudioManager;
+class AudioFactory;
+
+using namespace std;
 
 #define SAVINGFILE "AudioSettings.rf"
 

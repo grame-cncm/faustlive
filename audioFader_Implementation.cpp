@@ -1,12 +1,14 @@
 //
-//  audioFader.cpp
+//  AudioFader_Implementation.cpp
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "audioFader_Implementation.h"
+// 
+
+#include "AudioFader_Implementation.h"
 
 #include <stdio.h>
 
@@ -18,68 +20,68 @@
  *******************************************************************************
  *******************************************************************************/
 
-audioFader_Implementation::audioFader_Implementation(){
+AudioFader_Implementation::AudioFader_Implementation(){
     reset_Values();
 }
 
-audioFader_Implementation::~audioFader_Implementation(){}
+AudioFader_Implementation::~AudioFader_Implementation(){}
 
-void audioFader_Implementation::set_doWeFadeIn(bool val){
-    doWeFadeIn = val;
+void AudioFader_Implementation::set_doWeFadeIn(bool val){
+    fDoWeFadeIn = val;
 }
 
-void audioFader_Implementation::set_doWeFadeOut(bool val){
+void AudioFader_Implementation::set_doWeFadeOut(bool val){
     
-    doWeFadeOut = val;
+    fDoWeFadeOut = val;
 }
 
-bool audioFader_Implementation::get_doWeFadeOut(){
-    return doWeFadeOut;
+bool AudioFader_Implementation::get_doWeFadeOut(){
+    return fDoWeFadeOut;
 }
 
-void audioFader_Implementation::reset_Values(){
-    NumberOfFadeProcess = 0;
-    InCoef = 0.01;
-    OutCoef = 1;
-    doWeFadeOut = false;
-    doWeFadeIn = false;
+void AudioFader_Implementation::reset_Values(){
+    fNumberOfFadeProcess = 0;
+    fInCoef = 0.01;
+    fOutCoef = 1;
+    fDoWeFadeOut = false;
+    fDoWeFadeIn = false;
 }
 
-void audioFader_Implementation::increment_crossFade(){
+void AudioFader_Implementation::increment_crossFade(){
     
-    if(NumberOfFadeProcess != NumberOfCrossFadeProcess){
-        if(InCoef < 1)
-            InCoef = InCoef*FadeInCoefficient;  
+    if(fNumberOfFadeProcess != kNumberOfCrossFadeProcess){
+        if(fInCoef < 1)
+            fInCoef = fInCoef*kFadeInCoefficient;  
         
-        OutCoef = OutCoef*FadeOutCoefficient;
-        NumberOfFadeProcess++;
+        fOutCoef = fOutCoef*kFadeOutCoefficient;
+        fNumberOfFadeProcess++;
     }
     else{
         reset_Values();
     }
 }
 
-void audioFader_Implementation::crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer){
+void AudioFader_Implementation::crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer){
     
-    if(doWeFadeOut){
+    if(fDoWeFadeOut){
 //        printf("Fade OUt");
         for(int j = 0; j < numFrames ; j++){
             for(int i = 0; i < numOutputs; i++){
-                outBuffer[i][j] = outBuffer[i][j] /OutCoef;
+                outBuffer[i][j] = outBuffer[i][j] /fOutCoef;
             }
             
-            OutCoef = OutCoef*FadeOutCoefficient; 
+            fOutCoef = fOutCoef*kFadeOutCoefficient; 
         }
     }
-    else if(doWeFadeIn){
+    else if(fDoWeFadeIn){
 //        printf("Fade In");   
         for(int j = 0; j < numFrames ; j++){
             
             for(int i = 0; i < numOutputs; i++){
-                outBuffer[i][j] = outBuffer[i][j] * InCoef;
+                outBuffer[i][j] = outBuffer[i][j] * fInCoef;
             } 
-            if(InCoef < 1)   
-                InCoef = InCoef*FadeInCoefficient;      
+            if(fInCoef < 1)   
+                fInCoef = fInCoef*kFadeInCoefficient;      
         }  
     }
     

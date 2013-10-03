@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// Concrete factory specific to CoreAudio
+// It can create 2 "products" : AudioSettings (CA_AudioSettings) and AudioManager (CA_audioManager)
 
 #ifndef _CA_audioFactory_h
 #define _CA_audioFactory_h
@@ -18,7 +20,7 @@ class CA_audioFactory : public AudioFactory{
         CA_audioFactory();
         ~CA_audioFactory();
 
-        virtual AudioSettings* createAudioSettings(string homeFolder, QGroupBox* parent);
+    virtual AudioSettings* createAudioSettings(std::string homeFolder, QGroupBox* parent);
         virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
 };
 

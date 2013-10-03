@@ -31,8 +31,6 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     
     fBufSize = new QLineEdit;
     
-    connect(fBufSize, SIGNAL(textEdited(const QString&)), this, SLOT(yaouh(const QString&)));
-    
 //    fBufSize->setInputMask("0000000");
 //    bufSize->setText(bf.str().c_str());
     
@@ -55,12 +53,6 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     
     readSettings();
     setCurrentSettings();
-}
-
-void CA_audioSettings::yaouh(const QString& text){
-    
-    printf("TEXT EDITED = %s\n", text.toStdString().c_str());
-    printf("THIS = %p\n", this);
 }
 
 CA_audioSettings::~CA_audioSettings(){

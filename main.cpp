@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// MAIN OF FAUSTLIVE = Starts the FaustLive Qt Application
+
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
@@ -19,7 +21,7 @@
 
 using namespace std;
 
-#include "FaustLiveApp.h"
+#include "FLApp.h"
 
 #include <QFileInfo>
 
@@ -30,7 +32,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {   
     
-    FaustLiveApp* app = new FaustLiveApp(argc, argv);
+    FLApp* app = new FLApp(argc, argv);
     
     //If app was executed with DSP as arguments
     if(argc > 1){

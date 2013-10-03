@@ -1,61 +1,54 @@
 //
-//  Effect.cpp
+//  FLEffect.cpp
 //  
 //
 //  Created by Sarah Denoux on 30/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "Effect.h"
-
-#include <QFileSystemWatcher>
-#include <QTimer>
-#include <QObject>
-#include <QCoreApplication>
-#include <QFileInfo>
-#include <QDir>
+#include "FLEffect.h"
 
 #define LIBRARY_PATH "/Resources/Libs/"
 
 
 /***********************************EFFECT IMPLEMENTATION*********************************/
 
-Effect::Effect(bool recallVal, string sourceFile, string name){
+FLEffect::FLEffect(bool recallVal, string sourceFile, string name){
     
-    factory = NULL;
-    oldFactory = NULL;
-    watcher = NULL;
-    synchroTimer = NULL;
-    fichierSource = sourceFile;
-    nomEffet = name;
-    forceSynchro = false;
-    isRecalled = recallVal; //Effect is build in a recall situation
+    fFactory = NULL;
+    fOldFactory = NULL;
+    fWatcher = NULL;
+    fSynchroTimer = NULL;
+    fSource = sourceFile;
+    fName = name;
+    fForceSynchro = false;
+    fRecalled = recallVal; //Effect is build in a recall situation
 }
 
-Effect::~Effect(){
+FLEffect::~FLEffect(){
     
-    delete synchroTimer;
-    delete watcher;
+    delete fSynchroTimer;
+    delete fWatcher;
     //    printf("deleting factory = %p\n", factory);
-    deleteDSPFactory(factory);
+    deleteDSPFactory(fFactory);
 }
 
 //--------------INITIALISATION FUNCTIONS
-bool Effect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, char* error){
+bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, char* error){
     
-    compilationOptions = compilationMode;
-    opt_level = optValue;
+    fCompilationOptions = compilationMode;
+    fOpt_level = optValue;
     
-    bool sucess = buildFactory(&factory, opt_level, error, currentSVGFolder, currentIRFolder);
+    bool sucess = buildFactory(&fFactory, fOpt_level, error, currentSVGFolder, currentIRFolder);
     
     if(sucess){
         
         //Initializing watcher looking for changes on DSP through text editor 
-        watcher = new QFileSystemWatcher(this);
-        synchroTimer = new QTimer(watcher);
-        connect(synchroTimer, SIGNAL(timeout()), this, SLOT(effectModified()));
+        fWatcher = new QFileSystemWatcher(this);
+        fSynchroTimer = new QTimer(fWatcher);
+        connect(fSynchroTimer, SIGNAL(timeout()), this, SLOT(effectModified()));
         
-        connect(watcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Timer(const QString)));
+        connect(fWatcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Timer(const QString)));
         
         return true;
     }
@@ -66,16 +59,16 @@ bool Effect::init(string currentSVGFolder, string currentIRFolder ,string compil
 
 //---------------FACTORY ACTIONS
 
-bool Effect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
-    int argc = 2 + get_numberParameters(compilationOptions);
+    int argc = 2 + get_numberParameters(fCompilationOptions);
     
     char ** argv;
     argv = new char*[argc];
     
     //Parsing the compilationOptions from a string to a char**
-    string copy = compilationOptions;
+    string copy = fCompilationOptions;
     for(int i=2; i<argc; i++){
         
         string parseResult = parse_compilationParams(copy);
@@ -83,10 +76,11 @@ bool Effect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char
         strcpy(argv[i], parseResult.c_str());
     }
     
-    argv[0] = new char[fichierSource.length() + 1];
-    strcpy(argv[0], fichierSource.c_str());
+    argv[0] = new char[fSource.length() + 1];
+    strcpy(argv[0], fSource.c_str());
     argv[1] = new char[5];
     strcpy(argv[1], "-svg");
+    
     
     const char** argument = (const char**) argv;
     
@@ -95,28 +89,35 @@ bool Effect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char
     
     snprintf(libraryPath, 255, "%s%s", QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
     
-    //    printf("libraryPath = %s\n", libraryPath);
+    QString testtest(libraryPath);
+    testtest += "scheduler.ll";
     
-    string path = currentIRFolder + "/" + nomEffet;
+    if(QFileInfo(testtest).exists())
+        printf("LIBRARY EXISTS\n");
+//    printf("libraryPath = %s\n", libraryPath);
+    
+    string path = currentIRFolder + "/" + fName;
     printf("PATH TO IR = %s\n", path.c_str());
     
     //To speed up the process of compilation, when a session is recalled, the DSP are re-compiled from Bitcode 
-    if(isRecalled && QFileInfo(path.c_str()).exists()){        
+    if(fRecalled && QFileInfo(path.c_str()).exists()){        
         *factoryToBuild = readDSPFactoryFromBitcodeFile(path, "");
         
         printf("factory from IR = %p\n", *factoryToBuild);
     }
     
-    isRecalled = false;
+    fRecalled = false;
     
     if(*factoryToBuild == NULL){
         
-        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", error, opt_level);
+        printf("ABOUT TO BUILD with = %s\n", libraryPath);
+        
+        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", error, fOpt_level);
         
         delete [] argv;
         
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
-        creationDate = creationDate.currentDateTime();
+        fCreationDate = fCreationDate.currentDateTime();
         
         if(*factoryToBuild != NULL){
             
@@ -135,13 +136,13 @@ bool Effect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char
     }
     else{
         delete [] argv;
-        creationDate = creationDate.currentDateTime();
+        fCreationDate = fCreationDate.currentDateTime();
         return true;
     }
     
 }
 
-int Effect::get_numberParameters(string compilOptions){
+int FLEffect::get_numberParameters(string compilOptions){
     
     string copy = compilOptions;
     
@@ -161,7 +162,7 @@ int Effect::get_numberParameters(string compilOptions){
     
 }
 
-string& Effect::parse_compilationParams(string& compilOptions){
+string& FLEffect::parse_compilationParams(string& compilOptions){
     
     //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway!    
     
@@ -179,108 +180,108 @@ string& Effect::parse_compilationParams(string& compilOptions){
     return returning;
 }
 
-bool Effect::update_Factory(int opt_level, char* error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::update_Factory(char* error, string currentSVGFolder, string currentIRFolder){
     
-    oldFactory = factory;
+    fOldFactory = fFactory;
     
     llvm_dsp_factory* factory_update = NULL;
     
-    if(buildFactory(&factory_update, opt_level, error, currentSVGFolder, currentIRFolder)){
-        factory = factory_update;
+    if(buildFactory(&factory_update, fOpt_level, error, currentSVGFolder, currentIRFolder)){
+        fFactory = factory_update;
         return true;
     }
     else
         return false;
 }
 
-void Effect::erase_OldFactory(){
+void FLEffect::erase_OldFactory(){
     
     //    printf("delete Factory = %p\n", oldFactory);
-    deleteDSPFactory(oldFactory);
+    deleteDSPFactory(fOldFactory);
 }
 
 //---------------WATCHER & FILE MODIFICATIONS ACTIONS
 
-void Effect::reset_Timer(const QString toto){
+void FLEffect::reset_Timer(const QString toto){
     
     //    printf("Reseting Timer\n");
     
     //If the signal is triggered multiple times in 2 second, only 1 is taken into account
-    if(synchroTimer->isActive()){
-        synchroTimer->stop();
-        synchroTimer->start(2000);
+    if(fSynchroTimer->isActive()){
+        fSynchroTimer->stop();
+        fSynchroTimer->start(2000);
     }
     else
-        synchroTimer->start(2000);
+        fSynchroTimer->start(2000);
 }
 
-void Effect::effectModified(){
-    synchroTimer->stop();
-    //    printf("Emission EffectChanged\n");
+void FLEffect::effectModified(){
+    fSynchroTimer->stop();
+    //    printf("Emission FLEffectChanged\n");
     emit effectChanged();
 }
 
-void Effect::stop_Watcher(){
-    printf("PATH STOP WATCHING = %s\n", fichierSource.c_str());
-    watcher->removePath(fichierSource.c_str());
+void FLEffect::stop_Watcher(){
+    printf("PATH STOP WATCHING = %s\n", fSource.c_str());
+    fWatcher->removePath(fSource.c_str());
 }
 
-void Effect::launch_Watcher(){
+void FLEffect::launch_Watcher(){
     
-    printf("PATH WATCHED= %s\n", fichierSource.c_str());
-    watcher->addPath(fichierSource.c_str());
+    printf("PATH WATCHED= %s\n", fSource.c_str());
+    fWatcher->addPath(fSource.c_str());
 }
 
 //--------------ACCESSORS
 
-string Effect::getSource(){
+string FLEffect::getSource(){
     
-    return fichierSource;
+    return fSource;
 }
 
-void Effect::setSource(string file){
-    fichierSource = file;
+void FLEffect::setSource(string file){
+    fSource = file;
 }
 
-QDateTime Effect::get_creationDate(){
-    return creationDate;
+QDateTime FLEffect::get_creationDate(){
+    return fCreationDate;
 }
 
-string Effect::getName(){
+string FLEffect::getName(){
     
-    return nomEffet; 
+    return fName; 
 }
 
-void Effect::setName(string name){
-    nomEffet = name;
+void FLEffect::setName(string name){
+    fName = name;
 }
 
-llvm_dsp_factory* Effect::getFactory(){
-    return factory;
+llvm_dsp_factory* FLEffect::getFactory(){
+    return fFactory;
 }
 
-string Effect::getCompilationOptions(){
-    return compilationOptions;
+string FLEffect::getCompilationOptions(){
+    return fCompilationOptions;
 }
 
-void Effect::update_compilationOptions(string& compilOptions, int newOptValue){
-    if(compilationOptions.compare(compilOptions) !=0 || opt_level != newOptValue){
-        compilationOptions = compilOptions;
-        opt_level = newOptValue;   
+void FLEffect::update_compilationOptions(string& compilOptions, int newOptValue){
+    if(fCompilationOptions.compare(compilOptions) !=0 || fOpt_level != newOptValue){
+        fCompilationOptions = compilOptions;
+        fOpt_level = newOptValue;   
         //        printf("opt level = %i\n", opt_level);
-        forceSynchro = true;
+        fForceSynchro = true;
         emit effectChanged();
     }
 }
 
-int Effect::getOptValue(){
-    return opt_level;
+int FLEffect::getOptValue(){
+    return fOpt_level;
 }
 
-bool Effect::isSynchroForced(){
-    return forceSynchro;
+bool FLEffect::isSynchroForced(){
+    return fForceSynchro;
 }
 
-void Effect::setForceSynchro(bool val){
-    forceSynchro = val;
+void FLEffect::setForceSynchro(bool val){
+    fForceSynchro = val;
 }
