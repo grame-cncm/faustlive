@@ -124,7 +124,8 @@ void FLWindow::setMenuBar(){
     addToolBar(fMenu);
     
     connect(fMenu, SIGNAL(modified(string, int)), this, SLOT(modifiedOptions(string, int)));
-    connect(fMenu, SIGNAL(sizeChanged()), this, SLOT(resizing()));
+    connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
+    connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
 }
 
 void FLWindow::errorPrint(const char* msg){
@@ -136,8 +137,29 @@ void FLWindow::modifiedOptions(string text, int value){
     fEffect->update_compilationOptions(text, value);
 }
 
-void FLWindow::resizing(){
+void FLWindow::resizingSmall(){
+    
+    QSize winSize = fMenu->geometry().size();
+    winSize -= fMenu->minimumSize();
+    
+    QSize winMinSize = minimumSize();
+    winMinSize -= fMenu->minimumSize();
+    
     adjustSize();
+    setMinimumSize(winMinSize);
+    
+}
+
+void FLWindow::resizingBig(){
+    
+    QSize winSize = fMenu->geometry().size();
+    winSize += fMenu->minimumSize();
+    
+    QSize winMinSize = minimumSize();
+    winMinSize += fMenu->minimumSize();
+    
+        adjustSize();
+    setMinimumSize(winMinSize);
 }
 
 void FLWindow::emit_closeAll(){
@@ -350,16 +372,20 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
         if(init)
             print_initWindow();        
         
-        this->adjustSize();  
+//        this->adjustSize();  
         
         if(init_audioClient(errorMsg)){
             
             start_Audio();
             
-            setGeometry(fXPos, fYPos, 0, 0);
+//            setGeometry(fXPos, fYPos, 0, 0);
             adjustSize();
             
+//            QSize s_max = maximumSize();
             frontShow();               
+            setMinimumSize(QSize(0, 0));
+            setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
+//            adjustSize();
             fInterface->run();
             return true;
         }

@@ -7,30 +7,29 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-
-#include <QFileOpenEvent>
-#include <QClipboard>
-#include <QMimeData>
-#include <QString>
-#include <QTextStream>
+#include "FLServerHttp.h"
 
 #include <sstream>
 
 //--------------------GENERAL METHODS-------------------------------------
 
-string FLApp::pathToContent(string path){
+void FLApp::pathToContent(string path, string& Content){
     QFile file(path.c_str());
-    string Content;
+//    string Content;
     
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        Content += "";
-        return Content;
+//        printf("impossible to open content\n");
+        Content = "";
+//        return Content;
     }
     while (!file.atEnd()) {
+//        printf("Content read\n");
         QByteArray line = file.readLine();
         Content += line.data();
     }
-    return Content;
+    
+//    printf("CONTENT = %s\n", Content.c_str());
+//    return Content;
 }
 
 bool FLApp::deleteDirectoryAndContent(string& directory){
@@ -753,6 +752,8 @@ string FLApp::getDeclareName(string text, list<string> runningEffects){
 
 string FLApp::renameEffect(string nomEffet, list<string> runningEffects){
     
+    runningEffects = getNameRunningEffects();
+    
     while(doesEffectNameExists(nomEffet, runningEffects)){
         
         FLrenameDialog* Msg = new FLrenameDialog(nomEffet, 0);
@@ -840,9 +841,6 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
     string content = "";
     string fichierSource = "";
     
-    list<string> currentDefault = get_currentDefault();
-    string defaultName = find_smallest_defaultName(source, currentDefault);
-    
     source = ifUrlToText(source);
     
     //SOURCE = FILE.DSP    
@@ -850,11 +848,15 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
         
         list<FLEffect*>::iterator it;
         for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
+            
+            //Effect already compiled
             if(source.compare((*it)->getSource()) == 0){
                 
+                //Effect in current session = direct
                 if(isEffectInCurrentSession((*it)->getSource())){
                     return *it;                       
                 }
+                //Effect gardé en memoire mais potentiellement son nom est utilisé par un autre effet dans la session courante
                 else{
                     string effetName = (*it)->getName();
                     if(isEffectNameInCurrentSession(source, effetName)){
@@ -870,7 +872,8 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
             }
         }
         
-        //OTHERWISE
+        // Si l'effet est pour la première fois compilé, il faut récupérer son nom et vérifier que son nom n'existe pas. 
+        // Le marqueur
         
         fileSourceMark = true;
         fichierSource = source;
@@ -878,7 +881,7 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
         if(!init){
             //            if(nameEffect.compare("") == 0){
             nameEffect = (QFileInfo(fichierSource.c_str()).baseName()).toStdString();
-            
+
             nameEffect = renameEffect(nameEffect, getNameRunningEffects());
             //            }
             
@@ -894,18 +897,21 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
         
         string name = getDeclareName(source, getNameRunningEffects());
         
-        if(name.compare("") == 0)
+        if(name.compare("") == 0){
+//            list<string> currentDefault = get_currentDefault();
+            string defaultName = find_smallest_defaultName(source, get_currentDefault());
             name = defaultName;
+        }
         
-        
+        //Erase the spaces because it brings problems ^^
         while(name.find(' ') != string::npos)
             name.erase(name.find(' '), 1);
         
         fichierSource = sourceFolder + "/" + name + ".dsp";
         
-        string content;
         if(QFileInfo(fichierSource.c_str()).exists()){
-            content = pathToContent(fichierSource);
+            pathToContent(fichierSource, content);
+//            printf("CONTENT = %s\n", content.c_str());
         }
         createSourceFile(fichierSource, source);
         nameEffect = name;
@@ -914,9 +920,6 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
     display_CompilingProgress("Compiling your DSP...");
     
     FLEffect* myNewEffect = new FLEffect(init, fichierSource, nameEffect);
-    //    list<string> runningEffects = getNameRunningEffects();
-    
-    printf("PARAMETERS = SVG %s// IR %s // Options %s // opt =%i \n", fSVGFolder.c_str(), fIRFolder.c_str(), compilationOptions.c_str(), opt_Val);
     
     if(myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error)){
         
@@ -930,17 +933,17 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
     }
     else{
         
+//        Si l'init n'a pas marché,  
         if(!fileSourceMark){
             
-            QFile f(fichierSource.c_str());
-            
-            if(f.open(QFile::WriteOnly)){
-                
-                QTextStream textWriting(&f); 
-                
-                textWriting<<content.c_str();
-                f.close();
+//          Si ce fichier n'existait pas on le supprime
+            if(content.compare("") == 0){
+                if(QFile(fichierSource.c_str()).remove())
+                    printf("FICHIER SOURCE WAS REMOVED\n");
             }
+//          Sinon, on remet dans le fichier son ancien contenu.
+            else
+                createSourceFile(fichierSource, content);
         }
         
         StopProgressSlot();
@@ -1304,7 +1307,7 @@ void FLApp::open_Recent_File(){
 
 void FLApp::export_Win(FLWindow* win){
     
-    fExportDialog = new FLExportManager(QUrl("http://localhost:8888"), win->get_Effect()->getSource(), win->get_Effect()->getName());
+    fExportDialog = new FLExportManager(fSessionFolder, win->get_Effect()->getSource(), win->get_Effect()->getName());
     
     connect(fExportDialog, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     connect(fExportDialog, SIGNAL(start_progressing(const char*)), this, SLOT(display_CompilingProgress(const char*)));
@@ -2164,9 +2167,11 @@ void FLApp::currentSessionRestoration(list<WinInSession*>* session){
     
     for(it = session->begin() ; it != session->end() ; it++){
         
-        string contentOrigin = pathToContent((*it)->source);
+        string contentOrigin("");
+        string contentSaved("");
+        pathToContent((*it)->source, contentOrigin);
         string sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
-        string contentSaved = pathToContent(sourceSaved);
+        pathToContent(sourceSaved, contentSaved);
         
         QFileInfo infoSource((*it)->source.c_str());
         //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
@@ -2308,10 +2313,12 @@ void FLApp::snapshotRestoration(string& file, list<WinInSession*>* session){
         
         QFileInfo infoSource((*it)->source.c_str());
         
-        string contentOrigin = pathToContent((*it)->source);
+        string contentOrigin("");
+        pathToContent((*it)->source, contentOrigin);
         
         string sourceSaved = QFileInfo(file.c_str()).absolutePath().toStdString() + "/Sources/" + (*it)->name + ".dsp";
-        string contentSaved = pathToContent(sourceSaved);
+        string contentSaved("");
+        pathToContent(sourceSaved, contentSaved);
         
         //If one source (not in the Source folder) couldn't be found, the User is informed that we are now working on the copy
         if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(fSourcesFolder) != 0  && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0)){
@@ -4039,16 +4046,15 @@ void FLApp::init_PreferenceWindow(){
     QGroupBox* menu1 = new QGroupBox(myTab);
     QGroupBox* menu2 = new QGroupBox(myTab);
     QGroupBox* menu3 = new QGroupBox(myTab);
+    QGroupBox* menuExport = new QGroupBox(myTab);
     
-    myTab->addTab(menu1, tr("Window Preferences"));
-    myTab->addTab(menu2, tr("Audio Preferences"));
-    myTab->addTab(menu3, tr("Style Preferences"));
-    
-    fAudioBox = new QGroupBox(menu2);
-    fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
-    
-    fCompilModes = new QLineEdit(menu1);
-    fOptVal = new QLineEdit(menu1);
+    QFormLayout* layout1 = new QFormLayout;
+    QFormLayout* layout2 = new QFormLayout;
+    QFormLayout* layout3 = new QFormLayout;
+    QGridLayout* layout4 = new QGridLayout;
+    QVBoxLayout* layout5 = new QVBoxLayout;
+    QHBoxLayout* intermediateLayout = new QHBoxLayout;
+    intermediateLayout->setAlignment(Qt::AlignCenter);
     
     QWidget* intermediateWidget = new QWidget(fPrefDialog);
     
@@ -4061,6 +4067,20 @@ void FLApp::init_PreferenceWindow(){
     connect(saveButton, SIGNAL(released()), this, SLOT(save_Mode()));
     connect(cancelButton, SIGNAL(released()), this, SLOT(cancelPref()));
     
+    intermediateLayout->addWidget(cancelButton);
+    intermediateLayout->addWidget(new QLabel(tr("")));
+    intermediateLayout->addWidget(saveButton);
+    
+    intermediateWidget->setLayout(intermediateLayout);
+    
+    
+//------------------WINDOW PREFERENCES    
+    
+    myTab->addTab(menu1, tr("Window Preferences"));
+    
+    fCompilModes = new QLineEdit(menu1);
+    fOptVal = new QLineEdit(menu1);
+    
     recall_Settings(fHomeSettings);
     
     fCompilModes->setText(fCompilationMode.c_str());
@@ -4069,20 +4089,25 @@ void FLApp::init_PreferenceWindow(){
     oV << fOpt_level;
     fOptVal->setText(oV.str().c_str());
     
-    QFormLayout* layout1 = new QFormLayout;
-    QFormLayout* layout2 = new QFormLayout;
-    QFormLayout* layout3 = new QFormLayout;
-    QGridLayout* layout4 = new QGridLayout;
-    QVBoxLayout* layout5 = new QVBoxLayout;
-    QHBoxLayout* intermediateLayout = new QHBoxLayout;
-    intermediateLayout->setAlignment(Qt::AlignCenter);
+    layout1->addRow(new QLabel(tr("")));
+    layout1->addRow(new QLabel(tr("Default Compilation Options")), fCompilModes);
+    layout1->addRow(new QLabel(tr("Optimization Value of compilation")), fOptVal);
+    layout1->addRow(new QLabel(tr("")));
     
-    layout1->addRow(new QLabel(tr("")));
-    QLabel* la1 = new QLabel(tr("Default Compilation Options"));
-    layout1->addRow(la1, fCompilModes);
-    QLabel* la2 = new QLabel(tr("Optimization Value of compilation"));
-    layout1->addRow(la2, fOptVal);
-    layout1->addRow(new QLabel(tr("")));
+    menu1->setLayout(layout1);
+   
+//------------------AUDIO PREFERENCES  
+    
+    myTab->addTab(menu2, tr("Audio Preferences"));
+    
+    fAudioBox = new QGroupBox(menu2);
+    fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
+    
+    layout2->addWidget(fAudioBox);
+    menu2->setLayout(layout2);
+    
+//------------------STYLE PREFERENCES
+    myTab->addTab(menu3, tr("Style Preferences"));
     
     QPlainTextEdit* container = new QPlainTextEdit(menu3);
     container->setReadOnly(true);
@@ -4151,24 +4176,12 @@ void FLApp::init_PreferenceWindow(){
     layout4->addWidget(pastel, 0, 1);
     
     container->setLayout(layout4);
-    
     layout5->addWidget(container);
     menu3->setLayout(layout5);
     
+    
     layout3->addRow(myTab);
-    
-    intermediateLayout->addWidget(cancelButton);
-    intermediateLayout->addWidget(new QLabel(tr("")));
-    intermediateLayout->addWidget(saveButton);
-    
-    intermediateWidget->setLayout(intermediateLayout);
     layout3->addRow(intermediateWidget);
-    
-    menu1->setLayout(layout1);
-    
-    layout2->addWidget(fAudioBox);
-    menu2->setLayout(layout2);
-    
     fPrefDialog->setLayout(layout3);
 }
 
@@ -4384,3 +4397,17 @@ void FLApp::StopProgressSlot(){
     fCompilingMessage->hide();
     delete fCompilingMessage;
 }
+
+
+//--------------------------FAUSTLIVE SERVER ------------------------------
+
+
+void FLApp::launch_Server(){
+    
+    fServer = new FLServerHttp();
+    fServer->start();
+}
+
+
+
+

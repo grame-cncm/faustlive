@@ -19,6 +19,8 @@
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
 
+class FLServerHttp;
+
 using namespace std;
 
 #define DEFAULTNAME "DefaultName"
@@ -45,7 +47,7 @@ class FLApp : public QApplication
     
     private :
     
-        string              pathToContent(string path);
+        void                pathToContent(string path, string& Content);
         bool                deleteDirectoryAndContent(string& directory);
         bool                rmDir(const QString &dirPath);
     
@@ -109,7 +111,11 @@ class FLApp : public QApplication
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
         QDialog*            fVersionWindow;
         FLExportManager*    fExportDialog;
+    
+        FLServerHttp*       fServer;
 
+        void                launch_Server();
+    
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
         list<FLEffect*>       fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution

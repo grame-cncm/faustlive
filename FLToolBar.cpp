@@ -92,7 +92,7 @@ void FLToolBar::expansionAction(QTreeWidgetItem * item){
     setOrientation(Qt::Vertical);
     
     adjustSize();
-    emit sizeChanged();
+    emit sizeGrowth();
 }
 
 void FLToolBar::collapseAction(QTreeWidgetItem* item){
@@ -101,7 +101,7 @@ void FLToolBar::collapseAction(QTreeWidgetItem* item){
     removeAction(fAction1);
     
     adjustSize();
-    emit sizeChanged();
+    emit sizeReduction();
 }
 
 FLToolBar::~FLToolBar(){

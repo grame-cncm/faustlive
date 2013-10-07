@@ -8,11 +8,15 @@
 
 #include "FLExportManager.h"
 
-FLExportManager::FLExportManager(QUrl server, string file, string filename){
+#define kSaveFile "ServerURL.txt"
+
+FLExportManager::FLExportManager(string sessionHome, string file, string filename){
+    
+    fHome = sessionHome + kSaveFile;
 
     fDialogWindow = new QDialog;
     
-    fServerUrl = server;
+    fServerUrl = readURL();
     fFileToExport = file;
     fFilenameToExport = filename;
     fFilenameToSave = fFilenameToExport + "_";
@@ -22,6 +26,7 @@ FLExportManager::FLExportManager(QUrl server, string file, string filename){
 
 FLExportManager::~FLExportManager(){
 
+    writeURL(fServerUrl);
     delete fDialogWindow;
 }
     
@@ -37,6 +42,13 @@ void FLExportManager::init(){
     
     exportLayout->addRow(dialogTitle);
     exportLayout->addRow(new QLabel(""));
+//    QFormLayout* layoutExportServer = new QFormLayout;
+    
+    fServIPLine = new QLineEdit(fDialogWindow);
+    fServIPLine->setText(fServerUrl.toString());
+    
+    exportLayout->addRow(new QLabel(tr("Exportation server ")), fServIPLine);
+    exportLayout->addRow(new QLabel(tr("")));
     
     QString groupTitle1("Export ");
     groupTitle1 += fFilenameToExport.c_str();
@@ -105,7 +117,7 @@ void FLExportManager::init(){
     fSaveButton->setDefault(true);
     
     connect(fSaveButton, SIGNAL(released()), this, SLOT(postExport()));
-    connect(cancel, SIGNAL(released()), fDialogWindow, SLOT(hide()));
+    connect(cancel, SIGNAL(released()), this, SLOT(cancelDialog()));
     
     intermediateLayout->addWidget(cancel);
     intermediateLayout->addWidget(new QLabel(tr("")));
@@ -125,6 +137,7 @@ void FLExportManager::init(){
 void FLExportManager::postExport(){
     
     fDialogWindow->hide();
+    fServerUrl = QUrl(fServIPLine->text());
     
     emit start_progressing("Connecting with the server...");
     
@@ -148,7 +161,7 @@ void FLExportManager::postExport(){
         data += file.readAll();
         data += "\r\n--" + boundary + "--\r\n";
     }
-    printf("DATA TO SEND = %s\n", data.data());
+//    printf("DATA TO SEND = %s\n", data.data());
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
     requete.setRawHeader("Content-Length", QString::number(data.size()).toAscii());
@@ -157,6 +170,12 @@ void FLExportManager::postExport(){
     
     connect(r, SIGNAL(finished()), this, SLOT(readKey()));
     connect(r, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+}
+
+void FLExportManager::cancelDialog(){
+    
+    fServIPLine->setText(fServerUrl.toString()); 
+    fDialogWindow->hide();
 }
 
 void FLExportManager::exportChecked(bool on){
@@ -286,6 +305,36 @@ void FLExportManager::endProcess(){
         emit error(toPrint.c_str());
         emit processEnded();
     }
+}
+
+void FLExportManager::writeURL(QUrl server){
+    
+    QFile f(fHome.c_str()); 
+    
+    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+        
+        QTextStream textWriting(&f);
+        
+        textWriting<<server.toString();
+        f.close();
+    }    
+}
+
+QUrl FLExportManager::readURL(){
+    
+    QString server("http://localhost:8888");
+    
+    QFile f(fHome.c_str()); 
+    
+    if(f.open(QFile::ReadOnly)){
+        
+        QTextStream textReading(&f);
+        textReading>>server;
+        
+        f.close();
+    }
+    
+    return QUrl(server);
 }
 
 

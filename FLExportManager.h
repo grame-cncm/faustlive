@@ -24,6 +24,9 @@ class FLExportManager : public QObject{
     private :
         
         QUrl            fServerUrl;
+        QLineEdit*       fServIPLine;
+    
+        string          fHome;
         string          fFileToExport;
         string          fFilenameToExport;
         string          fFilenameToSave;
@@ -41,9 +44,12 @@ class FLExportManager : public QObject{
     
         QPushButton*    fSaveButton;
     
+        void            writeURL(QUrl server);
+        QUrl            readURL();
+    
     public :
     
-        FLExportManager(QUrl server, string file, string filename);
+        FLExportManager(string sessionHome, string file, string filename);
         virtual ~FLExportManager();
     
         void init();
@@ -57,6 +63,7 @@ class FLExportManager : public QObject{
     
     private slots :
     
+        void            cancelDialog();
         void            postExport();
         void            exportChecked(bool on);
         void            readKey();

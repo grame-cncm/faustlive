@@ -10,6 +10,7 @@ In order to compile FaustLive, the following libraries are needed:
 
 Through MacPorts :
 - llvm (3.1 and higher)
+- clang (same version than llvm)
 - qt (4.8 and higher)
 - libqrencode
 - libmicrohttpd

@@ -68,7 +68,8 @@ public slots:
     signals :
     
        void  modified(string option, int val);
-        void sizeChanged();
+        void sizeGrowth();
+        void sizeReduction();
     
 };
 

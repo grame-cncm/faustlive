@@ -34,7 +34,8 @@ for(FILE, MYFILES) {
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
 
-QMAKE_CXXFLAGS += -g
+# QMAKE_CXXFLAGS += -g
+QMAKE_CXXFLAGS += -Wno-unused-variable
 QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
@@ -118,6 +119,7 @@ HEADERS += 	AudioSettings.h \
 			FLrenameDialog.h \
 			FLErrorWindow.h \
 			FLExportManager.h \
+			FLServerHttp.h \
 			FLEffect.h \
 			FLWindow.h \ 
 			FLApp.h \
@@ -129,6 +131,7 @@ SOURCES += 	AudioCreator.cpp \
 			FLrenameDialog.cpp \
 			FLErrorWindow.cpp \
 			FLExportManager.cpp \
+			FLServerHttp.cpp \
 			FLEffect.cpp \
 			FLWindow.cpp \ 
 			FLApp.cpp \

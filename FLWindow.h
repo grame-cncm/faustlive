@@ -162,7 +162,8 @@ class FLWindow : public QMainWindow
     public slots :
     //Modification of the compilation options
         void            modifiedOptions(string text, int value);
-        void            resizing();
+        void            resizingBig();
+        void            resizingSmall();
     
         void            emit_closeAll();
     //Raises and shows the window
