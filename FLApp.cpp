@@ -189,13 +189,16 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(fInitTimer, SIGNAL(timeout()), this, SLOT(init_Timer_Action()));
     fInitTimer->start(500);
     
+    // Presentation Window Initialization
+    fPresWin = new QDialog;
+    fPresWin->setWindowFlags(Qt::FramelessWindowHint);
+    init_presentationWindow();    
     
     //Initializing menu options 
     fRecentFileAction = new QAction* [kMAXRECENTFILES];
     fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
 //    frontWindow = new QAction* [200];
-    
     
     //For the application not to quit when the last window is closed
     setQuitOnLastWindowClosed(false);
@@ -265,9 +268,7 @@ FLApp::~FLApp(){
     delete fMenuBar;
     
     delete fInitTimer;
-    
-    if(fPresWin != NULL)
-        delete fPresWin;
+    delete fPresWin;
     
     delete fHelpWindow;
     delete fErrorWindow;
@@ -3304,10 +3305,6 @@ void FLApp::open_Session_pres(){
 }
 
 void FLApp::show_presentation_Action(){
-    
-    fPresWin = new QDialog;
-    fPresWin->setWindowFlags(Qt::FramelessWindowHint);
-    init_presentationWindow();
     
     fPresWin->show();
     fPresWin->raise();
