@@ -75,13 +75,15 @@ void FLExportManager::init(){
     fExportPlatform->addItem("linux");
     
     fExportArchi = new QComboBox(fMenu2Export);
+    fExportArchi->addItem("android");
     fExportArchi->addItem("coreaudio-qt");
-    fExportArchi->addItem("jack-qt");
-    fExportArchi->addItem("supercollider");
-    fExportArchi->addItem("vst");
     fExportArchi->addItem("csound");
+    fExportArchi->addItem("iphone");
+    fExportArchi->addItem("jack-qt");
     fExportArchi->addItem("max-msp");
     fExportArchi->addItem("puredata");
+    fExportArchi->addItem("supercollider");
+    fExportArchi->addItem("vst");
     fExportArchi->addItem("vsti");
     
     fExportChoice = new QComboBox(fMenu2Export);
