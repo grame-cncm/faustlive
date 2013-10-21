@@ -402,7 +402,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, string compilationOptions, int
     
     if(fRCInterface){
         
-        if(!fAudioManager->init_FadeAudio(error, fEffect->getName().c_str(), charging_DSP)){
+        if(!fAudioManager->init_FadeAudio(error, newEffect->getName().c_str(), charging_DSP)){
             
 //            printf("INIT FADE AUDIO FAILED\n");
             
