@@ -124,7 +124,7 @@ HEADERS += 	AudioSettings.h \
 			FLrenameDialog.h \
 			FLErrorWindow.h \
 			FLExportManager.h \
-			FLServerHttp.h \
+# 			FLServerHttp.h \
 			FLEffect.h \
 			FLWindow.h \ 
 			FLApp.h \
@@ -136,7 +136,7 @@ SOURCES += 	AudioCreator.cpp \
 			FLrenameDialog.cpp \
 			FLErrorWindow.cpp \
 			FLExportManager.cpp \
-			FLServerHttp.cpp \
+# 			FLServerHttp.cpp \
 			FLEffect.cpp \
 			FLWindow.cpp \ 
 			FLApp.cpp \
