@@ -203,7 +203,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
 //    frontWindow = new QAction* [200];
     
-    
     //For the application not to quit when the last window is closed
     setQuitOnLastWindowClosed(false);
     

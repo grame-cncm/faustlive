@@ -157,7 +157,6 @@ void FLExportManager::init(){
     for(it = architectures.begin(); it!=architectures.end(); it++)
         fExportArchi->addItem((*it).c_str());
     
-    
     fExportChoice = new QComboBox(fMenu2Export);
     fExportChoice->addItem("binary.zip");
     fExportChoice->addItem("src.cpp");
