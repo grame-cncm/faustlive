@@ -25,6 +25,7 @@ Other Packages
 -json parser	https://github.com/dfober/json2osc
 	cd json2osc DIRECTORY
 	cd cmake
+	cmake -G "Unix Makefiles" -DJSONONLY=1
 	make
 	sudo make install
 
