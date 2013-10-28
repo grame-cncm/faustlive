@@ -51,6 +51,8 @@ bool NJ_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
     
     fFadeInAudio = new NJ_audioFader(fSettings->get_compressionValue(), fSettings->get_IP(), fSettings->get_Port(), fSettings->get_latency());
     
+//    printf("INIT_FADEAUDIO THIS = %p \n",fFadeInAudio);
+    
     connect(fFadeInAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
     
     if(fFadeInAudio->init(name, DSP))
@@ -63,8 +65,8 @@ bool NJ_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
 
 void NJ_audioManager::start_Fade(){
     
-    fCurrentAudio->launch_fadeIn();
-    fFadeInAudio->launch_fadeOut();
+    fCurrentAudio->launch_fadeOut();
+    fFadeInAudio->launch_fadeIn();
     
     fFadeInAudio->start();
 }
@@ -76,6 +78,7 @@ void NJ_audioManager::wait_EndFade(){
     fCurrentAudio->stop();
     NJ_audioFader* intermediate = fCurrentAudio;
     fCurrentAudio = fFadeInAudio;
+    fFadeInAudio = intermediate;
     delete fFadeInAudio;
 }
 

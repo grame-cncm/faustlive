@@ -8,11 +8,29 @@
 
 #include "FLExportManager.h"
 
-#define kSaveFile "ServerURL.txt"
+#include <fstream>
+#include <string>
+
+#define JSON_ONLY
+
+#include <json/json2osc.h>
+#include <json/export.h>
+#include <json/json_array.h>
+#include <json/json_element.h>
+#include <json/json_object.h>
+#include <json/json_stream.h>
+#include <json/json_value.h>
+#include <json/json_parser.h>
+
+using namespace std;
+using namespace json;
+
+#define kSaveFile "/ServerURL.txt"
+#define kTmpJson "/targets.json"
 
 FLExportManager::FLExportManager(string sessionHome, string file, string filename){
     
-    fHome = sessionHome + kSaveFile;
+    fHome = sessionHome;
 
     fDialogWindow = new QDialog;
     
@@ -22,14 +40,57 @@ FLExportManager::FLExportManager(string sessionHome, string file, string filenam
     fFilenameToSave = fFilenameToExport + "_";
     
     fDialogWindow->setWindowFlags(Qt::FramelessWindowHint);
+    
+    
+    //GET LIST OF ARCHITECTURE
+    
+    QString targetUrl= fServerUrl.toString();
+    targetUrl += "/targets";
+    
+    QNetworkRequest request(targetUrl);
+    QNetworkAccessManager *manager = new QNetworkAccessManager;
+    
+    QNetworkReply *targetReply = manager->get(request);
+    connect(targetReply, SIGNAL(finished()), this, SLOT(readTargets()));
 }
 
 FLExportManager::~FLExportManager(){
 
+    string tmpFile = fHome + kTmpJson;
+    
+    QFile f(tmpFile.c_str());
+    
+    if(f.exists()){
+        f.remove();
+        printf("FILE REMOVED");
+    }
+    
+    
     writeURL(fServerUrl);
     delete fDialogWindow;
 }
+
+void FLExportManager::readTargets(){
     
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    QByteArray key = response->readAll();
+//    printf("Targets = %s\n", key.data());
+    fJsonTargets = key.data();
+    
+    string tmpFile = fHome + kTmpJson;
+    QFile f(tmpFile.c_str());
+    
+    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+        
+        QTextStream textWriting(&f);
+        
+        textWriting<<fJsonTargets;
+        f.close();
+    }    
+    
+}
+
 void FLExportManager::init(){
         
     QFormLayout* exportLayout = new QFormLayout;
@@ -86,15 +147,16 @@ void FLExportManager::init(){
     fExportPlatform->addItem("windows");
     fExportPlatform->addItem("linux");
     
-    fExportArchi = new QComboBox(fMenu2Export);
-    fExportArchi->addItem("coreaudio-qt");
-    fExportArchi->addItem("jack-qt");
-    fExportArchi->addItem("supercollider");
-    fExportArchi->addItem("vst");
-    fExportArchi->addItem("csound");
-    fExportArchi->addItem("max-msp");
-    fExportArchi->addItem("puredata");
-    fExportArchi->addItem("vsti");
+    connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
+    
+    fExportArchi = new QComboBox(fMenu2Export);    
+    list<string> architectures = getArchiFromPlatform("osx");
+    
+    list<string>::iterator it;
+    
+    for(it = architectures.begin(); it!=architectures.end(); it++)
+        fExportArchi->addItem((*it).c_str());
+    
     
     fExportChoice = new QComboBox(fMenu2Export);
     fExportChoice->addItem("binary.zip");
@@ -309,7 +371,9 @@ void FLExportManager::endProcess(){
 
 void FLExportManager::writeURL(QUrl server){
     
-    QFile f(fHome.c_str()); 
+    string homeFile = fHome + kSaveFile;
+    
+    QFile f(homeFile.c_str()); 
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
@@ -324,7 +388,9 @@ QUrl FLExportManager::readURL(){
     
     QString server("http://localhost:8888");
     
-    QFile f(fHome.c_str()); 
+    string homeFile = fHome + kSaveFile;
+    
+    QFile f(homeFile.c_str()); 
     
     if(f.open(QFile::ReadOnly)){
         
@@ -337,4 +403,70 @@ QUrl FLExportManager::readURL(){
     return QUrl(server);
 }
 
+list<string> FLExportManager::getArchiFromPlatform(const char* platform){
+    
+    list<string> architectures;
+    
+    string tmpFile = fHome + kTmpJson;
+    
+    fstream stream;
+    stream.open(tmpFile.c_str());
+
+    json_parser p (&stream);
+    json_object* obj = p.parse();
+    
+    if (obj) {
+        const json_element* e = obj->getKey(platform);
+        
+        if(e != NULL){
+            const json_value* val = e->value();
+            
+            const json_array_value* realVal = val->value<json_array_value>();
+            
+            if( realVal != NULL){
+                
+                std::vector<const json_value *>::iterator it;
+                
+                const json_array* linuxArray = realVal->getValue();
+                
+                
+                std::vector<const json_value *> values = linuxArray->fValues;
+                
+                std::filebuf bf;
+                ostream myStream(&bf);
+                json_stream out(myStream);
+                
+                linuxArray->print(out);
+                
+                for(it = values.begin(); it != values.end() ; it++){
+                    
+                    const json_string_value* archi = (*it)->value<json_string_value>();
+                    
+                    if(archi != NULL)
+                        architectures.push_back(archi->getValue());
+                }
+                
+            }
+        }
+    }
+    
+    return architectures;
+}
+
+void FLExportManager::platformChanged(const QString& index){
+    printf("INDEX = %s\n", index.toStdString().c_str());
+    
+    fExportArchi->hide();
+    fExportArchi->clear();
+
+    list<string> architectures = getArchiFromPlatform(index.toStdString().c_str());
+    
+    list<string>::iterator it;
+    
+    for(it = architectures.begin(); it!=architectures.end(); it++)
+        fExportArchi->addItem((*it).c_str());
+    
+    fExportArchi->show();
+    
+}
 

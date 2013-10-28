@@ -37,16 +37,21 @@ class FLToolBar : public QToolBar{
         QTreeWidgetItem *   fItem2;
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
+        QLineEdit*          fPortLine;
     
     
         QWidget*            fWidget1;
         QWidget*            fWidget2;
+        QWidget*            fWidget3;
         QLabel*             fText;
         QLabel*             fOptText;
+        QLabel*             fPortText;
         QVBoxLayout*        fLayout1;
         QVBoxLayout*        fLayout2;
+        QVBoxLayout*        fLayout3;
         QAction*            fAction1;
         QAction*            fAction2;
+        QAction*            fAction3;
     
     public:
     
@@ -55,9 +60,11 @@ class FLToolBar : public QToolBar{
     
     void setOptions(string options);
     void setVal(int value);
+    void setPort(int port);
     
     string getOptions();
     int getVal();
+    int getPort();
     
     
 public slots: 
@@ -67,7 +74,7 @@ public slots:
     
     signals :
     
-       void  modified(string option, int val);
+       void  modified(string option, int val, int port);
         void sizeGrowth();
         void sizeReduction();
     

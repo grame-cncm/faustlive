@@ -21,6 +21,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     
     fShortcut = false;
     fEffect = eff;
+    fPortHttp = 5510;
     
     setAcceptDrops(true);
     
@@ -123,7 +124,7 @@ void FLWindow::setMenuBar(){
     
     addToolBar(fMenu);
     
-    connect(fMenu, SIGNAL(modified(string, int)), this, SLOT(modifiedOptions(string, int)));
+    connect(fMenu, SIGNAL(modified(string, int, int)), this, SLOT(modifiedOptions(string, int, int)));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
 }
@@ -132,34 +133,35 @@ void FLWindow::errorPrint(const char* msg){
     emit error(msg);
 }
 
-void FLWindow::modifiedOptions(string text, int value){
+void FLWindow::modifiedOptions(string text, int value, int port){
+    
+    if(fPortHttp != port)
+        fPortHttp = port;
     
     fEffect->update_compilationOptions(text, value);
 }
 
 void FLWindow::resizingSmall(){
-    
-    QSize winSize = fMenu->geometry().size();
-    winSize -= fMenu->minimumSize();
-    
-    QSize winMinSize = minimumSize();
-    winMinSize -= fMenu->minimumSize();
-    
+
+    setMinimumSize(QSize(0,0));
     adjustSize();
-    setMinimumSize(winMinSize);
-    
 }
 
 void FLWindow::resizingBig(){
     
-    QSize winSize = fMenu->geometry().size();
-    winSize += fMenu->minimumSize();
-    
+//    QSize winSize = fMenu->geometry().size();
+//    winSize += fMenu->minimumSize();
+//    
+//    printf("SIZE BEFORE RESIZE = %i || %i\n", winSize.width(), winSize.height());
+//    
     QSize winMinSize = minimumSize();
-    winMinSize += fMenu->minimumSize();
+    winMinSize += fMenu->geometry().size();
     
-        adjustSize();
+//    setGeometry(0,0,winSize.width(), winSize.height());
     setMinimumSize(winMinSize);
+//
+//    printf("SIZE AFTER RESIZE = %i || %i\n", winSize.width(), winSize.height());
+    adjustSize();
 }
 
 void FLWindow::emit_closeAll(){
@@ -352,6 +354,7 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
     
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(fEffect->getOptValue());
+    fMenu->setPort(fPortHttp);
     
     if (fCurrent_DSP == NULL){
         snprintf(errorMsg, 255, "Impossible to create a DSP instance"); 
@@ -378,7 +381,7 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
             
             start_Audio();
             
-//            setGeometry(fXPos, fYPos, 0, 0);
+            setGeometry(fXPos, fYPos, 0, 0);
             adjustSize();
             
 //            QSize s_max = maximumSize();
@@ -425,10 +428,11 @@ bool FLWindow::update_Window(FLEffect* newEffect, string compilationOptions, int
         textOptions = "";
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(optVal);
+    fMenu->setPort(fPortHttp);
     
     if(fRCInterface){
         
-        if(!fAudioManager->init_FadeAudio(error, fEffect->getName().c_str(), charging_DSP)){
+        if(!fAudioManager->init_FadeAudio(error, newEffect->getName().c_str(), charging_DSP)){
             
 //            printf("INIT FADE AUDIO FAILED\n");
             
@@ -612,7 +616,7 @@ bool FLWindow::init_Httpd(char* error){
         save_Window();
         
         string windowTitle = fWindowName + ":" + fEffect->getName();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP)){
+        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
             
             //recall parameters to run them properly
             //For a second, the initial parameters are reinitialize : it can sound weird
@@ -638,6 +642,10 @@ bool FLWindow::is_httpdWindow_active(){
 
 void FLWindow::hide_httpdWindow(){
     fHttpdWindow->hide();
+}
+
+string& FLWindow::get_HttpUrl(){
+    return fHttpdWindow->getUrl();
 }
 
 //------------------------Right Click Reaction

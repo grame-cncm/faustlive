@@ -11,6 +11,8 @@
 #define _FLExportManager_h
 
 #include <string>
+#include <iostream>
+#include <list>
 
 #include <QtGui>
 #include <QtNetwork>
@@ -26,6 +28,7 @@ class FLExportManager : public QObject{
         QUrl            fServerUrl;
         QLineEdit*       fServIPLine;
     
+        const char*     fJsonTargets;
         string          fHome;
         string          fFileToExport;
         string          fFilenameToExport;
@@ -46,6 +49,7 @@ class FLExportManager : public QObject{
     
         void            writeURL(QUrl server);
         QUrl            readURL();
+        list<string>            getArchiFromPlatform(const char* platform);   
     
     public :
     
@@ -70,6 +74,8 @@ class FLExportManager : public QObject{
         void            networkError(QNetworkReply::NetworkError msg);
         void            getFileFromKey(const char* key);
         void            endProcess();
+        void            readTargets();
+        void            platformChanged(const QString& index);
 };
 
 #endif

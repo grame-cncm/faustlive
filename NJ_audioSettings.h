@@ -51,7 +51,7 @@ class NJ_audioSettings : public AudioSettings{
         bool         isStringInt(const char* word);
     
         int get_compressionValue();
-        string get_IP();
+        string& get_IP();
         int get_Port();
         int get_latency();
     

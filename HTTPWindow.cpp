@@ -8,28 +8,24 @@
 
 #include "HTTPWindow.h"
 
+#include <string>
+#include <iostream>
+#include <sstream>
 #include <qrencode.h>
 
-#include <QTextBrowser>
-#include <QWidget>
-#include <QImage>
-#include <QLabel>
-#include <QGridLayout>
-#include <QFile>
-#include <QMenu>
-#include <QContextMenuEvent>
-#include <QKeyEvent>
-
-#include <QTcpSocket>
-#include <QHostAddress>
+#include <QtGui>
+#include <QtNetwork>
 
 #include "faust/gui/httpdUI.h"
+
+using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
 
 HTTPWindow::HTTPWindow(){
     
     fIPaddress = "localhost";
+    fEntireAddress = "";
     fShortcut = false;
     fInterface = NULL;
     fTitle ="";
@@ -41,6 +37,13 @@ HTTPWindow::~HTTPWindow(){
     }
     
     //    delete fTitle;
+}
+
+string& HTTPWindow::getUrl(){
+    
+    string url = "http://" + fEntireAddress;
+    
+    return url;
 }
 
 void HTTPWindow::displayQRCode(char* url){
@@ -88,6 +91,8 @@ void HTTPWindow::displayQRCode(char* url){
     string text("<br>Connect You To");
     text += "<br><a href = http://" + myURL + ">"+ myURL+"</a>";
     text += "<br>Or Flash the code below";
+    
+    fEntireAddress = myURL;
     
     myBro->setOpenExternalLinks(true);
     myBro->setHtml(text.c_str());
@@ -151,7 +156,7 @@ void HTTPWindow::search_IPadress(){
     }
 }
 
-bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* current_DSP){
+bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
     if(fInterface != NULL)
@@ -160,18 +165,22 @@ bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* curr
     fTitle = new char[strlen(windowTitle.c_str())+1];
     strcpy(fTitle, windowTitle.c_str());
     
-    fInterface = new httpdUI(fTitle, 1, &fTitle);
+    char* argv[3];
+    argv[0] = new char[strlen(windowTitle.c_str())+1];
+    strcpy(argv[0], windowTitle.c_str());
     
-//    printf("Là 1\n");
-//    sleep(10);
-//    
+    argv[1] = "-port";
+    
+    stringstream s;
+    s<<port;
+    argv[2] = new char[strlen(s.str().c_str())+1];
+    strcpy(argv[2], s.str().c_str());
+    
+    fInterface = new httpdUI(fTitle, 3, argv);
+    
     if(fInterface){
-//        printf("Là 2\n");
-//        sleep(10);
+        
         current_DSP->buildUserInterface(fInterface);
-//        printf("Là 3\n");
-//        sleep(10);
-//        printf("Là 4\n");
         return true;
     }
     
@@ -233,3 +242,6 @@ void HTTPWindow::closeEvent(QCloseEvent* event){
     if(fShortcut)
         emit closeAll();
 }
+
+
+

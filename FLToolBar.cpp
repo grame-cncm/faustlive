@@ -39,7 +39,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fTreeWidget->setStyleSheet("*{background-color:transparent; alternate-background-color: white;selection-background-color : white; selection-color : black;border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} *:item{background-color:transparent;border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} ");
     
     
-    fItem = new QTreeWidgetItem( fTreeWidget, QStringList(QString("Compilation Options")), QTreeWidgetItem::UserType);
+    fItem = new QTreeWidgetItem( fTreeWidget, QStringList(QString("Window Options")), QTreeWidgetItem::UserType);
     
     fItem2 = new QTreeWidgetItem( fItem, QStringList(QString("")), QTreeWidgetItem::UserType);
     
@@ -54,19 +54,24 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fWidget1 = new QWidget;
     fWidget2 = new QWidget;
+    fWidget3 = new QWidget;
     
     fText = new QLabel(tr("FAUST Options "), fWidget1);
     fText->setAlignment(Qt::AlignCenter);
     fOptText = new QLabel(tr("LLVM Optimization "), fWidget2);
     fOptText->setAlignment(Qt::AlignCenter);
+    fPortText = new QLabel(tr("HTTPD PORT "), fWidget3);
+    fPortText->setAlignment(Qt::AlignCenter);
     
     fOptionLine = new QLineEdit(tr(""), fWidget1);
     fOptValLine = new QLineEdit(tr(""), fWidget2);
+    fPortLine = new QLineEdit(tr(""), fWidget3);
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
     
     fLayout1 = new QVBoxLayout;
     fLayout2 = new QVBoxLayout;
+    fLayout3 = new QVBoxLayout;
     
     fLayout1->addWidget(fText);
     fLayout1->addWidget(fOptionLine);
@@ -74,10 +79,15 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fLayout2->addWidget(fOptText);
     fLayout2->addWidget(fOptValLine);
     
+    fLayout3->addWidget(fPortText);
+    fLayout3->addWidget(fPortLine);
+    
     fWidget1->setLayout(fLayout1);
     fWidget2->setLayout(fLayout2);
+    fWidget3->setLayout(fLayout3);
     connect (fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 }
 
 //item is useless but QT signal forces the slot parameters
@@ -85,9 +95,11 @@ void FLToolBar::expansionAction(QTreeWidgetItem * item){
     
     fWidget1->show();
     fWidget2->show();
+    fWidget3->show();
     
     fAction1 = addWidget(fWidget1);
     fAction2 = addWidget(fWidget2);
+    fAction3 = addWidget(fWidget3);
     
     setOrientation(Qt::Vertical);
     
@@ -97,6 +109,7 @@ void FLToolBar::expansionAction(QTreeWidgetItem * item){
 
 void FLToolBar::collapseAction(QTreeWidgetItem* item){
     
+    removeAction(fAction3);
     removeAction(fAction2);
     removeAction(fAction1);
     
@@ -130,14 +143,25 @@ void FLToolBar::modifiedOptions(){
     if(isStringInt(val.c_str()))
         value = atoi(val.c_str());
     
-    printf("value = %i// text = %s\n", value, text.c_str());
+    int port = 5510;
     
-    emit modified(text, value);
+    string portText = fPortLine->text().toStdString();
+    if(isStringInt(portText.c_str()))
+        port = atoi(portText.c_str());
+    
+//    printf("value = %i// text = %s\n", value, text.c_str());
+    
+    emit modified(text, value, port);
 }
 
 void FLToolBar::setOptions(string options){
     fOptionLine->setText(options.c_str());
 }
+
+string FLToolBar::getOptions(){
+    return fOptionLine->text().toStdString();
+}
+
 void FLToolBar::setVal(int value){
     
     stringstream ss;
@@ -146,12 +170,25 @@ void FLToolBar::setVal(int value){
     fOptValLine->setText(ss.str().c_str());
 }
 
-string FLToolBar::getOptions(){
-    return fOptionLine->text().toStdString();
-}
 int FLToolBar::getVal(){
     
     string val = fOptValLine->text().toStdString();
     if(isStringInt(val.c_str()))
         return atoi(val.c_str());
 }
+
+int FLToolBar::getPort(){
+    
+    string val = fPortLine->text().toStdString();
+    if(isStringInt(val.c_str()))
+        return atoi(val.c_str());
+}
+
+void FLToolBar::setPort(int port){
+    
+    stringstream ss;
+    ss<<port;
+    
+    fPortLine->setText(ss.str().c_str());
+}
+

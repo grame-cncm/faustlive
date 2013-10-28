@@ -43,6 +43,8 @@ To create a self-contained qt application, you can deploy the application with :
 2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
 	if the version changes. For now llvm 3.1 is used
 
+3) If you use the remote control through httpd and you want to use a port < 100, you will have to start FaustLive in sudo mode.
+
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 
 1) Implement the classes : 

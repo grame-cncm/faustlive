@@ -36,6 +36,8 @@ FLEffect::~FLEffect(){
 //--------------INITIALISATION FUNCTIONS
 bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, char* error){
     
+    printf("FICHIER SOURCE = %s\n", fSource.c_str());
+    
     fCompilationOptions = compilationMode;
     fOpt_level = optValue;
     
@@ -113,6 +115,8 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, ch
         printf("ABOUT TO BUILD with = %s\n", libraryPath);
         
         *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", error, fOpt_level);
+        
+        printf("ERROR OF FACTORY BUILD = %s\n", error);
         
         delete [] argv;
         

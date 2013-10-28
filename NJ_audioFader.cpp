@@ -54,6 +54,7 @@ int NJ_audioFader::net_process(jack_nframes_t buffer_size,
                                         void* arg) {
     AVOIDDENORMALS;
     NJ_audioFader* obj = (NJ_audioFader*)arg;
+//    printf("OBJ = %p\n", obj);
     obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
     
     obj->crossfade_Calcul(buffer_size, obj->fNumberOutput, audio_output_buffer);
@@ -108,7 +109,7 @@ void NJ_audioFader::stop() {
     jack_net_slave_deactivate(fNet);
     printf("NET DEACTiVATE\n");
     jack_net_slave_close(fNet);
-    printf("NET CLOSE\n");
+    printf("NET CLOSE = %p\n", this);
 }
 
 void NJ_audioFader::launch_fadeIn(){

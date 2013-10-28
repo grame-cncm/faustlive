@@ -32,6 +32,7 @@ class FJUI
         
 		for (it=Connections.begin(); it!=Connections.end(); it++) {
 			f << endl<< it->first.c_str() << ' ' << it->second.c_str();
+            printf("CONNECTION SAVED = %s || %s\n", it->first.c_str(), it->second.c_str());
         }
 		f.close();
 	}

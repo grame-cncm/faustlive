@@ -28,7 +28,18 @@
 #include <QFile>
 #include <QTextStream>
 
-enum audioArchi{kCoreaudio, kJackaudio, kNetjackaudio};
+enum audioArchi{
+   
+#ifdef COREAUDIO
+    kCoreaudio, 
+#endif
+#ifdef JACK
+    kJackaudio,
+#endif
+#ifdef NETJACK
+    kNetjackaudio
+#endif
+};
 
 AudioCreator* AudioCreator::_instance = 0;
 
@@ -37,42 +48,30 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     fHome = homeFolder;
     fSavingFile = fHome + "/" + SAVINGFILE;
     
-    readSettings();
-    
-    fFactory = createFactory(fAudioIndex);
-    
     fMenu = parent;
     fLayout = new QFormLayout;
     
     fAudioArchi = new QComboBox(fMenu);
     
-    fAudioArchi->addItem("Core Audio");
-    
 //Conditionnal compilation | the options are disabled when not chosen as qmake options
-    
 #ifdef COREAUDIO
-#else
-    fAudioArchi->setItemData(kCoreaudio, 0, Qt::UserRole-1);
-    if(fAudioIndex == kCoreaudio)
-        fAudioIndex++;
-#endif
-    
-    fAudioArchi->addItem("Jack");
-    
-#ifdef JACK
-#else
-    fAudioArchi->setItemData(kJackaudio, 0, Qt::UserRole-1);
-    if(fAudioIndex == kCoreaudio)
-        fAudioIndex++;
+    fAudioArchi->addItem("Core Audio");
 #endif
 
-    fAudioArchi->addItem("NetJack");
-    
+#ifdef JACK
+    fAudioArchi->addItem("Jack");
+#endif
+
 #ifdef NETJACK
-#else
-    fAudioArchi->setItemData(kNetjackaudio, 0, Qt::UserRole-1);
+    fAudioArchi->addItem("NetJack");
 #endif
     
+    readSettings();
+    
+    printf("fAudioIndex = %i\n", fAudioIndex);
+    
+    fFactory = createFactory(fAudioIndex);
+        
     connect(fAudioArchi, SIGNAL(activated(int)), this, SLOT(indexChanged(int)));
     
     setCurrentSettings(fAudioIndex);
@@ -215,80 +214,29 @@ AudioCreator* AudioCreator::_Instance(string homeFolder, QGroupBox* box){
 
 void AudioCreator::readSettings(){
     
-    QString ModeText;
+    QString boxText;
     
     QFile f(fSavingFile.c_str()); 
     
     if(f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
-        textReading>>fAudioIndex;
-        
-//If the index saved is not compiled anymore        
-        switch (fAudioIndex) {
-            case kCoreaudio:
-#ifdef COREAUDIO
-                break;
-#else
-#ifdef JACK
-                fAudioIndex = kJackaudio;
-#else
-#ifdef NETJACK
-                fAudioIndex = kNetjackaudio;
-#endif
-#endif
-#endif
-                break;
-                
-            case kJackaudio:
-#ifdef JACK
-                break;
-#else
-#ifdef COREAUDIO
-                fAudioIndex = kCoreaudio;
-#else
-#ifdef NETJACK
-                fAudioIndex = kNetjackaudio;
-#endif
-#endif
-#endif
-                break;
-                
-            case kNetjackaudio:
-#ifdef NETJACK
-                break;
-#else
-#ifdef COREAUDIO
-                fAudioIndex = kCoreaudio;
-#else
-#ifdef JACK
-                fAudioIndex = kJackaudio;
-#endif
-#endif
-#endif
-            
-                break;
-                
-            default:
-                break;
-        }
-        
+        textReading>>boxText;
+
         f.close();
+        
+        for(int i=0; i<fAudioArchi->count() ; i++){
+        
+            if(boxText == fAudioArchi->itemText(i)){
+                fAudioIndex = i;
+                break;
+            }
+            else
+                fAudioIndex = 0;
+        }
     }
-    else{
-#ifdef COREAUDIO
-        fAudioIndex = kCoreaudio;
-#else
-#ifdef JACK
-        fAudioIndex = kJackaudio;
-#else
-#ifdef NETJACK
-        fAudioIndex = kNetjackaudio;
-#endif
-#endif
-#endif
-    }
-    
+    else
+        fAudioIndex = 0;
 }
 
 void AudioCreator::writeSettings(){
@@ -297,11 +245,13 @@ void AudioCreator::writeSettings(){
     
     QFile f(fSavingFile.c_str()); 
     
+    QString boxText = fAudioArchi->itemText(fAudioIndex);
+    
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
         QTextStream textWriting(&f);
         
-        textWriting<<fAudioIndex;
+        textWriting<<boxText;
         
         f.close();
     }    

@@ -15,14 +15,16 @@
 
 #include <QtGui>
 
-#include "FLWindow.h"
-#include "FLErrorWindow.h"
-#include "FLExportManager.h"
-
-class FLServerHttp;
+//class FLServerHttp;
+class FLExportManager;
+class FLErrorWindow;
+class FLWindow;
+class FLEffect;
+class AudioCreator;
 
 using namespace std;
 
+#define FLVERSION   "1.0"
 #define DEFAULTNAME "DefaultName"
 
 #define kMAXRECENTFILES 4
@@ -58,18 +60,20 @@ class FLApp : public QApplication
         QMenuBar *          fMenuBar;
         QMenu *             fFileMenu;
         QMenu *             fEditMenu;
-        QMenu *             fWindowsMenu;
-        QMenu *             fSessionMenu;
         QMenu *             fViewMenu;
+        QMenu *             fNavigateMenu;
+        QMenu *             fProductMenu;
         QMenu *             fHelpMenu;
     
+//        QAction*            fServer;
+//        QAction*            fServerStop;
         QAction*            fNewAction;
         QAction*            fOpenAction;
     
         QAction **          fOpenExamples;
         QMenu *             fMenuOpen_Example;
     
-        QAction*            fOpenRecentAction;
+        QMenu*              fOpenRecentAction;
         QAction**           fRecentFileAction;
         
         QAction*            fExportAction;
@@ -86,9 +90,9 @@ class FLApp : public QApplication
         QAction*            fTakeSnapshotAction;
         QAction*            fRecallSnapshotAction;
         QAction*            fImportSnapshotAction;
-        QAction*            fRecallRecentAction;
+        QMenu*              fRecallRecentAction;
         QAction**           fRrecentSessionAction;
-        QAction*            fImportRecentAction;
+        QMenu*              fImportRecentAction;
         QAction**           fIrecentSessionAction;
     
         QAction*            fHttpdViewAction;
@@ -112,13 +116,11 @@ class FLApp : public QApplication
         QDialog*            fVersionWindow;
         FLExportManager*    fExportDialog;
     
-        FLServerHttp*       fServer;
-
-        void                launch_Server();
+//        FLServerHttp*       fServerHttp;
     
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
-        list<FLEffect*>       fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+        list<FLEffect*>     fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
     
     //Screen parameters
         int                 fScreenWidth;
@@ -234,16 +236,14 @@ class FLApp : public QApplication
     //Updating the content of the backup file 
     void                    update_Source(string& oldSource, string& newSource);
     
-    string                  getDeclareName(string text, list<string> runningEffects);
+    string                  getDeclareName(string text);
     
-    string                  renameEffect(string nomEffet, list<string> runningEffects);
+    string                  renameEffect(string source, string nomEffet);
     
-    
-    FLEffect*                 getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
+    FLEffect*               getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
     
     //-----------------Questions about the current State
     
-        bool                doesEffectNameExists(string nomEffet, list<string> runningEffects);
         bool                isIndexUsed(int index, list<int> currentIndexes);
         bool                isEffectInCurrentSession(string sourceToCompare);
         string              getNameEffectFromSource(string sourceToCompare);
@@ -255,6 +255,8 @@ class FLApp : public QApplication
         FLWindow*           getActiveWin();
     
     private slots :
+        
+//        void                launch_Server();
     
     //---------Drop on a window
     
@@ -273,6 +275,7 @@ class FLApp : public QApplication
         void                itemDblClick(QListWidgetItem* item);
     
     //---------File
+        FLWindow*           new_Window(string& source, char* error);
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
@@ -336,6 +339,11 @@ class FLApp : public QApplication
     
     //--------RightClickEvent
         void                redirect_RCAction(const QPoint & p);
+    
+    //--------Server Response
+//        void                close_Window_FormHttp(const char* nameEffect);
+//        void                compile_HttpData(const char* data, const char* options);
+//        void                stop_Server();
     
     public : 
 

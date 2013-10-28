@@ -30,18 +30,18 @@ NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : Audio
     
     QFormLayout* layout = new QFormLayout;
     
-    fCVLine = new QLineEdit(parent);
+    fCVLine = new QLineEdit;
     layout->addRow(new QLabel(tr("Compression Value")), fCVLine);
     
-    fIPLine = new QLineEdit(parent);
+    fIPLine = new QLineEdit;
     fIPLine->setInputMask("000.000.000.000");
     layout->addRow(new QLabel(tr("Master IP adress")), fIPLine);
     
-    fPortLine = new QLineEdit(parent);
+    fPortLine = new QLineEdit;
     fPortLine->setInputMask("000000");
     layout->addRow(new QLabel(tr("Master Port")), fPortLine);
     
-    fLatLine = new QLineEdit(parent);
+    fLatLine = new QLineEdit;
     layout->addRow(new QLabel(tr("Latency")), fLatLine);
     
     parent->setLayout(layout);
@@ -135,7 +135,7 @@ int NJ_audioSettings::get_compressionValue(){
     return fCompressionValue;
 }
 
-string NJ_audioSettings::get_IP(){
+string& NJ_audioSettings::get_IP(){
     return fIP;
 }
 

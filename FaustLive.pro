@@ -53,6 +53,11 @@ LIBS+=-lHTTPDFaust
 
 LIBS+=-L/opt/local/lib -lmicrohttpd
 LIBS+=-L/opt/local/lib -lqrencode
+LIBS+=-L/opt/local/lib -lboost_system-mt
+LIBS+=-L/opt/local/lib -lboost_filesystem-mt
+LIBS+=-L/opt/local/lib -lboost_program_options-mt
+LIBS+=-L/opt/local/lib -ljson
+
 
 CONFIG += JVAR NJVAR CAVAR
 

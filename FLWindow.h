@@ -52,6 +52,7 @@ class FLWindow : public QMainWindow
         FUI*            fRCInterface;     //Graphical parameters saving interface
     
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        int             fPortHttp;
 
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
@@ -155,13 +156,14 @@ class FLWindow : public QMainWindow
     //Accessors to httpd Window
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
+        string&         get_HttpUrl();
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
     public slots :
     //Modification of the compilation options
-        void            modifiedOptions(string text, int value);
+        void            modifiedOptions(string text, int value, int port);
         void            resizingBig();
         void            resizingSmall();
     
