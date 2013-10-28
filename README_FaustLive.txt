@@ -22,6 +22,12 @@ Other Packages
 	make
 	sudo make install
 
+-json parser	https://github.com/dfober/json2osc
+	cd json2osc DIRECTORY
+	cd cmake
+	make
+	sudo make install
+
 Make sure to download the current development trunk of these libraries.
 
 ----------------PROJECT COMPILATION---------------

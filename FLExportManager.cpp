@@ -429,7 +429,7 @@ list<string> FLExportManager::getArchiFromPlatform(const char* platform){
                 const json_array* linuxArray = realVal->getValue();
                 
                 
-                std::vector<const json_value *> values = linuxArray->fValues;
+                std::vector<const json_value *> values = linuxArray->values();
                 
                 std::filebuf bf;
                 ostream myStream(&bf);
