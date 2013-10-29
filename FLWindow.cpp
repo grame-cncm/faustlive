@@ -17,11 +17,11 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int port){
     
     fShortcut = false;
     fEffect = eff;
-    fPortHttp = 5510;
+    fPortHttp = port;
     
     setAcceptDrops(true);
     
@@ -602,6 +602,10 @@ int FLWindow::get_x(){
 int FLWindow::get_y(){
     fYPos = this->geometry().y();
     return fYPos;
+}
+
+int FLWindow::get_Port(){
+    return fPortHttp;
 }
 
 //------------------------HTTPD

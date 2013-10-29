@@ -56,11 +56,11 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fWidget2 = new QWidget;
     fWidget3 = new QWidget;
     
-    fText = new QLabel(tr("FAUST Options "), fWidget1);
+    fText = new QLabel(tr("FAUST Compiler Options"), fWidget1);
     fText->setAlignment(Qt::AlignCenter);
-    fOptText = new QLabel(tr("LLVM Optimization "), fWidget2);
+    fOptText = new QLabel(tr("LLVM Optimization"), fWidget2);
     fOptText->setAlignment(Qt::AlignCenter);
-    fPortText = new QLabel(tr("HTTPD PORT "), fWidget3);
+    fPortText = new QLabel(tr("HTTPD PORT"), fWidget3);
     fPortText->setAlignment(Qt::AlignCenter);
     
     fOptionLine = new QLineEdit(tr(""), fWidget1);

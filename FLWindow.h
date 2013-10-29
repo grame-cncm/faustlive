@@ -94,7 +94,7 @@ class FLWindow : public QMainWindow
     //IDAudio = what architecture audio are we running in?
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int port = 5510);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -151,6 +151,7 @@ class FLWindow : public QMainWindow
         FLEffect*         get_Effect();
         int             get_x();
         int             get_y();
+        int             get_Port();
         bool            is_Default();
     
     //Accessors to httpd Window

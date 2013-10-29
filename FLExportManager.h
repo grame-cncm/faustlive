@@ -26,7 +26,7 @@ class FLExportManager : public QObject{
     private :
         
         QUrl            fServerUrl;
-        QLineEdit*       fServIPLine;
+        QLineEdit*      fServIPLine;
     
         const char*     fJsonTargets;
         string          fHome;
@@ -47,13 +47,13 @@ class FLExportManager : public QObject{
     
         QPushButton*    fSaveButton;
     
-        void            writeURL(QUrl server);
-        QUrl            readURL();
+//        void            writeURL(QUrl server);
+//        QUrl            readURL();
         list<string>            getArchiFromPlatform(const char* platform);   
     
     public :
     
-        FLExportManager(string sessionHome, string file, string filename);
+        FLExportManager(string url, string sessionHome, string file, string filename);
         virtual ~FLExportManager();
     
         void init();

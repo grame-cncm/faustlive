@@ -25,16 +25,17 @@
 using namespace std;
 using namespace json;
 
-#define kSaveFile "/ServerURL.txt"
+//#define kSaveFile "/ServerURL.txt"
 #define kTmpJson "/targets.json"
 
-FLExportManager::FLExportManager(string sessionHome, string file, string filename){
+FLExportManager::FLExportManager(string url, string sessionHome, string file, string filename){
     
     fHome = sessionHome;
 
     fDialogWindow = new QDialog;
     
-    fServerUrl = readURL();
+//    fServerUrl = readURL();
+    fServerUrl = QUrl(url.c_str());
     fFileToExport = file;
     fFilenameToExport = filename;
     fFilenameToSave = fFilenameToExport + "_";
@@ -66,7 +67,7 @@ FLExportManager::~FLExportManager(){
     }
     
     
-    writeURL(fServerUrl);
+//    writeURL(fServerUrl);
     delete fDialogWindow;
 }
 
@@ -105,10 +106,10 @@ void FLExportManager::init(){
     exportLayout->addRow(new QLabel(""));
 //    QFormLayout* layoutExportServer = new QFormLayout;
     
-    fServIPLine = new QLineEdit(fDialogWindow);
-    fServIPLine->setText(fServerUrl.toString());
+//    fServIPLine = new QLineEdit(fDialogWindow);
+//    fServIPLine->setText(fServerUrl.toString());
     
-    exportLayout->addRow(new QLabel(tr("Exportation server ")), fServIPLine);
+//    exportLayout->addRow(new QLabel(tr("Exportation server ")), fServIPLine);
     exportLayout->addRow(new QLabel(tr("")));
     
     QString groupTitle1("Export ");
@@ -198,7 +199,7 @@ void FLExportManager::init(){
 void FLExportManager::postExport(){
     
     fDialogWindow->hide();
-    fServerUrl = QUrl(fServIPLine->text());
+//    fServerUrl = QUrl(fServIPLine->text());
     
     emit start_progressing("Connecting with the server...");
     
@@ -235,7 +236,7 @@ void FLExportManager::postExport(){
 
 void FLExportManager::cancelDialog(){
     
-    fServIPLine->setText(fServerUrl.toString()); 
+//    fServIPLine->setText(fServerUrl.toString()); 
     fDialogWindow->hide();
 }
 
@@ -368,39 +369,39 @@ void FLExportManager::endProcess(){
     }
 }
 
-void FLExportManager::writeURL(QUrl server){
-    
-    string homeFile = fHome + kSaveFile;
-    
-    QFile f(homeFile.c_str()); 
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<server.toString();
-        f.close();
-    }    
-}
-
-QUrl FLExportManager::readURL(){
-    
-    QString server("http://localhost:8888");
-    
-    string homeFile = fHome + kSaveFile;
-    
-    QFile f(homeFile.c_str()); 
-    
-    if(f.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&f);
-        textReading>>server;
-        
-        f.close();
-    }
-    
-    return QUrl(server);
-}
+//void FLExportManager::writeURL(QUrl server){
+//    
+//    string homeFile = fHome + kSaveFile;
+//    
+//    QFile f(homeFile.c_str()); 
+//    
+//    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+//        
+//        QTextStream textWriting(&f);
+//        
+//        textWriting<<server.toString();
+//        f.close();
+//    }    
+//}
+//
+//QUrl FLExportManager::readURL(){
+//    
+//    QString server("http://localhost:8888");
+//    
+//    string homeFile = fHome + kSaveFile;
+//    
+//    QFile f(homeFile.c_str()); 
+//    
+//    if(f.open(QFile::ReadOnly)){
+//        
+//        QTextStream textReading(&f);
+//        textReading>>server;
+//        
+//        f.close();
+//    }
+//    
+//    return QUrl(server);
+//}
 
 list<string> FLExportManager::getArchiFromPlatform(const char* platform){
     

@@ -183,6 +183,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fHomeSettings = fSettingsFolder + "/FaustLive_Settings.rf"; 
 
     fOpt_level = 3;
+    fServerUrl = "http://localhost:8888";
     fStyleChoice = "Default";
     recall_Settings(fHomeSettings);
     styleClicked(fStyleChoice);
@@ -1319,7 +1320,7 @@ void FLApp::open_Recent_File(){
 
 void FLApp::export_Win(FLWindow* win){
     
-    fExportDialog = new FLExportManager(fSettingsFolder, win->get_Effect()->getSource(), win->get_Effect()->getName());
+    fExportDialog = new FLExportManager(fServerUrl, fSettingsFolder, win->get_Effect()->getSource(), win->get_Effect()->getName());
     
     connect(fExportDialog, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     connect(fExportDialog, SIGNAL(start_progressing(const char*)), this, SLOT(display_CompilingProgress(const char*)));
@@ -1756,7 +1757,7 @@ void FLApp::redirect_RCAction(const QPoint & p){
 
 void FLApp::sessionContentToFile(string filename){
     
-    //    printf("SIZE OF CONTENT SESSION = %i\n", session->size());
+//    printf("SIZE OF CONTENT SESSION = %i\n", session->size());
     
     QFile f(filename.c_str());
     
@@ -1768,10 +1769,10 @@ void FLApp::sessionContentToFile(string filename){
         
         for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
             
-            //            printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
+//     printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
             
             
-            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<endl;
+            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<' '<<(*it)->portHttpd<<endl;
         }
         f.close();
     }
@@ -1790,11 +1791,11 @@ void FLApp::fileToSessionContent(string filename, list<WinInSession*>* session){
         while(!textReading.atEnd()){
             
             int id = 0;
-            int opt;
+            int opt, port;
             QString Source, Nom, CompilationOptions;
             float x,y;
             
-            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt;
+            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>port;
             
             if(id != 0){
                 
@@ -1806,6 +1807,7 @@ void FLApp::fileToSessionContent(string filename, list<WinInSession*>* session){
                 intermediate->y = y;
                 intermediate->compilationOptions = CompilationOptions.toStdString();
                 intermediate->opt_level = opt;
+                intermediate->portHttpd = port;
                 
                 
                 //                printf("FILLING ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", intermediate->ID, intermediate->source.c_str(), intermediate->name.c_str(), intermediate->x, intermediate->y, intermediate->compilationOptions.c_str());
@@ -1920,7 +1922,7 @@ void FLApp::recall_Session(string filename){
                 fErrorWindow->print_Error(error);
             }
             
-            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder);
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->portHttpd);
             
             connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
             connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
@@ -2076,7 +2078,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->y = (float)win->get_y()/(float)fScreenHeight;
     intermediate->compilationOptions = compilationOptions.c_str();
     intermediate->opt_level = win->get_Effect()->getOptValue();
-    
+    intermediate->portHttpd = win->get_Port();
     
     int i = fFrontWindow.size();
     
@@ -4050,6 +4052,8 @@ void FLApp::init_PreferenceWindow(){
     
     fCompilModes = new QLineEdit(menu1);
     fOptVal = new QLineEdit(menu1);
+    fServerLine = new QLineEdit(menu1);
+    fServerLine->setText(fServerUrl.c_str());
     
     recall_Settings(fHomeSettings);
     
@@ -4060,9 +4064,11 @@ void FLApp::init_PreferenceWindow(){
     fOptVal->setText(oV.str().c_str());
     
     layout1->addRow(new QLabel(tr("")));
-    layout1->addRow(new QLabel(tr("Default Compilation Options")), fCompilModes);
-    layout1->addRow(new QLabel(tr("Optimization Value of compilation")), fOptVal);
+    layout1->addRow(new QLabel(tr("Faust Compiler Options")), fCompilModes);
+    layout1->addRow(new QLabel(tr("LLVM Optimization")), fOptVal);
     layout1->addRow(new QLabel(tr("")));
+    layout1->addRow(new QLabel(tr("")));
+    layout1->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
     
     menu1->setLayout(layout1);
    
@@ -4161,6 +4167,8 @@ void FLApp::cancelPref(){
 }
 
 void FLApp::save_Mode(){
+
+    fServerUrl = fServerLine->text().toStdString();
     
     fCompilationMode = fCompilModes->text().toStdString();
     
@@ -4208,6 +4216,21 @@ void FLApp::save_Settings(string& home){
         
         f.close();
     }
+    
+//    SAVING THE EXPORT URL
+    
+    string homeFile = fSettingsFolder + kExportUrlFile;
+    
+    QFile g(homeFile.c_str()); 
+    QString server(fServerUrl.c_str());
+    
+    if(g.open(QFile::WriteOnly | QIODevice::Truncate)){
+        
+        QTextStream textWriting(&g);
+        
+        textWriting<<server;
+        g.close();
+    }    
 }
 
 void FLApp::recall_Settings(string& home){
@@ -4244,6 +4267,25 @@ void FLApp::recall_Settings(string& home){
         modeText = "";
     
     fCompilationMode = modeText;
+    
+//    RECALL THE URL FOR EXPORTATION SERVICE
+
+    QString server("http://localhost:8888");
+        
+    string homeFile = fSettingsFolder + kExportUrlFile;
+    
+    QFile g(homeFile.c_str()); 
+    
+    if(g.open(QFile::ReadOnly)){
+        
+        QTextStream textReading(&g);
+        textReading>>server;
+        
+        g.close();
+    }
+    
+    fServerUrl = server.toStdString();
+    
 }
 
 void FLApp::update_AudioArchitecture(){

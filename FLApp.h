@@ -24,8 +24,10 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.0"
+#define FLVERSION   "1.1"
 #define DEFAULTNAME "DefaultName"
+
+#define kExportUrlFile "/ServerURL.txt"
 
 #define kMAXRECENTFILES 4
 #define kMAXRECENTSESSIONS 3
@@ -41,6 +43,7 @@ struct WinInSession{
     float y;
     string compilationOptions; //Compilation options tied to the effect contained in the window
     int opt_level;
+    int portHttpd;
 };
 
 class FLApp : public QApplication
@@ -170,10 +173,12 @@ class FLApp : public QApplication
     
         QLineEdit*          fCompilModes;
         QLineEdit*          fOptVal;
+        QLineEdit*          fServerLine;
     
         string              fCompilationMode;
         int                 fOpt_level;
-    
+        string              fServerUrl;
+        
         string              fStyleChoice;
     
         void                init_PreferenceWindow();
