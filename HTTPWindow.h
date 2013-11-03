@@ -31,7 +31,7 @@ class HTTPWindow : public QMainWindow{
     
     string      fIPaddress;
     string      fEntireAddress;
-    char*       fTitle;
+    const char* fTitle;
     httpdUI*    fInterface; //Httpd interface for distance control
     QPixmap     fQrCode;
     bool        fShortcut;
@@ -55,9 +55,9 @@ class HTTPWindow : public QMainWindow{
     void        hide_httpdWindow();
 
     void        search_IPadress();
-    string&     getUrl();
+    string      getUrl();
     
-    bool        build_httpdInterface(char* error, string windowTitle, dsp* current_DSP, int port);
+    bool        build_httpdInterface(const char* error, const char* windowTitle, dsp* current_DSP, int port);
     
     void        launch_httpdInterface();
     

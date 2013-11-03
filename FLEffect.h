@@ -56,7 +56,7 @@ class FLEffect : public QObject
     //The compilation options are decomposed in a table
         int         get_numberParameters(string compilOptions);
         //Extract the first sub-string in the compilOptions
-        string&     parse_compilationParams(string& compilOptions);
+        string     parse_compilationParams(string& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
         bool        buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder); 

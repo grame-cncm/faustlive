@@ -71,7 +71,7 @@ class FJUI
             std::list<std::pair<std::string,std::string> >::iterator it;
             for(it = changeTable.begin(); it != changeTable.end() ; it++){
                 
-                int pos = port1.find(it->first);
+                size_t pos = port1.find(it->first);
                 if(pos != std::string::npos){
                     char nextCharacter = port1[pos+it->first.length()];
                     //This way freeverb1 is not recognized in freeverb12!
@@ -83,7 +83,7 @@ class FJUI
                 }
             }
             for(it = changeTable.begin(); it != changeTable.end() ; it++){
-                int pos = port2.find(it->first);
+                size_t pos = port2.find(it->first);
                 if(pos != std::string::npos){
                     char nextCharacter = port2[pos+it->first.length()];
                     if(nextCharacter == ':' || nextCharacter == ' ' || nextCharacter == '_'){

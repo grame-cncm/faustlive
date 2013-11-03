@@ -116,7 +116,7 @@ bool FLApp::isStringInt(const char* word){
     
     bool returning = true;
     
-    for(int i=0; i<strlen(word); i++){
+    for(unsigned int i=0; i<strlen(word); i++){
         if(!isdigit(word[i])){
             returning = false;
             break;
@@ -645,11 +645,11 @@ list<string> FLApp::get_currentDefault(){
     }
     
     
-    printf("WIN CONTENT = %i\n", currentDefault.size());
+    printf("WIN CONTENT = %ld\n", currentDefault.size());
     return currentDefault;
 }
 
-string FLApp::find_smallest_defaultName(string& sourceToCompare, list<string> currentDefault){
+string FLApp::find_smallest_defaultName(string& /*sourceToCompare*/, list<string> currentDefault){
     
     //Conditional jump on currentDefault List...
     
@@ -734,7 +734,7 @@ void FLApp::update_Source(string& oldSource, string& newSource){
 string FLApp::getDeclareName(string text){
     
     string returning = "";
-    int pos = text.find("declare name");
+    size_t pos = text.find("declare name");
     
     if(pos != string::npos){
         text.erase(0, pos);
@@ -774,7 +774,7 @@ string FLApp::renameEffect(string source, string nomEffet){
 string FLApp::ifUrlToText(string& source){
     
     //In case the text dropped is a web url
-    int pos = source.find("http://");
+    size_t pos = source.find("http://");
     
     string UrlText;
     
@@ -986,8 +986,8 @@ void FLApp::synchronize_Window(){
     FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
     
     string modifiedSource = modifiedEffect->getSource();
-    char error[256];
-    snprintf(error, 255, "");
+    char error[256] = "";
+    //snprintf(error, 255, "");
     
     QDateTime modifiedLast = QFileInfo(modifiedSource.c_str()).lastModified();
     QDateTime creationDate = modifiedEffect->get_creationDate();
@@ -1153,8 +1153,8 @@ FLWindow* FLApp::new_Window(string& source, char* error){
 
 void FLApp::create_New_Window(string& source){
     
-    char error[256];
-    snprintf(error, 255, "");
+    char error[256] = "";
+    //snprintf(error, 255, "");
     
     if(new_Window(source, error) == NULL)
         fErrorWindow->print_Error(error);
@@ -1587,8 +1587,8 @@ void FLApp::duplicate(FLWindow* window){
     changeTable.push_back(make_pair(toFind, toReplace));
     win->update_ConnectionFile(changeTable);
     
-    char error[256];
-    snprintf(error, 255, "");
+    char error[256] = "";
+    //snprintf(error, 255, "");
     
     if(win->init_Window(false, true, error)){
         FLW_List.push_back(win);
@@ -1615,8 +1615,8 @@ void FLApp::duplicate_Window(){
 
 void FLApp::update_SourceInWin(FLWindow* win, string source){
     
-    char error[256];
-    snprintf(error, 255, "");
+    char error[256] = "";
+    //snprintf(error, 255, "");
     string empty("");
     
     //Deletion of reemplaced effect from session
@@ -1737,7 +1737,7 @@ void FLApp::drop_Action(list<string> sources){
 
 void FLApp::redirect_RCAction(const QPoint & p){
     
-    FLWindow* win = (FLWindow*)QObject::sender();
+    //FLWindow* win = (FLWindow*)QObject::sender();
     
     QMenu* rcMenu = new QMenu();
     
@@ -1822,7 +1822,7 @@ void FLApp::fileToSessionContent(string filename, list<WinInSession*>* session){
 
 string FLApp::restore_compilationOptions(string compilationOptions){
     
-    int pos = compilationOptions.find("/");
+    size_t pos = compilationOptions.find("/");
     
     while(pos != string::npos){
         
@@ -1907,8 +1907,8 @@ void FLApp::recall_Session(string filename){
     
     for(it = snapshotContent.begin() ; it != snapshotContent.end() ; it ++){
         
-        char error[256];
-        snprintf(error, 255, "");
+        char error[256] = "";
+        //snprintf(error, 255, "");
         
         (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
         
@@ -2050,7 +2050,7 @@ void FLApp::import_Recent_Session(){
 
 //---------------CURRENT SESSION FUNCTIONS
 string FLApp::convert_compilationOptions(string compilationOptions){
-    int pos = compilationOptions.find(" ");
+    size_t pos = compilationOptions.find(" ");
     
     while(pos != string::npos){
         
@@ -2080,7 +2080,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->opt_level = win->get_Effect()->getOptValue();
     intermediate->portHttpd = win->get_Port();
     
-    int i = fFrontWindow.size();
+    //int i = fFrontWindow.size();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
@@ -2107,7 +2107,7 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
             //            printf("REMOVING = %i\n", win->get_indexWindow());
             fSessionContent.remove(*it);
             
-            QAction* toRemove = NULL;
+            //QAction* toRemove = NULL;
             
             QList<QAction*>::iterator it;
             for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
@@ -2767,11 +2767,11 @@ void FLApp::init_HelpWindow(){
     QPlainTextEdit *plainTextEdit_2;
     QPlainTextEdit *plainTextEdit_3;
     QPlainTextEdit *plainTextEdit_12;
-    QPlainTextEdit *plainTextEdit_15;
-    QPlainTextEdit *plainTextEdit_16;
+    //QPlainTextEdit *plainTextEdit_15;
+    //QPlainTextEdit *plainTextEdit_16;
     QPushButton *pushButton;
-    QMenuBar *menubar;
-    QStatusBar *statusbar;
+    //QMenuBar *menubar;
+    //QStatusBar *statusbar;
     
     QVBoxLayout* layout = new QVBoxLayout;
     QVBoxLayout* layout1 = new QVBoxLayout;
@@ -3215,7 +3215,7 @@ void FLApp::init_presentationWindow(){
     
     QHBoxLayout *layout4 = new QHBoxLayout;
     
-    QLabel* lab = new QLabel("");
+    //QLabel* lab = new QLabel("");
     
     QPushButton* cancel = new QPushButton("Cancel");
     cancel->setStyleSheet("*{background-color: transparent;}");
@@ -4014,7 +4014,7 @@ void FLApp::init_PreferenceWindow(){
     
     QTabWidget* myTab = new QTabWidget(fPrefDialog);
     myTab->setStyleSheet("*{}""*::tab-bar{}");
-    QTabBar* myTabBar = new QTabBar(myTab);
+    //QTabBar* myTabBar = new QTabBar(myTab);
     
     QGroupBox* menu1 = new QGroupBox(myTab);
     QGroupBox* menu2 = new QGroupBox(myTab);
@@ -4192,7 +4192,7 @@ void FLApp::save_Settings(string& home){
     
     string modeText = fCompilationMode;
     
-    int pos = 0;
+    size_t pos = 0;
     
     if(modeText.compare("") == 0){
         modeText = " ";
@@ -4253,7 +4253,7 @@ void FLApp::recall_Settings(string& home){
     
     string modeText = ModeText.toStdString();
     
-    int pos = 0;
+    size_t pos = 0;
     
     while(modeText.find("/", pos) != string::npos){
         
@@ -4295,8 +4295,8 @@ void FLApp::update_AudioArchitecture(){
     
     bool updateSuccess = true;
     string errorToPrint;
-    char error[256];
-    snprintf(error, 255, "");
+    char error[256] = "";
+    //snprintf(error, 255, "");
     
     display_CompilingProgress("Updating Audio Architecture...");
     

@@ -23,7 +23,7 @@ class AudioManager : public QObject, public audio{
     
     public :
     
-    AudioManager(AudioSettings* as){}
+    AudioManager(AudioSettings* as){Q_UNUSED(as);}
     virtual ~AudioManager(){}
     
     virtual bool initAudio(char* error, const char* name, dsp* DSP, const char* port_name) = 0;
@@ -32,9 +32,9 @@ class AudioManager : public QObject, public audio{
     virtual void start_Fade() = 0;
     virtual void wait_EndFade() = 0;
     
-    virtual void connect_Audio(std::string homeFolder){}
-    virtual void save_Connections(std::string homeFolder){}
-    virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){}
+    virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
+    virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
+    virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
     
     signals : 
     

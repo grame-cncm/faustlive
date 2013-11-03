@@ -180,7 +180,7 @@ bool FLWindow::is_Default(){
 
 //------------------------CLOSING ACTIONS
 
-void FLWindow::closeEvent(QCloseEvent* event){ 
+void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
     if(!fShortcut)
         emit close();
@@ -297,7 +297,7 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
     }
 }
 
-void FLWindow::dragLeaveEvent ( QDragLeaveEvent * event ){
+void FLWindow::dragLeaveEvent ( QDragLeaveEvent * /*event*/ ){
     //    setWindowFlags();
     centralWidget()->show();
 }
@@ -344,7 +344,7 @@ void FLWindow::frontShow(){
 }
 
 //Initialization of User Interface + StartUp of Audio Client
-bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
+bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
     
     fCurrent_DSP = createDSPInstance(fEffect->getFactory());
 
@@ -391,18 +391,17 @@ bool FLWindow::init_Window(bool init, bool recall, char* errorMsg){
 //            adjustSize();
             fInterface->run();
             return true;
-        }
-        else{        
+        } else {
             deleteInterfaces();
             return false;
         }
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(FLEffect* newEffect, string compilationOptions, int optVal, char* error){
+bool FLWindow::update_Window(FLEffect* newEffect, string /*compilationOptions*/, int optVal, char* error){
     
     //Step 1 : Save the parameters of the actual interface
     fXPos = this->geometry().x();
@@ -620,7 +619,7 @@ bool FLWindow::init_Httpd(char* error){
         save_Window();
         
         string windowTitle = fWindowName + ":" + fEffect->getName();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
+        if(fHttpdWindow->build_httpdInterface(error, windowTitle.c_str(), fCurrent_DSP, fPortHttp)){
             
             //recall parameters to run them properly
             //For a second, the initial parameters are reinitialize : it can sound weird
@@ -640,21 +639,21 @@ bool FLWindow::init_Httpd(char* error){
     }
 }
 
-bool FLWindow::is_httpdWindow_active(){
+bool FLWindow::is_httpdWindow_active() {
     return fHttpdWindow->isActiveWindow();
 }
 
-void FLWindow::hide_httpdWindow(){
+void FLWindow::hide_httpdWindow() {
     fHttpdWindow->hide();
 }
 
-string& FLWindow::get_HttpUrl(){
+string FLWindow::get_HttpUrl() {
     return fHttpdWindow->getUrl();
 }
 
 //------------------------Right Click Reaction
 
-void FLWindow::contextMenuEvent(QContextMenuEvent* ev){
+void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
     
     emit rightClick(ev->globalPos());
 }

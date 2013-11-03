@@ -14,7 +14,7 @@ bool CA_audioSettings::isStringInt(const char* word){
     
     bool returning = true;
     
-    for(int i=0; i<strlen(word); i++){
+    for(size_t i=0; i<strlen(word); i++){
         if(!isdigit(word[i])){
             returning = false;
             break;
@@ -124,8 +124,7 @@ void CA_audioSettings::linkClicked(const QUrl& link){
  
     string myLink = link.path().toStdString();
     
-    int pos = 0;
-    pos = myLink.find("\\");
+    size_t pos = myLink.find("\\");
     
     while(pos != string::npos){
         myLink.insert(pos + 1, 1, ' ');

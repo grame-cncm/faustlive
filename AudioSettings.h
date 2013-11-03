@@ -23,7 +23,7 @@ class AudioSettings : public QObject{
     
     public :
     
-        AudioSettings(std::string home, QGroupBox* parent){}
+        AudioSettings(std::string home, QGroupBox* parent){ Q_UNUSED(home); Q_UNUSED(parent); }
         virtual ~AudioSettings(){}
     
         virtual void readSettings() = 0;

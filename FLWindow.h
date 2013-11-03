@@ -157,7 +157,7 @@ class FLWindow : public QMainWindow
     //Accessors to httpd Window
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
-        string&         get_HttpUrl();
+        string          get_HttpUrl();
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);

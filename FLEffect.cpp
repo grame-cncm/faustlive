@@ -61,7 +61,7 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
 
 //---------------FACTORY ACTIONS
 
-bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/, char* error, string currentSVGFolder, string currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
     int argc = 2 + get_numberParameters(fCompilationOptions);
@@ -166,13 +166,13 @@ int FLEffect::get_numberParameters(string compilOptions){
     
 }
 
-string& FLEffect::parse_compilationParams(string& compilOptions){
+string FLEffect::parse_compilationParams(string& compilOptions){
     
     //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway!    
     
     string returning = "";
     
-    int pos = compilOptions.find(" ");
+    size_t pos = compilOptions.find(" ");
     
     if(pos != string::npos){
         returning = compilOptions.substr(0, pos);
@@ -206,7 +206,7 @@ void FLEffect::erase_OldFactory(){
 
 //---------------WATCHER & FILE MODIFICATIONS ACTIONS
 
-void FLEffect::reset_Timer(const QString toto){
+void FLEffect::reset_Timer(const QString /*toto*/){
     
     //    printf("Reseting Timer\n");
     

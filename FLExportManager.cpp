@@ -9,32 +9,26 @@
 #include "FLExportManager.h"
 
 #include <fstream>
+#include <map>
+#include <vector>
 #include <string>
+#include <ctype.h>
+#include "SimpleParser.h"
 
 #define JSON_ONLY
 
-#include <json/json2osc.h>
-#include <json/export.h>
-#include <json/json_array.h>
-#include <json/json_element.h>
-#include <json/json_object.h>
-#include <json/json_stream.h>
-#include <json/json_value.h>
-#include <json/json_parser.h>
-
 using namespace std;
-using namespace json;
 
-//#define kSaveFile "/ServerURL.txt"
 #define kTmpJson "/targets.json"
 
-FLExportManager::FLExportManager(string url, string sessionHome, string file, string filename){
-    
+FLExportManager::FLExportManager(string url, string sessionHome, string file, string filename)
+{
+    std::cerr << "FLExportManager::FLExportManager(...)" << std::endl;
+
     fHome = sessionHome;
 
     fDialogWindow = new QDialog;
     
-//    fServerUrl = readURL();
     fServerUrl = QUrl(url.c_str());
     fFileToExport = file;
     fFilenameToExport = filename;
@@ -52,48 +46,48 @@ FLExportManager::FLExportManager(string url, string sessionHome, string file, st
     QNetworkAccessManager *manager = new QNetworkAccessManager;
     
     QNetworkReply *targetReply = manager->get(request);
-    connect(targetReply, SIGNAL(finished()), this, SLOT(readTargets()));
+    connect(targetReply, SIGNAL(finished()), this, SLOT(targetsDescriptionReceived()));
 }
 
-FLExportManager::~FLExportManager(){
 
-    string tmpFile = fHome + kTmpJson;
-    
-    QFile f(tmpFile.c_str());
-    
-    if(f.exists()){
-        f.remove();
-        printf("FILE REMOVED");
-    }
-    
-    
-//    writeURL(fServerUrl);
+FLExportManager::~FLExportManager()
+{
     delete fDialogWindow;
 }
 
-void FLExportManager::readTargets(){
-    
+
+
+void FLExportManager::targetsDescriptionReceived()
+{
+    std::cerr << "FLExportManager::targetsDescriptionReceived()" << std::endl;
     QNetworkReply* response = (QNetworkReply*)QObject::sender();
-    
     QByteArray key = response->readAll();
-//    printf("Targets = %s\n", key.data());
-    fJsonTargets = key.data();
-    
-    string tmpFile = fHome + kTmpJson;
-    QFile f(tmpFile.c_str());
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<fJsonTargets;
-        f.close();
-    }    
-    
+    const char* p = key.data();
+
+    std::cout << "JSON ::" << key.data() << std::endl;
+    if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
+
+        // prepare plaform menu
+        fExportPlatform->hide();
+        fExportPlatform->clear();
+        for (size_t i=0; i<fPlatforms.size();i++) fExportPlatform->addItem(fPlatforms[i].c_str());
+        fExportPlatform->show();
+
+        // prepare architecture menu
+        fExportArchi->hide();
+        fExportArchi->clear();
+        vector<string> archs = fTargets[fPlatforms[0]];
+        for (size_t i=0; i<archs.size();i++) fExportArchi->addItem(archs[i].c_str());
+        fExportArchi->show();
+
+    }
+
 }
 
-void FLExportManager::init(){
-        
+
+void FLExportManager::init()
+{
+    std::cerr << "FLExportManager::init()" << std::endl;
     QFormLayout* exportLayout = new QFormLayout;
     
     QString title("<h2>DOWNLOAD</2>");
@@ -144,19 +138,9 @@ void FLExportManager::init(){
     exportLayout->addRow(new QLabel(""));
     
     fExportPlatform = new QComboBox(fMenu2Export);
-    fExportPlatform->addItem("osx");
-    fExportPlatform->addItem("windows");
-    fExportPlatform->addItem("linux");
-    
     connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
     
     fExportArchi = new QComboBox(fMenu2Export);    
-    list<string> architectures = getArchiFromPlatform("osx");
-    
-    list<string>::iterator it;
-    
-    for(it = architectures.begin(); it!=architectures.end(); it++)
-        fExportArchi->addItem((*it).c_str());
     
     fExportChoice = new QComboBox(fMenu2Export);
     fExportChoice->addItem("binary.zip");
@@ -403,70 +387,19 @@ void FLExportManager::endProcess(){
 //    return QUrl(server);
 //}
 
-list<string> FLExportManager::getArchiFromPlatform(const char* platform){
-    
-    list<string> architectures;
-    
-    string tmpFile = fHome + kTmpJson;
-    
-    fstream stream;
-    stream.open(tmpFile.c_str());
-
-    json_parser p (&stream);
-    json_object* obj = p.parse();
-    
-    if (obj) {
-        const json_element* e = obj->getKey(platform);
-        
-        if(e != NULL){
-            const json_value* val = e->value();
-            
-            const json_array_value* realVal = val->value<json_array_value>();
-            
-            if( realVal != NULL){
-                
-                std::vector<const json_value *>::iterator it;
-                
-                const json_array* linuxArray = realVal->getValue();
-                
-                
-                std::vector<const json_value *> values = linuxArray->values();
-                
-                std::filebuf bf;
-                ostream myStream(&bf);
-                json_stream out(myStream);
-                
-                linuxArray->print(out);
-                
-                for(it = values.begin(); it != values.end() ; it++){
-                    
-                    const json_string_value* archi = (*it)->value<json_string_value>();
-                    
-                    if(archi != NULL)
-                        architectures.push_back(archi->getValue());
-                }
-                
-            }
-        }
-    }
-    
-    return architectures;
-}
-
-void FLExportManager::platformChanged(const QString& index){
+void FLExportManager::platformChanged(const QString& index)
+{
     printf("INDEX = %s\n", index.toStdString().c_str());
     
     fExportArchi->hide();
     fExportArchi->clear();
 
-    list<string> architectures = getArchiFromPlatform(index.toStdString().c_str());
+    vector<string> architectures = fTargets[index.toStdString()];
+    vector<string>::iterator it;
     
-    list<string>::iterator it;
-    
-    for(it = architectures.begin(); it!=architectures.end(); it++)
+    for (it = architectures.begin(); it!=architectures.end(); it++) {
         fExportArchi->addItem((*it).c_str());
-    
+    }
     fExportArchi->show();
-    
 }
 

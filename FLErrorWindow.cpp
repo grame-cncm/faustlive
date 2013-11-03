@@ -46,7 +46,7 @@ void FLErrorWindow::init_Window(){
     fWidget->setLayout(fLayout);
 }
 
-void FLErrorWindow::closeEvent(QCloseEvent* event){
+void FLErrorWindow::closeEvent(QCloseEvent* /*event*/){
     
     this->hideWin();
     

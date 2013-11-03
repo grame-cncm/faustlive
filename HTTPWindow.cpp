@@ -39,7 +39,7 @@ HTTPWindow::~HTTPWindow(){
     //    delete fTitle;
 }
 
-string& HTTPWindow::getUrl(){
+string HTTPWindow::getUrl(){
     
     string url = "http://" + fEntireAddress;
     
@@ -156,26 +156,22 @@ void HTTPWindow::search_IPadress(){
     }
 }
 
-bool HTTPWindow::build_httpdInterface(char* error, string windowTitle, dsp* current_DSP, int port){
+bool HTTPWindow::build_httpdInterface(const char* error, const char* windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
-    if(fInterface != NULL)
-        delete fInterface;
+    if(fInterface != NULL) delete fInterface;
     
-    fTitle = new char[strlen(windowTitle.c_str())+1];
-    strcpy(fTitle, windowTitle.c_str());
+    fTitle = windowTitle;
     
     char* argv[3];
-    argv[0] = new char[strlen(windowTitle.c_str())+1];
-    strcpy(argv[0], windowTitle.c_str());
-    
+
+    argv[0] = strndup(windowTitle, 255);
     argv[1] = "-port";
     
     stringstream s;
     s<<port;
-    argv[2] = new char[strlen(s.str().c_str())+1];
-    strcpy(argv[2], s.str().c_str());
-    
+    argv[2] = strndup (s.str().c_str(), 255);
+
     fInterface = new httpdUI(fTitle, 3, argv);
     
     if(fInterface){
@@ -225,22 +221,19 @@ void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
 
 void HTTPWindow::keyPressEvent(QKeyEvent* event){ 
     
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = true;
+    if(event->key() == Qt::Key_Alt) fShortcut = true;
 }
 
 void HTTPWindow::keyReleaseEvent(QKeyEvent* event){
     
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = false;
+    if(event->key() == Qt::Key_Alt) fShortcut = false;
 }
 
-void HTTPWindow::closeEvent(QCloseEvent* event){
+void HTTPWindow::closeEvent(QCloseEvent* /*event*/){
     
     this->hide();
     
-    if(fShortcut)
-        emit closeAll();
+    if(fShortcut) emit closeAll();
 }
 
 
