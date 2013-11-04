@@ -59,12 +59,10 @@ FLExportManager::~FLExportManager()
 
 void FLExportManager::targetsDescriptionReceived()
 {
-    std::cerr << "FLExportManager::targetsDescriptionReceived()" << std::endl;
     QNetworkReply* response = (QNetworkReply*)QObject::sender();
     QByteArray key = response->readAll();
     const char* p = key.data();
 
-    std::cout << "JSON ::" << key.data() << std::endl;
     if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
 
         // prepare plaform menu
@@ -79,6 +77,10 @@ void FLExportManager::targetsDescriptionReceived()
         vector<string> archs = fTargets[fPlatforms[0]];
         for (size_t i=0; i<archs.size();i++) fExportArchi->addItem(archs[i].c_str());
         fExportArchi->show();
+
+    } else {
+
+        std::cerr << "Error : targetsDescriptionReceived() received an incorrect JSON " << *p << std::endl;
 
     }
 

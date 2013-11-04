@@ -9,6 +9,8 @@
 // associated architectures :
 // {"os1" : ["arch1, "arch2",...], "os2" : ["arch1, "arch2",...],...}
 // and store the result in map M. Returns true if parsing was successfull.
+// This function is used by targetsDescriptionReceived() to parse the JSON
+// record sent by the webservice.
 //
 bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<string, vector<string> >& M)
 {
@@ -105,7 +107,7 @@ bool parseChar(const char*& p, char x)
     }
 }
 
-// Parse a quoted string and store the result in s, reports an error if it fails
+// Parse a quoted string "..." and store the result in s, reports an error if it fails
 bool parseString(const char*& p, string& s)
 {
     string      str;
