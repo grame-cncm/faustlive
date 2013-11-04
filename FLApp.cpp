@@ -7,7 +7,7 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-//#include "FLServerHttp.h"
+#include "FLServerHttp.h"
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
@@ -217,7 +217,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     setup_Menu();
     
-//    fServerHttp = NULL;
+    fServerHttp = NULL;
     
 //    homeRecents = getenv("HOME");
     fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
@@ -464,14 +464,14 @@ void FLApp::setup_Menu(){
     fMenuBar->addSeparator();
     
     //-----------------PRODUCT
-//    
-//    fServer = new QAction(tr("Start FaustLive Server"), this);
-//    fServer->setShortcut(tr("Ctrl+J"));
-//    connect(fServer, SIGNAL(triggered()), this, SLOT(launch_Server()));
-//    
-//    fServerStop = new QAction(tr("Stop FaustLive Server"), this);
-//    fServerStop->setShortcut(tr("Ctrl+M"));
-//    connect(fServerStop, SIGNAL(triggered()), this, SLOT(stop_Server()));
+    
+    fServer = new QAction(tr("Start FaustLive Server"), this);
+    fServer->setShortcut(tr("Ctrl+J"));
+    connect(fServer, SIGNAL(triggered()), this, SLOT(launch_Server()));
+    
+    fServerStop = new QAction(tr("Stop FaustLive Server"), this);
+    fServerStop->setShortcut(tr("Ctrl+M"));
+    connect(fServerStop, SIGNAL(triggered()), this, SLOT(stop_Server()));
     
     fExportAction = new QAction(tr("&Export As..."), this);
     fExportAction->setShortcut(tr("Ctrl+P"));
@@ -481,9 +481,9 @@ void FLApp::setup_Menu(){
     fProductMenu = fMenuBar->addMenu(tr("&Product"));
     fProductMenu->addAction(fExportAction);
     fProductMenu->addSeparator();
-//    fProductMenu->addAction(fServer);
-//    fProductMenu->addAction(fServerStop);
-//    fMenuBar->addSeparator();
+    fProductMenu->addAction(fServer);
+    fProductMenu->addAction(fServerStop);
+    fMenuBar->addSeparator();
     
     //---------------------MAIN MENU
     
@@ -510,11 +510,11 @@ void FLApp::setup_Menu(){
     fAboutAction->setToolTip(tr("Show the library's About Box"));
     connect(fAboutAction, SIGNAL(triggered()), this, SLOT(apropos()));
     
-    fVersionWindow = new QDialog;
-    
-    fVersionAction = new QAction(tr("&Version"), this);
-    fVersionAction->setToolTip(tr("Show the version of the libraries used"));
-    connect(fVersionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
+//    fVersionWindow = new QDialog;
+//    
+//    fVersionAction = new QAction(tr("&Version"), this);
+//    fVersionAction->setToolTip(tr("Show the version of the libraries used"));
+//    connect(fVersionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
     
     fPresentationAction = new QAction(tr("&About FaustLive"), this);
     fPresentationAction->setToolTip(tr("Show the presentation Menu"));
@@ -1379,7 +1379,7 @@ void FLApp::display_Progress(){
         
         fEndTimer = new QTimer(this);
         connect(fEndTimer, SIGNAL(timeout()), this, SLOT(update_ProgressBar()));
-        fEndTimer->start(25);
+        fEndTimer->start(7);
     }
     else
         quit();
@@ -2264,7 +2264,12 @@ void FLApp::take_Snapshot(){
     QFileDialog* fileDialog = new QFileDialog;
     //    QWidget* parent = this;
     
-    string filename = fileDialog->getSaveFileName().toStdString();
+   fileDialog->setConfirmOverwrite(true);
+    fileDialog->setNameFilter("*.tar");
+   
+//setContentsPreviewEnabled
+     
+    string filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", QString("Session.tar")).toStdString();
     
     //If no name is placed, nothing happens
     if(filename.compare("") != 0){
@@ -2274,8 +2279,8 @@ void FLApp::take_Snapshot(){
         
         //Copy of current Session under a new name, at a different location
         cpDir(fSessionFolder.c_str(), filename.c_str());
-        //
-        //        string descriptionFile = filename + "/Description.sffx";
+
+//        string descriptionFile = filename + "/Description.sffx";
         
         QProcess myCmd;
         QByteArray error;
@@ -3020,26 +3025,26 @@ void FLApp::end_apropos(){
 
 void FLApp::version_Action(){
     
-    QVBoxLayout* layoutGeneral = new QVBoxLayout;
-    
-    string text = "This application is using ""\n""- Jack 2";
-//    text += jack_get_version_string();
-    text += "\n""- NetJack ";
-    text += "2.1";
-    text += "\n""- CoreAudio API ";
-    text += "4.0";
-    text += "\n""- LLVM Compiler ";
-    text += "3.1";
-    
-    QPlainTextEdit* versionText = new QPlainTextEdit(tr(text.c_str()), fVersionWindow);
-    
-    layoutGeneral->addWidget(versionText);
-    fVersionWindow->setLayout(layoutGeneral);
-    
-    fVersionWindow->exec();
-    
-    delete versionText;
-    delete layoutGeneral;
+//    QVBoxLayout* layoutGeneral = new QVBoxLayout;
+//    
+//    string text = "This application is using ""\n""- Jack 2";
+////    text += jack_get_version_string();
+//    text += "\n""- NetJack ";
+//    text += "2.1";
+//    text += "\n""- CoreAudio API ";
+//    text += "4.0";
+//    text += "\n""- LLVM Compiler ";
+//    text += "3.1";
+//    
+//    QPlainTextEdit* versionText = new QPlainTextEdit(tr(text.c_str()), fVersionWindow);
+//    
+//    layoutGeneral->addWidget(versionText);
+//    fVersionWindow->setLayout(layoutGeneral);
+//    
+//    fVersionWindow->exec();
+//    
+//    delete versionText;
+//    delete layoutGeneral;
 }
 
 //-------------------------------PRESENTATION WINDOW-----------------------------
@@ -4412,49 +4417,64 @@ void FLApp::StopProgressSlot(){
 
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
-//void FLApp::launch_Server(){
-//    
-//    if(fServerHttp == NULL){
-//        fServerHttp = new FLServerHttp();
-//        fServerHttp->start();
-//        
-//        connect(fServerHttp, SIGNAL(compile_Data(const char*, const char*)), this, SLOT(compile_HttpData(const char*, const char*)));
-//    }
-//}
-//
-//void FLApp::stop_Server(){
-//    if(fServerHttp != NULL){
-//        fServerHttp->stop();
-//        delete fServerHttp;
-//        fServerHttp = NULL;
-//    }
-//}
-//
-//void FLApp::compile_HttpData(const char* data, const char* options){
-//    
-//    char error[256];
-//    snprintf(error, 255, ""); 
-//    
-//    string source(data);
-//    
-////    printf("SOURCE = %s\n", source.c_str());
-//    
-//    fCompilationMode = options;
-////    printf("OPTIONS = %s\n", options);
-//    FLWindow* win = new_Window(source, error);
-//    
-//    if(win != NULL){
-//        viewHttpd(win);
-//        
-//        string url = win->get_HttpUrl();
-//        
-//        fServerHttp->compile_Successfull(url);
-//    }
-//    else{
-//        fServerHttp->compile_Failed(error);
-//    }
-//    
-//}
+void FLApp::launch_Server(){
+    
+    if(fServerHttp == NULL){
+    
+        QTcpSocket sock;
+        QHostAddress IP;
+        string ipAddress;
+        sock.connectToHost("8.8.8.8", 53); // google DNS, or something else reliable
+        if (sock.waitForConnected(5000)) {
+            IP = sock.localAddress();
+            ipAddress = IP.toString().toStdString();
+        }
+        else {
+            ipAddress = "localhost";
+        }
+    
+        fServerHttp = new FLServerHttp(ipAddress);
+        fServerHttp->start();
+        
+        connect(fServerHttp, SIGNAL(compile_Data(const char*, const char*)), this, SLOT(compile_HttpData(const char*, const char*)));
+    }
+}
+
+void FLApp::stop_Server(){
+    if(fServerHttp != NULL){
+        fServerHttp->stop();
+        delete fServerHttp;
+        fServerHttp = NULL;
+    }
+}
+
+void FLApp::compile_HttpData(const char* data, const char* options){
+    
+    char error[256];
+    snprintf(error, 255, ""); 
+    
+    string source(data);
+    
+//    printf("SOURCE = %s\n", source.c_str());
+    
+    fCompilationMode = options;
+//    printf("OPTIONS = %s\n", options);
+    FLWindow* win = new_Window(source, error);
+//    FLWindow* win = getActiveWin();
+//    update_SourceInWin(win, source);
+    
+    if(win != NULL){
+        viewHttpd(win);
+        
+        string url = win->get_HttpUrl();
+        
+        fServerHttp->compile_Successfull(url);
+    }
+    else{
+        fServerHttp->compile_Failed(error);
+    }
+    
+}
 
 
 

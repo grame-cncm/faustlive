@@ -15,7 +15,7 @@
 
 #include <QtGui>
 
-//class FLServerHttp;
+class FLServerHttp;
 class FLExportManager;
 class FLErrorWindow;
 class FLWindow;
@@ -68,8 +68,8 @@ class FLApp : public QApplication
         QMenu *             fProductMenu;
         QMenu *             fHelpMenu;
     
-//        QAction*            fServer;
-//        QAction*            fServerStop;
+        QAction*            fServer;
+        QAction*            fServerStop;
         QAction*            fNewAction;
         QAction*            fOpenAction;
     
@@ -119,7 +119,7 @@ class FLApp : public QApplication
         QDialog*            fVersionWindow;
         FLExportManager*    fExportDialog;
     
-//        FLServerHttp*       fServerHttp;
+        FLServerHttp*       fServerHttp;
     
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
@@ -261,7 +261,7 @@ class FLApp : public QApplication
     
     private slots :
         
-//        void                launch_Server();
+        void                launch_Server();
     
     //---------Drop on a window
     
@@ -347,8 +347,8 @@ class FLApp : public QApplication
     
     //--------Server Response
 //        void                close_Window_FormHttp(const char* nameEffect);
-//        void                compile_HttpData(const char* data, const char* options);
-//        void                stop_Server();
+        void                compile_HttpData(const char* data, const char* options);
+        void                stop_Server();
     
     public : 
 
