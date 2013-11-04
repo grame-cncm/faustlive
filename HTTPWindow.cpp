@@ -18,6 +18,9 @@
 
 #include "faust/gui/httpdUI.h"
 
+
+
+
 using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
@@ -92,8 +95,6 @@ void HTTPWindow::displayQRCode(char* url){
     text += "<br><a href = http://" + myURL + ">"+ myURL+"</a>";
     text += "<br>Or Flash the code below";
     
-    fEntireAddress = myURL;
-    
     myBro->setOpenExternalLinks(true);
     myBro->setHtml(text.c_str());
     myBro->setAlignment(Qt::AlignCenter);
@@ -122,7 +123,15 @@ void HTTPWindow::display_HttpdWindow(int x, int y){
     move(x, y);
     
     char url[256];
-    snprintf(url, 255, "%s:%i", fIPaddress.c_str(), fInterface->getTCPPort());
+    snprintf(url, 255, "%s:7777/%i", fIPaddress.c_str(), fInterface->getTCPPort());
+    
+    
+    stringstream s;
+    s<<fInterface->getTCPPort();
+    
+    fEntireAddress = fIPaddress;
+    fEntireAddress += ":";
+    fEntireAddress += s.str();
     
     displayQRCode(url);
     frontShow_Httpd(fTitle);   

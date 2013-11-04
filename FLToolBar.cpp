@@ -96,7 +96,7 @@ void FLToolBar::expansionAction(QTreeWidgetItem * item){
     fWidget1->show();
     fWidget2->show();
     fWidget3->show();
-    
+        
     fAction1 = addWidget(fWidget1);
     fAction2 = addWidget(fWidget2);
     fAction3 = addWidget(fWidget3);
