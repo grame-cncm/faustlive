@@ -25,8 +25,8 @@ class FLExportManager : public QObject{
     
     private :
         
-        QUrl            fServerUrl;
-        QLineEdit*      fServIPLine;
+        QUrl            fServerUrl;                     //Web Service URL
+//        QLineEdit*      fServIPLine;          
     
         vector<string>                  fPlatforms;     // list of available export platforms
         map<string, vector<string> >    fTargets;       // plateform -> available targets
@@ -42,6 +42,7 @@ class FLExportManager : public QObject{
     
         QGroupBox*      fMenu1Export;
         QGroupBox*      fMenu2Export;
+        QFormLayout*    fMenu2Layout;
         QComboBox*      fExportFormat;
         QComboBox*      fExportPlatform;
         QComboBox*      fExportArchi;

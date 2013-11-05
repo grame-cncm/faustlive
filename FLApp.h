@@ -62,10 +62,8 @@ class FLApp : public QApplication
     
         QMenuBar *          fMenuBar;
         QMenu *             fFileMenu;
-        QMenu *             fEditMenu;
-        QMenu *             fViewMenu;
+        QMenu *             fWindowMenu;
         QMenu *             fNavigateMenu;
-        QMenu *             fProductMenu;
         QMenu *             fHelpMenu;
     
         QAction*            fServer;
@@ -258,6 +256,7 @@ class FLApp : public QApplication
         void                removeFilesOfWin(string sourceName, string effName);
 
         FLWindow*           getActiveWin();
+        FLWindow*           getWinFromHttp(int port);
     
     private slots :
         
@@ -347,7 +346,7 @@ class FLApp : public QApplication
     
     //--------Server Response
 //        void                close_Window_FormHttp(const char* nameEffect);
-        void                compile_HttpData(const char* data, const char* options);
+        void                compile_HttpData(const char* data, const char* options, int port);
         void                stop_Server();
     
     public : 

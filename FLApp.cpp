@@ -116,7 +116,7 @@ bool FLApp::isStringInt(const char* word){
     
     bool returning = true;
     
-    for(unsigned int i=0; i<strlen(word); i++){
+    for(int i=0; i<strlen(word); i++){
         if(!isdigit(word[i])){
             returning = false;
             break;
@@ -209,15 +209,14 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     fMenuBar = new QMenuBar(0);
     fFileMenu = new QMenu;
-    fEditMenu = new QMenu;
+    fWindowMenu = new QMenu;
     fNavigateMenu = new QMenu;
-    fProductMenu = new QMenu;
-    fViewMenu = new QMenu;
     fHelpMenu = new QMenu;
     
     setup_Menu();
     
     fServerHttp = NULL;
+    launch_Server();
     
 //    homeRecents = getenv("HOME");
     fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
@@ -267,8 +266,7 @@ FLApp::~FLApp(){
     delete fAboutAction; 
     
     delete fHelpMenu;
-    delete fViewMenu;
-    delete fEditMenu;
+    delete fWindowMenu;
     delete fNavigateMenu;
     delete fFileMenu;
     delete fMenuBar;
@@ -411,7 +409,7 @@ void FLApp::setup_Menu(){
     fMenuBar->addSeparator();
     fFileMenu->addAction(fCloseAllAction);
     
-    //-----------------EDIT
+    //-----------------Window
     
     fEditAction = new QAction(tr("&Edit Faust Source"), this);
     fEditAction->setShortcut(tr("Ctrl+E"));
@@ -428,18 +426,6 @@ void FLApp::setup_Menu(){
     fDuplicateAction->setToolTip(tr("Duplicate current DSP"));
     connect(fDuplicateAction, SIGNAL(triggered()), this, SLOT(duplicate_Window()));
     
-    fEditMenu = fMenuBar->addMenu(tr("&Edit"));
-    fEditMenu->addAction(fEditAction);
-    fEditMenu->addSeparator();
-    fEditMenu->addAction(fPasteAction);
-    fEditMenu->addSeparator();
-    fEditMenu->addAction(fDuplicateAction);
-    fMenuBar->addSeparator();
-    
-    fMenuBar->addSeparator();
-    
-    //---------------------VIEW
-    
     fHttpdViewAction = new QAction(tr("&View QRcode"),this);
     fHttpdViewAction->setShortcut(tr("Ctrl+K"));
     fHttpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
@@ -450,10 +436,20 @@ void FLApp::setup_Menu(){
     fSvgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
     connect(fSvgViewAction, SIGNAL(triggered()), this, SLOT(svg_View_Action()));
     
-    fViewMenu = fMenuBar->addMenu(tr("&View"));
-    fViewMenu->addAction(fHttpdViewAction);
-    fViewMenu->addSeparator();
-    fViewMenu->addAction(fSvgViewAction);
+    fExportAction = new QAction(tr("&Export As..."), this);
+    fExportAction->setShortcut(tr("Ctrl+P"));
+    fExportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
+    connect(fExportAction, SIGNAL(triggered()), this, SLOT(export_Action()));
+    
+    fWindowMenu = fMenuBar->addMenu(tr("&Window"));
+    fWindowMenu->addAction(fEditAction);
+    fWindowMenu->addAction(fPasteAction);
+    fWindowMenu->addAction(fDuplicateAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(fHttpdViewAction);
+    fWindowMenu->addAction(fSvgViewAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(fExportAction);
     
     fMenuBar->addSeparator();
     
@@ -461,28 +457,6 @@ void FLApp::setup_Menu(){
     
     fNavigateMenu = fMenuBar->addMenu(tr("&Navigate"));
     
-    fMenuBar->addSeparator();
-    
-    //-----------------PRODUCT
-    
-    fServer = new QAction(tr("Start FaustLive Server"), this);
-    fServer->setShortcut(tr("Ctrl+J"));
-    connect(fServer, SIGNAL(triggered()), this, SLOT(launch_Server()));
-    
-    fServerStop = new QAction(tr("Stop FaustLive Server"), this);
-    fServerStop->setShortcut(tr("Ctrl+M"));
-    connect(fServerStop, SIGNAL(triggered()), this, SLOT(stop_Server()));
-    
-    fExportAction = new QAction(tr("&Export As..."), this);
-    fExportAction->setShortcut(tr("Ctrl+P"));
-    fExportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
-    connect(fExportAction, SIGNAL(triggered()), this, SLOT(export_Action()));
-    
-    fProductMenu = fMenuBar->addMenu(tr("&Product"));
-    fProductMenu->addAction(fExportAction);
-    fProductMenu->addSeparator();
-    fProductMenu->addAction(fServer);
-    fProductMenu->addAction(fServerStop);
     fMenuBar->addSeparator();
     
     //---------------------MAIN MENU
@@ -645,11 +619,11 @@ list<string> FLApp::get_currentDefault(){
     }
     
     
-    printf("WIN CONTENT = %ld\n", currentDefault.size());
+    printf("WIN CONTENT = %i\n", currentDefault.size());
     return currentDefault;
 }
 
-string FLApp::find_smallest_defaultName(string& /*sourceToCompare*/, list<string> currentDefault){
+string FLApp::find_smallest_defaultName(string& sourceToCompare, list<string> currentDefault){
     
     //Conditional jump on currentDefault List...
     
@@ -696,6 +670,19 @@ FLWindow* FLApp::getActiveWin(){
     return NULL;
 }
 
+FLWindow* FLApp::getWinFromHttp(int port){
+
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
+
+        if(port == (*it)->get_Port())
+            return *it;
+    }
+    
+    return NULL;
+}
+
 //--------------------------CREATE EFFECT-------------------------------------
 
 void FLApp::createSourceFile(string& sourceName, string& content){
@@ -734,7 +721,7 @@ void FLApp::update_Source(string& oldSource, string& newSource){
 string FLApp::getDeclareName(string text){
     
     string returning = "";
-    size_t pos = text.find("declare name");
+    int pos = text.find("declare name");
     
     if(pos != string::npos){
         text.erase(0, pos);
@@ -774,7 +761,7 @@ string FLApp::renameEffect(string source, string nomEffet){
 string FLApp::ifUrlToText(string& source){
     
     //In case the text dropped is a web url
-    size_t pos = source.find("http://");
+    int pos = source.find("http://");
     
     string UrlText;
     
@@ -986,8 +973,8 @@ void FLApp::synchronize_Window(){
     FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
     
     string modifiedSource = modifiedEffect->getSource();
-    char error[256] = "";
-    //snprintf(error, 255, "");
+    char error[256];
+    snprintf(error, 255, "");
     
     QDateTime modifiedLast = QFileInfo(modifiedSource.c_str()).lastModified();
     QDateTime creationDate = modifiedEffect->get_creationDate();
@@ -1022,7 +1009,7 @@ void FLApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-                    if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getCompilationOptions(), modifiedEffect->getOptValue(),error)){
+                    if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getOptValue(),error)){
                         fErrorWindow->print_Error(error);
                         break;
                     }
@@ -1153,8 +1140,8 @@ FLWindow* FLApp::new_Window(string& source, char* error){
 
 void FLApp::create_New_Window(string& source){
     
-    char error[256] = "";
-    //snprintf(error, 255, "");
+    char error[256];
+    snprintf(error, 255, "");
     
     if(new_Window(source, error) == NULL)
         fErrorWindow->print_Error(error);
@@ -1587,8 +1574,8 @@ void FLApp::duplicate(FLWindow* window){
     changeTable.push_back(make_pair(toFind, toReplace));
     win->update_ConnectionFile(changeTable);
     
-    char error[256] = "";
-    //snprintf(error, 255, "");
+    char error[256];
+    snprintf(error, 255, "");
     
     if(win->init_Window(false, true, error)){
         FLW_List.push_back(win);
@@ -1615,8 +1602,8 @@ void FLApp::duplicate_Window(){
 
 void FLApp::update_SourceInWin(FLWindow* win, string source){
     
-    char error[256] = "";
-    //snprintf(error, 255, "");
+    char error[256];
+    snprintf(error, 255, "");
     string empty("");
     
     //Deletion of reemplaced effect from session
@@ -1632,7 +1619,7 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
         optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
     
     
-    if(newEffect == NULL || (!(win)->update_Window(newEffect, fCompilationMode, fOpt_level,error))){
+    if(newEffect == NULL || (!(win)->update_Window(newEffect, fOpt_level,error))){
         //If the change fails, the leaving effect has to be reimplanted
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);
@@ -1737,20 +1724,7 @@ void FLApp::drop_Action(list<string> sources){
 
 void FLApp::redirect_RCAction(const QPoint & p){
     
-    //FLWindow* win = (FLWindow*)QObject::sender();
-    
-    QMenu* rcMenu = new QMenu();
-    
-    rcMenu->addAction(fEditAction);
-    rcMenu->addAction(fPasteAction);
-    rcMenu->addAction(fDuplicateAction);
-    rcMenu->addSeparator();
-    rcMenu->addAction(fHttpdViewAction);
-    rcMenu->addAction(fSvgViewAction);
-    rcMenu->addSeparator();
-    rcMenu->addAction(fExportAction);
-    
-    rcMenu->exec(p);
+    fWindowMenu->exec(p);
 }
 
 //--------------------------------SESSION----------------------------------------
@@ -1822,7 +1796,7 @@ void FLApp::fileToSessionContent(string filename, list<WinInSession*>* session){
 
 string FLApp::restore_compilationOptions(string compilationOptions){
     
-    size_t pos = compilationOptions.find("/");
+    int pos = compilationOptions.find("/");
     
     while(pos != string::npos){
         
@@ -1907,8 +1881,8 @@ void FLApp::recall_Session(string filename){
     
     for(it = snapshotContent.begin() ; it != snapshotContent.end() ; it ++){
         
-        char error[256] = "";
-        //snprintf(error, 255, "");
+        char error[256];
+        snprintf(error, 255, "");
         
         (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
         
@@ -2050,7 +2024,7 @@ void FLApp::import_Recent_Session(){
 
 //---------------CURRENT SESSION FUNCTIONS
 string FLApp::convert_compilationOptions(string compilationOptions){
-    size_t pos = compilationOptions.find(" ");
+    int pos = compilationOptions.find(" ");
     
     while(pos != string::npos){
         
@@ -2080,7 +2054,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->opt_level = win->get_Effect()->getOptValue();
     intermediate->portHttpd = win->get_Port();
     
-    //int i = fFrontWindow.size();
+    int i = fFrontWindow.size();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
@@ -2107,7 +2081,7 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
             //            printf("REMOVING = %i\n", win->get_indexWindow());
             fSessionContent.remove(*it);
             
-            //QAction* toRemove = NULL;
+            QAction* toRemove = NULL;
             
             QList<QAction*>::iterator it;
             for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
@@ -2772,11 +2746,11 @@ void FLApp::init_HelpWindow(){
     QPlainTextEdit *plainTextEdit_2;
     QPlainTextEdit *plainTextEdit_3;
     QPlainTextEdit *plainTextEdit_12;
-    //QPlainTextEdit *plainTextEdit_15;
-    //QPlainTextEdit *plainTextEdit_16;
+    QPlainTextEdit *plainTextEdit_15;
+    QPlainTextEdit *plainTextEdit_16;
     QPushButton *pushButton;
-    //QMenuBar *menubar;
-    //QStatusBar *statusbar;
+    QMenuBar *menubar;
+    QStatusBar *statusbar;
     
     QVBoxLayout* layout = new QVBoxLayout;
     QVBoxLayout* layout1 = new QVBoxLayout;
@@ -3220,7 +3194,7 @@ void FLApp::init_presentationWindow(){
     
     QHBoxLayout *layout4 = new QHBoxLayout;
     
-    //QLabel* lab = new QLabel("");
+    QLabel* lab = new QLabel("");
     
     QPushButton* cancel = new QPushButton("Cancel");
     cancel->setStyleSheet("*{background-color: transparent;}");
@@ -4019,7 +3993,7 @@ void FLApp::init_PreferenceWindow(){
     
     QTabWidget* myTab = new QTabWidget(fPrefDialog);
     myTab->setStyleSheet("*{}""*::tab-bar{}");
-    //QTabBar* myTabBar = new QTabBar(myTab);
+    QTabBar* myTabBar = new QTabBar(myTab);
     
     QGroupBox* menu1 = new QGroupBox(myTab);
     QGroupBox* menu2 = new QGroupBox(myTab);
@@ -4197,7 +4171,7 @@ void FLApp::save_Settings(string& home){
     
     string modeText = fCompilationMode;
     
-    size_t pos = 0;
+    int pos = 0;
     
     if(modeText.compare("") == 0){
         modeText = " ";
@@ -4258,7 +4232,7 @@ void FLApp::recall_Settings(string& home){
     
     string modeText = ModeText.toStdString();
     
-    size_t pos = 0;
+    int pos = 0;
     
     while(modeText.find("/", pos) != string::npos){
         
@@ -4300,8 +4274,8 @@ void FLApp::update_AudioArchitecture(){
     
     bool updateSuccess = true;
     string errorToPrint;
-    char error[256] = "";
-    //snprintf(error, 255, "");
+    char error[256];
+    snprintf(error, 255, "");
     
     display_CompilingProgress("Updating Audio Architecture...");
     
@@ -4436,7 +4410,7 @@ void FLApp::launch_Server(){
         fServerHttp = new FLServerHttp(ipAddress);
         fServerHttp->start();
         
-        connect(fServerHttp, SIGNAL(compile_Data(const char*, const char*)), this, SLOT(compile_HttpData(const char*, const char*)));
+        connect(fServerHttp, SIGNAL(compile_Data(const char*, const char*, int)), this, SLOT(compile_HttpData(const char*, const char*, int)));
     }
 }
 
@@ -4448,7 +4422,7 @@ void FLApp::stop_Server(){
     }
 }
 
-void FLApp::compile_HttpData(const char* data, const char* options){
+void FLApp::compile_HttpData(const char* data, const char* options, int port){
     
     char error[256];
     snprintf(error, 255, ""); 
@@ -4459,11 +4433,13 @@ void FLApp::compile_HttpData(const char* data, const char* options){
     
     fCompilationMode = options;
 //    printf("OPTIONS = %s\n", options);
-    FLWindow* win = new_Window(source, error);
-//    FLWindow* win = getActiveWin();
-//    update_SourceInWin(win, source);
+//    FLWindow* win = new_Window(source, error);
+    FLWindow* win = getWinFromHttp(port);
     
     if(win != NULL){
+    
+        update_SourceInWin(win, source);
+    
         viewHttpd(win);
         
         string url = win->get_HttpUrl();

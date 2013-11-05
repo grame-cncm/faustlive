@@ -8,6 +8,7 @@
 
 #include "HTTPWindow.h"
 
+#include <string.h>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -165,23 +166,42 @@ void HTTPWindow::search_IPadress(){
     }
 }
 
-bool HTTPWindow::build_httpdInterface(const char* error, const char* windowTitle, dsp* current_DSP, int port){
+bool HTTPWindow::build_httpdInterface(const char* error, string windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
     if(fInterface != NULL) delete fInterface;
     
     fTitle = windowTitle;
-    
-    char* argv[3];
-
-    argv[0] = strndup(windowTitle, 255);
-    argv[1] = "-port";
+//     fTitle = new char[strlen(windowTitle.c_str())+1];
+//    strcpy(fTitle, windowTitle.c_str());
     
     stringstream s;
     s<<port;
-    argv[2] = strndup (s.str().c_str(), 255);
+    fPort = s.str();
+    
+    fOptionPort = "-port";
+    
+    char* argv[3];
 
-    fInterface = new httpdUI(fTitle, 3, argv);
+    argv[0] = (char*)(fTitle.c_str());
+    argv[1] = (char*)(fOptionPort.c_str());
+    argv[2] = (char*)(fPort.c_str());
+
+    fInterface = new httpdUI(argv[0], 3, argv);
+
+//    char* argv[3];
+//    argv[0] = new char[strlen(windowTitle.c_str())+1];
+//    strcpy(argv[0], windowTitle.c_str());
+//    
+//    argv[1] = "-port";
+//    
+//    stringstream s;
+//    s<<port;
+//    argv[2] = new char[strlen(s.str().c_str())+1];
+//    strcpy(argv[2], s.str().c_str());
+//    
+//    fInterface = new httpdUI(fTitle, 3, argv);
+
     
     if(fInterface){
         

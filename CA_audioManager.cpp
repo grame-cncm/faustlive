@@ -37,7 +37,7 @@ void CA_audioManager::stop(){
     fCurrentAudio->stop();
 }
 
-bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* port_name){
+bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* /*port_name*/){
     
     if(init(name, DSP))
         return true;
@@ -49,6 +49,8 @@ bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const c
 
 bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
 
+    printf("CA_audioManager::init_FadeAudio\n");
+    
     fFadeInAudio = new CA_audioFader(fSettings->get_BufferSize());
     
     if(fFadeInAudio->init(name, DSP))
@@ -61,8 +63,15 @@ bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
 
 void CA_audioManager::start_Fade(){
 
+    printf("CA_audioManager::start_FadeIn\n");
+    
     fFadeInAudio->launch_fadeIn();
+    
+    printf("CA_audioManager::start_FadeOut\n");
+    
     fCurrentAudio->launch_fadeOut();
+    
+    printf("CA_audioManager::start_FadeInAudio\n");
     
     fFadeInAudio->start();
 }

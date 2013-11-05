@@ -401,7 +401,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(FLEffect* newEffect, string /*compilationOptions*/, int optVal, char* error){
+bool FLWindow::update_Window(FLEffect* newEffect, int optVal, char* error){
     
     //Step 1 : Save the parameters of the actual interface
     fXPos = this->geometry().x();
@@ -619,7 +619,7 @@ bool FLWindow::init_Httpd(char* error){
         save_Window();
         
         string windowTitle = fWindowName + ":" + fEffect->getName();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle.c_str(), fCurrent_DSP, fPortHttp)){
+        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
             
             //recall parameters to run them properly
             //For a second, the initial parameters are reinitialize : it can sound weird

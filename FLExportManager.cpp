@@ -66,22 +66,31 @@ void FLExportManager::targetsDescriptionReceived()
     if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
 
         // prepare plaform menu
-        fExportPlatform->hide();
-        fExportPlatform->clear();
-        for (size_t i=0; i<fPlatforms.size();i++) fExportPlatform->addItem(fPlatforms[i].c_str());
-        fExportPlatform->show();
 
-        // prepare architecture menu
-        fExportArchi->hide();
-        fExportArchi->clear();
-        vector<string> archs = fTargets[fPlatforms[0]];
-        for (size_t i=0; i<archs.size();i++) fExportArchi->addItem(archs[i].c_str());
-        fExportArchi->show();
-
-    } else {
+            fExportPlatform->hide();
+            fExportPlatform->clear();
+            for (size_t i=0; i<fPlatforms.size();i++) 
+                fExportPlatform->addItem(fPlatforms[i].c_str());
+            
+            fExportPlatform->show();
+            
+            // prepare architecture menu
+            fExportArchi->hide();
+            fExportArchi->clear();
+            vector<string> archs = fTargets[fPlatforms[0]];
+            
+            for (size_t i=0; i<archs.size();i++) 
+                fExportArchi->addItem(archs[i].c_str());
+            
+            fExportArchi->show();
+    } 
+    else {
 
         std::cerr << "Error : targetsDescriptionReceived() received an incorrect JSON " << *p << std::endl;
-
+        
+        fMenu2Layout->addRow(new QLabel(""));
+        fMenu2Layout->addRow(new QLabel("Web Service is not available."));
+        fMenu2Layout->addRow(new QLabel("Verify the web service URL in the preferences."));
     }
 
 }
@@ -89,55 +98,58 @@ void FLExportManager::targetsDescriptionReceived()
 
 void FLExportManager::init()
 {
+
     std::cerr << "FLExportManager::init()" << std::endl;
     QFormLayout* exportLayout = new QFormLayout;
     
-    QString title("<h2>DOWNLOAD</2>");
+    QString title("<h2>EXPORT MANAGER</2>");
     
     QLabel* dialogTitle = new QLabel(title);
     dialogTitle->setStyleSheet("*{color : black}");
     dialogTitle->setAlignment(Qt::AlignCenter);
     
     exportLayout->addRow(dialogTitle);
-    exportLayout->addRow(new QLabel(""));
-//    QFormLayout* layoutExportServer = new QFormLayout;
     
+//    exportLayout->addRow(new QLabel(""));
+//    QFormLayout* layoutExportServer = new QFormLayout;
+//    
 //    fServIPLine = new QLineEdit(fDialogWindow);
 //    fServIPLine->setText(fServerUrl.toString());
-    
+//    
 //    exportLayout->addRow(new QLabel(tr("Exportation server ")), fServIPLine);
-    exportLayout->addRow(new QLabel(tr("")));
+//    exportLayout->addRow(new QLabel(tr("")));
+//    
+//    QString groupTitle1("Export ");
+//    groupTitle1 += fFilenameToExport.c_str();
+//    groupTitle1 += " as ...";
+//    
+//    QString groupTitle2("Build ");
+//    groupTitle2 += fFilenameToExport.c_str();
+//    groupTitle2 += " in ...";
+//    
+//    fMenu1Export = new QGroupBox(groupTitle1, fDialogWindow);
+//    fMenu1Export->setCheckable(true);
+//    connect(fMenu1Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
     
-    QString groupTitle1("Export ");
-    groupTitle1 += fFilenameToExport.c_str();
-    groupTitle1 += " as ...";
+        fMenu2Export = new QGroupBox(fDialogWindow);
+//    fMenu2Export->setCheckable(true);
+//    connect(fMenu2Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
     
-    QString groupTitle2("Build ");
-    groupTitle2 += fFilenameToExport.c_str();
-    groupTitle2 += " in ...";
+//    QFormLayout* menu1Layout = new QFormLayout;
+        fMenu2Layout = new QFormLayout;
+//    
+//    fExportFormat = new QComboBox(fMenu1Export);
+//    fExportFormat->addItem("src.cpp");
+//    fExportFormat->addItem("svg.zip");
+//    fExportFormat->addItem("mdoc.zip");
+//    
+//    menu1Layout->addRow(new QLabel("Format"), fExportFormat);
+//    fMenu1Export->setLayout(menu1Layout);
+//    exportLayout->addRow(fMenu1Export);
+//    
+//    exportLayout->addRow(new QLabel(""));
     
-    fMenu1Export = new QGroupBox(groupTitle1, fDialogWindow);
-    fMenu1Export->setCheckable(true);
-    connect(fMenu1Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
-    
-    fMenu2Export = new QGroupBox(groupTitle2, fDialogWindow);
-    fMenu2Export->setCheckable(true);
-    connect(fMenu2Export, SIGNAL(toggled(bool)), this, SLOT(exportChecked(bool)));
-    
-    QFormLayout* menu1Layout = new QFormLayout;
-    QFormLayout* menu2Layout = new QFormLayout;
-    
-    fExportFormat = new QComboBox(fMenu1Export);
-    fExportFormat->addItem("src.cpp");
-    fExportFormat->addItem("svg.zip");
-    fExportFormat->addItem("mdoc.zip");
-    
-    menu1Layout->addRow(new QLabel("Format"), fExportFormat);
-    fMenu1Export->setLayout(menu1Layout);
-    exportLayout->addRow(fMenu1Export);
-    
-    exportLayout->addRow(new QLabel(""));
-    exportLayout->addRow(new QLabel(""));
+//    if(fTargets.size() != 0){
     
     fExportPlatform = new QComboBox(fMenu2Export);
     connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
@@ -148,18 +160,18 @@ void FLExportManager::init()
     fExportChoice->addItem("binary.zip");
     fExportChoice->addItem("src.cpp");
     
-    menu2Layout->addRow(new QLabel("Platform"), fExportPlatform);
-    menu2Layout->addRow(new QLabel("Architecture"), fExportArchi);
-    menu2Layout->addRow(new QLabel("source or binary"), fExportChoice);
+    fMenu2Layout->addRow(new QLabel("Platform"), fExportPlatform);
+    fMenu2Layout->addRow(new QLabel("Architecture"), fExportArchi);
+    fMenu2Layout->addRow(new QLabel("source or binary"), fExportChoice);
     
-    fMenu2Export->setLayout(menu2Layout);
+    fMenu2Export->setLayout(fMenu2Layout);
     exportLayout->addRow(fMenu2Export);
     
     QWidget* intermediateWidget = new QWidget(fDialogWindow);
     QHBoxLayout* intermediateLayout = new QHBoxLayout;
     
     QPushButton* cancel = new QPushButton(tr("Cancel"), intermediateWidget);
-    cancel->setDefault(false);;
+    cancel->setDefault(false);
     
     fSaveButton = new QPushButton(tr("Export"), intermediateWidget);
     fSaveButton->setDefault(true);
@@ -173,11 +185,8 @@ void FLExportManager::init()
     
     intermediateWidget->setLayout(intermediateLayout);
     exportLayout->addRow(intermediateWidget);
-    
+
     fDialogWindow->setLayout(exportLayout);
-    
-    fMenu1Export->setChecked(true);
-    fMenu2Export->setChecked(false);
     
     fDialogWindow->setVisible(true);
 }
@@ -404,4 +413,35 @@ void FLExportManager::platformChanged(const QString& index)
     }
     fExportArchi->show();
 }
+
+//void FLExportManager::display_progress(){
+//    fCompilingMessage = new QDialog();
+//    fCompilingMessage->setWindowFlags(Qt::FramelessWindowHint);
+//    
+//    QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
+//    tittle->setAlignment(Qt::AlignCenter);
+//    QLabel* text = new QLabel(tr(msg), fCompilingMessage);
+//    text->setAlignment(Qt::AlignCenter);
+//    text->setStyleSheet("*{color: black}");
+//    
+//    QVBoxLayout* layoutSave = new QVBoxLayout;
+//    
+//    layoutSave->addWidget(tittle);
+//    layoutSave->addWidget(new QLabel(tr("")));
+//    layoutSave->addWidget(text);
+//    layoutSave->addWidget(new QLabel(tr("")));
+//    fCompilingMessage->setLayout(layoutSave);
+//    
+//    fCompilingMessage->adjustSize();
+//    fCompilingMessage->show();
+//    fCompilingMessage->raise();
+//}
+//
+//void FLExportManager::StopProgressSlot(){
+//    fCompilingMessage->hide();
+//    delete fCompilingMessage;
+//}
+
+
+
 

@@ -18,24 +18,38 @@
 class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader_Implementation{
     
 public:
+
+    crossfade_TCoreAudioRenderer(){
+        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
+       reset_Values();
+    }
+    
     virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                     const AudioTimeStamp *inTimeStamp,
                     UInt32 inNumberFrames,
                             AudioBufferList *ioData){
         
-        //    printf("Tcoreaudio fils = %p!\n", this);
+        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
         
-        AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
-        for (int i = 0; i < fDevNumInChans; i++)
-            fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+        OSStatus err = noErr;
+        if (fDevNumInChans > 0) {
+            err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
+        }
+        if (err == noErr) {
+            for (int i = 0; i < fDevNumInChans; i++) {
+                fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+            }
+            for (int i = 0; i < fDevNumOutChans; i++) {
+                fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+            }
+            fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+            crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
+        } else {
+            printf("AudioUnitRender error... %x\n", fInputData);
+            printError(err);
+        }
+        return err;
         
-        for (int i = 0; i < fDevNumOutChans; i++)
-            fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
-        
-        fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
-        crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
-        
-        return 0;
     }
 };
 
@@ -96,6 +110,7 @@ public:
     
     virtual bool get_FadeOut(){
         //    printf("COREAUDIO fade out\n");
+        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
         return fCrossFadeDevice.get_doWeFadeOut();
     }
 };

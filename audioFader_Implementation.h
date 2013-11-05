@@ -27,11 +27,12 @@ class AudioFader_Implementation
     float   fOutCoef;                // during audio crossfade
     int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
     
-    void    reset_Values();
     void    increment_crossFade();
     
     //Specific to the 2 clients crossfade
     void    crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
+    
+            void    reset_Values();
     
     public:
     

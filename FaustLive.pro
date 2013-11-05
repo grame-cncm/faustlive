@@ -60,7 +60,7 @@ LIBS+=-L/opt/local/lib -lboost_program_options-mt
 
 CONFIG += JVAR NJVAR CAVAR
 
-!$$CAVAR{
+$$CAVAR{
 	message("COREAUDIO NOT LINKED")
 }else{
 	message("COREAUDIO LINKED")
@@ -76,7 +76,7 @@ CONFIG += JVAR NJVAR CAVAR
 				CA_audioManager.cpp \
 }
 
-!$$JVAR{
+$$JVAR{
 	message("JACK NOT LINKED")
 }else{
 	message("JACK LINKED")
@@ -93,7 +93,7 @@ CONFIG += JVAR NJVAR CAVAR
 				JA_audioFader.cpp \
 }	
 
-!$$NJVAR{
+$$NJVAR{
 	message("NETJACK NOT LINKED")
 }else{
 	message("NETJACK LINKED")
@@ -127,7 +127,7 @@ HEADERS += 	AudioSettings.h \
 			FLEffect.h \
 			FLWindow.h \ 
 			FLApp.h \
-    SimpleParser.h
+    		SimpleParser.h
 							
 SOURCES += 	AudioCreator.cpp \
 			AudioFader_Implementation.cpp \
@@ -141,4 +141,4 @@ SOURCES += 	AudioCreator.cpp \
 			FLWindow.cpp \ 
 			FLApp.cpp \
 			main.cpp \
-    SimpleParser.cpp
+    		SimpleParser.cpp
