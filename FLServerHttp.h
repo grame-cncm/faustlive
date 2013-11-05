@@ -146,9 +146,18 @@ Init();\n\
 
 #include <QObject>
 #include <microhttpd.h>
-#include "utilities.hh"
-
 #include <boost/wave/util/cpp_include_paths.hpp>
+
+#include <map>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+#define POSTBUFFERSIZE 512
+
+#define GET 0
+#define POST 1
 
 namespace fs = boost::filesystem;
 
