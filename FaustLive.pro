@@ -44,7 +44,6 @@ OPT = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
 LIBS+= $$LLVMDIR $$OPT
 
-LIBS+=-L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 QT+=network
 
 LIBS+=-L/usr/local/lib/faust
@@ -57,28 +56,23 @@ LIBS+=-L/opt/local/lib -lboost_system-mt
 LIBS+=-L/opt/local/lib -lboost_filesystem-mt
 LIBS+=-L/opt/local/lib -lboost_program_options-mt
 
-
-CONFIG += JVAR NJVAR CAVAR
-
-$$CAVAR{
-	message("COREAUDIO NOT LINKED")
-}else{
+equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
-	LIBS+= 
+	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
 	HEADERS += 	CA_audioFactory.h\
 				CA_audioSettings.h\
 				CA_audioManager.h\
-				CA_audioFader.h \
+				CA_audioFader.h 
 				
 	SOURCES += 	CA_audioFactory.cpp \
 				CA_audioSettings.cpp \
-				CA_audioManager.cpp \
+				CA_audioManager.cpp 
+}else{
+	message("COREAUDIO NOT LINKED")
 }
 
-$$JVAR{
-	message("JACK NOT LINKED")
-}else{
+equals(JVAR, 1){
 	message("JACK LINKED")
 	LIBS+= -ljack
 	DEFINES += JACK
@@ -90,12 +84,12 @@ $$JVAR{
 	SOURCES += 	JA_audioSettings.cpp \
 				JA_audioManager.cpp \
 				JA_audioFactory.cpp \
-				JA_audioFader.cpp \
+				JA_audioFader.cpp 
+}else{
+	message("JACK NOT LINKED")
 }	
 
-$$NJVAR{
-	message("NETJACK NOT LINKED")
-}else{
+equals(NJVAR, 1){
 	message("NETJACK LINKED")
 	LIBS += -ljacknet
 	DEFINES += NETJACK
@@ -107,7 +101,9 @@ $$NJVAR{
 	SOURCES += 	NJ_audioFactory.cpp \
 				NJ_audioSettings.cpp \
 				NJ_audioManager.cpp \
-				NJ_audioFader.cpp \
+				NJ_audioFader.cpp 
+}else{
+	message("NETJACK NOT LINKED")
 }		
 
 HEADERS += 	AudioSettings.h \

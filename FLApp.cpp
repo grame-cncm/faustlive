@@ -73,7 +73,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fHomeSettings = fSettingsFolder + "/FaustLive_Settings.rf"; 
 
     fOpt_level = 3;
-    fServerUrl = "http://localhost:8888";
+    fServerUrl = "http://faust.grame.fr:8888";
     fStyleChoice = "Default";
     recall_Settings(fHomeSettings);
     styleClicked(fStyleChoice);
@@ -4185,7 +4185,7 @@ void FLApp::recall_Settings(string& home){
     
 //    RECALL THE URL FOR EXPORTATION SERVICE
 
-    QString server("http://localhost:8888");
+    QString server("http://faust.grame.fr:8888");
         
     string homeFile = fSettingsFolder + kExportUrlFile;
     
