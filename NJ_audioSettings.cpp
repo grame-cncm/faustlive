@@ -6,6 +6,13 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class describes the Settings of netjack clients : 
+//  - Its compression Value
+//  - Its IPadress
+//  - Its Port
+//  - Its Latencty
+// All of them are described visually by a QLineEdit
+
 #include "NJ_audioSettings.h"
 
 #include <sstream>
@@ -35,7 +42,7 @@ NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : Audio
     parent->setLayout(layout);
     
     readSettings();
-    setCurrentSettings();
+    setVisualSettings();
 }
 
 NJ_audioSettings::~NJ_audioSettings(){
@@ -43,6 +50,7 @@ NJ_audioSettings::~NJ_audioSettings(){
     writeSettings();
 }
 
+//Real Params TO Saving File
 void NJ_audioSettings::writeSettings(){
     
     QFile f(fSavingFile.c_str()); 
@@ -59,33 +67,7 @@ void NJ_audioSettings::writeSettings(){
     }
 }
 
-void NJ_audioSettings::setVisualSettings(){
-    
-    stringstream cv, p, l;
-    cv << fCompressionValue;
-    p << fPort;
-    l << fLatency;
-    
-    fCVLine->setText(cv.str().c_str());
-    fIPLine->setText(fIP.c_str());
-    fPortLine->setText(p.str().c_str());
-    fLatLine->setText(l.str().c_str());
-}
-
-void NJ_audioSettings::storeVisualSettings(){
-    
-    if(isStringInt(fCVLine->text().toStdString().c_str()))
-        fCompressionValue = atoi(fCVLine->text().toStdString().c_str());
-    
-    fIP = fIPLine->text().toStdString();
-    
-    if(isStringInt(fPortLine->text().toStdString().c_str()))
-        fPort = atoi(fPortLine->text().toStdString().c_str());
-    
-    if(isStringInt(fLatLine->text().toStdString().c_str()))
-        fLatency = atoi(fLatLine->text().toStdString().c_str());
-}
-
+//Saving File TO Real Params 
 void NJ_audioSettings::readSettings(){
     
     QFile f(fSavingFile.c_str());
@@ -108,6 +90,36 @@ void NJ_audioSettings::readSettings(){
     }
 }
 
+//Real Params TO Visual params
+void NJ_audioSettings::setVisualSettings(){
+    
+    stringstream cv, p, l;
+    cv << fCompressionValue;
+    p << fPort;
+    l << fLatency;
+    
+    fCVLine->setText(cv.str().c_str());
+    fIPLine->setText(fIP.c_str());
+    fPortLine->setText(p.str().c_str());
+    fLatLine->setText(l.str().c_str());
+}
+
+//Visual Params TO Real params
+void NJ_audioSettings::storeVisualSettings(){
+    
+//    if(isStringInt(fCVLine->text().toStdString().c_str()))
+        fCompressionValue = atoi(fCVLine->text().toStdString().c_str());
+    
+    fIP = fIPLine->text().toStdString();
+    
+//    if(isStringInt(fPortLine->text().toStdString().c_str()))
+        fPort = atoi(fPortLine->text().toStdString().c_str());
+    
+//    if(isStringInt(fLatLine->text().toStdString().c_str()))
+        fLatency = atoi(fLatLine->text().toStdString().c_str());
+}
+
+//Operator== for NetJack Settings
 bool NJ_audioSettings::isEqual(AudioSettings* as){
 
     NJ_audioSettings* settings = dynamic_cast<NJ_audioSettings*>(as);
@@ -119,6 +131,7 @@ bool NJ_audioSettings::isEqual(AudioSettings* as){
 
 }
 
+//Accessors to the parameters
 int NJ_audioSettings::get_compressionValue(){
     return fCompressionValue;
 }

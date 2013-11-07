@@ -6,16 +6,11 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class adds new features to jackaudio so that the dsp of the audioClient can be dynamically changed. MoreOver, the two dsp will be switched with a crossfade between them. 
+
 #include "JA_audioFader.h"
 
-/******************************************************************************
- *******************************************************************************
- 
- JACK AUDIO WITH CROSSFADE
- 
- *******************************************************************************
- *******************************************************************************/
-
+//Calculation of sample[i,j] mixing 2 dsp (one fading in/one fading out)
 float JA_audioFader::crossfade_calculation(int i, int j){
     bool connectFadeOut = false;
     bool connectFadeIn = false;
@@ -86,8 +81,9 @@ JA_audioFader::~JA_audioFader()
     }
 }
 
-bool JA_audioFader::init(const char* name, dsp* DSP){ return false;} 
+bool JA_audioFader::init(const char* /*name*/, dsp* /*DSP*/){ return false;} 
 
+// INIT/START of Jack audio Client
 bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName) 
 {
     fDsp = DSP;
@@ -142,6 +138,7 @@ bool JA_audioFader::start(){
     return true;
 }
 
+//Init second DSP in Jack Client
 void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName){
     fDspIn = DSP;
     
@@ -185,6 +182,7 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName){
     fConnectionsIn = fConnections;
 }
 
+//Connect Jack port following Connections
 int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 {        
     list<pair<string, string> >::const_iterator it;
@@ -210,6 +208,7 @@ void JA_audioFader::launch_fadeOut()
     set_doWeFadeOut(true); 
 }
 
+//Fade In is not needed, because the fade in and out are both launched in the same process
 void JA_audioFader::launch_fadeIn(){}
 bool JA_audioFader::get_FadeOut(){return get_doWeFadeOut();}
 
@@ -268,16 +267,16 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         }
         fDspIn->compute(nframes, fInChannelDspIn, fIntermediateFadeIn); 
         
-        int fNumOutPorts = max(fNumOutChans, fNumOutDspFade);
-        float* fOutFinal[fNumOutPorts];
+        int numOutPorts = max(fNumOutChans, fNumOutDspFade);
+        float* fOutFinal[numOutPorts];
         
         //Step 2 : Mixing the 2 DSP in the final output buffer taking into account the number of IN/OUT ports of the in- and out-coming DSP
         
-        for (int i = 0; i < fNumOutPorts; i++) 
+        for (int i = 0; i < numOutPorts; i++) 
             fOutFinal[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes); 
         
         if(fNumOutChans<fNumOutDspFade){
-            for (int i = 0; i < nframes; i++) {
+            for (size_t i = 0; i < nframes; i++) {
                 for (int j = 0; j < fNumOutChans; j++)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 
@@ -291,7 +290,7 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         } 
         
         else{
-            for (int i = 0; i < nframes; i++) {
+            for (size_t i = 0; i < nframes; i++) {
                 for (int j = 0; j < fNumOutDspFade; j++)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 

@@ -28,11 +28,14 @@ using namespace std;
 class NJ_audioSettings : public AudioSettings{
 
     private :
+    
+    //Real parameters
         int                 fCompressionValue;
         string              fIP;
         int                 fPort;
         int                 fLatency;
     
+    //Graphical parameters
         QLineEdit*          fCVLine;
         QLineEdit*          fIPLine;
         QLineEdit*          fPortLine;

@@ -1,5 +1,8 @@
+//
+
 #include "utilities.h"
 
+//Returns the content of a file passed in path
 string pathToContent(string path){
     
     QFile file(path.c_str());
@@ -20,6 +23,7 @@ string pathToContent(string path){
     return Content;
 }
 
+//Delete recursively the content of a folder
 bool deleteDirectoryAndContent(string& directory){
     
     QDir srcDir(directory.c_str());
@@ -55,6 +59,7 @@ bool deleteDirectoryAndContent(string& directory){
     }
 }
 
+//Remove a directory
 bool rmDir(const QString &dirPath){
     QDir dir(dirPath);
     if (!dir.exists())
@@ -72,6 +77,7 @@ bool rmDir(const QString &dirPath){
     return parentDir.rmdir(QFileInfo(dirPath).fileName());
 }
 
+//Copy a directory
 bool cpDir(const QString &srcPath, const QString &dstPath){
     rmDir(dstPath);
     QDir parentDstDir(QFileInfo(dstPath).path());
@@ -97,6 +103,7 @@ bool cpDir(const QString &srcPath, const QString &dstPath){
     return true;
 }
 
+//Verify if the word is a number
 bool isStringInt(const char* word){
     
     bool returning = true;
