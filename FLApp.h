@@ -42,7 +42,7 @@ struct WinInSession{
     float x;        //Position x on screen
     float y;
     string compilationOptions; //Compilation options tied to the effect contained in the window
-    int opt_level;
+    int opt_level;  //Optimization level for llvm compiler
     int portHttpd;
 };
 
@@ -52,12 +52,14 @@ class FLApp : public QApplication
     
     private :
     
-        void                pathToContent(string path, string& Content);
-        bool                deleteDirectoryAndContent(string& directory);
-        bool                rmDir(const QString &dirPath);
+    //Utilitaries functions
+//        void                pathToContent(string path, string& Content);
+//        bool                deleteDirectoryAndContent(string& directory);
+//        bool                rmDir(const QString &dirPath);
+//    
+//        bool                cpDir(const QString &srcPath, const QString &dstPath);
+//        bool                isStringInt(const char* word);
     
-        bool                cpDir(const QString &srcPath, const QString &dstPath);
-        bool                isStringInt(const char* word);
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
@@ -110,14 +112,14 @@ class FLApp : public QApplication
         QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     
     //Appendices Dialogs
-        QMainWindow*        fHelpWindow;  //Help Dialog
-        FLErrorWindow*      fErrorWindow; //Error Dialog
-        QDialog*            fPresWin;     //Presentation Window
+        QMainWindow*        fHelpWindow;        //Help Dialog
+        FLErrorWindow*      fErrorWindow;       //Error Dialog
+        QDialog*            fPresWin;           //Presentation Window
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
-        QDialog*            fVersionWindow;
-        FLExportManager*    fExportDialog;
+        QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
+        FLExportManager*    fExportDialog;      //Manager for web service use
     
-        FLServerHttp*       fServerHttp;
+        FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
     
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
@@ -133,7 +135,7 @@ class FLApp : public QApplication
         list<int>           get_currentIndexes();
         void                calculate_position(int index, int* x, int* y);
         list<string>        get_currentDefault();
-        string              find_smallest_defaultName(string& sourceToCompare, list<string> currentDefault);
+        string              find_smallest_defaultName(list<string> currentDefault);
     
     //Application Parameters
         list<WinInSession*>  fSessionContent;    //Describes the state of the application 
@@ -283,16 +285,21 @@ class FLApp : public QApplication
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
-        void                export_Win(FLWindow* Win);
-        void                export_Action();
-        void                destroyExportDialog();
         void                shut_Window(); 
         void                shut_AllWindows();
         virtual void        closeAllWindows();
         void                display_Progress();
         void                close_Window_Action();
 
-    //--------Edit
+    //--Session
+        void                take_Snapshot();
+        void                recall_Snapshot(string filename, bool importOption);
+        void                recallSnapshotFromMenu();
+        void                importSnapshotFromMenu();
+        void                recall_Recent_Session();
+        void                import_Recent_Session();
+    
+    //--------Window
         void                edit(FLWindow* win);
         void                edit_Action();
     
@@ -303,19 +310,16 @@ class FLApp : public QApplication
         void                duplicate(FLWindow* window);
         void                duplicate_Window();
     
-    //--------View
         void                viewHttpd(FLWindow* win);
         void                httpd_View_Window();
         void                viewSvg(FLWindow* win);
         void                svg_View_Action();
     
-    //--------Session
-        void                take_Snapshot();
-        void                recall_Snapshot(string filename, bool importOption);
-        void                recallSnapshotFromMenu();
-        void                importSnapshotFromMenu();
-        void                recall_Recent_Session();
-        void                import_Recent_Session();
+        void                export_Win(FLWindow* Win);
+        void                export_Action();
+    
+    //--------RightClickEvent
+        void                redirect_RCAction(const QPoint & p);
     
     //---------Preferences
         void                styleClicked();
@@ -341,12 +345,9 @@ class FLApp : public QApplication
     //--------Error received
         void                errorPrinting(const char* msg);
     
-    //--------RightClickEvent
-        void                redirect_RCAction(const QPoint & p);
-    
     //--------Server Response
 //        void                close_Window_FormHttp(const char* nameEffect);
-        void                compile_HttpData(const char* data, const char* options, int port);
+        void                compile_HttpData(const char* data, int port);
         void                stop_Server();
     
     public : 

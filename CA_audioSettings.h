@@ -24,13 +24,15 @@ class CA_audioSettings : public AudioSettings{
 
     private :
 
-        int                 fBufferSize;
+        int                 fBufferSize; //Real Buffer Size setting
     
+    //Graphical CoreAudio Settings
         QTextBrowser*       fsplRate;
         QLineEdit*          fBufSize;
     
     private slots :
     
+    //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
         void linkClicked(const QUrl& link); 
     
     public :
@@ -39,8 +41,8 @@ class CA_audioSettings : public AudioSettings{
     
         virtual void readSettings();
         virtual void writeSettings();
-        virtual void setCurrentSettings();
-        virtual void getCurrentSettings();
+        virtual void setVisualSettings();
+        virtual void storeVisualSettings();
     
         virtual bool isEqual(AudioSettings* as);
         bool isStringInt(const char* word);

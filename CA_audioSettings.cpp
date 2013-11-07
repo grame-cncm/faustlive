@@ -10,6 +10,7 @@
 #include <sstream>
 #include <QFileInfo>
 
+//Checking if a string correponds to an int
 bool CA_audioSettings::isStringInt(const char* word){
     
     bool returning = true;
@@ -52,7 +53,7 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     parent->setLayout(layout);
     
     readSettings();
-    setCurrentSettings();
+    setVisualSettings();
 }
 
 CA_audioSettings::~CA_audioSettings(){
@@ -62,12 +63,14 @@ CA_audioSettings::~CA_audioSettings(){
 //    delete fsplRate;
 }
 
+//Accessors to the Buffersize
 int CA_audioSettings::get_BufferSize(){
     
     return fBufferSize;
 }
 
-void CA_audioSettings::setCurrentSettings(){
+//Real to Visual
+void CA_audioSettings::setVisualSettings(){
     
     printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
     
@@ -77,7 +80,8 @@ void CA_audioSettings::setCurrentSettings(){
     fBufSize->setText(bs.str().c_str());
 }
 
-void CA_audioSettings::getCurrentSettings(){
+//Visual to Real
+void CA_audioSettings::storeVisualSettings(){
     
     if(isStringInt(fBufSize->text().toStdString().c_str())){
     
@@ -90,6 +94,7 @@ void CA_audioSettings::getCurrentSettings(){
             fBufferSize = 512;
 }
 
+//Write or Read Settings in a File
 void CA_audioSettings::writeSettings(){
     
     QFile f(fSavingFile.c_str()); 
@@ -120,6 +125,7 @@ void CA_audioSettings::readSettings(){
     }
 }
 
+//The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
 void CA_audioSettings::linkClicked(const QUrl& link){
  
     string myLink = link.path().toStdString();
@@ -138,6 +144,7 @@ void CA_audioSettings::linkClicked(const QUrl& link){
     
 }
 
+//Operator== for CoreAudio Settings
 bool CA_audioSettings::isEqual(AudioSettings* as){
     
 //    printf("Before casting\n");
@@ -154,7 +161,7 @@ bool CA_audioSettings::isEqual(AudioSettings* as){
         
 }
 
-
+//Accessor to ArchitectureName
 string CA_audioSettings::get_ArchiName(){
     return "CoreAudio";
 }

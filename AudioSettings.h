@@ -28,8 +28,8 @@ class AudioSettings : public QObject{
     
         virtual void readSettings() = 0;
         virtual void writeSettings() = 0;
-        virtual void setCurrentSettings() = 0;
-        virtual void getCurrentSettings() = 0;
+        virtual void setVisualSettings() = 0;
+        virtual void storeVisualSettings() = 0;
     
         virtual bool isEqual(AudioSettings* as) = 0;
         virtual bool operator==(AudioSettings& as){return isEqual(&as);}

@@ -22,8 +22,8 @@ class JA_audioSettings : public AudioSettings{
     
         virtual void readSettings();
         virtual void writeSettings();
-        virtual void setCurrentSettings();
-        virtual void getCurrentSettings();
+        virtual void setVisualSettings();
+        virtual void storeVisualSettings();
     
         virtual bool isEqual(AudioSettings* as);
     

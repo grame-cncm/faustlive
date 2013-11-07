@@ -71,7 +71,7 @@ void NJ_audioSettings::writeSettings(){
     }
 }
 
-void NJ_audioSettings::setCurrentSettings(){
+void NJ_audioSettings::setVisualSettings(){
     
     stringstream cv, p, l;
     cv << fCompressionValue;
@@ -84,7 +84,7 @@ void NJ_audioSettings::setCurrentSettings(){
     fLatLine->setText(l.str().c_str());
 }
 
-void NJ_audioSettings::getCurrentSettings(){
+void NJ_audioSettings::storeVisualSettings(){
     
     if(isStringInt(fCVLine->text().toStdString().c_str()))
         fCompressionValue = atoi(fCVLine->text().toStdString().c_str());

@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// An Effect takes care of the compilation of a DSP. Moreover, it is notify in case, the DSP has been modified. 
+
 #include "FLEffect.h"
 
 #define LIBRARY_PATH "/Resources/Libs/"
@@ -33,7 +35,13 @@ FLEffect::~FLEffect(){
     deleteDSPFactory(fFactory);
 }
 
-//--------------INITIALISATION FUNCTIONS
+
+//Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
+//currentSVGFolder = where to create the SVG-Folder tied to the factory 
+//currentIRFolder = where to save the bitcode tied to the factory
+//Compilation Options = needed to build the llvm factory
+//Error = if the initialisation fails, the function returns false + the buffer is filled
+
 bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, char* error){
     
     printf("FICHIER SOURCE = %s\n", fSource.c_str());
@@ -61,6 +69,7 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
 
 //---------------FACTORY ACTIONS
 
+//Creating the factory with the specific compilation options, in case of an error the buffer is filled
 bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/, char* error, string currentSVGFolder, string currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
@@ -146,6 +155,8 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/
     
 }
 
+
+//Parsing the compilation options
 int FLEffect::get_numberParameters(string compilOptions){
     
     string copy = compilOptions;
@@ -184,6 +195,8 @@ string FLEffect::parse_compilationParams(string& compilOptions){
     return returning;
 }
 
+
+//Re-Build of the factory from the source file
 bool FLEffect::update_Factory(char* error, string currentSVGFolder, string currentIRFolder){
     
     fOldFactory = fFactory;
@@ -198,6 +211,7 @@ bool FLEffect::update_Factory(char* error, string currentSVGFolder, string curre
         return false;
 }
 
+//Once the rebuild is complete, the former factory has to be deleted
 void FLEffect::erase_OldFactory(){
     
     //    printf("delete Factory = %p\n", oldFactory);
@@ -205,6 +219,8 @@ void FLEffect::erase_OldFactory(){
 }
 
 //---------------WATCHER & FILE MODIFICATIONS ACTIONS
+
+//When any action on the effect is performed, the watcher has to be stopped (and then re-launched) otherwise the synchronisation is called without good reason
 
 void FLEffect::reset_Timer(const QString /*toto*/){
     

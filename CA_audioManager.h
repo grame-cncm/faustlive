@@ -20,6 +20,7 @@ class CA_audioManager : public AudioManager{
 
     Q_OBJECT
     
+    //Settings are common to the 2 audioFader that can co-exist during a crossfade
         CA_audioSettings*   fSettings;
     
         CA_audioFader*      fCurrentAudio;

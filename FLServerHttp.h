@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// FaustLive can become a server.
+// FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
 
 #ifndef _FLSERVERHTTP_h
 #define _FLSERVERHTTP_h
@@ -168,10 +168,6 @@ struct connection_info_struct {
     
     string data;
     string compilationOptions;
-    string IP;
-    string Port;
-    string CV;
-    string Latency;
     std::string answerstring; // the answer sent to the user after upload
 };
 
@@ -179,15 +175,15 @@ class FLServerHttp : public QObject{
     
     Q_OBJECT
     
-    int             fMax_clients;
-    string          fError;
-    string          fUrl;
-    string          fIPLocal;
+    int             fMax_clients;   // Maximum of clients the server can support
+    string          fError;         // Not important right now
+    string          fUrl;           // Url of wrapped http page 
+    string          fIPLocal;       // Local IP
     
     public :
     
-    bool            fPosted;
-    bool            fCompiled;
+    bool            fPosted;        // Post request completed
+    bool            fCompiled;      // Compilation sucess
     
     static int      fNr_of_uploading_clients;
     
@@ -215,11 +211,9 @@ class FLServerHttp : public QObject{
     void            compile_Successfull(string& url);
     void            compile_Failed(string error);
     
-    void            parseURL(const char* url, connection_info_struct* con_info);
-    
     signals :
     
-    void        compile_Data(const char*, const char*, int);
+    void        compile_Data(const char*, int);
   
 };
 

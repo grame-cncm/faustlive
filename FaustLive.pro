@@ -127,7 +127,8 @@ HEADERS += 	AudioSettings.h \
 			FLEffect.h \
 			FLWindow.h \ 
 			FLApp.h \
-    		SimpleParser.h
+    		SimpleParser.h \
+    		utilities.h 
 							
 SOURCES += 	AudioCreator.cpp \
 			AudioFader_Implementation.cpp \
@@ -141,4 +142,5 @@ SOURCES += 	AudioCreator.cpp \
 			FLWindow.cpp \ 
 			FLApp.cpp \
 			main.cpp \
-    		SimpleParser.cpp
+    		SimpleParser.cpp \
+    		utilities.cpp

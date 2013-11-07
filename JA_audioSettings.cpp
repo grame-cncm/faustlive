@@ -14,8 +14,8 @@ JA_audioSettings::~JA_audioSettings(){}
 
 void JA_audioSettings::readSettings(){}
 void JA_audioSettings::writeSettings(){}
-void JA_audioSettings::setCurrentSettings(){}
-void JA_audioSettings::getCurrentSettings(){}
+void JA_audioSettings::setVisualSettings(){}
+void JA_audioSettings::storeVisualSettings(){}
 
 bool JA_audioSettings::isEqual(AudioSettings* as){
     

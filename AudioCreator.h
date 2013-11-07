@@ -49,9 +49,6 @@ class AudioCreator : public QObject{
         QGroupBox*      fMenu;
         QGroupBox*      fSettingsBox;
         QComboBox*      fAudioArchi;
-        
-        AudioSettings*  createAudioSettings(string homeFolder, QGroupBox* parent);
-        AudioFactory*   createFactory(int index);
 
     //Save and read settings in the saving file
         void            writeSettings();
@@ -68,7 +65,9 @@ class AudioCreator : public QObject{
         static AudioCreator*   _Instance(string homeFolder, QGroupBox* box);
     
     //Creates an audioManager depending on the current Audio Architecture
+        AudioFactory*   createFactory(int index);
         AudioManager*   createAudioManager(AudioSettings* audioParameters);
+        AudioSettings*  createAudioSettings(string homeFolder, QGroupBox* parent);
     
     //Accessors to the settings
         string          get_ArchiName();

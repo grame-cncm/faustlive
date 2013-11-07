@@ -14,6 +14,8 @@ list<GUI*>               GUI::fGuiList;
 #include <sstream>
 #include <QDir>
 #include <QApplication>
+#include "FLToolBar.h"
+#include "utilities.h"
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
@@ -68,56 +70,7 @@ FLWindow::~FLWindow(){
     delete fMenu;
 }
 
-string FLWindow::pathToContent(string path){
-    QFile file(path.c_str());
-    string Content;
-    
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        Content += "";
-        return Content;
-    }
-    while (!file.atEnd()) {
-        QByteArray line = file.readLine();
-        Content += line.data();
-    }
-    return Content;
-}
-
-bool FLWindow::deleteDirectoryAndContent(string& directory){
-    
-    QDir srcDir(directory.c_str());
-    
-    QFileInfoList children = srcDir.entryInfoList(QDir::Dirs | QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
-    
-    if(children.size() == 0){
-        QString toRemove(directory.c_str());
-        srcDir.rmdir(srcDir.absolutePath());
-        return true;
-    }
-    else{
-        foreach(const QFileInfo &info, children) {
-            
-            QString path(directory.c_str());
-            
-            QString item = path + "/" + info.fileName();
-            
-            if (info.isDir()) {
-                string file = item.toStdString();
-                if (!deleteDirectoryAndContent(file)) {
-                    return false;
-                }
-            } else if (info.isFile()) {
-                if (!QFile::remove(item)) {
-                    return false;
-                }
-            } else {
-                qDebug() << "Unhandled item" << info.filePath() << "in cpDir";
-            }
-        }
-        return true;
-    }
-}
-
+//Set up of the Window ToolBar
 void FLWindow::setMenuBar(){
     
     fMenu = new FLToolBar(this);
@@ -129,10 +82,12 @@ void FLWindow::setMenuBar(){
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
 }
 
+//Redirection of a received error
 void FLWindow::errorPrint(const char* msg){
     emit error(msg);
 }
 
+//Reaction to the modifications of the ToolBar options
 void FLWindow::modifiedOptions(string text, int value, int port){
     
     if(fPortHttp != port)
@@ -141,6 +96,7 @@ void FLWindow::modifiedOptions(string text, int value, int port){
     fEffect->update_compilationOptions(text, value);
 }
 
+//Reaction to the resizing the toolbar
 void FLWindow::resizingSmall(){
 
     setMinimumSize(QSize(0,0));
@@ -164,10 +120,12 @@ void FLWindow::resizingBig(){
     adjustSize();
 }
 
+//Redirection of a closeAll Windows  = ALT + click on x button of a window
 void FLWindow::emit_closeAll(){
     emit closeAll();
 }
 
+//Does window contain a default Faust process?
 bool FLWindow::is_Default(){
     
     string sourceContent = pathToContent(fEffect->getSource());
@@ -180,6 +138,7 @@ bool FLWindow::is_Default(){
 
 //------------------------CLOSING ACTIONS
 
+//Reaction to click an x button
 void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
     if(!fShortcut)
@@ -188,6 +147,8 @@ void FLWindow::closeEvent(QCloseEvent* /*event*/){
         emit closeAll();
 }
 
+//A way to know if user is trying shortcut ALT + click on x button of a window
+//= Tracking the event of ALT pressed
 void FLWindow::keyPressEvent(QKeyEvent* event){ 
     
     if(event->key() == Qt::Key_Alt)
@@ -200,14 +161,14 @@ void FLWindow::keyReleaseEvent(QKeyEvent* event){
         fShortcut = false;
 }
 
+//During the execution, when a window is shut, its associate folder has to be removed
 void FLWindow::shut_Window(){
-    
-    //During the execution, when a window is shut, its associate folder has to be removed
-    deleteDirectoryAndContent(fHome);
-    
+
+    deleteDirectoryAndContent(fHome);    
     close_Window();
 }
 
+//Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
     
     if(fClientOpen)
@@ -223,6 +184,7 @@ void FLWindow::close_Window(){
     deleteDSPInstance(fCurrent_DSP);
 }
 
+//Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
@@ -232,6 +194,7 @@ void FLWindow::deleteInterfaces(){
 
 //------------------------DRAG AND DROP ACTIONS
 
+//Reaction to drop on the window
 void FLWindow::dropEvent ( QDropEvent * event ){
     
     //The widget was hidden from crossing of an object through the window
@@ -304,17 +267,7 @@ void FLWindow::dragLeaveEvent ( QDragLeaveEvent * /*event*/ ){
 
 //------------------------WINDOW ACTIONS
 
-int FLWindow::calculate_Coef(){
-    
-    //Calculation of screen position of the window, depending on its index
-    
-    int multiplCoef = fWindowIndex;
-    while(multiplCoef > 20){
-        multiplCoef-=20;
-    }
-    return multiplCoef;
-}
-
+//Artificial content of a default window
 void FLWindow::print_initWindow(){
     
     //To help the user, a new empty window is filled with a TextEdit
@@ -338,6 +291,7 @@ void FLWindow::print_initWindow(){
     }
 }
 
+//Show Window on front end
 void FLWindow::frontShow(){
     show();
     raise();
@@ -391,11 +345,13 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
 //            adjustSize();
             fInterface->run();
             return true;
-        } else {
+        } 
+        else {
             deleteInterfaces();
             return false;
         }
-    } else {
+    } 
+    else {
         return false;
     }
 }
@@ -498,6 +454,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, char* error){
     }
 }
 
+//Start/Stop of audio
 void FLWindow::stop_Audio(){
     
     fAudioManager->stop();
@@ -519,6 +476,7 @@ void FLWindow::start_Audio(){
     fClientOpen = true;
 }
 
+//Switch of Audio architecture
 bool FLWindow::update_AudioArchitecture(char* error){
     
     AudioCreator* creator = AudioCreator::_Instance("/Users/denoux/CurrentSession/Settings", NULL);
@@ -532,6 +490,7 @@ bool FLWindow::update_AudioArchitecture(char* error){
         return false;
 }
 
+//Initialization of audio Client
 bool FLWindow::init_audioClient(char* error){
     
     if(fAudioManager->initAudio(error, fEffect->getName().c_str(), fCurrent_DSP, fWindowName.c_str())){ 
@@ -546,12 +505,14 @@ bool FLWindow::init_audioClient(char* error){
 
 //------------------------SAVING WINDOW ACTIONS
 
+//When the window is imported in a current session, its properties may have to be updated
 void FLWindow::update_ConnectionFile(list<pair<string,string> > changeTable){
     
     string connectFile = fHome + "/" + fWindowName + ".jc";
     fAudioManager->change_Connections(connectFile.c_str(), changeTable);
 }
 
+//Read/Write window properties in saving file
 void FLWindow::save_Window(){
     
     //Graphical parameters//
@@ -604,11 +565,26 @@ int FLWindow::get_y(){
 }
 
 int FLWindow::get_Port(){
-    return fPortHttp;
+    
+    if(fHttpdWindow != NULL)
+        return fHttpdWindow->get_Port();
+    else
+        return 0;
 }
 
 //------------------------HTTPD
 
+//Calculation of screen position of the HTTP window, depending on its index
+int FLWindow::calculate_Coef(){
+    
+    int multiplCoef = fWindowIndex;
+    while(multiplCoef > 20){
+        multiplCoef-=20;
+    }
+    return multiplCoef;
+}
+
+//Initalization of QrCode Window
 bool FLWindow::init_Httpd(char* error){
     
     if(fHttpdWindow != NULL){

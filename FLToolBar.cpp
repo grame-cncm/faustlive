@@ -10,19 +10,7 @@
 
 #include <QHeaderView>
 #include <sstream>
-
-bool FLToolBar::isStringInt(const char* word){
-    
-    bool returning = true;
-    
-    for(int i=0; i<strlen(word); i++){
-        if(!isdigit(word[i])){
-            returning = false;
-            break;
-        }
-    }
-    return returning;
-}
+#include "utilities.h"
 
 //--------------------------FLToolBar
 
@@ -90,8 +78,10 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 }
 
-//item is useless but QT signal forces the slot parameters
-void FLToolBar::expansionAction(QTreeWidgetItem * item){
+///*item*/ is useless but QT signal forces the slot parameters
+
+//TRICK to be able to add/remove objects from the toolbar 
+void FLToolBar::expansionAction(QTreeWidgetItem * /*item*/){
     
     fWidget1->show();
     fWidget2->show();
@@ -107,7 +97,7 @@ void FLToolBar::expansionAction(QTreeWidgetItem * item){
     emit sizeGrowth();
 }
 
-void FLToolBar::collapseAction(QTreeWidgetItem* item){
+void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     
     removeAction(fAction3);
     removeAction(fAction2);
@@ -133,6 +123,7 @@ FLToolBar::~FLToolBar(){
 
 }
 
+//Reaction to enter one of the QlineEdit
 void FLToolBar::modifiedOptions(){
     
     string text = fOptionLine->text().toStdString();
@@ -154,6 +145,7 @@ void FLToolBar::modifiedOptions(){
     emit modified(text, value, port);
 }
 
+//Accessors to FLToolBar values
 void FLToolBar::setOptions(string options){
     fOptionLine->setText(options.c_str());
 }
@@ -175,6 +167,8 @@ int FLToolBar::getVal(){
     string val = fOptValLine->text().toStdString();
     if(isStringInt(val.c_str()))
         return atoi(val.c_str());
+    else
+        return 0;
 }
 
 int FLToolBar::getPort(){
@@ -182,6 +176,8 @@ int FLToolBar::getPort(){
     string val = fPortLine->text().toStdString();
     if(isStringInt(val.c_str()))
         return atoi(val.c_str());
+    else
+        return 0;
 }
 
 void FLToolBar::setPort(int port){

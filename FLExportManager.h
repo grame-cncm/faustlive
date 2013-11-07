@@ -25,31 +25,46 @@ class FLExportManager : public QObject{
     
     private :
         
-        QUrl            fServerUrl;                     //Web Service URL
-//        QLineEdit*      fServIPLine;          
+        QUrl                fServerUrl;         //Web Service URL        
     
         vector<string>                  fPlatforms;     // list of available export platforms
         map<string, vector<string> >    fTargets;       // plateform -> available targets
 
-        string          fHome;
-        string          fFileToExport;
-        string          fFilenameToExport;
-        string          fFilenameToSave;
+        string              fHome;
+        string              fFileToExport;
+        string              fFilenameToExport;
+        string              fFilenameToSave;
     
     //Export graphical parameters 
     
-        QDialog*        fDialogWindow;
+        QDialog*        fDialogWindow;  //Export Manager to choose your export parameters
+        QDialog*        fMessageWindow; //Window that displays the progress of the export process
     
-        QGroupBox*      fMenu1Export;
-        QGroupBox*      fMenu2Export;
-        QFormLayout*    fMenu2Layout;
-        QComboBox*      fExportFormat;
-        QComboBox*      fExportPlatform;
-        QComboBox*      fExportArchi;
-        QComboBox*      fExportChoice;
+        QGroupBox*          fMenu2Export;
+        QFormLayout*        fMenu2Layout;
+        QComboBox*          fExportFormat;
+        QComboBox*          fExportPlatform;
+        QComboBox*          fExportArchi;
+        QComboBox*          fExportChoice;
     
-        QPushButton*    fSaveButton;
     
+    //Dialog for export progress and its graphical elements
+    
+        QFormLayout*        fMsgLayout;
+        QLabel*             fConnectionLabel;
+        QLabel*             fRemoteComp;
+        QProgressDialog*    fPrgBar;
+        QLabel*             fCheck1;
+        QLabel*             fCheck2;
+    
+        QPushButton*        fCloseB;
+        QPushButton*        fSaveB;
+        QString             fDataReceived;
+    
+        int                 fStep;  // To know what step has crashed the export
+    
+        void                display_progress();
+        void                continueProgress(QCheckBox* toCheckBox , string followingMsg);
     
     public :
     
@@ -57,25 +72,18 @@ class FLExportManager : public QObject{
         virtual ~FLExportManager();
     
         void init();
-        
-    signals:
     
-        void            error(const char*);
-        void            start_progressing(const char*);
-        void            stop_progressing();
-        void            processEnded();
+    public slots :
     
-    private slots :
-    
-        void            cancelDialog();
         void            postExport();
-        void            exportChecked(bool on);
         void            readKey();
         void            networkError(QNetworkReply::NetworkError msg);
         void            getFileFromKey(const char* key);
-        void            endProcess();
+        void            saveFileOnDisk();
         void            targetsDescriptionReceived();
         void            platformChanged(const QString& index);
+        void            StopProgressSlot();
+        void            showSaveB();
 };
 
 #endif

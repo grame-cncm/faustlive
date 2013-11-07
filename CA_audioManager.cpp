@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// CA_audioManager controls 2 CA_audioFader. It can switch from one to another with a crossfade or it can act like a simple coreaudio-dsp
+
 #include "CA_audioSettings.h"
 #include "CA_audioFader.h"
 #include "CA_audioManager.h"
@@ -23,6 +25,18 @@ CA_audioManager::~CA_audioManager(){
     delete fCurrentAudio;
 }
 
+//INIT interface to correspond to JackAudio init interface
+bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* /*port_name*/){
+    
+    if(init(name, DSP))
+        return true;
+    else{
+        snprintf(error, 255, "Impossible to init CoreAudio Client");
+        return false;
+    }
+}
+
+//INIT/START/STOP on Current CoreAudio
 bool CA_audioManager::init(const char* name, dsp* DSP){
 
     return fCurrentAudio->init(name, DSP);
@@ -37,16 +51,7 @@ void CA_audioManager::stop(){
     fCurrentAudio->stop();
 }
 
-bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* /*port_name*/){
-    
-    if(init(name, DSP))
-        return true;
-    else{
-        snprintf(error, 255, "Impossible to init CoreAudio Client");
-        return false;
-    }
-}
-
+//Init new audio, that will fade in current audio
 bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
 
     printf("CA_audioManager::init_FadeAudio\n");
@@ -61,6 +66,7 @@ bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
     }
 }
 
+//Crossfade start
 void CA_audioManager::start_Fade(){
 
     printf("CA_audioManager::start_FadeIn\n");
@@ -76,9 +82,19 @@ void CA_audioManager::start_Fade(){
     fFadeInAudio->start();
 }
 
+//When the crossfade ends, FadeInAudio becomes the current audio 
 void CA_audioManager::wait_EndFade(){
 
-    while(fCurrentAudio->get_FadeOut() == 1){}
+    int i=0;
+    
+    while(fCurrentAudio->get_FadeOut() == 1){ 
+        
+//   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
+        if(i > 300) 
+            break; 
+        else 
+            i++;
+    }
     
     fCurrentAudio->stop();
     CA_audioFader* intermediate = fCurrentAudio;

@@ -19,13 +19,13 @@
 
 #include "faust/gui/FUI.h"
 
-#include "FLToolBar.h"
 #include "FLEffect.h"
 #include "HTTPWindow.h"
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
 class QTGUI;
+class FLToolBar;
 
 using namespace std;
 
@@ -34,10 +34,6 @@ class FLWindow : public QMainWindow
     Q_OBJECT
     
     private : 
-
-        //General functions for files and directory management
-        bool            deleteDirectoryAndContent(string& directory);
-        string          pathToContent(string path);
     
         bool            fShortcut;   //True if ALT is pressed when x button is pressed
     
@@ -148,7 +144,7 @@ class FLWindow : public QMainWindow
     //Accessors to parameters
         string          get_nameWindow();
         int             get_indexWindow();
-        FLEffect*         get_Effect();
+        FLEffect*       get_Effect();
         int             get_x();
         int             get_y();
         int             get_Port();

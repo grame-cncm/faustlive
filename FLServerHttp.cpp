@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
+
 #include <string>
 #include <QtGui>
 #include "FLServerHttp.h"
@@ -28,6 +30,7 @@ FLServerHttp::FLServerHttp(string localIP){
 
 FLServerHttp::~FLServerHttp(){}
 
+//Start Server Listening
 bool FLServerHttp::start(){
     
     unsigned short port = 7777;
@@ -46,6 +49,7 @@ bool FLServerHttp::start(){
     
 }
 
+//Stop Server Listening
 void FLServerHttp::stop()
 {
     if (fDaemon) {
@@ -55,7 +59,8 @@ void FLServerHttp::stop()
     fDaemon = 0;
 }
 
-int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls){
+//Callback answering to any request to the server
+int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, const char *url, const char *method, const char */**version*/, const char *upload_data, size_t *upload_data_size, void **con_cls){
     
     printf("FaustServer::answer_to_connection = %s\n", method);
     printf("CONNECTION = %p\n", connection);
@@ -116,7 +121,7 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
            
         ss << kResponseHead;
          
-        if(url != "/"){            
+        if(strcmp(url,"/") != 0){            
             ss << "http://"<< server->fIPLocal <<":"<<param;
         }
     
@@ -131,8 +136,6 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
         
         struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
         
-        server->parseURL(url, con_info);
-        
         if (0 != *upload_data_size) {
             
             MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
@@ -146,7 +149,7 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
             // so that it can be opened by the methods below
             
             printf("DATA = %s\n", con_info->data.c_str());
-            emit server->compile_Data(con_info->data.c_str(), con_info->compilationOptions.c_str(), atoi(param.c_str()));
+            emit server->compile_Data(con_info->data.c_str(), atoi(param.c_str()));
             
             while(server->fPosted != true){}
                 
@@ -160,7 +163,7 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
                 
             }
             else{
-                
+                return MHD_YES;
 //                string errorCompilePage = kErrorCompile1;
 //                errorCompilePage += server->fError;
 //                errorCompilePage += kErrorCompile2;
@@ -176,6 +179,7 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
 }
 
 
+//Send back a HTML page to the client
 int FLServerHttp::send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
 {
     
@@ -198,7 +202,8 @@ int FLServerHttp::send_page(struct MHD_Connection *connection, const char *page,
 }
 
 
-void FLServerHttp::request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe)
+//Callback ending a client connection
+void FLServerHttp::request_completed(void */*cls*/, MHD_Connection */*connection*/, void **con_cls, MHD_RequestTerminationCode /*toe*/)
 {
     printf("FaustServer::request_completed()\n");
     
@@ -220,7 +225,8 @@ void FLServerHttp::request_completed(void *cls, MHD_Connection *connection, void
 }
 
 
-int FLServerHttp::iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size)
+//Callback that parses the content of a post request
+int FLServerHttp::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char */*key*/, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
 {
     struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
     
@@ -236,6 +242,7 @@ int FLServerHttp::iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char
     return MHD_YES;
 }
 
+//Actions on Success or Fail of source compilation
 void FLServerHttp::compile_Successfull(string& url){
     
     fUrl = url;
@@ -251,40 +258,8 @@ void FLServerHttp::compile_Failed(string error){
 
 }
 
+//Accessor to Max Client Number
 const int FLServerHttp::getMaxClients(){ 
     return fMax_clients; 
-}
-
-void FLServerHttp::parseURL(const char* url, connection_info_struct* con_info){
-    
-    string param(url);
-    param = param.substr(1, param.size()-1);
-
-    printf("PARAM = %s\n", param.c_str());
-
-    int pos = param.find('/');
-    con_info->IP = param.substr(0, pos);
-    param = param.substr(pos+1, param.size());
-    printf("IP = %s\n", con_info->IP.c_str());
-    
-    pos = param.find('/');
-    con_info->Port = param.substr(0, pos);
-    param = param.substr(pos+1, param.size());
-    printf("Port = %s\n", con_info->Port.c_str());
-    
-    pos = param.find('/');
-    con_info->CV = param.substr(0, pos);
-    param = param.substr(pos+1, param.size());
-    printf("CV = %s\n", con_info->CV.c_str());
-    
-    pos = param.find('/');
-    con_info->Latency = param.substr(0, pos);
-    param = param.substr(pos+1, param.size());
-    printf("Latency = %s\n", con_info->Latency.c_str());
-    
-    pos = param.find('/');
-    con_info->compilationOptions = param.substr(0, pos);
-    param = param.substr(pos+1, param.size());
-    printf("Options = %s\n", con_info->compilationOptions.c_str());
 }
 

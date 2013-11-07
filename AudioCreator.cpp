@@ -6,6 +6,10 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+//This class is a SINGLETON (as described in DESIGN PATTERNS)
+//
+//The goal of this class is to control the type of audio architecture used in the application. Therefore it creates the right type of audioFactory
+
 #include "AudioCreator.h"
 
 #include "AudioSettings.h"
@@ -87,6 +91,14 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
 }
 
+//Returns the instance of the audioCreator
+AudioCreator* AudioCreator::_Instance(string homeFolder, QGroupBox* box){
+    if(_instance == 0)
+        _instance = new AudioCreator(homeFolder, box);
+    
+    return _instance;
+}
+
 AudioCreator::~AudioCreator(){
 
     writeSettings();
@@ -97,6 +109,7 @@ AudioCreator::~AudioCreator(){
     delete fIntermediateSettings;
 }
 
+//Set or Save fAudioIndex with the visual parameter chosen
 void AudioCreator::setCurrentSettings(int index){
     
     fAudioArchi->setCurrentIndex(index);
@@ -112,6 +125,7 @@ void AudioCreator::saveCurrentSettings(){
     fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
 }
 
+//Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index){
     
     if(fFactory != NULL)
@@ -132,6 +146,7 @@ void AudioCreator::indexChanged(int index){
     fMenu->setLayout(fLayout);
 }
 
+//Creation of the Factory/Settings/Manager depending on audio index
 AudioFactory* AudioCreator::createFactory(int index){
     
     switch(index){
@@ -159,23 +174,6 @@ AudioFactory* AudioCreator::createFactory(int index){
     }
 }
 
-void AudioCreator::reset_Settings(){
-    
-    indexChanged(fAudioIndex);
-    setCurrentSettings(fAudioIndex);
-    fIntermediateSettings->writeSettings();
-}
-
-AudioSettings* AudioCreator::getCurrentSettings(){
-    
-    return fCurrentSettings;
-}
-
-AudioSettings* AudioCreator::getNewSettings(){
-
-    return fIntermediateSettings;
-}
-
 AudioSettings* AudioCreator::createAudioSettings(string homeFolder, QGroupBox* parent){
 
     return fFactory->createAudioSettings(homeFolder, parent);
@@ -186,32 +184,8 @@ AudioManager* AudioCreator::createAudioManager(AudioSettings* audioParameters){
 
     return fFactory->createAudioManager(audioParameters);
 }
- 
-bool AudioCreator::didSettingChanged(){
-    
-    fIntermediateSettings->getCurrentSettings();
-    
-    if(fAudioIndex != fAudioArchi->currentIndex()){
-        return true;
-    }
-    else{
-                
-        if(!((*fCurrentSettings)==(*fIntermediateSettings))){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-}
 
-AudioCreator* AudioCreator::_Instance(string homeFolder, QGroupBox* box){
-        if(_instance == 0)
-            _instance = new AudioCreator(homeFolder, box);
-    
-    return _instance;
-}
-
+//Save and read settings in the saving file
 void AudioCreator::readSettings(){
     
     QString boxText;
@@ -257,8 +231,45 @@ void AudioCreator::writeSettings(){
     }    
 }
 
+//Accessors to the Settings
 string AudioCreator::get_ArchiName(){
     return fCurrentSettings->get_ArchiName();
 }
 
+AudioSettings* AudioCreator::getCurrentSettings(){
+    
+    return fCurrentSettings;
+}
+
+AudioSettings* AudioCreator::getNewSettings(){
+    
+    return fIntermediateSettings;
+}
+
+void AudioCreator::reset_Settings(){
+    
+    indexChanged(fAudioIndex);
+    setCurrentSettings(fAudioIndex);
+    fIntermediateSettings->writeSettings();
+}
+
+//Does the visual parameters concord to the stored settings?
+//Determines if the audio has to be reloaded
+bool AudioCreator::didSettingChanged(){
+    
+    fIntermediateSettings->storeVisualSettings();
+    
+    if(fAudioIndex != fAudioArchi->currentIndex()){
+        return true;
+    }
+    else{
+        
+        if(!((*fCurrentSettings)==(*fIntermediateSettings))){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+}
 

@@ -13,14 +13,7 @@
 
 #include <string>
 
-#include <QToolBar>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
-#include <QLineEdit>
-#include <QWidget>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QAction>
+#include <QtGui>
 
 using namespace std;
 
@@ -29,8 +22,6 @@ class FLToolBar : public QToolBar{
     Q_OBJECT
     
     private:
-    
-        bool                isStringInt(const char* word);
     
         QTreeWidget*        fTreeWidget;
         QTreeWidgetItem *   fItem;

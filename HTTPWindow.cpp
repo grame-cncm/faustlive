@@ -50,6 +50,13 @@ string HTTPWindow::getUrl(){
     return url;
 }
 
+int HTTPWindow::get_Port(){
+    if(fInterface != NULL)
+        return fInterface->getTCPPort();
+    else
+        return 0;
+}
+
 void HTTPWindow::displayQRCode(char* url){
     
     string myURL(url);
@@ -172,8 +179,6 @@ bool HTTPWindow::build_httpdInterface(const char* error, string windowTitle, dsp
     if(fInterface != NULL) delete fInterface;
     
     fTitle = windowTitle;
-//     fTitle = new char[strlen(windowTitle.c_str())+1];
-//    strcpy(fTitle, windowTitle.c_str());
     
     stringstream s;
     s<<port;
@@ -189,20 +194,6 @@ bool HTTPWindow::build_httpdInterface(const char* error, string windowTitle, dsp
 
     fInterface = new httpdUI(argv[0], 3, argv);
 
-//    char* argv[3];
-//    argv[0] = new char[strlen(windowTitle.c_str())+1];
-//    strcpy(argv[0], windowTitle.c_str());
-//    
-//    argv[1] = "-port";
-//    
-//    stringstream s;
-//    s<<port;
-//    argv[2] = new char[strlen(s.str().c_str())+1];
-//    strcpy(argv[2], s.str().c_str());
-//    
-//    fInterface = new httpdUI(fTitle, 3, argv);
-
-    
     if(fInterface){
         
         current_DSP->buildUserInterface(fInterface);

@@ -58,6 +58,7 @@ class HTTPWindow : public QMainWindow{
 
     void        search_IPadress();
     string      getUrl();
+        int         get_Port();
     
     bool        build_httpdInterface(const char* error, string windowTitle, dsp* current_DSP, int port);
     

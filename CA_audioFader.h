@@ -24,12 +24,13 @@ public:
        reset_Values();
     }
     
+//  Reimplementing Render Function to add the crossfade procedure
     virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                     const AudioTimeStamp *inTimeStamp,
                     UInt32 inNumberFrames,
                             AudioBufferList *ioData){
         
-        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
+//        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
         
         OSStatus err = noErr;
         if (fDevNumInChans > 0) {
@@ -43,9 +44,11 @@ public:
                 fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
             }
             fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+            
+//            ADDED LINE COMPARING TO BASIC COREAUDIO
             crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
         } else {
-            printf("AudioUnitRender error... %x\n", fInputData);
+//            printf("AudioUnitRender error... %x\n", fInputData);
             printError(err);
         }
         return err;
@@ -110,7 +113,7 @@ public:
     
     virtual bool get_FadeOut(){
         //    printf("COREAUDIO fade out\n");
-        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
+//        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
         return fCrossFadeDevice.get_doWeFadeOut();
     }
 };

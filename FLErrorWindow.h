@@ -11,14 +11,7 @@
 #define _FLErrorWindow_h
 
 #include <string>
-#include <QMainWindow>
-#include <QObject>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <QTextEdit>
-#include <QPushButton>
-#include <QKeyEvent>
-#include <QCloseEvent>
+#include <QtGui>
 
 using namespace std;
 
