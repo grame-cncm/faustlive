@@ -44,9 +44,7 @@ class CA_audioSettings : public AudioSettings{
         virtual void setVisualSettings();
         virtual void storeVisualSettings();
     
-        virtual bool isEqual(AudioSettings* as);
-        bool isStringInt(const char* word);
-    
+        virtual bool isEqual(AudioSettings* as);    
         int get_BufferSize();
         virtual string get_ArchiName();
 };

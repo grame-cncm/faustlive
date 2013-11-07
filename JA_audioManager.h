@@ -32,11 +32,11 @@ class JA_audioManager : public AudioManager{
         virtual ~JA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);
-    virtual bool initAudio(char* error, const char* name, dsp* DSP, const char* port_name);
+    virtual bool initAudio(string& error, const char* name, dsp* DSP, const char* port_name);
     virtual bool start();
     virtual void stop();
     
-    virtual bool init_FadeAudio(char* error, const char* name, dsp* DSP);
+    virtual bool init_FadeAudio(string& error, const char* name, dsp* DSP);
     virtual void start_Fade();
     virtual void wait_EndFade();
     

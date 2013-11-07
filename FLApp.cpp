@@ -106,6 +106,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     setup_Menu();
     
     fServerHttp = NULL;
+    fCompilingMessage = NULL;
     launch_Server();
     
 //    homeRecents = getenv("HOME");
@@ -586,7 +587,7 @@ FLWindow* FLApp::getWinFromHttp(int port){
 //--------------------------CREATE EFFECT-------------------------------------
 
 //--Creates/Recycles an Effect depending on it's source
-FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int opt_Val, char* error, bool init){
+FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int opt_Val, string& error, bool init){
     
     bool fileSourceMark = false;
     string content = "";
@@ -696,7 +697,7 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
                 createSourceFile(fichierSource, content);
         }
         
-        StopProgressSlot();
+//        StopProgressSlot();
         delete myNewEffect;
         return NULL;
     }
@@ -890,8 +891,7 @@ void FLApp::synchronize_Window(){
     FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
     
     string modifiedSource = modifiedEffect->getSource();
-    char error[256];
-    snprintf(error, 255, "");
+    string error;
     
     QDateTime modifiedLast = QFileInfo(modifiedSource.c_str()).lastModified();
     QDateTime creationDate = modifiedEffect->get_creationDate();
@@ -909,12 +909,12 @@ void FLApp::synchronize_Window(){
         
         if(!update){
             //            StopProgressSlot();
-            fErrorWindow->print_Error(error);
+            fErrorWindow->print_Error(error.c_str());
             modifiedEffect->launch_Watcher();
             return;
         }
-        else if(strcmp(error, "") != 0){
-            fErrorWindow->print_Error(error);
+        else if(error.compare("") != 0){
+            fErrorWindow->print_Error(error.c_str());
         }
         
         //        StopProgressSlot();
@@ -928,7 +928,7 @@ void FLApp::synchronize_Window(){
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
                     if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getOptValue(),error)){
-                        fErrorWindow->print_Error(error);
+                        fErrorWindow->print_Error(error.c_str());
                         break;
                     }
                     else{
@@ -957,8 +957,10 @@ void FLApp::synchronize_Window(){
         
         modifiedEffect->stop_Watcher();
         
-        snprintf(error, 255, "WARNING = %s has been deleted or moved\n You are now working on its copy.", modifiedSource.c_str());
-        fErrorWindow->print_Error(error);
+        error = "WARNING = ";
+        error += modifiedSource.c_str(); 
+        error += "has been deleted or moved\n You are now working on its copy.";
+        fErrorWindow->print_Error(error.c_str());
         
         string toReplace = fSourcesFolder + "/" + modifiedEffect->getName() +".dsp";      
         modifiedEffect->setSource(toReplace);
@@ -970,8 +972,7 @@ void FLApp::synchronize_Window(){
 //Modify the content of a specific window with a new source
 void FLApp::update_SourceInWin(FLWindow* win, string source){
     
-    char error[256];
-    snprintf(error, 255, "");
+    string error;
     string empty("");
     
     //Deletion of reemplaced effect from session
@@ -991,7 +992,7 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
         //If the change fails, the leaving effect has to be reimplanted
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);
-        fErrorWindow->print_Error(error);
+        fErrorWindow->print_Error(error.c_str());
         return;
     }
     else{
@@ -1002,8 +1003,8 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
         
         update_Source(toCopy, copySource);
         
-        if(strcmp(error, "") != 0){
-            fErrorWindow->print_Error(error);
+        if(error.compare("") != 0){
+            fErrorWindow->print_Error(error.c_str());
         }
         
         //If the change is successfull : 
@@ -1052,7 +1053,7 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
 //---------------NEW
 
 //--Creation of a new window
-FLWindow* FLApp::new_Window(string& source, char* error){
+FLWindow* FLApp::new_Window(string& source, string& error){
     
     bool init = false;
     
@@ -1082,8 +1083,8 @@ FLWindow* FLApp::new_Window(string& source, char* error){
         
         update_Source(toCopy, copySource);
         
-        if(strcmp(error, "") != 0){
-            fErrorWindow->print_Error(error);
+        if(error.compare("") != 0){
+            fErrorWindow->print_Error(error.c_str());
         }
         
         int x, y;
@@ -1122,11 +1123,10 @@ FLWindow* FLApp::new_Window(string& source, char* error){
 //--Creation accessed from Menu
 void FLApp::create_New_Window(string& source){
     
-    char error[256];
-    snprintf(error, 255, "");
+    string error;
     
     if(new_Window(source, error) == NULL)
-        fErrorWindow->print_Error(error);
+        fErrorWindow->print_Error(error.c_str());
     
 }
 
@@ -1463,8 +1463,7 @@ void FLApp::recall_Session(string filename){
     
     for(it = snapshotContent.begin() ; it != snapshotContent.end() ; it ++){
         
-        char error[256];
-        snprintf(error, 255, "");
+        string error;
         
         (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
         
@@ -1474,8 +1473,8 @@ void FLApp::recall_Session(string filename){
         
         if(newEffect != NULL){
             
-            if(strcmp(error, "") != 0){
-                fErrorWindow->print_Error(error);
+            if(error.compare("") != 0){
+                fErrorWindow->print_Error(error.c_str());
             }
             
             FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->portHttpd);
@@ -1504,11 +1503,11 @@ void FLApp::recall_Session(string filename){
             }
             else{
                 delete win;
-                fErrorWindow->print_Error(error);    
+                fErrorWindow->print_Error(error.c_str());    
             }
         }
         else{
-            fErrorWindow->print_Error(error);
+            fErrorWindow->print_Error(error.c_str());
         }
     }
 }
@@ -1890,15 +1889,19 @@ void FLApp::snapshotRestoration(string& file, list<WinInSession*>* session){
         //If one source (not in the Source folder) couldn't be found, the User is informed that we are now working on the copy
         if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().toStdString().compare(fSourcesFolder) != 0  && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0)){
             
-            char error[256];
+            string error;
             
-            if(!infoSource.exists())
-                snprintf(error, 255, "WARNING = %s cannot be found! It is reloaded from a copied file.", (*it)->source.c_str());
-            
-            else if(contentSaved.compare(contentOrigin) != 0)
-                snprintf(error, 255, "WARNING = The content of %s has been modified! It is reloaded from a copied file.", (*it)->source.c_str());
-            
-            fErrorWindow->print_Error(error);
+            if(!infoSource.exists()){
+                error = "WARNING = ";
+                error += (*it)->source.c_str();
+                error += "cannot be found! It is reloaded from a copied file.";
+            }
+            else if(contentSaved.compare(contentOrigin) != 0){
+                error = "WARNING = The content of ";
+                error += (*it)->source.c_str();
+                error += "has been modified! It is reloaded from a copied file.";
+            }
+            fErrorWindow->print_Error(error.c_str());
             string newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
             updated[(*it)->source] = true;       
             sourceChanges.push_back(make_pair((*it)->source, newSource));
@@ -2500,8 +2503,7 @@ void FLApp::duplicate(FLWindow* window){
     changeTable.push_back(make_pair(toFind, toReplace));
     win->update_ConnectionFile(changeTable);
     
-    char error[256];
-    snprintf(error, 255, "");
+    string error;
     
     if(win->init_Window(false, true, error)){
         FLW_List.push_back(win);
@@ -2511,7 +2513,7 @@ void FLApp::duplicate(FLWindow* window){
         string toDelete = fSessionFolder + "/" + win->get_nameWindow(); 
         deleteDirectoryAndContent(toDelete);
         delete win;
-        fErrorWindow->print_Error(error); 
+        fErrorWindow->print_Error(error.c_str()); 
     }
     
     //Whatever happens, the watcher has to be started (at least for the duplicated window that needs it)
@@ -2554,10 +2556,10 @@ void FLApp::paste_Text(){
 //View Httpd Window
 void FLApp::viewHttpd(FLWindow* win){
     
-    char error[256];
+    string error;
     
     if(!win->init_Httpd(error))
-        fErrorWindow->print_Error(error);
+        fErrorWindow->print_Error(error.c_str());
 }
 
 //View Httpd From Menu
@@ -3069,7 +3071,7 @@ void FLApp::init_presentationWindow(){
     help_Image->setPixmap(helpPix);
     layout2->addWidget(help_Image, 3, 0);
     
-    help = new QPushButton("About Faust Live\n Learn all about FaustLive charateristics.");
+    help = new QPushButton("About Faust Live\n Learn all about FaustLive charateristics");
     help->setToolTip("Help Menu.");
     
     layout2->addWidget(help, 3, 1);
@@ -4209,8 +4211,7 @@ void FLApp::update_AudioArchitecture(){
     
     bool updateSuccess = true;
     string errorToPrint;
-    char error[256];
-    snprintf(error, 255, "");
+    string error;
     
     display_CompilingProgress("Updating Audio Architecture...");
     
@@ -4243,7 +4244,7 @@ void FLApp::update_AudioArchitecture(){
         errorToPrint = "Update not successfull";
     
         fErrorWindow->print_Error(errorToPrint.c_str());
-        fErrorWindow->print_Error(error);
+        fErrorWindow->print_Error(error.c_str());
         
         for(it = FLW_List.begin() ; it != updateFailPointer; it++)
             (*it)->stop_Audio();
@@ -4267,7 +4268,7 @@ void FLApp::update_AudioArchitecture(){
             errorToPrint = " could not be reinitialize";
             
             fErrorWindow->print_Error(errorToPrint.c_str());
-            fErrorWindow->print_Error(error);
+            fErrorWindow->print_Error(error.c_str());
         }
         else{
             
@@ -4297,13 +4298,13 @@ void FLApp::update_AudioArchitecture(){
 //--------------------------LONG WAITING PROCESSES------------------------------
 
 //Display Messages like "Compiling..." / "Connection with server..."
-void FLApp::display_CompilingProgress(const char* msg){
+void FLApp::display_CompilingProgress(string msg){
     fCompilingMessage = new QDialog();
     fCompilingMessage->setWindowFlags(Qt::FramelessWindowHint);
     
     QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
     tittle->setAlignment(Qt::AlignCenter);
-    QLabel* text = new QLabel(tr(msg), fCompilingMessage);
+    QLabel* text = new QLabel(tr(msg.c_str()), fCompilingMessage);
     text->setAlignment(Qt::AlignCenter);
     text->setStyleSheet("*{color: black}");
     
@@ -4322,6 +4323,7 @@ void FLApp::display_CompilingProgress(const char* msg){
 
 //Stop displaying the message
 void FLApp::StopProgressSlot(){
+    
     fCompilingMessage->hide();
     delete fCompilingMessage;
 }
@@ -4364,8 +4366,7 @@ void FLApp::stop_Server(){
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
     
-    char error[256];
-    snprintf(error, 255, ""); 
+    string error;
     
     string source(data);
     
@@ -4382,7 +4383,7 @@ void FLApp::compile_HttpData(const char* data, int port){
         fServerHttp->compile_Successfull(url);
     }
     else{
-        fServerHttp->compile_Failed(error);
+        fServerHttp->compile_Failed(error.c_str());
     }
     
 }

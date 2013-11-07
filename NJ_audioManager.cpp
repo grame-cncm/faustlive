@@ -37,17 +37,17 @@ void NJ_audioManager::stop(){
     fCurrentAudio->stop();
 }
 
-bool NJ_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* port_name){
+bool NJ_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* port_name){
     
     if(init(name, DSP))
         return true;
     else{
-        snprintf(error, 255,"%s","Impossible to init NetJackAudio");
+        error = "Impossible to init NetJackAudio";
         return false;
     }
 }
 
-bool NJ_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
+bool NJ_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
     
     fFadeInAudio = new NJ_audioFader(fSettings->get_compressionValue(), fSettings->get_IP(), fSettings->get_Port(), fSettings->get_latency());
     
@@ -58,7 +58,7 @@ bool NJ_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
     if(fFadeInAudio->init(name, DSP))
         return true;
     else{
-        snprintf(error, 255, "Impossible to fade NetJack Client");
+        error = "Impossible to fade NetJack Client";
         return false;
     }
 }

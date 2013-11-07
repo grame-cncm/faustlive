@@ -34,19 +34,19 @@ void JA_audioManager::stop(){
     fCurrentAudio->stop();
 }
 
-bool JA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* port_name){
+bool JA_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* port_name){
 
     if(fCurrentAudio->init(port_name, DSP, name))
         return true;
     else{
-        snprintf(error, 255, "Impossible to init JackAudio Client");
+        error = "Impossible to init JackAudio Client";
         return false;
     }
 }
 
-bool JA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
+bool JA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
 
-    snprintf(error, 255, "%s", "");
+    error = "";
     
     fCurrentAudio->init_FadeIn_Audio(DSP, name);
     return true;

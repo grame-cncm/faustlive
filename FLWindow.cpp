@@ -298,7 +298,7 @@ void FLWindow::frontShow(){
 }
 
 //Initialization of User Interface + StartUp of Audio Client
-bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
+bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     
     fCurrent_DSP = createDSPInstance(fEffect->getFactory());
 
@@ -311,7 +311,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
     fMenu->setPort(fPortHttp);
     
     if (fCurrent_DSP == NULL){
-        snprintf(errorMsg, 255, "Impossible to create a DSP instance"); 
+        errorMsg = "Impossible to create a DSP instance"; 
         return false;
     }
     
@@ -351,13 +351,12 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, char* errorMsg){
             return false;
         }
     } 
-    else {
-        return false;
-    }
+    
+    return false;
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(FLEffect* newEffect, int optVal, char* error){
+bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
     
     //Step 1 : Save the parameters of the actual interface
     fXPos = this->geometry().x();
@@ -449,7 +448,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, char* error){
         
     }
     else{
-        snprintf(error, 255, "Impossible to allocate DSP interface");
+        error = "Impossible to allocate DSP interface";
         return false;
     }
 }
@@ -477,7 +476,7 @@ void FLWindow::start_Audio(){
 }
 
 //Switch of Audio architecture
-bool FLWindow::update_AudioArchitecture(char* error){
+bool FLWindow::update_AudioArchitecture(string& error){
     
     AudioCreator* creator = AudioCreator::_Instance("/Users/denoux/CurrentSession/Settings", NULL);
     delete fAudioManager;
@@ -491,7 +490,7 @@ bool FLWindow::update_AudioArchitecture(char* error){
 }
 
 //Initialization of audio Client
-bool FLWindow::init_audioClient(char* error){
+bool FLWindow::init_audioClient(string& error){
     
     if(fAudioManager->initAudio(error, fEffect->getName().c_str(), fCurrent_DSP, fWindowName.c_str())){ 
             
@@ -585,7 +584,7 @@ int FLWindow::calculate_Coef(){
 }
 
 //Initalization of QrCode Window
-bool FLWindow::init_Httpd(char* error){
+bool FLWindow::init_Httpd(string& error){
     
     if(fHttpdWindow != NULL){
         fHttpdWindow->search_IPadress();
@@ -610,7 +609,7 @@ bool FLWindow::init_Httpd(char* error){
             return false;
     }
     else{
-        snprintf(error, 255, "%s", "Httpd Window could not be allocated!"); 
+        error = "Httpd Window could not be allocated!"; 
         return false;
     }
 }

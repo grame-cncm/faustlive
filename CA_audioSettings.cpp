@@ -9,20 +9,7 @@
 #include "CA_audioSettings.h"
 #include <sstream>
 #include <QFileInfo>
-
-//Checking if a string correponds to an int
-bool CA_audioSettings::isStringInt(const char* word){
-    
-    bool returning = true;
-    
-    for(size_t i=0; i<strlen(word); i++){
-        if(!isdigit(word[i])){
-            returning = false;
-            break;
-        }
-    }
-    return returning;
-}
+#include "utilities.h"
 
 CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){
     

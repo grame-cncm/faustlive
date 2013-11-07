@@ -57,9 +57,8 @@ int HTTPWindow::get_Port(){
         return 0;
 }
 
-void HTTPWindow::displayQRCode(char* url){
+void HTTPWindow::displayQRCode(string url){
     
-    string myURL(url);
     QWidget* centralWidget = new QWidget;
     setCentralWidget(centralWidget);
     //    QTextEdit* httpdText = new QTextEdit(centralWidget);
@@ -67,7 +66,7 @@ void HTTPWindow::displayQRCode(char* url){
     
     //Construction of the flashcode
     const int padding = 5;
-    QRcode* qrc = QRcode_encodeString(url, 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+    QRcode* qrc = QRcode_encodeString(url.c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
     
     //   qDebug() << "QRcode width = " << qrc->width;
     
@@ -100,7 +99,7 @@ void HTTPWindow::displayQRCode(char* url){
     //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
     
     string text("<br>Connect You To");
-    text += "<br><a href = http://" + myURL + ">"+ myURL+"</a>";
+    text += "<br><a href = http://" + url + ">"+ url+"</a>";
     text += "<br>Or Flash the code below";
     
     myBro->setOpenExternalLinks(true);
@@ -130,12 +129,13 @@ void HTTPWindow::display_HttpdWindow(int x, int y){
    
     move(x, y);
     
-    char url[256];
-    snprintf(url, 255, "%s:7777/%i", fIPaddress.c_str(), fInterface->getTCPPort());
-    
-    
     stringstream s;
     s<<fInterface->getTCPPort();
+    
+    string url;
+    url = fIPaddress;
+    url+=":7777/";
+    url += s.str();
     
     fEntireAddress = fIPaddress;
     fEntireAddress += ":";
@@ -173,7 +173,7 @@ void HTTPWindow::search_IPadress(){
     }
 }
 
-bool HTTPWindow::build_httpdInterface(const char* error, string windowTitle, dsp* current_DSP, int port){
+bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
     if(fInterface != NULL) delete fInterface;

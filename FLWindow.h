@@ -111,19 +111,19 @@ class FLWindow : public QMainWindow
     //Recalled = 0 --> the window is a new one without parameters
 
     //Returning false if it fails and fills the errorMsg buffer
-        bool            init_Window(bool init, bool recall, char* errorMsg);
+        bool            init_Window(bool init, bool recall, string& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(FLEffect* newEffect, int optVal, char* error);
+        bool            update_Window(FLEffect* newEffect, int optVal, string& error);
     
-        bool            update_AudioArchitecture(char* error);
+        bool            update_AudioArchitecture(string& error);
     
     //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
         void            stop_Audio();
         void            start_Audio();
     
-        bool            init_audioClient(char* error);
+        bool            init_audioClient(string& error);
     
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
@@ -139,7 +139,7 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(char* error);
+        bool            init_Httpd(string& error);
     
     //Accessors to parameters
         string          get_nameWindow();

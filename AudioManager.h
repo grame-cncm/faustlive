@@ -13,7 +13,10 @@
 
 #include "faust/audio/audio.h"
 
+#include <string>
 #include <QObject>
+
+using namespace std;
 
 class AudioSettings;
 
@@ -26,9 +29,9 @@ class AudioManager : public QObject, public audio{
     AudioManager(AudioSettings* as){Q_UNUSED(as);}
     virtual ~AudioManager(){}
     
-    virtual bool initAudio(char* error, const char* name, dsp* DSP, const char* port_name) = 0;
+    virtual bool initAudio(string& error, const char* name, dsp* DSP, const char* port_name) = 0;
 
-    virtual bool init_FadeAudio(char* error, const char* name, dsp* DSP) = 0;
+    virtual bool init_FadeAudio(string& error, const char* name, dsp* DSP) = 0;
     virtual void start_Fade() = 0;
     virtual void wait_EndFade() = 0;
     

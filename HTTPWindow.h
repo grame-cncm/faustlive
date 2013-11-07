@@ -46,7 +46,7 @@ class HTTPWindow : public QMainWindow{
     
     ~HTTPWindow();
     
-    void        displayQRCode(char* url);
+    void        displayQRCode(string url);
     
     void        frontShow_Httpd(string windowTitle);
     
@@ -60,7 +60,7 @@ class HTTPWindow : public QMainWindow{
     string      getUrl();
         int         get_Port();
     
-    bool        build_httpdInterface(const char* error, string windowTitle, dsp* current_DSP, int port);
+    bool        build_httpdInterface(string& error, string windowTitle, dsp* current_DSP, int port);
     
     void        launch_httpdInterface();
     

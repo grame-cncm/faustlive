@@ -10,19 +10,7 @@
 
 #include <sstream>
 #include <QFileInfo>
-
-bool NJ_audioSettings::isStringInt(const char* word){
-    
-    bool returning = true;
-    
-    for(int i=0; i<strlen(word); i++){
-        if(!isdigit(word[i])){
-            returning = false;
-            break;
-        }
-    }
-    return returning;
-}
+#include "utilities.h"
 
 NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : AudioSettings(homeFolder, parent){
     

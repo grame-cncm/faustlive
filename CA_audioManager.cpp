@@ -26,12 +26,12 @@ CA_audioManager::~CA_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(char* error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool CA_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
     if(init(name, DSP))
         return true;
     else{
-        snprintf(error, 255, "Impossible to init CoreAudio Client");
+        error = "Impossible to init CoreAudio Client";
         return false;
     }
 }
@@ -52,7 +52,7 @@ void CA_audioManager::stop(){
 }
 
 //Init new audio, that will fade in current audio
-bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
+bool CA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
 
     printf("CA_audioManager::init_FadeAudio\n");
     
@@ -61,7 +61,7 @@ bool CA_audioManager::init_FadeAudio(char* error, const char* name, dsp* DSP){
     if(fFadeInAudio->init(name, DSP))
         return true;
     else{
-        snprintf(error, 255, "Impossible to init new Core Audio Client");
+        error = "Impossible to init new Core Audio Client";
         return false;
     }
 }

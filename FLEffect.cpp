@@ -42,7 +42,7 @@ FLEffect::~FLEffect(){
 //Compilation Options = needed to build the llvm factory
 //Error = if the initialisation fails, the function returns false + the buffer is filled
 
-bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, char* error){
+bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, string& error){
     
     printf("FICHIER SOURCE = %s\n", fSource.c_str());
     
@@ -70,7 +70,7 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
 //---------------FACTORY ACTIONS
 
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/, char* error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/, string& error, string currentSVGFolder, string currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
     int argc = 2 + get_numberParameters(fCompilationOptions);
@@ -123,9 +123,13 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/
         
         printf("ABOUT TO BUILD with = %s\n", libraryPath);
         
-        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", error, fOpt_level);
+        char getError[256];
         
-        printf("ERROR OF FACTORY BUILD = %s\n", error);
+        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", getError, fOpt_level);
+        
+        error = getError;
+        
+        printf("ERROR OF FACTORY BUILD = %s\n", error.c_str());
         
         delete [] argv;
         
@@ -197,7 +201,7 @@ string FLEffect::parse_compilationParams(string& compilOptions){
 
 
 //Re-Build of the factory from the source file
-bool FLEffect::update_Factory(char* error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::update_Factory(string& error, string currentSVGFolder, string currentIRFolder){
     
     fOldFactory = fFactory;
     

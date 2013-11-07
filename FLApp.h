@@ -245,7 +245,7 @@ class FLApp : public QApplication
     
     string                  renameEffect(string source, string nomEffet);
     
-    FLEffect*               getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, char* error, bool init);
+    FLEffect*               getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, string& error, bool init);
     
     //-----------------Questions about the current State
     
@@ -281,7 +281,7 @@ class FLApp : public QApplication
         void                itemDblClick(QListWidgetItem* item);
     
     //---------File
-        FLWindow*           new_Window(string& source, char* error);
+        FLWindow*           new_Window(string& source, string& error);
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
@@ -339,7 +339,7 @@ class FLApp : public QApplication
         void                update_ProgressBar();
     
     //--------Long operations entertainment
-        void                display_CompilingProgress(const char* msg);
+        void                display_CompilingProgress(string msg);
         void                StopProgressSlot(); 
     
     //--------Error received

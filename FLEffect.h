@@ -59,7 +59,7 @@ class FLEffect : public QObject
         string     parse_compilationParams(string& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-        bool        buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, char* error, string currentSVGFolder, string currentIRFolder); 
+        bool        buildFactory(llvm_dsp_factory** factoryToBuild, int opt_level, string& error, string currentSVGFolder, string currentIRFolder); 
     
     public:
         FLEffect(bool recallVal, string sourceFile, string name = "");
@@ -70,12 +70,12 @@ class FLEffect : public QObject
     //currentIRFolder = where to save the bitcode tied to the factory
     //Compilation Options = needed to build the llvm factory
     //Error = if the initialisation fails, the function returns false + the buffer is filled
-        bool        init(string currentSVGFolder, string currentIRFolder , string compilationMode, int optVal, char* error);
+        bool        init(string currentSVGFolder, string currentIRFolder , string compilationMode, int optVal, string& error);
     
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
     //Re-Build of the factory from the source file
-        bool        update_Factory(char* error, string currentSVGFolder, string currentIRFolder);
+        bool        update_Factory(string& error, string currentSVGFolder, string currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted
         void        erase_OldFactory();
     
