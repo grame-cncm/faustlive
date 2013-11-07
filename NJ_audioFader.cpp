@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// This class re-implement the netjackaudio calcul process to be adaptated to FadeIn and FadeOut processes
+
 #include "NJ_audioFader.h"
 
 NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_port, int latency, QObject* parent)
@@ -22,6 +24,7 @@ NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_p
 
 NJ_audioFader::~NJ_audioFader(){}
 
+//CallBack in case of network failure
 int NJ_audioFader::net_restart(void* arg) 
 {
     AVOIDDENORMALS;
@@ -42,6 +45,7 @@ int NJ_audioFader::net_restart(void* arg)
     return 1;
 }
 
+//Reimplementing Audio callback to add the crossfade procedure
 int NJ_audioFader::net_process(jack_nframes_t buffer_size,
                                         int,
                                         float** audio_input_buffer,

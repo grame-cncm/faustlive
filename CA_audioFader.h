@@ -24,7 +24,7 @@ public:
        reset_Values();
     }
     
-//  Reimplementing Render Function to add the crossfade procedure
+//  Reimplementing audio callback to add the crossfade procedure
     virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                     const AudioTimeStamp *inTimeStamp,
                     UInt32 inNumberFrames,
