@@ -8,6 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
+#include "faust/gui/oscui.h"
 
 list<GUI*>               GUI::fGuiList;
 
@@ -42,8 +43,8 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fHttpdWindow = new HTTPWindow();
     connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
     
-    //Allocating interfaces
-    fRCInterface = new FUI();
+    fRCInterface = NULL;
+    fOscInterface = NULL;
     
     string folder = home + "/Settings";
     
@@ -188,8 +189,10 @@ void FLWindow::close_Window(){
 void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
+    delete fOscInterface;
     fInterface = NULL;
     fRCInterface = NULL;
+    fOscInterface = NULL;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -319,12 +322,21 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     string inter = fWindowName + " : " + fEffect->getName();
     
     fInterface = new QTGUI(this, inter.c_str());
+    fRCInterface = new FUI;
     
-    if(fRCInterface && fInterface){
+    char* argv[1];
+    argv[0] = (char*)fWindowName.c_str();
+    
+    fOscInterface = new OSCUI(argv[0], 1, argv);
+    
+    printf("OSCINTERFACE = %p\n", fOscInterface);
+    
+    if(fRCInterface && fInterface && fOscInterface){
         
         //Building interface and Audio parameters
         fCurrent_DSP->buildUserInterface(fRCInterface);
         fCurrent_DSP->buildUserInterface(fInterface);
+//        fCurrent_DSP->buildUserInterface(fOscInterface);
         
         if(init)
             print_initWindow();        
@@ -343,6 +355,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
             setMinimumSize(QSize(0, 0));
             setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 //            adjustSize();
+//            fOscInterface->run();
             fInterface->run();
             return true;
         } 
@@ -352,6 +365,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
         }
     } 
     
+    errorMsg = "Interface could not be allocated";
     return false;
 }
 
@@ -370,6 +384,11 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
     //Step 3 : creating the user interface
     fRCInterface = new FUI();
     
+    char* argv[1];
+    argv[0] = (char*)fWindowName.c_str();
+    
+    fOscInterface = new OSCUI(argv[0], 1, argv);
+    
     //Step 4 : creating the new DSP instance
     llvm_dsp* charging_DSP = createDSPInstance(newEffect->getFactory());
     //    printf("charging DSP = %p\n", charging_DSP);
@@ -384,7 +403,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
     fMenu->setVal(optVal);
     fMenu->setPort(fPortHttp);
     
-    if(fRCInterface){
+    if(fRCInterface && fOscInterface){
         
         if(!fAudioManager->init_FadeAudio(error, newEffect->getName().c_str(), charging_DSP)){
             
@@ -397,6 +416,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
             
             fCurrent_DSP->buildUserInterface(fRCInterface);
             fCurrent_DSP->buildUserInterface(fInterface);
+            fCurrent_DSP->buildUserInterface(fOscInterface);
             
             recall_Window();
             setGeometry(fXPos, fYPos, 0, 0);
@@ -404,6 +424,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
             show();
             //Step 9 : Launch User Interface
             fInterface->run();
+            fOscInterface->run();
             
             return false;
         }
@@ -415,6 +436,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
         
         charging_DSP->buildUserInterface(fRCInterface);
         charging_DSP->buildUserInterface(fInterface);
+        charging_DSP->buildUserInterface(fOscInterface);
         
         //Step 7 : Recall the parameters of the window
         
@@ -444,6 +466,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
         
         //Step 9 : Launch User Interface
         fInterface->run();
+        fOscInterface->run();
         return true;
         
     }

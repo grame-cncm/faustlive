@@ -55,6 +55,7 @@ LIBS+=-L/opt/local/lib -lqrencode
 LIBS+=-L/opt/local/lib -lboost_system-mt
 LIBS+=-L/opt/local/lib -lboost_filesystem-mt
 LIBS+=-L/opt/local/lib -lboost_program_options-mt
+LIBS+=-lOSCFaust -loscpack
 
 HEADERS += utilities.h 
 SOURCES += utilities.cpp
