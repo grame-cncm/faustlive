@@ -28,9 +28,10 @@
     #include "NJ_audioFactory.h"
 #endif
 
-#include <QLabel>
-#include <QFile>
-#include <QTextStream>
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
 enum audioArchi{
    
@@ -82,13 +83,19 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
-    fSettingsBox = new QGroupBox(fMenu);
+    fSettingsBox = new QGroupBox;
+    fUselessBox = new QGroupBox;
     
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    
+    printf("fIntermediateSettings = %p\n", fIntermediateSettings);
+    
     fLayout->addRow(fSettingsBox);
+    
     fMenu->setLayout(fLayout);
 
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
+    printf("fIntermediateSettings = %p\n", fCurrentSettings);
 }
 
 //Returns the instance of the audioCreator
@@ -105,6 +112,7 @@ AudioCreator::~AudioCreator(){
     
     delete fFactory;
     delete fSettingsBox;
+    delete fUselessBox;
     delete fCurrentSettings;
     delete fIntermediateSettings;
 }
@@ -120,9 +128,11 @@ void AudioCreator::saveCurrentSettings(){
     fAudioIndex = fAudioArchi->currentIndex();
     
     delete fCurrentSettings;
-
+    delete fUselessBox;
+    fUselessBox = new QGroupBox;
+    
     reset_Settings();
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
 }
 
 //Dynamic change when the audio index (= audio architecture) changes
@@ -139,7 +149,7 @@ void AudioCreator::indexChanged(int index){
         delete fSettingsBox;
     
     fFactory = createFactory(index);
-    fSettingsBox = new QGroupBox(fMenu);
+    fSettingsBox = new QGroupBox;
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
     
     fLayout->addRow(fSettingsBox);

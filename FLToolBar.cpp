@@ -8,7 +8,6 @@
 
 #include "FLToolBar.h"
 
-#include <QHeaderView>
 #include <sstream>
 #include "utilities.h"
 

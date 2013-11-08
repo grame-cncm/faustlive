@@ -12,10 +12,13 @@
 #define _HTTPWindow_h
 
 #include <string>
-#include <QMainWindow>
-#include <QObject>
-#include <QPixmap>
-#include <QString>
+
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
+
+#include <QtNetwork>
 
 #include "faust/audio/dsp.h"
 
@@ -29,14 +32,13 @@ class HTTPWindow : public QMainWindow{
     
     private : 
     
-    string      fIPaddress;
-    string      fEntireAddress;
-    string      fTitle;
-    string      fPort;
-    string      fOptionPort;
-    httpdUI*    fInterface; //Httpd interface for distance control
+    string      fIPaddress;     //IP adress
+    string      fEntireAddress; //IP + Port adress
+    string      fTitle;         //Htpp Window Title
+    httpdUI*    fInterface;     //Httpd interface for distance control
     QPixmap     fQrCode;
-    bool        fShortcut;
+    
+    bool        fShortcut;      //In case ALT + x button is pressed, shortcut is activated
     
     public : 
     

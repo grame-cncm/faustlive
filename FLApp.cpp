@@ -118,7 +118,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initializing preference and save dialog
     fErrorWindow = new FLErrorWindow();
-    fErrorWindow->setWindowTitle("ERROR_WINDOW");
+    fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
     fErrorWindow->init_Window();
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 }
@@ -217,7 +217,7 @@ void FLApp::setup_Menu(){
             i++;
         }
         
-        fFileMenu->addAction(fMenuOpen_Example->menuAction());
+//        fFileMenu->addAction(fMenuOpen_Example->menuAction());
     }
     
     fOpenRecentAction = new QMenu(tr("&Open Recent File"), fFileMenu);
@@ -230,7 +230,7 @@ void FLApp::setup_Menu(){
         fOpenRecentAction->addAction(fRecentFileAction[i]);
     }
     
-    fFileMenu->addAction(fOpenRecentAction->menuAction());
+//    fFileMenu->addAction(fOpenRecentAction->menuAction());
     
     //SESSION
     
@@ -364,14 +364,16 @@ void FLApp::setup_Menu(){
     
     fPrefDialog = new QDialog;
     fPrefDialog->setWindowFlags(Qt::FramelessWindowHint);
+    
     init_PreferenceWindow();
     
     //--------------------HELP
     
     fHelpWindow = new QMainWindow;
     fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
+    
     this->init_HelpWindow();
-    fHelpWindow->move(fScreenWidth/3, 20);
+    fHelpWindow->move(fScreenWidth/3, fScreenHeight/3);
     
     fAboutAction = new QAction(tr("&Help..."), this);
     fAboutAction->setToolTip(tr("Show the library's About Box"));
@@ -392,8 +394,8 @@ void FLApp::setup_Menu(){
     fHelpMenu->addAction(fAboutQtAction);
     fHelpMenu->addSeparator();
     fHelpMenu->addAction(fAboutAction);
-    fHelpMenu->addAction(fVersionAction);
-    fHelpMenu->addSeparator();
+//    fHelpMenu->addAction(fVersionAction);
+//    fHelpMenu->addSeparator();
     fHelpMenu->addAction(fPresentationAction);
     fHelpMenu->addSeparator();
     fHelpMenu->addAction(fPreferencesAction);
@@ -697,7 +699,7 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
                 createSourceFile(fichierSource, content);
         }
         
-//        StopProgressSlot();
+        StopProgressSlot();
         delete myNewEffect;
         return NULL;
     }
@@ -1609,7 +1611,7 @@ void FLApp::import_Recent_Session(){
 
 //---------------CURRENT SESSION FUNCTIONS
 
-//
+//Add window in Current Session Structure
 void FLApp::addWinToSessionFile(FLWindow* win){
     
     string compilationOptions = convert_compilationOptions(win->get_Effect()->getCompilationOptions());
@@ -1642,6 +1644,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     fSessionContent.push_back(intermediate);
 }
 
+//Add window from Current Session Structure
 void FLApp::deleteWinFromSessionFile(FLWindow* win){
     
     list<WinInSession*>::iterator it;
@@ -1669,6 +1672,20 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
     }
 }
 
+//Update Current Session Structure with current parameters of the windows
+void FLApp::update_CurrentSession(){
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+        
+        deleteWinFromSessionFile(*it);
+        addWinToSessionFile(*it);
+        (*it)->save_Window();
+    }
+}
+
+//Reset Current Session Folder
 void FLApp::reset_CurrentSession(){
     
     QDir srcDir(fSessionFolder.c_str());
@@ -1702,18 +1719,8 @@ void FLApp::reset_CurrentSession(){
     recall_Settings(fHomeSettings);
 }
 
-void FLApp::update_CurrentSession(){
-    
-    list<FLWindow*>::iterator it;
-    
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
-        
-        deleteWinFromSessionFile(*it);
-        addWinToSessionFile(*it);
-        (*it)->save_Window();
-    }
-}
-
+//Behaviour of session restoration when re-starting the application
+//The user is notified in case of source file lost or modified. He can choose to reload from original file or backup.
 void FLApp::currentSessionRestoration(list<WinInSession*>* session){
     
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
@@ -1747,7 +1754,7 @@ void FLApp::currentSessionRestoration(list<WinInSession*>* session){
             }
             
             QPushButton* yes_Button;
-            QPushButton*  cancel_Button; 
+            QPushButton* cancel_Button; 
             
             QString msg(mesg.c_str());
             
@@ -1804,6 +1811,8 @@ void FLApp::currentSessionRestoration(list<WinInSession*>* session){
 
 //---------------SAVE SNAPSHOT FUNCTIONS
 
+//Save the current State in SnapshotFolder.tar
+//It copies the hidden Session Folder and compresses it
 void FLApp::take_Snapshot(){
     
     QFileDialog* fileDialog = new QFileDialog;
@@ -1866,6 +1875,8 @@ void FLApp::take_Snapshot(){
 
 //---------------RESTORE SNAPSHOT FUNCTIONS
 
+//Behaviour of session restoration when opening a snapshot
+//The user is notified that the backup file has been used to restore exact state.
 void FLApp::snapshotRestoration(string& file, list<WinInSession*>* session){
     
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
@@ -2419,11 +2430,10 @@ void FLApp::common_shutAction(FLWindow* win){
     }
     
     FLW_List.remove(win);
-    delete (win);
+    delete win;
     
     if(toDelete != NULL){
         delete toDelete;
-        toDelete = NULL;
     }
 }
 
@@ -2646,275 +2656,229 @@ void FLApp::redirect_RCAction(const QPoint & p){
 
 //--------------------------------HELP----------------------------------------
 
+//Set Text in Tools Menu of HELP
+void FLApp::setToolText(const QString & currentText){
+    
+    if(currentText.compare("FAUST") == 0)
+        fToolText->setHtml("<br>\nTo develop your own effects, you will need to handle Faust language.<br><br>""LEARN MORE ABOUT FAUST : <a href = http://faust.grame.fr>faust.grame.fr</a>");
+    else if(currentText.compare("LLVM") == 0)
+        fToolText->setHtml("<br>\nThanks to its embedded LLVM compiler, this application allows dynamical compilation of your faust objects.<br><br>""LEARN MORE ABOUT LLVM : <a href = http://llvm.org>llvm.org</a>");
+    else if(currentText.compare("COREAUDIO") == 0)
+        fToolText->setHtml("<br>Core Audio is the digital audio infrastructure of MAC OS X.<br><br>""LEARN MORE ABOUT COREAUDIO : <a href = http://developer.apple.com/library/ios/#documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatisCoreAudio/WhatisCoreAudio.html>developer.apple.com </a> ");
+    else if(currentText.compare("JACK") == 0)
+        fToolText->setHtml("<br>Jack (the Jack Audio Connection Kit) is a low-latency audio server. It can connect any number of different applications to a single hardware audio device.<br><br>YOU CAN DOWNLOAD IT HERE : <a href =http://www.jackosx.com> www.jackosx.com</a>\n");
+    else if(currentText.compare("NETJACK") == 0)
+        fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. That way you can send your audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+}
+
+//Set Text in Application Properties Menu of HELP
+void FLApp::setAppPropertiesText(const QString& currentText){
+    
+    if(currentText.compare("New Default Window")==0)
+        fAppText->setPlainText("\nCreates a new window containing a simple faust process.\n\n process = !,!:0,0; ");
+    
+    else if(currentText.compare("Open")==0)
+        fAppText->setPlainText("\nCreates a new window containing the DSP you choose on disk.\n");
+ 
+    else if(currentText.compare("Take Snapshot")==0)
+        fAppText->setPlainText("\nSaves the actual state of the application in a folder.tar : all the windows, their graphical parameters, their audio connections, their position on the screen.\n");
+    
+    else if(currentText.compare("Recall Snapshot")==0)
+        fAppText->setPlainText("\nRestores the state of the application as saved. All current windows are closed. If one of the source file can't be found, a back up file is used\n");
+    
+    else if(currentText.compare("Import Snapshot")==0)
+        fAppText->setPlainText("\nAdds the state of the application as saved to the current state of the application. That way, current windows are not closed. Some audio application/windows may have to be renamed during the importation.\n");
+    
+    else if(currentText.compare("Navigate")==0)
+        fAppText->setPlainText("\nBrings to front end the chosen running window\n");
+    
+    else if(currentText.compare("Preferences")==0)
+        fAppText->setPlainText("\nYou can choose default compilation options for new windows.\n\n The compilation web service URL can be modified.\n\n If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\n You can also choose the graphical style of the application.\n");
+    
+    else if(currentText.compare("Error Displaying")==0)
+        fAppText->setPlainText("\nDisplays a window every time the program catches an error : whether it's a error in the edited code, a compilation problem, a lack of memory during saving action, ...");
+            
+}
+
+//Set Text in Window Properties Menu of HELP
+void FLApp::setWinPropertiesText(const QString& currentText){
+    
+    if(currentText.compare("Audio Cnx/Dcnx")==0)
+        fWinText->setPlainText("\nWith Jack router, you can connect a window to another one or to an external application like I-Tunes, VLC or directly to the computer input/output.\nYou can choose Jack as the audio architecture in the preferences.");
+        
+    else if(currentText.compare("Edit Source")==0)
+        fWinText->setPlainText("\nThe code Faust corresponding to the active window is opened in a text editor for you to change it. When you save your modification, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connections that can be kept will stay unmodified.");
+            
+    else if(currentText.compare("Drag and Drop / Paste")==0)
+        fWinText->setPlainText("\nIn a window, you can drop or paste : \n - File.dsp\n - Faust code\n - Faust URL\n An audio crossfade will be calculated between the outcoming and the incoming audio application. The new application will be connected as the outcoming one.\n");
+    
+    else if(currentText.compare("Duplicate")==0)
+        fWinText->setPlainText("\nCreates a new window, that has the same characteristics : same Faust code, same graphical parameters, same audio connections as the active window.\n");
+    
+    else if(currentText.compare("View QrCode")==0)
+        fWinText->setPlainText("\nYou can display a new window with a QRcode so that you can control the userInterface of the audio application remotely.");
+    
+    else if(currentText.compare("Window Options")==0)
+        fWinText->setPlainText("\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the Llvm compiler. If several windows correspond to the same audio application, they will load the chosen options.\n The Httpd Port corresponds to the connection port for remote controlling of the interface.");
+    
+    else if(currentText.compare("View SVG")==0)
+        fWinText->setPlainText("\nYou can display the SVG diagramm of the active Window. It we be open in your chosen default navigator.");
+    
+    else if(currentText.compare("Export")==0)
+        fWinText->setPlainText("\nA web service is available to export your Faust application for another Platform or/and architecture.");
+    
+}
+
 void FLApp::init_HelpWindow(){
     
-    QTabWidget *MyTabWidget;
-    QWidget *tab_1;
-    QWidget *tab_2;
-    QWidget *tab_3;
-    QWidget *tab_4;
+//----------------------Global Help Window
     
-    QGroupBox*  groupBox;
-    QGroupBox *groupBox_1;
-    QPlainTextEdit *plainTextEdit_7;
-    QPlainTextEdit *lineEdit;
+    QGroupBox* winGroup = new QGroupBox(fHelpWindow);
+    QVBoxLayout* winLayout = new QVBoxLayout;
     
-    QGroupBox *groupBox_2;
-    QTextBrowser *plainTextEdit_4;
-    QTextBrowser *plainTextEdit_5;
-    QTextBrowser *plainTextEdit_6;
-    QTextBrowser *plainTextEdit_8;
-    QTextBrowser *plainTextEdit_14;
-    
-    QGroupBox *groupBox_3;
-    QPlainTextEdit *plainTextEdit_9;
-    QPlainTextEdit *plainTextEdit_10;
-    QPlainTextEdit *plainTextEdit_11;
-    QPlainTextEdit *plainTextEdit_17;
-    QPlainTextEdit *plainTextEdit_13;
-    
-    QGroupBox *groupBox_4;
-    QPlainTextEdit *plainTextEdit;
-    QPlainTextEdit *plainTextEdit_2;
-    QPlainTextEdit *plainTextEdit_3;
-    QPlainTextEdit *plainTextEdit_12;
-    QPushButton *pushButton;
-    
-    QVBoxLayout* layout = new QVBoxLayout;
-    QVBoxLayout* layout1 = new QVBoxLayout;
-    QVBoxLayout* layout2 = new QVBoxLayout;
-    QVBoxLayout* layout3 = new QVBoxLayout;
-    QVBoxLayout* layout4 =  new QVBoxLayout;
-    QVBoxLayout* layout5 = new QVBoxLayout;
-    QVBoxLayout* layout6 =  new QVBoxLayout;
-    QVBoxLayout* layout7 = new QVBoxLayout;
-    QVBoxLayout* layout8 =  new QVBoxLayout;
-    
-    //----------------------Global
-    
-    fHelpWindow->setWindowTitle(QString::fromUtf8("FAUST LIVE HELP"));
-    
-    groupBox = new QGroupBox(fHelpWindow);
-    
-    MyTabWidget = new QTabWidget(groupBox);
-    layout->addWidget(MyTabWidget);
-    
-    QMetaObject::connectSlotsByName(fHelpWindow);
-    
-    fHelpWindow->setGeometry(QRect(fScreenWidth/4, 0, fScreenWidth/2, fScreenHeight*3/4));
-    
-    pushButton = new QPushButton("OK", fHelpWindow);
+    QPushButton* pushButton = new QPushButton("OK", winGroup);
     pushButton->connect(pushButton, SIGNAL(clicked()), this, SLOT(end_apropos()));
+    
+    QTabWidget *myTabWidget = new QTabWidget(winGroup);
     
     //---------------------General
     
-    tab_1 = new QWidget();
-    groupBox_1 = new QGroupBox(tab_1);
-    groupBox_1->setGeometry(QRect(0,0, 100, 100));
+    QWidget* tab_general = new QWidget;
     
-    plainTextEdit_7 = new QPlainTextEdit(tr("\nFaustLive is a dynamical compiler for processors coded with Faust language.\nThanks to its embedded Faust & LLVM compiler, this application allows dynamical compilation of your faust objects.\n""\n""Every window of the application corresponds to an audio application, which parameters you can adjust, that you can auditorely connect with Jack to other audio applications!\n"),groupBox_1);
+    QVBoxLayout* generalLayout = new QVBoxLayout;
     
-    lineEdit = new QPlainTextEdit(tr("\n\n\n\nDISTRIBUTED by GRAME - Centre de Creation Musicale"),groupBox_1);
+    QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamical compiler for processors coded with Faust.\nIt embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
     
-    MyTabWidget->addTab(tab_1, QString());
-    MyTabWidget->setTabText(MyTabWidget->indexOf(tab_1), QApplication::translate("HelpMenu", "General", 0, QApplication::UnicodeUTF8));
+    QLineEdit* lineEdit = new QLineEdit(tr("DISTRIBUTED by GRAME - Centre de Creation Musicale"));
     
-    MyTabWidget->setMaximumSize(fScreenWidth/2, fScreenHeight*3/4);
-    
-    plainTextEdit_7->setReadOnly(true);
+    generalText->setReadOnly(true);
     lineEdit->setReadOnly(true);
     
-    QLabel* tittle = new QLabel(tr("FAUST LIVE"));
-    //    tittle->setStyleSheet("*{color:white;}");
-    tittle->setAlignment(Qt::AlignCenter);
-    layout1->addWidget(tittle);
-    layout1->addWidget(plainTextEdit_7);
-    layout1->addWidget(new QLabel(tr("")));
-    layout1->addWidget(lineEdit);
+    myTabWidget->addTab(tab_general, QString(tr("General")));
     
-    groupBox_1->setLayout(layout1);
+    generalLayout->addWidget(generalText);
+    generalLayout->addWidget(lineEdit);
     
-    layout2->addWidget(groupBox_1);
-    tab_1->setLayout(layout2);
+    tab_general->setLayout(generalLayout);
     
     //----------------------Tools
     
-    tab_2 = new QWidget();
-    groupBox_2 = new QGroupBox(tab_2);
-    groupBox_2->setGeometry(QRect(0,0, 100, 100));
+    QWidget* tab_tool = new QWidget;
     
-    QString sheet = QString::fromLatin1("a{ text-decoration: underline; color: white;}");
+    QGridLayout* toolLayout = new QGridLayout;
     
-    plainTextEdit_4 = new QTextBrowser(groupBox_2);
-    plainTextEdit_4->setOpenExternalLinks(true);
-    plainTextEdit_4->document()->setDefaultStyleSheet(sheet);
-    plainTextEdit_5 = new QTextBrowser(groupBox_2);
-    plainTextEdit_5->setOpenExternalLinks(true);
-    plainTextEdit_5->document()->setDefaultStyleSheet(sheet);
-    plainTextEdit_6 = new QTextBrowser(groupBox_2);
-    plainTextEdit_6->setOpenExternalLinks(true);
-    plainTextEdit_6->document()->setDefaultStyleSheet(sheet);
-    plainTextEdit_8 = new QTextBrowser(groupBox_2);
-    plainTextEdit_8->setOpenExternalLinks(true); 
-    plainTextEdit_8->document()->setDefaultStyleSheet(sheet);
-    plainTextEdit_14 = new QTextBrowser(groupBox_2);
-    plainTextEdit_14->setOpenExternalLinks(true); 
-    plainTextEdit_14->document()->setDefaultStyleSheet(sheet);
-    MyTabWidget->addTab(tab_2, QString());
+    QListWidget *vue = new QListWidget;
     
-    plainTextEdit_4->setHtml("<br>Jack (the Jack Audio Connection Kit) is a low-latency audio server. It can connect any number of different applications to a single hardware audio device.""<br>""YOU CAN DOWNLOAD IT HERE : <a href =http://www.jackosx.com> www.jackosx.com</a>\n");
-    plainTextEdit_5->setHtml("<br>To develop your own effects, you will need to handle Faust language.\n""<br>""LEARN MORE ABOUT FAUST : <a href = http://faust.grame.fr>faust.grame.fr</a>");
-    plainTextEdit_6->setHtml("<br>Thanks to its embedded LLVM compiler, this application allows dynamical compilation of your faust objects.""<br>""LEARN MORE ABOUT LLVM : <a href = http://llvm.org>llvm.org</a>");
-    plainTextEdit_8->setHtml("<br>Core Audio is the digital audio infrastructure of MAC OS X.""<br>""LEARN MORE ABOUT COREAUDIO : <a href = http://developer.apple.com/library/ios/#documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatisCoreAudio/WhatisCoreAudio.html>developer.apple.com </a> ");
-    plainTextEdit_14->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. That way you can send your audio signals through the network to a server.""<br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+    vue->addItem(QString(tr("FAUST")));
+    vue->addItem(QString(tr("LLVM")));
     
-    MyTabWidget->setTabText(MyTabWidget->indexOf(tab_2), QApplication::translate("HelpMenu", "Tools", 0, QApplication::UnicodeUTF8));
+#ifdef COREAUDIO
+    vue->addItem(QString(tr("COREAUDIO")));
+#endif
     
-    QLabel* tittle20 = new QLabel(tr("COREAUDIO"));
-    //    tittle20->setStyleSheet("*{color:white;}");
-    tittle20->setAlignment(Qt::AlignCenter);
-    QLabel* tittle2 = new QLabel(tr("JACK"));
-    //    tittle2->setStyleSheet("*{color:white;}");
-    tittle2->setAlignment(Qt::AlignCenter);
-    QLabel* tittle30 = new QLabel(tr("NETJACK"));
-    //    tittle30->setStyleSheet("*{color:white;}");
-    tittle30->setAlignment(Qt::AlignCenter);
-    QLabel* tittle3 = new QLabel(tr("FAUST"));
-    //    tittle3->setStyleSheet("*{color:white;}");
-    tittle3->setAlignment(Qt::AlignCenter);
-    QLabel* tittle4 = new QLabel(tr("LLVM COMPILER"));
-    //    tittle4->setStyleSheet("*{color:white;}");
-    tittle4->setAlignment(Qt::AlignCenter);
+#ifdef JACK
+    vue->addItem(QString(tr("JACK")));
+#endif
     
-    layout3->addWidget(tittle20);
-    layout3->addWidget(plainTextEdit_8);
-    layout3->addWidget(tittle2);
-    layout3->addWidget(plainTextEdit_4);
-    layout3->addWidget(tittle30);
-    layout3->addWidget(plainTextEdit_14);
-    layout3->addWidget(tittle3);
-    layout3->addWidget(plainTextEdit_5);
-    layout3->addWidget(tittle4);
-    layout3->addWidget(plainTextEdit_6);
+#ifdef NETJACK
+    vue->addItem(QString(tr("NETJACK")));
+#endif
     
-    groupBox_2->setLayout(layout3);
+    vue->setMaximumWidth(100);
+    connect(vue, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setToolText(const QString &)));
     
-    layout4->addWidget(groupBox_2);
-    tab_2->setLayout(layout4);
+    toolLayout->addWidget(vue, 0, 0, 1, 1);
     
-    //-----------------------Window Properties
+    fToolText = new QTextBrowser;
+    fToolText->setOpenExternalLinks(true);
+    fToolText->setReadOnly(true);
+
+    myTabWidget->addTab(tab_tool, QString(tr("Tools")));
     
-    tab_3 = new QWidget();
-    groupBox_3 = new QGroupBox(tab_3);
-    groupBox_3->setGeometry(QRect(0,0, 100, 100));
+    toolLayout->addWidget(fToolText, 0, 1, 1, 2);
+    tab_tool->setLayout(toolLayout);
     
-    plainTextEdit_9 = new QPlainTextEdit(groupBox_3);
-    plainTextEdit_9->setReadOnly(true);
-    plainTextEdit_10 = new QPlainTextEdit(groupBox_3);
-    plainTextEdit_10->setReadOnly(true);
-    plainTextEdit_11 = new QPlainTextEdit(groupBox_3);
-    plainTextEdit_11->setReadOnly(true);
-    plainTextEdit_17 = new QPlainTextEdit(groupBox_3);
-    plainTextEdit_17->setReadOnly(true);
-    plainTextEdit_13 = new QPlainTextEdit(groupBox_3);
-    plainTextEdit_13->setReadOnly(true);
-    MyTabWidget->addTab(tab_3, QString());
-    
-    plainTextEdit_9->setPlainText(QApplication::translate("HelpMenu", "\nWith Jack router, you can connect a window to another one or to an external application like I-Tunes, VLC or directly to the computer input/output.\nYou can choose Jack as the audio architecture in the preferences.", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_10->setPlainText(QApplication::translate("HelpMenu", "\nYou can open in a text editor the code Faust corresponding to the active window. When you save your modification, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connexions that can be kept will stay unmodified.", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_11->setPlainText(QApplication::translate("HelpMenu", "\nThose actions correspond to a modification of the audio application running in the active window. An audio crossfade will be calculated between the outcoming and the incoming audio application. The new application will be connected as the outcoming one. This way, if the incoming application has more ports than the outcoming one, they'll have to be connected by the user.\n""It is possible to drop/paste a source file.dsp, some Faust code, a url leading to Faust code.", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_17->setPlainText(QApplication::translate("HelpMenu", "\nYou can add compilation options in the edit line of the window. If several windows correspond to the same audio application, they will load the chosen options.\n""You can set the default compilation options in the preferences.\n""	EXAMPLE = -vec -fun", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_13->setPlainText(QApplication::translate("HelpMenu", "\nYou can display a new window with a QRcode so that you can control the userInterface of the audio application remotely.", 0, QApplication::UnicodeUTF8));
-    MyTabWidget->setTabText(MyTabWidget->indexOf(tab_3), QApplication::translate("HelpMenu", "Properties of a Window", 0, QApplication::UnicodeUTF8));
-    
-    
-    QLabel* tittle5 = new QLabel(tr("AUDIO CONNECTIONS/DECONNECTIONS"));
-    //    tittle5->setStyleSheet("*{color:white;}");
-    tittle5->setAlignment(Qt::AlignCenter);
-    QLabel* tittle6 = new QLabel(tr("EDIT FAUST SOURCE"));
-    //    tittle6->setStyleSheet("*{color:white;}");
-    tittle6->setAlignment(Qt::AlignCenter);
-    QLabel* tittle7 = new QLabel(tr("DRAG & DROP/PASTE"));
-    //    tittle7->setStyleSheet("*{color:white;}");
-    tittle7->setAlignment(Qt::AlignCenter);
-    QLabel* tittle8 = new QLabel(tr("VIEW QRCODE"));
-    //    tittle8->setStyleSheet("*{color:white;}");
-    tittle8->setAlignment(Qt::AlignCenter);
-    QLabel* tittle9 = new QLabel(tr("COMPILATION OPTIONS"));
-    //    tittle9->setStyleSheet("*{color:white;}");
-    tittle9->setAlignment(Qt::AlignCenter);
-    
-    layout5->addWidget(tittle5);
-    layout5->addWidget(plainTextEdit_9);
-    layout5->addWidget(tittle6);
-    layout5->addWidget(plainTextEdit_10);
-    layout5->addWidget(tittle7);
-    layout5->addWidget(plainTextEdit_11);
-    layout5->addWidget(tittle9); 
-    layout5->addWidget(plainTextEdit_17);
-    layout5->addWidget(tittle8);
-    layout5->addWidget(plainTextEdit_13);
-    
-    groupBox_3->setLayout(layout5);
-    
-    layout6->addWidget(groupBox_3);
-    tab_3->setLayout(layout6);
+    vue->setCurrentRow(0);
     
     //-----------------------Faust Live Menu
     
-    tab_4 = new QWidget();
-    groupBox_4 = new QGroupBox(tab_4);
-    groupBox_4->setGeometry(QRect(0,0, 100, 100));
+    QWidget* tab_app = new QWidget();
     
-    plainTextEdit = new QPlainTextEdit(groupBox_4);
-    plainTextEdit->setReadOnly(true);
-    plainTextEdit_2 = new QPlainTextEdit(groupBox_4);
-    plainTextEdit_2->setReadOnly(true);
-    plainTextEdit_3 = new QPlainTextEdit(groupBox_4);
-    plainTextEdit_3->setReadOnly(true);
-    plainTextEdit_12 = new QPlainTextEdit(groupBox_4);
-    plainTextEdit_12->setReadOnly(true);
-    MyTabWidget->addTab(tab_4, QString());
+    QGridLayout* appLayout = new QGridLayout;
     
-    plainTextEdit->setPlainText(QApplication::translate("HelpMenu", "\nOpen a new empty Window  ==> you can create a new effect from a simple process\n""\n""Open a dsp already coded ==> You can test and keep editing a DSP", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_2->setPlainText(QApplication::translate("HelpMenu", "\nDuplicate Active Window ==> The new window has the same characteristics : same Faust code, same graphical parameters, same audio connections.\n", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_3->setPlainText(QApplication::translate("HelpMenu", "\nTake a snapshot ==> Saving the actual state of the application (all the windows, their graphical parameters, their audio connections, their position on the screen).\n""\n""Recall Session ==> Opening of a snapshot and closing every window opened. All the windows of the snapshot are re-opened with their graphical parameters and the connections are re-established. If one of the source file can't be found, the user is warned and the application is re-open from the saved file corresponding\n""\n""Import Snapshot ==> The same principle than recalling except that the current windows are not closed. That way, some audio application/windows may have to be renamed during the importation.", 0, QApplication::UnicodeUTF8));
-    plainTextEdit_12->setPlainText(QApplication::translate("HelpMenu", "\nA window will be displayed every time the program catches an error : whether it's a error in the edited code, a compilation problem, a lack of memory during saving action, ...", 0, QApplication::UnicodeUTF8));
-    MyTabWidget->setTabText(MyTabWidget->indexOf(tab_4), QApplication::translate("HelpMenu", "Use FaustLive Menu", 0, QApplication::UnicodeUTF8));
+    QListWidget *vue2 = new QListWidget;
     
-    QLabel* tittle10 = new QLabel(tr("NEW/OPEN WINDOW"));
-    //    tittle10->setStyleSheet("*{color:white;}");
-    tittle10->setAlignment(Qt::AlignCenter);
-    QLabel* tittle11 = new QLabel(tr("DUPLICATE WINDOW"));
-    //    tittle11->setStyleSheet("*{color:white;}");
-    tittle11->setAlignment(Qt::AlignCenter);
-    QLabel* tittle12 = new QLabel(tr("SNAPSHOTS"));
-    //    tittle12->setStyleSheet("*{color:white;}");
-    tittle12->setAlignment(Qt::AlignCenter);
-    QLabel* tittle13 = new QLabel(tr("ERROR WINDOW"));
-    //    tittle13->setStyleSheet("*{color:white;}");
-    tittle13->setAlignment(Qt::AlignCenter);
+    vue2->addItem(QString(tr("New Default Window")));
+    vue2->addItem(QString(tr("Open")));    
+    vue2->addItem(QString(tr("Take Snapshot")));
+    vue2->addItem(QString(tr("Recall Snapshot")));
+    vue2->addItem(QString(tr("Import Snapshot")));
+    vue2->addItem(QString(tr("Navigate")));
+    vue2->addItem(QString(tr("Preferences")));
+    vue2->addItem(QString(tr("Error Displaying")));
     
-    layout7->addWidget(tittle10);
-    layout7->addWidget(plainTextEdit);
-    layout7->addWidget(tittle11);
-    layout7->addWidget(plainTextEdit_2);
-    layout7->addWidget(tittle12);
-    layout7->addWidget(plainTextEdit_3);
-    layout7->addWidget(tittle13);
-    layout7->addWidget(plainTextEdit_12);    
-    groupBox_4->setLayout(layout7);
+    vue2->setMaximumWidth(150);
+    connect(vue2, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setAppPropertiesText(const QString &)));
     
-    layout8->addWidget(groupBox_4);
-    tab_4->setLayout(layout8);
+    appLayout->addWidget(vue2, 0, 0, 1, 1);
     
-    layout->addWidget(pushButton);
-    layout->setSizeConstraint(QLayout::SetNoConstraint);
-    groupBox->setLayout(layout);
-    groupBox->setGeometry(QRect(fScreenWidth/4, 0, fScreenWidth/4, fScreenHeight/4));
-    fHelpWindow->setCentralWidget(groupBox);
+    fAppText = new QPlainTextEdit;
+    fAppText->setReadOnly(true);
     
-    MyTabWidget->setCurrentIndex(0);
+    vue2->setCurrentRow(0);
+    
+    appLayout->addWidget(fAppText, 0, 1, 1, 2);
+
+    myTabWidget->addTab(tab_app, QString(tr("Application Properties")));
+    
+    tab_app->setLayout(appLayout);
+    
+    
+    //-----------------------Window Properties
+    
+    QWidget* tab_win = new QWidget();
+    
+    QGridLayout* winPropLayout = new QGridLayout;
+    
+    QListWidget *vue3 = new QListWidget;
+    
+#ifdef JACK
+    vue3->addItem(QString(tr("Audio Cnx/Dcnx")));
+#endif
+    
+    vue3->addItem(QString(tr("Edit Source")));    
+    vue3->addItem(QString(tr("Drag and Drop / Paste")));
+    vue3->addItem(QString(tr("Duplicate")));
+    vue3->addItem(QString(tr("View QrCode")));
+    vue3->addItem(QString(tr("Window Options")));
+    vue3->addItem(QString(tr("View SVG")));
+    vue3->addItem(QString(tr("Export")));
+    
+    vue3->setMaximumWidth(150);
+    connect(vue3, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setWinPropertiesText(const QString &)));
+    
+    winPropLayout->addWidget(vue3, 0, 0, 1, 1);
+    
+    fWinText = new QPlainTextEdit;
+    fWinText->setReadOnly(true);
+    
+    vue3->setCurrentRow(0);
+    
+    winPropLayout->addWidget(fWinText, 0, 1, 1, 2);
+    
+    tab_win->setLayout(winPropLayout);
+    
+    myTabWidget->addTab(tab_win, QString(tr("Window Properties")));
+
+//Help Window Layout
+
+    winLayout->addWidget(myTabWidget);
+    winLayout->addWidget(new QLabel(""));
+    winLayout->addWidget(pushButton);
+    winGroup->setLayout(winLayout);
+    fHelpWindow->setCentralWidget(winGroup);
+    
+    myTabWidget->setCurrentIndex(0);
 }
 
 void FLApp::apropos(){
@@ -3990,7 +3954,7 @@ void FLApp::init_PreferenceWindow(){
     
     fAudioBox = new QGroupBox(menu2);
     fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
-    
+
     layout2->addWidget(fAudioBox);
     menu2->setLayout(layout2);
     
@@ -4064,9 +4028,9 @@ void FLApp::init_PreferenceWindow(){
     layout4->addWidget(pastel, 0, 1);
     
     container->setLayout(layout4);
+    
     layout5->addWidget(container);
     menu3->setLayout(layout5);
-    
     
     layout3->addRow(myTab);
     layout3->addRow(intermediateWidget);

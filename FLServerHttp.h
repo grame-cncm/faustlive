@@ -144,13 +144,17 @@ Init();\n\
 #include <fcntl.h>
 #include <stdlib.h>
 
-#include <QObject>
 #include <microhttpd.h>
 #include <boost/wave/util/cpp_include_paths.hpp>
 
 #include <map>
 #include <vector>
 #include <string>
+
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
 using namespace std;
 

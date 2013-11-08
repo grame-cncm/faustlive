@@ -14,7 +14,11 @@
 #define _AudioCreator_h
 
 #include <string>
+
 #include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
 class AudioSettings;
 class AudioManager;
@@ -48,6 +52,7 @@ class AudioCreator : public QObject{
         QFormLayout*    fLayout;                
         QGroupBox*      fMenu;
         QGroupBox*      fSettingsBox;
+        QGroupBox*      fUselessBox;
         QComboBox*      fAudioArchi;
 
     //Save and read settings in the saving file

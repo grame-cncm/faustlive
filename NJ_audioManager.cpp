@@ -27,7 +27,7 @@ NJ_audioManager::~NJ_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool NJ_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* port_name){
+bool NJ_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
     if(init(name, DSP))
         return true;

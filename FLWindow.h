@@ -15,7 +15,11 @@
 #define _FLWindow_h
 
 #include <string>
+
 #include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
 #include "faust/gui/FUI.h"
 
@@ -26,6 +30,7 @@
 
 class QTGUI;
 class FLToolBar;
+class OSCUI;
 
 using namespace std;
 
@@ -46,6 +51,7 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
+        OSCUI*          fOscInterface;      //OSC interface 
     
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         int             fPortHttp;

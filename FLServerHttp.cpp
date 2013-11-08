@@ -9,12 +9,14 @@
 // FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
 
 #include <string>
-#include <QtGui>
+
 #include "FLServerHttp.h"
 
 #define kFile "HtmlCompiler.html"
 
 #define kTmpFile "TmpFile.dsp"
+
+#define kServerPort 7777
 
 using namespace std;
 
@@ -33,7 +35,7 @@ FLServerHttp::~FLServerHttp(){}
 //Start Server Listening
 bool FLServerHttp::start(){
     
-    unsigned short port = 7777;
+    unsigned short port = kServerPort;
     
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
@@ -189,7 +191,7 @@ int FLServerHttp::send_page(struct MHD_Connection *connection, const char *page,
     struct MHD_Response *response;
     
     response = MHD_create_response_from_buffer(length, (void*)page,
-                                               MHD_RESPMEM_PERSISTENT);
+                                               MHD_RESPMEM_MUST_COPY);
     if (!response) {
         return MHD_NO;
     }

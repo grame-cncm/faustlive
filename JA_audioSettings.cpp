@@ -17,7 +17,7 @@ void JA_audioSettings::writeSettings(){}
 void JA_audioSettings::setVisualSettings(){}
 void JA_audioSettings::storeVisualSettings(){}
 
-bool JA_audioSettings::isEqual(AudioSettings* as){
+bool JA_audioSettings::isEqual(AudioSettings* /*as*/){
     
     return true;
 }

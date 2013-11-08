@@ -16,7 +16,7 @@
 #include "NJ_audioSettings.h"
 
 #include <sstream>
-#include <QFileInfo>
+
 #include "utilities.h"
 
 NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : AudioSettings(homeFolder, parent){

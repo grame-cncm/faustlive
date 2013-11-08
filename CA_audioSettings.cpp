@@ -8,7 +8,6 @@
 
 #include "CA_audioSettings.h"
 #include <sstream>
-#include <QFileInfo>
 #include "utilities.h"
 
 CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){
@@ -37,7 +36,9 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     layout->addRow(fsplRate);
     
+//        printf("SET LAYOUT %p\n", this);
     parent->setLayout(layout);
+//        printf("AFTER LAYOUT %p\n", this);
     
     readSettings();
     setVisualSettings();
@@ -59,7 +60,7 @@ int CA_audioSettings::get_BufferSize(){
 //Real to Visual
 void CA_audioSettings::setVisualSettings(){
     
-    printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
+//    printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
     
     stringstream bs;
     bs << fBufferSize;
