@@ -118,7 +118,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initializing preference and save dialog
     fErrorWindow = new FLErrorWindow();
-    fErrorWindow->setWindowTitle("ERROR_WINDOW");
+    fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
     fErrorWindow->init_Window();
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 }
@@ -371,7 +371,7 @@ void FLApp::setup_Menu(){
     fHelpWindow = new QMainWindow;
     fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
     this->init_HelpWindow();
-    fHelpWindow->move(fScreenWidth/3, 20);
+    fHelpWindow->move(fScreenWidth/3, fScreenHeight/3);
     
     fAboutAction = new QAction(tr("&Help..."), this);
     fAboutAction->setToolTip(tr("Show the library's About Box"));
@@ -697,7 +697,7 @@ FLEffect* FLApp::getEffectFromSource(string& source, string& nameEffect, string&
                 createSourceFile(fichierSource, content);
         }
         
-//        StopProgressSlot();
+        StopProgressSlot();
         delete myNewEffect;
         return NULL;
     }
@@ -2676,7 +2676,7 @@ void FLApp::setAppPropertiesText(const QString& currentText){
     else if(currentText.compare("Import Snapshot")==0)
         fAppText->setPlainText("\nAdds the state of the application as saved to the current state of the application. That way, current windows are not closed. Some audio application/windows may have to be renamed during the importation.\n");
     
-    else if(currentText.compare("Navigation")==0)
+    else if(currentText.compare("Navigate")==0)
         fAppText->setPlainText("\nBrings to front end the chosen running window\n");
     
     else if(currentText.compare("Preferences")==0)
@@ -2733,9 +2733,9 @@ void FLApp::init_HelpWindow(){
     
     QVBoxLayout* generalLayout = new QVBoxLayout;
     
-    QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamical compiler for processors coded with Faust language.\nThanks to its embedded Faust & LLVM compiler, this application allows dynamical compilation of your faust objects.\n""\n""Every window of the application corresponds to an audio application, which parameters you can adjust, that you can auditorely connect with Jack to other audio applications!\n"));
+    QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamical compiler for processors coded with Faust.\nIt embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
     
-    QPlainTextEdit* lineEdit = new QPlainTextEdit(tr("\n\n\n\nDISTRIBUTED by GRAME - Centre de Creation Musicale"));
+    QLineEdit* lineEdit = new QLineEdit(tr("DISTRIBUTED by GRAME - Centre de Creation Musicale"));
     
     generalText->setReadOnly(true);
     lineEdit->setReadOnly(true);

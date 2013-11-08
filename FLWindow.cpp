@@ -43,7 +43,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fHttpdWindow = new HTTPWindow();
     connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
     
-    fRCInterface = new FUI;
+    fRCInterface = NULL;
     fOscInterface = NULL;
     fMenu = NULL;
     
@@ -323,7 +323,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     string inter = fWindowName + " : " + fEffect->getName();
     
     fInterface = new QTGUI(this, inter.c_str());
-//    fRCInterface = new FUI;
+    fRCInterface = new FUI;
     
     char* argv[1];
     argv[0] = (char*)fWindowName.c_str();
@@ -337,7 +337,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
         //Building interface and Audio parameters
         fCurrent_DSP->buildUserInterface(fRCInterface);
         fCurrent_DSP->buildUserInterface(fInterface);
-//        fCurrent_DSP->buildUserInterface(fOscInterface);
+        fCurrent_DSP->buildUserInterface(fOscInterface);
         
         if(init)
             print_initWindow();        
@@ -356,7 +356,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
             setMinimumSize(QSize(0, 0));
             setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 //            adjustSize();
-//            fOscInterface->run();
+            fOscInterface->run();
             fInterface->run();
             return true;
         } 
