@@ -48,7 +48,7 @@ class AudioCreator : public QObject{
         QFormLayout*    fLayout;                
         QGroupBox*      fMenu;
         QGroupBox*      fSettingsBox;
-        QGroupBox*      fSettingsIntermediateBox;
+        QGroupBox*      fUselessBox;
         QComboBox*      fAudioArchi;
 
     //Save and read settings in the saving file

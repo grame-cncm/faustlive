@@ -37,9 +37,9 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     layout->addRow(fsplRate);
     
-        printf("SETLAYOUT \n");
+//        printf("SET LAYOUT %p\n", this);
     parent->setLayout(layout);
-        printf("AFTERLAYOUT \n");
+//        printf("AFTER LAYOUT %p\n", this);
     
     readSettings();
     setVisualSettings();

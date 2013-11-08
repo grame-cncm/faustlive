@@ -81,7 +81,7 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
     fSettingsBox = new QGroupBox;
-//    fSettingsIntermediateBox = new QGroupBox;
+    fUselessBox = new QGroupBox;
     
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
     
@@ -91,7 +91,7 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
     fMenu->setLayout(fLayout);
 
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
     printf("fIntermediateSettings = %p\n", fCurrentSettings);
 }
 
@@ -109,6 +109,7 @@ AudioCreator::~AudioCreator(){
     
     delete fFactory;
     delete fSettingsBox;
+    delete fUselessBox;
     delete fCurrentSettings;
     delete fIntermediateSettings;
 }
@@ -124,9 +125,11 @@ void AudioCreator::saveCurrentSettings(){
     fAudioIndex = fAudioArchi->currentIndex();
     
     delete fCurrentSettings;
-
+    delete fUselessBox;
+    fUselessBox = new QGroupBox;
+    
     reset_Settings();
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
 }
 
 //Dynamic change when the audio index (= audio architecture) changes
@@ -143,7 +146,7 @@ void AudioCreator::indexChanged(int index){
         delete fSettingsBox;
     
     fFactory = createFactory(index);
-    fSettingsBox = new QGroupBox(fMenu);
+    fSettingsBox = new QGroupBox;
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
     
     fLayout->addRow(fSettingsBox);
