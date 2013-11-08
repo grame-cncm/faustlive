@@ -1,5 +1,5 @@
-#ifndef _UTILITIES_H
-#define _UTILITIES_H
+#ifndef _utilities_H
+#define _utilities_H
 
 #include <QtGui>
 #include <string>

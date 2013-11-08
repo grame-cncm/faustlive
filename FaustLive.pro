@@ -56,6 +56,9 @@ LIBS+=-L/opt/local/lib -lboost_system-mt
 LIBS+=-L/opt/local/lib -lboost_filesystem-mt
 LIBS+=-L/opt/local/lib -lboost_program_options-mt
 
+HEADERS += utilities.h 
+SOURCES += utilities.cpp
+
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
@@ -106,7 +109,7 @@ equals(NJVAR, 1){
 	message("NETJACK NOT LINKED")
 }		
 
-HEADERS += 	AudioSettings.h \
+HEADERS +=	AudioSettings.h \
 			AudioManager.h \
 			AudioFactory.h \
 			AudioCreator.h \
@@ -123,8 +126,7 @@ HEADERS += 	AudioSettings.h \
 			FLEffect.h \
 			FLWindow.h \ 
 			FLApp.h \
-    		SimpleParser.h \
-    		utilities.h 
+    		SimpleParser.h
 							
 SOURCES += 	AudioCreator.cpp \
 			AudioFader_Implementation.cpp \
@@ -138,5 +140,4 @@ SOURCES += 	AudioCreator.cpp \
 			FLWindow.cpp \ 
 			FLApp.cpp \
 			main.cpp \
-    		SimpleParser.cpp \
-    		utilities.cpp
+    		SimpleParser.cpp

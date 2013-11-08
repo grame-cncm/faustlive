@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+// HTTPWindow creates a QrCode which correspond to an httpd interface of your faust application so that you can control it within distance. 
+
 #include "HTTPWindow.h"
 
 #include <string.h>
@@ -19,8 +21,7 @@
 
 #include "faust/gui/httpdUI.h"
 
-
-
+#define kServerPort "7777"
 
 using namespace std;
 
@@ -43,6 +44,7 @@ HTTPWindow::~HTTPWindow(){
     //    delete fTitle;
 }
 
+//Returns the httpdUI url
 string HTTPWindow::getUrl(){
     
     string url = "http://" + fEntireAddress;
@@ -50,6 +52,7 @@ string HTTPWindow::getUrl(){
     return url;
 }
 
+//Returns httpdUI Port
 int HTTPWindow::get_Port(){
     if(fInterface != NULL)
         return fInterface->getTCPPort();
@@ -57,6 +60,7 @@ int HTTPWindow::get_Port(){
         return 0;
 }
 
+//Build QRCode Window from url
 void HTTPWindow::displayQRCode(string url){
     
     QWidget* centralWidget = new QWidget;
@@ -116,6 +120,7 @@ void HTTPWindow::displayQRCode(string url){
     //    centralWidget->adjustSize();
 }
 
+//Brings window on front end and titles the window
 void HTTPWindow::frontShow_Httpd(string windowTitle){
     
     setWindowTitle(windowTitle.c_str());
@@ -124,8 +129,8 @@ void HTTPWindow::frontShow_Httpd(string windowTitle){
     adjustSize();
 }
 
+//Display Window
 void HTTPWindow::display_HttpdWindow(int x, int y){
-    //Display Message (URL + portNumber)+ QRcode in the window
    
     move(x, y);
     
@@ -134,7 +139,9 @@ void HTTPWindow::display_HttpdWindow(int x, int y){
     
     string url;
     url = fIPaddress;
-    url+=":7777/";
+    url+=":";
+    url += kServerPort;
+    url += "/";
     url += s.str();
     
     fEntireAddress = fIPaddress;
@@ -153,6 +160,7 @@ void HTTPWindow::hide_httpdWindow(){
     hide();
 }
 
+//Search for local IP adress and stores it in fIPaddress
 void HTTPWindow::search_IPadress(){
     
     //If IPadress was already found
@@ -173,6 +181,7 @@ void HTTPWindow::search_IPadress(){
     }
 }
 
+//Build Remote control interface
 bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
@@ -182,15 +191,14 @@ bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* cu
     
     stringstream s;
     s<<port;
-    fPort = s.str();
     
-    fOptionPort = "-port";
+    string optionPort = "-port";
     
     char* argv[3];
 
     argv[0] = (char*)(fTitle.c_str());
-    argv[1] = (char*)(fOptionPort.c_str());
-    argv[2] = (char*)(fPort.c_str());
+    argv[1] = (char*)(optionPort.c_str());
+    argv[2] = (char*)(s.str().c_str());
 
     fInterface = new httpdUI(argv[0], 3, argv);
 
@@ -206,10 +214,12 @@ bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* cu
     }
 }
 
+//Launch interface
 void HTTPWindow::launch_httpdInterface(){
     fInterface->run();
 }
 
+//Exports QRCode to PNG
 void HTTPWindow::toPNG(){
     
     string fileName = getenv("HOME");
@@ -222,6 +232,7 @@ void HTTPWindow::toPNG(){
     fQrCode.save(&file, "PNG");
 }
 
+//Right Click reaction = Export to png
 void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
     
     QMenu *menu = new QMenu();
@@ -239,6 +250,7 @@ void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
     
 }
 
+//Tracking for close all shortcut event = ALT + x button
 void HTTPWindow::keyPressEvent(QKeyEvent* event){ 
     
     if(event->key() == Qt::Key_Alt) fShortcut = true;

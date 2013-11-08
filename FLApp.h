@@ -113,6 +113,10 @@ class FLApp : public QApplication
     
     //Appendices Dialogs
         QMainWindow*        fHelpWindow;        //Help Dialog
+        QTextBrowser*       fToolText;          //ToolText in Help Dialog
+        QPlainTextEdit*       fAppText;
+        QPlainTextEdit*       fWinText;
+    
         FLErrorWindow*      fErrorWindow;       //Error Dialog
         QDialog*            fPresWin;           //Presentation Window
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
@@ -329,6 +333,9 @@ class FLApp : public QApplication
         void                cancelPref();
     
     //---------Help
+        void                setToolText(const QString&);
+        void                setAppPropertiesText(const QString& currentText);
+        void                setWinPropertiesText(const QString& currentText);
         void                apropos();
         void                end_apropos();
         void                version_Action();
