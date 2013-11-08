@@ -217,7 +217,7 @@ void FLApp::setup_Menu(){
             i++;
         }
         
-        fFileMenu->addAction(fMenuOpen_Example->menuAction());
+//        fFileMenu->addAction(fMenuOpen_Example->menuAction());
     }
     
     fOpenRecentAction = new QMenu(tr("&Open Recent File"), fFileMenu);
@@ -230,7 +230,7 @@ void FLApp::setup_Menu(){
         fOpenRecentAction->addAction(fRecentFileAction[i]);
     }
     
-    fFileMenu->addAction(fOpenRecentAction->menuAction());
+//    fFileMenu->addAction(fOpenRecentAction->menuAction());
     
     //SESSION
     
@@ -364,12 +364,14 @@ void FLApp::setup_Menu(){
     
     fPrefDialog = new QDialog;
     fPrefDialog->setWindowFlags(Qt::FramelessWindowHint);
+    
     init_PreferenceWindow();
     
     //--------------------HELP
     
     fHelpWindow = new QMainWindow;
     fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
+    
     this->init_HelpWindow();
     fHelpWindow->move(fScreenWidth/3, fScreenHeight/3);
     
@@ -392,8 +394,8 @@ void FLApp::setup_Menu(){
     fHelpMenu->addAction(fAboutQtAction);
     fHelpMenu->addSeparator();
     fHelpMenu->addAction(fAboutAction);
-    fHelpMenu->addAction(fVersionAction);
-    fHelpMenu->addSeparator();
+//    fHelpMenu->addAction(fVersionAction);
+//    fHelpMenu->addSeparator();
     fHelpMenu->addAction(fPresentationAction);
     fHelpMenu->addSeparator();
     fHelpMenu->addAction(fPreferencesAction);
@@ -1609,7 +1611,7 @@ void FLApp::import_Recent_Session(){
 
 //---------------CURRENT SESSION FUNCTIONS
 
-//
+//Add window in Current Session Structure
 void FLApp::addWinToSessionFile(FLWindow* win){
     
     string compilationOptions = convert_compilationOptions(win->get_Effect()->getCompilationOptions());
@@ -1642,6 +1644,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     fSessionContent.push_back(intermediate);
 }
 
+//Add window from Current Session Structure
 void FLApp::deleteWinFromSessionFile(FLWindow* win){
     
     list<WinInSession*>::iterator it;
@@ -1669,6 +1672,20 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
     }
 }
 
+//Update Current Session Structure with current parameters of the windows
+void FLApp::update_CurrentSession(){
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+        
+        deleteWinFromSessionFile(*it);
+        addWinToSessionFile(*it);
+        (*it)->save_Window();
+    }
+}
+
+//Reset Current Session Folder
 void FLApp::reset_CurrentSession(){
     
     QDir srcDir(fSessionFolder.c_str());
@@ -1702,18 +1719,8 @@ void FLApp::reset_CurrentSession(){
     recall_Settings(fHomeSettings);
 }
 
-void FLApp::update_CurrentSession(){
-    
-    list<FLWindow*>::iterator it;
-    
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
-        
-        deleteWinFromSessionFile(*it);
-        addWinToSessionFile(*it);
-        (*it)->save_Window();
-    }
-}
-
+//Behaviour of session restoration when re-starting the application
+//The user is notified in case of source file lost or modified. He can choose to reload from original file or backup.
 void FLApp::currentSessionRestoration(list<WinInSession*>* session){
     
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
@@ -1747,7 +1754,7 @@ void FLApp::currentSessionRestoration(list<WinInSession*>* session){
             }
             
             QPushButton* yes_Button;
-            QPushButton*  cancel_Button; 
+            QPushButton* cancel_Button; 
             
             QString msg(mesg.c_str());
             
@@ -1804,6 +1811,8 @@ void FLApp::currentSessionRestoration(list<WinInSession*>* session){
 
 //---------------SAVE SNAPSHOT FUNCTIONS
 
+//Save the current State in SnapshotFolder.tar
+//It copies the hidden Session Folder and compresses it
 void FLApp::take_Snapshot(){
     
     QFileDialog* fileDialog = new QFileDialog;
@@ -1866,6 +1875,8 @@ void FLApp::take_Snapshot(){
 
 //---------------RESTORE SNAPSHOT FUNCTIONS
 
+//Behaviour of session restoration when opening a snapshot
+//The user is notified that the backup file has been used to restore exact state.
 void FLApp::snapshotRestoration(string& file, list<WinInSession*>* session){
     
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
@@ -2645,6 +2656,7 @@ void FLApp::redirect_RCAction(const QPoint & p){
 
 //--------------------------------HELP----------------------------------------
 
+//Set Text in Tools Menu of HELP
 void FLApp::setToolText(const QString & currentText){
     
     if(currentText.compare("FAUST") == 0)
@@ -2659,6 +2671,7 @@ void FLApp::setToolText(const QString & currentText){
         fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. That way you can send your audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
 }
 
+//Set Text in Application Properties Menu of HELP
 void FLApp::setAppPropertiesText(const QString& currentText){
     
     if(currentText.compare("New Default Window")==0)
@@ -2687,6 +2700,7 @@ void FLApp::setAppPropertiesText(const QString& currentText){
             
 }
 
+//Set Text in Window Properties Menu of HELP
 void FLApp::setWinPropertiesText(const QString& currentText){
     
     if(currentText.compare("Audio Cnx/Dcnx")==0)
@@ -3940,7 +3954,7 @@ void FLApp::init_PreferenceWindow(){
     
     fAudioBox = new QGroupBox(menu2);
     fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
-    
+
     layout2->addWidget(fAudioBox);
     menu2->setLayout(layout2);
     
@@ -4014,9 +4028,9 @@ void FLApp::init_PreferenceWindow(){
     layout4->addWidget(pastel, 0, 1);
     
     container->setLayout(layout4);
+    
     layout5->addWidget(container);
     menu3->setLayout(layout5);
-    
     
     layout3->addRow(myTab);
     layout3->addRow(intermediateWidget);

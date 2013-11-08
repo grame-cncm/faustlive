@@ -37,7 +37,9 @@ CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettin
     layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     layout->addRow(fsplRate);
     
+        printf("SETLAYOUT \n");
     parent->setLayout(layout);
+        printf("AFTERLAYOUT \n");
     
     readSettings();
     setVisualSettings();
@@ -59,7 +61,7 @@ int CA_audioSettings::get_BufferSize(){
 //Real to Visual
 void CA_audioSettings::setVisualSettings(){
     
-    printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
+//    printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
     
     stringstream bs;
     bs << fBufferSize;

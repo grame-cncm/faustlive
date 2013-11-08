@@ -28,9 +28,7 @@
     #include "NJ_audioFactory.h"
 #endif
 
-#include <QLabel>
-#include <QFile>
-#include <QTextStream>
+#include <QtGui>
 
 enum audioArchi{
    
@@ -82,13 +80,19 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
-    fSettingsBox = new QGroupBox(fMenu);
+    fSettingsBox = new QGroupBox;
+//    fSettingsIntermediateBox = new QGroupBox;
     
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    
+    printf("fIntermediateSettings = %p\n", fIntermediateSettings);
+    
     fLayout->addRow(fSettingsBox);
+    
     fMenu->setLayout(fLayout);
 
     fCurrentSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    printf("fIntermediateSettings = %p\n", fCurrentSettings);
 }
 
 //Returns the instance of the audioCreator
