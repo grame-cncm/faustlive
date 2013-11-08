@@ -189,10 +189,10 @@ void FLWindow::close_Window(){
 void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
-    delete fOscInterface;
+//    delete fOscInterface;
     fInterface = NULL;
     fRCInterface = NULL;
-    fOscInterface = NULL;
+//    fOscInterface = NULL;
 }
 
 //------------------------DRAG AND DROP ACTIONS
