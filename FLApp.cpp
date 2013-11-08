@@ -2419,11 +2419,10 @@ void FLApp::common_shutAction(FLWindow* win){
     }
     
     FLW_List.remove(win);
-    delete (win);
+    delete win;
     
     if(toDelete != NULL){
         delete toDelete;
-        toDelete = NULL;
     }
 }
 

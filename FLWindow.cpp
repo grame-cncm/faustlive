@@ -43,8 +43,9 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fHttpdWindow = new HTTPWindow();
     connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
     
-    fRCInterface = NULL;
+    fRCInterface = new FUI;
     fOscInterface = NULL;
+    fMenu = NULL;
     
     string folder = home + "/Settings";
     
@@ -181,7 +182,7 @@ void FLWindow::close_Window(){
         delete fHttpdWindow;
         fHttpdWindow = NULL;
     }
-    //     printf("deleting instance = %p\n", current_DSP);   
+//     printf("deleting instance = %p\n", current_DSP);   
     deleteDSPInstance(fCurrent_DSP);
 }
 
@@ -189,10 +190,10 @@ void FLWindow::close_Window(){
 void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
-//    delete fOscInterface;
+    delete fOscInterface;
     fInterface = NULL;
     fRCInterface = NULL;
-//    fOscInterface = NULL;
+    fOscInterface = NULL;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -322,7 +323,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     string inter = fWindowName + " : " + fEffect->getName();
     
     fInterface = new QTGUI(this, inter.c_str());
-    fRCInterface = new FUI;
+//    fRCInterface = new FUI;
     
     char* argv[1];
     argv[0] = (char*)fWindowName.c_str();
