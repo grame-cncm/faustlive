@@ -1,8 +1,12 @@
 #ifndef _utilities_H
 #define _utilities_H
 
-#include <QtGui>
 #include <string>
+
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
 using namespace std;
 

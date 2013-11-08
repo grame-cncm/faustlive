@@ -9,7 +9,7 @@
 // FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
 
 #include <string>
-#include <QtGui>
+
 #include "FLServerHttp.h"
 
 #define kFile "HtmlCompiler.html"

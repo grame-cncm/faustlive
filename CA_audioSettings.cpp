@@ -8,7 +8,6 @@
 
 #include "CA_audioSettings.h"
 #include <sstream>
-#include <QFileInfo>
 #include "utilities.h"
 
 CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){

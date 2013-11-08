@@ -8,9 +8,6 @@
 
 #include "FLErrorWindow.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLErrorWindow::FLErrorWindow(){

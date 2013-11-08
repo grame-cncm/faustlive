@@ -13,6 +13,9 @@
 
 #include <string.h>
 #include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 #include "faust/llvm-dsp.h"
 
 using namespace std;

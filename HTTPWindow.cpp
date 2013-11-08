@@ -16,9 +16,6 @@
 #include <sstream>
 #include <qrencode.h>
 
-#include <QtGui>
-#include <QtNetwork>
-
 #include "faust/gui/httpdUI.h"
 
 #define kServerPort "7777"

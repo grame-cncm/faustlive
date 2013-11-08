@@ -16,7 +16,6 @@
 #include "NJ_audioSettings.h"
 
 #include <sstream>
-#include <QFileInfo>
 
 #include "utilities.h"
 

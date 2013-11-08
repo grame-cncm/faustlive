@@ -13,8 +13,6 @@
 list<GUI*>               GUI::fGuiList;
 
 #include <sstream>
-#include <QDir>
-#include <QApplication>
 #include "FLToolBar.h"
 #include "utilities.h"
 

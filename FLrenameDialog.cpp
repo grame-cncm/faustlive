@@ -8,9 +8,6 @@
 
 #include "FLrenameDialog.h"
 
-#include <QFormLayout>
-#include <QLabel>
-
 //-----------------------------NEWNAMEDIALOG IMPLEMENTATION
 
 
