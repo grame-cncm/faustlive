@@ -62,7 +62,7 @@ class FLExportManager : public QObject{
     
         QPushButton*        fCloseB;
         QPushButton*        fSaveB;
-        QString             fDataReceived;
+        QByteArray          fDataReceived;
     
         int                 fStep;  // To know what step has crashed the export
     
