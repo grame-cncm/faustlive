@@ -110,6 +110,22 @@ equals(NJVAR, 1){
 	message("NETJACK NOT LINKED")
 }		
 
+equals(ALVAR, 1){
+	message("ALSA LINKED")
+	LIBS += -lasound
+	DEFINES += ALSA
+	HEADERS += 	AL_audioFactory.h \
+				AL_audioSettings.h \
+				AL_audioManager.h \
+				AL_audioFader.h \
+	
+	SOURCES += 	AL_audioFactory.cpp \
+				AL_audioSettings.cpp \
+				AL_audioManager.cpp 
+}else{
+	message("ALSA NOT LINKED")
+}		
+
 HEADERS +=	AudioSettings.h \
 			AudioManager.h \
 			AudioFactory.h \

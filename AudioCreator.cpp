@@ -28,6 +28,10 @@
     #include "NJ_audioFactory.h"
 #endif
 
+#ifdef ALSA
+#include "AL_audioFactory.h"
+#endif
+
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
@@ -43,6 +47,9 @@ enum audioArchi{
 #endif
 #ifdef NETJACK
     kNetjackaudio
+#endif
+#ifdef ALSA
+    kAlsaaudio
 #endif
 };
 
@@ -69,6 +76,9 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
 
 #ifdef NETJACK
     fAudioArchi->addItem("NetJack");
+#endif
+#ifdef ALSA
+    fAudioArchi->addItem("Alsa");
 #endif
     
     readSettings();
@@ -178,7 +188,14 @@ AudioFactory* AudioCreator::createFactory(int index){
             
             return new NJ_audioFactory();
             break;
-#endif            
+#endif  
+            
+#ifdef ALSA
+        case kAlsaaudio:
+            
+            return new AL_audioFactory();
+            break;
+#endif  
         default:
             return NULL;
     }

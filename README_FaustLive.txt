@@ -22,13 +22,6 @@ Other Packages
 	make
 	sudo make install
 
--json parser	https://github.com/dfober/json2osc
-	cd json2osc DIRECTORY
-	cd cmake
-	cmake -G "Unix Makefiles" -DJSONONLY=1
-	make
-	sudo make install
-
 Make sure to download the current development trunk of these libraries.
 
 ----------------PROJECT COMPILATION---------------
@@ -65,5 +58,7 @@ To create a self-contained qt application, you can deploy the application with :
 	- add item in fAudioArchitecture
 	- add case in createFactory
 	- add case in read/write Settings
+
+3) Modify FaustLive.pro to add the libraries through conditional Compilation
 
 
