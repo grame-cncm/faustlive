@@ -20,4 +20,6 @@ bool cpDir(const QString &srcPath, const QString &dstPath);
 
 bool isStringInt(const char* word);
 
+QString searchLocalIP();
+
 #endif

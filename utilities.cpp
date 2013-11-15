@@ -116,3 +116,34 @@ bool isStringInt(const char* word){
     }
     return returning;
 }
+
+QString searchLocalIP(){
+    QRegExp httpPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
+    QRegExp localPat ("127\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
+    QRegExp bcastPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.255");
+    QString result;
+    
+    int idx = 0;
+    
+    // Read network configuration ifconfig
+    QProcess ppp;
+    ppp.start( "/sbin/ifconfig");
+    ppp.waitForFinished(-1);
+    QString data = ppp.readAllStandardOutput();
+    
+    // Analyze network configuration to find IP number
+    while ( (idx=data.indexOf(httpPat,idx)) != -1) {
+        int n = httpPat.matchedLength();
+        result = data.mid(idx, n);
+        qDebug() << "check ip " << result;
+        if ( (result.indexOf(localPat) == -1) && (result.indexOf(bcastPat) == -1) ) {
+//            fIPaddress = result;
+            qDebug() << "got ip " << result;
+            return result;
+        }
+        idx += n;
+    }
+    
+    qDebug() << "ip not found ! return localhost ";
+    return "http://localhost";
+}

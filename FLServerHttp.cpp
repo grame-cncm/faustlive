@@ -14,6 +14,7 @@
 
 #define kFile "HtmlCompiler.html"
 
+#include "utilities.h"
 #define kTmpFile "TmpFile.dsp"
 
 #define kServerPort 7777
@@ -24,7 +25,7 @@ int FLServerHttp::fNr_of_uploading_clients = 0;
 
 FLServerHttp::FLServerHttp(string localIP){
     
-    fIPLocal = localIP;
+//    fIPLocal = localIP;
     fPosted = false;
     fError = "";
     fUrl = "";
@@ -123,8 +124,8 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
            
         ss << kResponseHead;
          
-        if(strcmp(url,"/") != 0){            
-            ss << "http://"<< server->fIPLocal.c_str() <<":"<<param.c_str();
+        if(strcmp(url,"/") != 0){
+            ss << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<param.c_str();
         }
     
         ss << kResponseTail;

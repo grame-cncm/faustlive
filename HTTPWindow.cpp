@@ -17,6 +17,7 @@
 #include <qrencode.h>
 
 #include "faust/gui/httpdUI.h"
+#include "utilities.h"
 
 #define kServerPort "7777"
 
@@ -160,22 +161,7 @@ void HTTPWindow::hide_httpdWindow(){
 //Search for local IP adress and stores it in fIPaddress
 void HTTPWindow::search_IPadress(){
     
-    //If IPadress was already found
-    if(strcmp(fIPaddress.c_str(), "localhost")  != 0){}
-    
-    //If not, looking for it
-    else{
-        QTcpSocket sock;
-        QHostAddress IP;
-        sock.connectToHost("8.8.8.8", 53); // google DNS, or something else reliable
-        if (sock.waitForConnected(5000)) {
-            IP = sock.localAddress();
-            fIPaddress = IP.toString().toStdString();
-        }
-        else {
-            fIPaddress = "localhost";
-        }
-    }
+    fIPaddress = searchLocalIP().toStdString();
 }
 
 //Build Remote control interface
