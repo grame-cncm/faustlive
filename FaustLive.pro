@@ -40,20 +40,23 @@ QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
 
-OPT = $$system(llvm-config --libs)
+LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
-LIBS+= $$LLVMDIR $$OPT
 
 QT+=network
 
 LIBS+=-L/usr/local/lib/faust
+
 LIBS+=-lfaust
+LIBS+= $$LLVMDIR $$LLVMLIBS
+
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
 
 LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
+LIBS+= $$LLVMDIR
 
 HEADERS += utilities.h 
 SOURCES += utilities.cpp
