@@ -72,6 +72,10 @@ void HTTPWindow::displayQRCode(string url){
     
     //   qDebug() << "QRcode width = " << qrc->width;
     
+    QRgb colors[2];
+    colors[0] = qRgb(255, 255, 255); 	// 0 is white
+    colors[1] = qRgb(0, 0, 0); 			// 1 is black
+    
     // build the QRCode image
     QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_Mono);
     // clear the image
