@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#include "faust/gui/oscui.h"
+#include "faust/gui/OSCUI.h"
 
 list<GUI*>               GUI::fGuiList;
 
