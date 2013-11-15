@@ -296,7 +296,7 @@ void FLExportManager::saveFileOnDisk(){
         
         if ( f.open(QIODevice::WriteOnly) )
         {
-            f.write(fDataReceived.toStdString().c_str()); ////On lit la réponse du serveur que l'on met dans un fichier
+            f.write(fDataReceived); ////On lit la réponse du serveur que l'on met dans un fichier
             f.close(); //On ferme le fichier
         }
     }

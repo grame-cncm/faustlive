@@ -124,7 +124,7 @@ int FLServerHttp::answer_to_connection	(void *cls, MHD_Connection *connection, c
         ss << kResponseHead;
          
         if(strcmp(url,"/") != 0){            
-            ss << "http://"<< server->fIPLocal <<":"<<param;
+            ss << "http://"<< server->fIPLocal.c_str() <<":"<<param.c_str();
         }
     
         ss << kResponseTail;

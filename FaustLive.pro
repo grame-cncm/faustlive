@@ -49,13 +49,11 @@ QT+=network
 LIBS+=-L/usr/local/lib/faust
 LIBS+=-lfaust
 LIBS+=-lHTTPDFaust
-
-LIBS+=-L/opt/local/lib -lmicrohttpd
-LIBS+=-L/opt/local/lib -lqrencode
-LIBS+=-L/opt/local/lib -lboost_system-mt
-LIBS+=-L/opt/local/lib -lboost_filesystem-mt
-LIBS+=-L/opt/local/lib -lboost_program_options-mt
 LIBS+=-lOSCFaust -loscpack
+
+LIBS+=-lmicrohttpd
+LIBS+=-lqrencode
+LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 
 HEADERS += utilities.h 
 SOURCES += utilities.cpp
