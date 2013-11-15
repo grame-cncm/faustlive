@@ -45,7 +45,9 @@ class FLWindow : public QMainWindow
         string          fHome;        //Folder of currentSession
 
         FLToolBar*      fMenu;  
-        void            setMenuBar();
+        QMenuBar*       fMenuBar;
+        void            setMenu();
+        void            set_MenuBar();
     
         FLEffect*         fEffect;         //Effect currently running in the window
         
@@ -55,6 +57,7 @@ class FLWindow : public QMainWindow
     
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         int             fPortHttp;
+        int             fGeneralPort;   //FaustLive specific port for droppable httpInterface
 
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
@@ -80,11 +83,50 @@ class FLWindow : public QMainWindow
     signals :
     //Informing of a drop, a close event, ...
         void            drop(list<string>);
-        void            close();
-        void            closeAll();
         void            rightClick(const QPoint&);
         void            error(const char*);
     
+        void            create_Empty_Window();
+        void            open_New_Window();
+        void            open_File(string);
+        void            takeSnapshot();
+        void            recallSnapshotFromMenu();
+        void            importSnapshotFromMenu();
+        void            close();
+        void            shut_AllWindows();
+        void            closeAllWindows();
+        void            edit_Action();
+        void            paste_Action();
+        void            duplicate_Action();
+        void            httpd_View_Window();
+        void            svg_View_Action();
+        void            export_Win();
+        void            show_aboutQt();
+        void            show_preferences();
+        void            apropos();
+        void            show_presentation_Action();
+    
+    private slots :
+        void            create_Empty();
+        void            open_New();
+        void            open_Recent();
+        void            take_Snapshot();
+        void            recallSnapshot();
+        void            importSnapshot();
+        void            shut();
+        void            shut_All();
+        void            closeAll();
+        void            edit();
+        void            paste();
+        void            duplicate();
+        void            httpd_View();
+        void            svg_View();
+        void            exportManage();
+        void            aboutQt();
+        void            preferences();
+        void            aboutFaustLive();
+        void            show_presentation();
+        
     public :
     
     //Constructor
@@ -96,7 +138,7 @@ class FLWindow : public QMainWindow
     //IDAudio = what architecture audio are we running in?
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int port = 5510);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int port = 5510, int generalPort = 5510);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -160,6 +202,7 @@ class FLWindow : public QMainWindow
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
         string          get_HttpUrl();
+        void            set_generalPort(int port);
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -170,7 +213,6 @@ class FLWindow : public QMainWindow
         void            resizingBig();
         void            resizingSmall();
     
-        void            emit_closeAll();
     //Raises and shows the window
         void            frontShow();
     //Error received

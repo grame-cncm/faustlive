@@ -182,7 +182,6 @@ class FLServerHttp : public QObject{
     int             fMax_clients;   // Maximum of clients the server can support
     string          fError;         // Not important right now
     string          fUrl;           // Url of wrapped http page 
-    string          fIPLocal;       // Local IP
     
     public :
     
@@ -193,12 +192,12 @@ class FLServerHttp : public QObject{
     
     struct          MHD_Daemon* fDaemon;
     
-                    FLServerHttp(string localIP);
+                    FLServerHttp();
                     ~FLServerHttp();
     
     const int       getMaxClients();
     
-    bool            start();
+    bool            start(unsigned short port);
     void            stop();
 
     int             send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);

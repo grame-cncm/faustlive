@@ -2,6 +2,13 @@
 
 #include "utilities.h"
 
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
 //Returns the content of a file passed in path
 string pathToContent(string path){
     
@@ -117,33 +124,24 @@ bool isStringInt(const char* word){
     return returning;
 }
 
+
+
+//Search IP adress in ifconfig result
 QString searchLocalIP(){
-    QRegExp httpPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
-    QRegExp localPat ("127\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
-    QRegExp bcastPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.255");
-    QString result;
+
+    char host_name[32];
+    gethostname(host_name, sizeof(host_name));
     
-    int idx = 0;
-    
-    // Read network configuration ifconfig
-    QProcess ppp;
-    ppp.start( "/sbin/ifconfig");
-    ppp.waitForFinished(-1);
-    QString data = ppp.readAllStandardOutput();
-    
-    // Analyze network configuration to find IP number
-    while ( (idx=data.indexOf(httpPat,idx)) != -1) {
-        int n = httpPat.matchedLength();
-        result = data.mid(idx, n);
-        qDebug() << "check ip " << result;
-        if ( (result.indexOf(localPat) == -1) && (result.indexOf(bcastPat) == -1) ) {
-//            fIPaddress = result;
-            qDebug() << "got ip " << result;
-            return result;
+    struct hostent* host = gethostbyname(host_name);
+    if (host) {
+        for (int i = 0; host->h_addr_list[i] != 0; ++i) {
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
+            printf("addr %s\n", inet_ntoa(addr));
+            
+            return QString(inet_ntoa(addr));
         }
-        idx += n;
     }
-    
-    qDebug() << "ip not found ! return localhost ";
-    return "http://localhost";
+    else
+        return QString("localhost");
 }

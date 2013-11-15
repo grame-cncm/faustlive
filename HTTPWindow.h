@@ -52,7 +52,7 @@ class HTTPWindow : public QMainWindow{
     
     void        frontShow_Httpd(string windowTitle);
     
-    void        display_HttpdWindow(int x, int y);
+    void        display_HttpdWindow(int x, int y, int port);
     
     bool        is_httpdWindow_active();
     

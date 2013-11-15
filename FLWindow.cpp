@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#include "faust/gui/oscui.h"
+#include "faust/gui/OSCUI.h"
 
 list<GUI*>               GUI::fGuiList;
 
@@ -18,11 +18,12 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int port){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int port, int generalPort){
     
     fShortcut = false;
     fEffect = eff;
     fPortHttp = port;
+    fGeneralPort = generalPort;
     
     setAcceptDrops(true);
     
@@ -39,7 +40,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     direct.mkdir(fHome.c_str());
     
     fHttpdWindow = new HTTPWindow();
-    connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(emit_closeAll()));
+    connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
     
     fRCInterface = NULL;
     fOscInterface = NULL;
@@ -55,13 +56,13 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fXPos = x;
     fYPos = y;
     
-    setMenuBar();
+    setMenu();
     
     //    setAttribute(Qt::WA_MacNoClickThrough);
     
     setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);
-    
     //    setAttribute(Qt::WA_DeleteOnClose);
+        set_MenuBar();
 }
 
 FLWindow::~FLWindow(){
@@ -71,7 +72,7 @@ FLWindow::~FLWindow(){
 }
 
 //Set up of the Window ToolBar
-void FLWindow::setMenuBar(){
+void FLWindow::setMenu(){
     
     fMenu = new FLToolBar(this);
     
@@ -120,11 +121,6 @@ void FLWindow::resizingBig(){
     adjustSize();
 }
 
-//Redirection of a closeAll Windows  = ALT + click on x button of a window
-void FLWindow::emit_closeAll(){
-    emit closeAll();
-}
-
 //Does window contain a default Faust process?
 bool FLWindow::is_Default(){
     
@@ -144,7 +140,7 @@ void FLWindow::closeEvent(QCloseEvent* /*event*/){
     if(!fShortcut)
         emit close();
     else
-        emit closeAll();
+        emit shut_AllWindows();
 }
 
 //A way to know if user is trying shortcut ALT + click on x button of a window
@@ -623,7 +619,7 @@ bool FLWindow::init_Httpd(string& error){
             recall_Window();
             
             fHttpdWindow->launch_httpdInterface();
-            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0);
+            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0, fGeneralPort);
             
             return true;
         }
@@ -648,6 +644,10 @@ string FLWindow::get_HttpUrl() {
     return fHttpdWindow->getUrl();
 }
 
+void FLWindow::set_generalPort(int port){
+    fGeneralPort = port;
+}
+
 //------------------------Right Click Reaction
 
 void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
@@ -655,3 +655,288 @@ void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
     emit rightClick(ev->globalPos());
 }
 
+void FLWindow::set_MenuBar(){
+    
+    //----------------FILE
+    QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
+    
+    QAction* newAction = new QAction(tr("&New Default Window"), this);
+    newAction->setShortcut(tr("Ctrl+N"));
+    newAction->setToolTip(tr("Open a new empty file"));
+    connect(newAction, SIGNAL(triggered()), this, SLOT(create_Empty()));
+    
+    QAction* openAction = new QAction(tr("&Open..."),this);
+    openAction->setShortcut(tr("Ctrl+O"));
+    openAction->setToolTip(tr("Open a DSP file"));
+    connect(openAction, SIGNAL(triggered()), this, SLOT(open_New()));
+    
+    QMenu* menuOpen_Example = new QMenu(tr("&Open Example"), fileMenu);
+    
+    QString examplesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath();
+    examplesPath += "/Resources/Examples";
+    
+    if(QFileInfo(examplesPath).exists()){
+        
+        QDir examplesDir(examplesPath);
+        
+        QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
+        
+        QFileInfoList::iterator it;
+        int i = 0; 
+        
+        QAction** openExamples = new QAction* [children.size()];
+        
+        for(it = children.begin(); it != children.end(); it++){
+            
+            openExamples[i] = new QAction(it->baseName(), menuOpen_Example);
+            openExamples[i]->setData(QVariant(it->absoluteFilePath()));
+            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Recent()));
+            
+            menuOpen_Example->addAction(openExamples[i]);
+            i++;
+        }
+    }
+    
+//    QMenu* openRecentAction = new QMenu(tr("&Open Recent File"), fileMenu);
+//    
+//    for(int i=0; i<kMAXRECENTFILES; i++){
+//        fRecentFileAction[i] = new QAction(this);
+//        fRecentFileAction[i]->setVisible(false);
+//        connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
+//        
+//        fOpenRecentAction->addAction(fRecentFileAction[i]);
+//    }
+//    
+//    //    fFileMenu->addAction(fOpenRecentAction->menuAction());
+//    
+    //SESSION
+    
+    QAction* takeSnapshotAction = new QAction(tr("&Take Snapshot"),this);
+    takeSnapshotAction->setShortcut(tr("Ctrl+S"));
+    takeSnapshotAction->setToolTip(tr("Save current state"));
+    connect(takeSnapshotAction, SIGNAL(triggered()), this, SLOT(take_Snapshot()));
+    
+    QAction* recallSnapshotAction = new QAction(tr("&Recall Snapshot..."),this);
+    recallSnapshotAction->setShortcut(tr("Ctrl+R"));
+    recallSnapshotAction->setToolTip(tr("Close all the opened window and open your snapshot"));
+    connect(recallSnapshotAction, SIGNAL(triggered()), this, SLOT(recallSnapshot()));
+    
+//    QMenu* recallRecentAction = new QMenu(tr("&Recall Recent Snapshot"), fileMenu);
+//    QMenu* importRecentAction = new QMenu(tr("&Import Recent Snapshot"), fileMenu);
+//    
+//    for(int i=0; i<kMAXRECENTSESSIONS; i++){
+//        fRrecentSessionAction[i] = new QAction(this);
+//        fRrecentSessionAction[i]->setVisible(false);
+//        connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
+//        
+//        fRecallRecentAction->addAction(fRrecentSessionAction[i]);
+//        
+//        fIrecentSessionAction[i] = new QAction(this);
+//        fIrecentSessionAction[i]->setVisible(false);
+//        connect(fIrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
+//        
+//        fImportRecentAction->addAction(fIrecentSessionAction[i]);
+//    }
+    
+    QAction* importSnapshotAction = new QAction(tr("&Import Snapshot..."),this);
+    importSnapshotAction->setShortcut(tr("Ctrl+I"));
+    importSnapshotAction->setToolTip(tr("Import your snapshot in the current session"));
+    connect(importSnapshotAction, SIGNAL(triggered()), this, SLOT(importSnapshot()));
+    
+    QAction* shutAction = new QAction(tr("&Close Window"),this);
+    shutAction->setShortcut(tr("Ctrl+W"));
+    shutAction->setToolTip(tr("Close the current Window"));
+    connect(shutAction, SIGNAL(triggered()), this, SLOT(shut()));
+    
+    QAction* shutAllAction = new QAction(tr("&Close All Windows"),this);
+    shutAllAction->setShortcut(tr("Ctrl+Alt+W"));
+    shutAllAction->setToolTip(tr("Close all the Windows"));
+    connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_All()));
+    
+    QAction* closeAllAction = new QAction(tr("&Closing"),this);
+    closeAllAction = new QAction(tr("&Quit FaustLive"),this);
+    closeAllAction->setToolTip(tr("Close the application"));   
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAll()));
+    
+    fileMenu->addAction(newAction);    
+    fileMenu->addSeparator();
+    fileMenu->addAction(openAction);
+    fileMenu->addAction(menuOpen_Example->menuAction());
+//    fileMenu->addAction(fOpenRecentAction->menuAction());
+    fileMenu->addSeparator();
+    fileMenu->addAction(takeSnapshotAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(recallSnapshotAction);
+//    fileMenu->addAction(fRecallRecentAction->menuAction());
+//    fileMenu->addSeparator();
+    fileMenu->addAction(importSnapshotAction);
+//    fileMenu->addAction(fImportRecentAction->menuAction());
+    fileMenu->addSeparator();
+    fileMenu->addAction(shutAction);
+    fileMenu->addAction(shutAllAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(closeAllAction);
+    
+    menuBar()->addSeparator();
+
+    //-----------------Window
+    
+    QAction* editAction = new QAction(tr("&Edit Faust Source"), this);
+    editAction->setShortcut(tr("Ctrl+E"));
+    editAction->setToolTip(tr("Edit the source"));
+    connect(editAction, SIGNAL(triggered()), this, SLOT(edit()));
+    
+    QAction* pasteAction = new QAction(tr("&Paste"),this);
+    pasteAction->setShortcut(tr("Ctrl+V"));
+    pasteAction->setToolTip(tr("Paste a DSP"));
+    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+    
+    QAction* duplicateAction = new QAction(tr("&Duplicate"),this);
+    duplicateAction->setShortcut(tr("Ctrl+D"));
+    duplicateAction->setToolTip(tr("Duplicate current DSP"));
+    connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
+    
+    QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
+    httpdViewAction->setShortcut(tr("Ctrl+K"));
+    httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
+    connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View()));
+    
+    QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
+    svgViewAction->setShortcut(tr("Ctrl+G"));
+    svgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
+    connect(svgViewAction, SIGNAL(triggered()), this, SLOT(svg_View()));
+    
+    QAction* exportAction = new QAction(tr("&Export As..."), this);
+    exportAction->setShortcut(tr("Ctrl+P"));
+    exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
+    connect(exportAction, SIGNAL(triggered()), this, SLOT(exportManage()));
+    
+    QMenu* windowMenu = menuBar()->addMenu(tr("&Window"));
+    windowMenu->addAction(editAction);
+    windowMenu->addAction(pasteAction);
+    windowMenu->addAction(duplicateAction);
+    windowMenu->addSeparator();
+    windowMenu->addAction(httpdViewAction);
+    windowMenu->addAction(svgViewAction);
+    windowMenu->addSeparator();
+    windowMenu->addAction(exportAction);
+    
+    menuBar()->addSeparator();
+    
+    //-----------------NAVIGATE
+    
+//    fNavigateMenu = menuBar()->addMenu(tr("&Navigate"));
+    
+//    menuBar()->addSeparator();
+    
+    //---------------------MAIN MENU
+    
+    QAction* aboutQtAction = new QAction(tr("&About Qt"), this);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    
+    QAction* preferencesAction = new QAction(tr("&Preferences"), this);
+    preferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(preferences()));
+    
+    //--------------------HELP
+    
+    QAction* aboutAction = new QAction(tr("&Help..."), this);
+    aboutAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutFaustLive()));
+
+    
+    QAction* presentationAction = new QAction(tr("&About FaustLive"), this);
+    presentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation()));
+    
+    QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
+    
+    helpMenu->addAction(aboutQtAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(aboutAction);
+    helpMenu->addAction(presentationAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(preferencesAction);
+}
+
+//------SLOTS FROM MENU ACTIONS THAT REDIRECT TO FLAPP
+void FLWindow::create_Empty(){
+    emit create_Empty_Window();
+}
+
+void FLWindow::open_New(){
+    emit open_New_Window();
+}
+
+void FLWindow::open_Recent(){
+    
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->data().toString().toStdString());
+    
+    emit open_File(toto);
+}
+
+void FLWindow::take_Snapshot(){
+    emit takeSnapshot();
+}
+
+void FLWindow::recallSnapshot(){
+    emit recallSnapshotFromMenu();
+}
+
+void FLWindow::importSnapshot(){
+    emit importSnapshotFromMenu();
+}
+
+void FLWindow::shut(){
+    emit close();
+}
+
+void FLWindow::shut_All(){
+    emit shut_AllWindows();
+}
+
+void FLWindow::closeAll(){
+    emit closeAllWindows();
+}
+
+void FLWindow::edit(){
+    emit edit_Action();
+}
+
+void FLWindow::paste(){
+    emit paste_Action();
+}
+
+void FLWindow::duplicate(){
+    emit duplicate_Action();
+}
+
+void FLWindow::httpd_View(){
+    emit httpd_View_Window();
+}
+
+void FLWindow::svg_View(){
+    emit svg_View_Action();
+}
+
+void FLWindow::exportManage(){
+    emit export_Win();
+}
+
+void FLWindow::aboutQt(){
+    emit show_aboutQt();
+}
+
+void FLWindow::preferences(){
+    emit show_preferences();
+}
+
+void FLWindow::aboutFaustLive(){
+    emit apropos();
+}
+
+void FLWindow::show_presentation(){
+    emit show_presentation_Action();
+}

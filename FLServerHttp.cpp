@@ -17,15 +17,12 @@
 #include "utilities.h"
 #define kTmpFile "TmpFile.dsp"
 
-#define kServerPort 7777
-
 using namespace std;
 
 int FLServerHttp::fNr_of_uploading_clients = 0;
 
-FLServerHttp::FLServerHttp(string localIP){
+FLServerHttp::FLServerHttp(){
     
-//    fIPLocal = localIP;
     fPosted = false;
     fError = "";
     fUrl = "";
@@ -34,9 +31,7 @@ FLServerHttp::FLServerHttp(string localIP){
 FLServerHttp::~FLServerHttp(){}
 
 //Start Server Listening
-bool FLServerHttp::start(){
-    
-    unsigned short port = kServerPort;
+bool FLServerHttp::start(unsigned short port){
     
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 

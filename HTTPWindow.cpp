@@ -128,17 +128,19 @@ void HTTPWindow::frontShow_Httpd(string windowTitle){
 }
 
 //Display Window
-void HTTPWindow::display_HttpdWindow(int x, int y){
+void HTTPWindow::display_HttpdWindow(int x, int y, int port){
    
     move(x, y);
     
-    stringstream s;
+    stringstream s, p;
     s<<fInterface->getTCPPort();
+    
+    p<<port;
     
     string url;
     url = fIPaddress;
     url+=":";
-    url += kServerPort;
+    url += p.str();
     url += "/";
     url += s.str();
     

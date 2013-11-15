@@ -181,10 +181,12 @@ class FLApp : public QApplication
         QLineEdit*          fCompilModes;
         QLineEdit*          fOptVal;
         QLineEdit*          fServerLine;
+        QLineEdit*          fPortLine;
     
         string              fCompilationMode;
         int                 fOpt_level;
         string              fServerUrl;
+        int                 fPort;
         
         string              fStyleChoice;
     
@@ -292,6 +294,7 @@ class FLApp : public QApplication
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
+        void                open_Recent_File(string toto);
         void                shut_Window(); 
         void                shut_AllWindows();
         virtual void        closeAllWindows();

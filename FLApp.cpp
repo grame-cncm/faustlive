@@ -74,6 +74,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
     fOpt_level = 3;
     fServerUrl = "http://faust.grame.fr:8888";
+    fPort = 7777;
     fStyleChoice = "Default";
     recall_Settings(fHomeSettings);
     styleClicked(fStyleChoice);
@@ -97,7 +98,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //For the application not to quit when the last window is closed
     setQuitOnLastWindowClosed(false);
     
-    fMenuBar = new QMenuBar(0);
+    fMenuBar = new QMenuBar;
     fFileMenu = new QMenu;
     fWindowMenu = new QMenu;
     fNavigateMenu = new QMenu;
@@ -1096,10 +1097,28 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         
         connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
         
-        connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
-        connect(win, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
         connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
         connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+        connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
+        connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
+        connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
+        connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
+        connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
+        connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
+        connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+        connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
+        connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
+        connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
+        connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
+        connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
+        connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
+        connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
+        connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
+        
+        connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
+        connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
+        connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
+        connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
         
         if(win->init_Window(init, false, error)){
             FLW_List.push_back(win);
@@ -1279,11 +1298,15 @@ void FLApp::update_Recent_File(){
     }
 }
 
-//--Open a recent file
 void FLApp::open_Recent_File(){
-    
     QAction* action = qobject_cast<QAction*>(sender());
     string toto(action->data().toString().toStdString());
+    
+    open_Recent_File(toto);
+}
+
+//--Open a recent file
+void FLApp::open_Recent_File(string toto){
     
     FLWindow* win = getActiveWin();
     
@@ -1482,10 +1505,29 @@ void FLApp::recall_Session(string filename){
             FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->portHttpd);
             
             connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
-            connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
-            connect(win, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+            
             connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
             connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+            connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
+            connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
+            connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
+            connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
+            connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
+            connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
+            connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+            connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
+            connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
+            connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
+            connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
+            connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
+            connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
+            connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
+            connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
+            
+            connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
+            connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
+            connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
+            connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
             
             //Modification of connection files with the new window & effect names
             
@@ -2487,10 +2529,29 @@ void FLApp::duplicate(FLWindow* window){
     FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
     
     connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
-    connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
-    connect(win, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    
     connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
     connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+    connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
+    connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
+    connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
+    connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
+    connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
+    connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
+    connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
+    connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
+    connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
+    connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
+    connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
+    connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
+    connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
+    connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
+    
+    connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
+    connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
+    connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
+    connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
     
     //Save then Copy of duplicated window's parameters
     window->save_Window();
@@ -3077,7 +3138,7 @@ void FLApp::init_presentationWindow(){
     ok = new QPushButton("Open");
     connect(ok, SIGNAL(clicked()), this, SLOT(open_Example_Action()));
     ok->setDefault(true);
-    ok->setStyleSheet("*{background-color: transparent;}");
+//    ok->setStyleSheet("*{background-color: transparent;}");
     layout5->addWidget(ok);
     
     buttonBox->setLayout(layout2);
@@ -3091,7 +3152,7 @@ void FLApp::init_presentationWindow(){
     QHBoxLayout *layout4 = new QHBoxLayout;
     
     QPushButton* cancel = new QPushButton("Cancel");
-    cancel->setStyleSheet("*{background-color: transparent;}");
+//    cancel->setStyleSheet("*{background-color: transparent;}");
     connect(cancel, SIGNAL(clicked()), fPresWin, SLOT(hide()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
@@ -3193,14 +3254,19 @@ void FLApp::styleClicked(string style){
                       "border-radius: 6px;"
                       "margin-top: 1ex;"
                       "border-color: #811453;"
+                      "background-color: transparent;"
                       "}"
                       
                       "QPushButton:hover{"
-                      "border: 2px #811453;"
+                      "border: 2px;"
+                      "border-radius: 6px;"
+                      "border-color: #811453;"
+                      "background-color: #6A455D;"
                       "}"
                       
                       "QPushButton:pressed{"
                       "background-color: #6A455D;"
+                      "border-radius: 6px;"
                       "border-color: #811453;"
                       "}"
                       
@@ -3895,10 +3961,12 @@ void FLApp::init_PreferenceWindow(){
     QGroupBox* menu1 = new QGroupBox(myTab);
     QGroupBox* menu2 = new QGroupBox(myTab);
     QGroupBox* menu3 = new QGroupBox(myTab);
+    QGroupBox* menu4 = new QGroupBox(myTab);
     
     QFormLayout* layout1 = new QFormLayout;
     QFormLayout* layout2 = new QFormLayout;
     QFormLayout* layout3 = new QFormLayout;
+    QFormLayout* layoutNet = new QFormLayout;
     QGridLayout* layout4 = new QGridLayout;
     QVBoxLayout* layout5 = new QVBoxLayout;
     QHBoxLayout* intermediateLayout = new QHBoxLayout;
@@ -3924,12 +3992,10 @@ void FLApp::init_PreferenceWindow(){
     
 //------------------WINDOW PREFERENCES    
     
-    myTab->addTab(menu1, tr("Window Preferences"));
+    myTab->addTab(menu1, tr("Window"));
     
     fCompilModes = new QLineEdit(menu1);
     fOptVal = new QLineEdit(menu1);
-    fServerLine = new QLineEdit(menu1);
-    fServerLine->setText(fServerUrl.c_str());
     
     recall_Settings(fHomeSettings);
     
@@ -3943,14 +4009,12 @@ void FLApp::init_PreferenceWindow(){
     layout1->addRow(new QLabel(tr("Faust Compiler Options")), fCompilModes);
     layout1->addRow(new QLabel(tr("LLVM Optimization")), fOptVal);
     layout1->addRow(new QLabel(tr("")));
-    layout1->addRow(new QLabel(tr("")));
-    layout1->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
     
     menu1->setLayout(layout1);
    
 //------------------AUDIO PREFERENCES  
     
-    myTab->addTab(menu2, tr("Audio Preferences"));
+    myTab->addTab(menu2, tr("Audio"));
     
     fAudioBox = new QGroupBox(menu2);
     fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
@@ -3958,8 +4022,26 @@ void FLApp::init_PreferenceWindow(){
     layout2->addWidget(fAudioBox);
     menu2->setLayout(layout2);
     
+//-----------------NETWORK PREFERENCES
+    
+    fServerLine = new QLineEdit(menu4);
+    fServerLine->setText(fServerUrl.c_str());
+    
+    fPortLine = new QLineEdit(menu4);
+    stringstream p;
+    p<<fPort;
+    fPortLine->setText(p.str().c_str());
+    
+    myTab->addTab(menu4, tr("Network"));
+    layoutNet->addRow(new QLabel(tr("")));
+    layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
+    layoutNet->addRow(new QLabel(tr("")));
+    layoutNet->addRow(new QLabel(tr("Remote Dropping Service Port")), fPortLine);
+    
+    menu4->setLayout(layoutNet);
+    
 //------------------STYLE PREFERENCES
-    myTab->addTab(menu3, tr("Style Preferences"));
+    myTab->addTab(menu3, tr("Style"));
     
     QPlainTextEdit* container = new QPlainTextEdit(menu3);
     container->setReadOnly(true);
@@ -4050,11 +4132,27 @@ void FLApp::save_Mode(){
     
     fCompilationMode = fCompilModes->text().toStdString();
     
-    const char* intermediate = fOptVal->text().toStdString().c_str();
-    if(isStringInt(intermediate))
-        fOpt_level = atoi(intermediate);
+    if(isStringInt(fOptVal->text().toStdString().c_str()))
+        fOpt_level = atoi(fOptVal->text().toStdString().c_str());
     else
         fOpt_level = 3;
+    
+    if(isStringInt(fPortLine->text().toStdString().c_str())){
+        
+        if(fPort != atoi(fPortLine->text().toStdString().c_str())){
+            fPort = atoi(fPortLine->text().toStdString().c_str());
+    
+            list<FLWindow*>::iterator it;
+            
+            for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
+                (*it)->set_generalPort(fPort);
+            
+            fServerHttp->stop();
+            fServerHttp->start(fPort);
+        }   
+    }
+    else
+        fPort = 7777;
     
     fPrefDialog->hide();
 
@@ -4299,20 +4397,8 @@ void FLApp::launch_Server(){
     
     if(fServerHttp == NULL){
     
-        QTcpSocket sock;
-        QHostAddress IP;
-        string ipAddress;
-        sock.connectToHost("8.8.8.8", 53); // google DNS, or something else reliable
-        if (sock.waitForConnected(5000)) {
-            IP = sock.localAddress();
-            ipAddress = IP.toString().toStdString();
-        }
-        else {
-            ipAddress = "localhost";
-        }
-    
-        fServerHttp = new FLServerHttp(ipAddress);
-        fServerHttp->start();
+        fServerHttp = new FLServerHttp();
+        fServerHttp->start(fPort);
         
         connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
     }
