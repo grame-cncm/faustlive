@@ -533,8 +533,8 @@ string FLApp::find_smallest_defaultName(list<string> currentDefault){
     //Conditional jump on currentDefault List...
     
     int index = 1;
-    string nomEffet;
-    bool found;
+    string nomEffet("");
+    bool found = false;
     
     stringstream ss;
     
@@ -1065,6 +1065,9 @@ FLWindow* FLApp::new_Window(string& source, string& error){
     
     //In case the source is empty, the effect is chosen by default 
     if(source.compare("") == 0){
+        
+        printf("EMPTY WINDOW\n");
+        
         source = "process = !,!:0,0;";
         init = true;
     }
@@ -1089,6 +1092,8 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         
         update_Source(toCopy, copySource);
         
+        printf("Update Source\n");
+        
         if(error.compare("") != 0){
             fErrorWindow->print_Error(error.c_str());
         }
@@ -1097,6 +1102,8 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         calculate_position(val, &x, &y);
         
         FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
+        
+        printf("WIN = %p\n", win);
         
         win->set_RecentFile(fRecentFiles);
         win->update_RecentFileMenu();
@@ -1133,6 +1140,9 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
         
         if(win->init_Window(init, false, error)){
+            
+            printf("INIT\n");
+            
             FLW_List.push_back(win);
             addWinToSessionFile(win);
             first->launch_Watcher();
@@ -1156,10 +1166,12 @@ FLWindow* FLApp::new_Window(string& source, string& error){
 //--Creation accessed from Menu
 void FLApp::create_New_Window(string& source){
     
-    string error;
+    string error("");
     
-    if(new_Window(source, error) == NULL)
+    if(new_Window(source, error) == NULL){
         fErrorWindow->print_Error(error.c_str());
+        printf("NULLLLLLLLLL\n");
+    }
     
 }
 
