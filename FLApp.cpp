@@ -280,6 +280,7 @@ void FLApp::setup_Menu(){
     connect(fShutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows()));
     
     fCloseAllAction = new QAction(tr("&Closing"),this);
+    fCloseAllAction->setShortcut(tr("Ctrl+Q"));
     fCloseAllAction = new QAction(tr("&Quit FaustLive"),this);
     fCloseAllAction->setToolTip(tr("Close the application"));   
     connect(fCloseAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
@@ -2570,9 +2571,11 @@ void FLApp::edit(FLWindow* win){
     string cmd;
     
 #ifdef __APPLE__
+//    printf("OSX\n");
     cmd = "open ";
 #endif
-#ifdef __linux__
+#ifdef __unix__
+//    printf("LINUX\n");
     cmd = "xdg-open";
 #endif
     cmd += source;
