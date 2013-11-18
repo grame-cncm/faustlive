@@ -96,7 +96,9 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 //    frontWindow = new QAction* [200];
     
     //For the application not to quit when the last window is closed
+#ifdef __APPLE__
     setQuitOnLastWindowClosed(false);
+#endif
     
     fMenuBar = new QMenuBar;
     fFileMenu = new QMenu;
@@ -1095,6 +1097,13 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         
         FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
         
+        win->set_RecentFile(fRecentFiles);
+        win->update_RecentFileMenu();
+        
+        win->set_RecentSession(fRecentSessions);
+        win->update_RecentSessionMenu();
+        win->initNavigateMenu(fFrontWindow);
+        
         connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
         
         connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
@@ -1119,6 +1128,8 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
         connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
         connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
+        connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
+        connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
         
         if(win->init_Window(init, false, error)){
             FLW_List.push_back(win);
@@ -1263,6 +1274,11 @@ void FLApp::recall_Recent_Files(string& filename){
         }
         f.close();
     }
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++)
+        (*it)->set_RecentFile(fRecentFiles);
 }
 
 //--Add new recent file
@@ -1274,6 +1290,14 @@ void FLApp::set_Current_File(string& pathName, string& effName){
     fRecentFiles.push_front(myPair);
     
     update_Recent_File();
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+ 
+        (*it)->set_RecentFile(fRecentFiles);
+        (*it)->update_RecentFileMenu();
+    }
 }
 
 //--Visual Update
@@ -1504,6 +1528,13 @@ void FLApp::recall_Session(string filename){
             
             FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->portHttpd);
             
+            win->set_RecentFile(fRecentFiles);
+            win->update_RecentFileMenu();
+            
+            win->set_RecentSession(fRecentSessions);
+            win->update_RecentSessionMenu();
+            win->initNavigateMenu(fFrontWindow);
+            
             connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
             
             connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
@@ -1523,11 +1554,13 @@ void FLApp::recall_Session(string filename){
             connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
             connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
             connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
-            
             connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
             connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
             connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
-            connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
+            connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));    
+            connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
+            connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+            
             
             //Modification of connection files with the new window & effect names
             
@@ -1591,6 +1624,11 @@ void FLApp::recall_Recent_Sessions(string& filename){
         }
         f.close();
     }
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++)
+        (*it)->set_RecentSession(fRecentSessions);
 }
 
 //Add new recent session
@@ -1602,6 +1640,14 @@ void FLApp::set_Current_Session(string& pathName){
     fRecentSessions.removeAll(currentSess);
     fRecentSessions.prepend(currentSess);
     update_Recent_Session();
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+        
+        (*it)->set_RecentSession(fRecentSessions);
+        (*it)->update_RecentSessionMenu();
+    }
 }
 
 //Visual Update
@@ -1676,14 +1722,20 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     name+= win->get_Effect()->getName().c_str();
     
     QAction* fifiWindow = new QAction(name, fNavigateMenu);
+    fifiWindow->setData(QVariant(name));
+    
     fFrontWindow.push_back(fifiWindow);
     
-    fifiWindow->setData(QVariant(win->get_nameWindow().c_str()));
     connect(fifiWindow, SIGNAL(triggered()), win, SLOT(frontShow()));
     
     fNavigateMenu->addAction(fifiWindow);
     
     fSessionContent.push_back(intermediate);
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++)
+        (*it)->addWinInMenu(name);
 }
 
 //Add window from Current Session Structure
@@ -1699,11 +1751,21 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
             
             //            QAction* toRemove = NULL;
             
-            QList<QAction*>::iterator it;
-            for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
-                if((*it)->data().toString().toStdString().compare(win->get_nameWindow()) == 0){
-                    fNavigateMenu->removeAction(*it);
-                    fFrontWindow.removeOne(*it);
+            QList<QAction*>::iterator it2;
+            for(it2 = fFrontWindow.begin(); it2 != fFrontWindow.end() ; it2++){
+                
+                QString name = win->get_nameWindow().c_str();
+                name+=" : ";
+                name+= win->get_Effect()->getName().c_str();
+                
+                if((*it2)->data().toString().compare(name) == 0){
+                    fNavigateMenu->removeAction(*it2);
+                    fFrontWindow.removeOne(*it2);
+                    
+                    list<FLWindow*>::iterator it3;
+                    
+                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++)
+                        (*it3)->deleteWinInMenu(name);
                     //                    toRemove = *it;
                     break;
                 }
@@ -2479,6 +2541,25 @@ void FLApp::common_shutAction(FLWindow* win){
     }
 }
 
+//--------------------------------Navigate----------
+
+void FLApp::frontShow(QString name){
+    
+    list<FLWindow*>::iterator it;
+    
+    for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
+    
+        QString winName = (*it)->get_nameWindow().c_str();
+        winName+=" : ";
+        winName+= (*it)->get_Effect()->getName().c_str();
+            
+        if(winName.compare(name) == 0){
+            (*it)->frontShow();
+            break;
+        }
+    }
+}
+
 //--------------------------------Window----------------------------------------
 
 //Open the source of a specific window
@@ -2528,6 +2609,13 @@ void FLApp::duplicate(FLWindow* window){
     
     FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
     
+    win->set_RecentFile(fRecentFiles);
+    win->update_RecentFileMenu();
+    
+    win->set_RecentSession(fRecentSessions);
+    win->update_RecentSessionMenu();
+    win->initNavigateMenu(fFrontWindow);
+    
     connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
     
     connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
@@ -2552,6 +2640,10 @@ void FLApp::duplicate(FLWindow* window){
     connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
     connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
     connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
+    
+    connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
+    connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+    
     
     //Save then Copy of duplicated window's parameters
     window->save_Window();

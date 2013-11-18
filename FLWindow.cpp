@@ -697,19 +697,19 @@ void FLWindow::set_MenuBar(){
         }
     }
     
-//    QMenu* openRecentAction = new QMenu(tr("&Open Recent File"), fileMenu);
-//    
-//    for(int i=0; i<kMAXRECENTFILES; i++){
-//        fRecentFileAction[i] = new QAction(this);
-//        fRecentFileAction[i]->setVisible(false);
-//        connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
-//        
-//        fOpenRecentAction->addAction(fRecentFileAction[i]);
-//    }
-//    
-//    //    fFileMenu->addAction(fOpenRecentAction->menuAction());
-//    
-    //SESSION
+    QMenu* openRecentAction = new QMenu(tr("&Open Recent File"), fileMenu);
+    
+    fRecentFileAction = new QAction* [kMAXRECENTFILES];
+    
+    for(int i=0; i<kMAXRECENTFILES; i++){
+        fRecentFileAction[i] = new QAction(this);
+        fRecentFileAction[i]->setVisible(false);
+        connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
+        
+        openRecentAction->addAction(fRecentFileAction[i]);
+    }
+        
+//SESSION
     
     QAction* takeSnapshotAction = new QAction(tr("&Take Snapshot"),this);
     takeSnapshotAction->setShortcut(tr("Ctrl+S"));
@@ -721,22 +721,25 @@ void FLWindow::set_MenuBar(){
     recallSnapshotAction->setToolTip(tr("Close all the opened window and open your snapshot"));
     connect(recallSnapshotAction, SIGNAL(triggered()), this, SLOT(recallSnapshot()));
     
-//    QMenu* recallRecentAction = new QMenu(tr("&Recall Recent Snapshot"), fileMenu);
-//    QMenu* importRecentAction = new QMenu(tr("&Import Recent Snapshot"), fileMenu);
-//    
-//    for(int i=0; i<kMAXRECENTSESSIONS; i++){
-//        fRrecentSessionAction[i] = new QAction(this);
-//        fRrecentSessionAction[i]->setVisible(false);
-//        connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
-//        
-//        fRecallRecentAction->addAction(fRrecentSessionAction[i]);
-//        
-//        fIrecentSessionAction[i] = new QAction(this);
-//        fIrecentSessionAction[i]->setVisible(false);
-//        connect(fIrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
-//        
-//        fImportRecentAction->addAction(fIrecentSessionAction[i]);
-//    }
+    QMenu* recallRecentAction = new QMenu(tr("&Recall Recent Snapshot"), fileMenu);
+    QMenu* importRecentAction = new QMenu(tr("&Import Recent Snapshot"), fileMenu);
+    
+    fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
+    fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
+    
+    for(int i=0; i<kMAXRECENTSESSIONS; i++){
+        fRrecentSessionAction[i] = new QAction(this);
+        fRrecentSessionAction[i]->setVisible(false);
+        connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
+        
+        recallRecentAction->addAction(fRrecentSessionAction[i]);
+        
+        fIrecentSessionAction[i] = new QAction(this);
+        fIrecentSessionAction[i]->setVisible(false);
+        connect(fIrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
+        
+        importRecentAction->addAction(fIrecentSessionAction[i]);
+    }
     
     QAction* importSnapshotAction = new QAction(tr("&Import Snapshot..."),this);
     importSnapshotAction->setShortcut(tr("Ctrl+I"));
@@ -762,15 +765,15 @@ void FLWindow::set_MenuBar(){
     fileMenu->addSeparator();
     fileMenu->addAction(openAction);
     fileMenu->addAction(menuOpen_Example->menuAction());
-//    fileMenu->addAction(fOpenRecentAction->menuAction());
+    fileMenu->addAction(openRecentAction->menuAction());
     fileMenu->addSeparator();
     fileMenu->addAction(takeSnapshotAction);
     fileMenu->addSeparator();
     fileMenu->addAction(recallSnapshotAction);
-//    fileMenu->addAction(fRecallRecentAction->menuAction());
-//    fileMenu->addSeparator();
+    fileMenu->addAction(recallRecentAction->menuAction());
+    fileMenu->addSeparator();
     fileMenu->addAction(importSnapshotAction);
-//    fileMenu->addAction(fImportRecentAction->menuAction());
+    fileMenu->addAction(importRecentAction->menuAction());
     fileMenu->addSeparator();
     fileMenu->addAction(shutAction);
     fileMenu->addAction(shutAllAction);
@@ -825,9 +828,9 @@ void FLWindow::set_MenuBar(){
     
     //-----------------NAVIGATE
     
-//    fNavigateMenu = menuBar()->addMenu(tr("&Navigate"));
-    
-//    menuBar()->addSeparator();
+    fNavigateMenu = new QMenu;
+    fNavigateMenu = menuBar()->addMenu(tr("&Navigate"));    
+    menuBar()->addSeparator();
     
     //---------------------MAIN MENU
     
@@ -940,3 +943,134 @@ void FLWindow::aboutFaustLive(){
 void FLWindow::show_presentation(){
     emit show_presentation_Action();
 }
+
+void FLWindow::set_RecentFile(list<pair<string, string> > recents){
+    fRecentFiles = recents;
+}
+
+void FLWindow::update_RecentFileMenu(){
+    int j = 0;
+    
+    list<pair<string, string> >::iterator it;
+    
+    for (it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
+        
+        if(j<kMAXRECENTFILES){
+            
+            QString text;
+            text += it->second.c_str();
+            fRecentFileAction[j]->setText(text);
+            fRecentFileAction[j]->setData(it->first.c_str());
+            fRecentFileAction[j]->setVisible(true);
+            
+            j++;
+        }
+    }
+}
+
+void FLWindow::open_Recent_File(){
+    
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->data().toString().toStdString());
+    
+    emit open_File(toto);
+}
+
+void FLWindow::set_RecentSession(QStringList recents){
+    fRecentSessions = recents;
+}
+
+void FLWindow::update_RecentSessionMenu(){
+
+    QMutableStringListIterator i(fRecentSessions);
+    while(i.hasNext()){
+        if(!QFile::exists(i.next()))
+            i.remove();
+    }
+    
+    for(int j=0; j<kMAXRECENTSESSIONS; j++){
+        if(j<fRecentSessions.count()){
+            
+            QString path = QFileInfo(fRecentSessions[j]).baseName();
+            
+            QString text = tr("&%1 %2").arg(j+1).arg(path);
+            fRrecentSessionAction[j]->setText(text);
+            fRrecentSessionAction[j]->setData(fRecentSessions[j]);
+            fRrecentSessionAction[j]->setVisible(true);
+            
+            fIrecentSessionAction[j]->setText(text);
+            fIrecentSessionAction[j]->setData(fRecentSessions[j]);
+            fIrecentSessionAction[j]->setVisible(true);
+            
+            //            printf("TEXT = %s\n", text.toStdString().c_str());
+        }
+        else{
+            fRrecentSessionAction[j]->setVisible(false);
+            fIrecentSessionAction[j]->setVisible(false);
+        }
+    }
+}
+
+void FLWindow::recall_Recent_Session(){
+
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->data().toString().toStdString());
+    
+    emit recall_Snapshot(toto, false);
+}
+
+void FLWindow::import_Recent_Session(){
+    
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->data().toString().toStdString());
+    
+    emit recall_Snapshot(toto, true);
+}
+
+void FLWindow::initNavigateMenu(QList<QAction*> wins){
+        
+    QList<QAction*>::iterator it;
+    for(it = wins.begin(); it != wins.end() ; it++){
+
+        QAction* fifiWindow = new QAction((*it)->data().toString(), fNavigateMenu);
+        fFrontWindow.push_back(fifiWindow);
+        
+        fifiWindow->setData(QVariant((*it)->data().toString()));
+        connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
+        
+        fNavigateMenu->addAction(fifiWindow);
+        
+        printf("NAME = %s\n", (*it)->data().toString().toStdString().c_str());
+    }
+}
+
+void FLWindow::addWinInMenu(QString name){
+    
+    QAction* fifiWindow = new QAction(name, fNavigateMenu);
+    fFrontWindow.push_back(fifiWindow);
+    
+    fifiWindow->setData(QVariant(name));
+    connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
+    
+    fNavigateMenu->addAction(fifiWindow);
+}
+
+void FLWindow::deleteWinInMenu(QString name){
+    
+    QList<QAction*>::iterator it;
+    for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
+        if((*it)->data().toString().compare(name) == 0){
+            fNavigateMenu->removeAction(*it);
+            fFrontWindow.removeOne(*it);
+            break;
+        }
+    }
+}
+
+void FLWindow::frontShowFromMenu(){
+    
+    QAction* action = qobject_cast<QAction*>(sender());
+
+    emit front(action->data().toString());
+}
+

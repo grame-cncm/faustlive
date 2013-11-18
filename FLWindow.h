@@ -21,6 +21,9 @@
 #include <QtWidgets>
 #endif
 
+#define kMAXRECENTFILES 4
+#define kMAXRECENTSESSIONS 3
+
 #include "faust/gui/FUI.h"
 
 #include "FLEffect.h"
@@ -48,6 +51,11 @@ class FLWindow : public QMainWindow
         QMenuBar*       fMenuBar;
         void            setMenu();
         void            set_MenuBar();
+        QMenu*          fNavigateMenu;
+        QAction**       fRecentFileAction;
+        QAction**       fRrecentSessionAction;
+        QAction**       fIrecentSessionAction;
+        QList<QAction*>     fFrontWindow;
     
         FLEffect*         fEffect;         //Effect currently running in the window
         
@@ -80,6 +88,10 @@ class FLWindow : public QMainWindow
     //Diplays the default interface with Message : Drop a DSP or Edit Me
         void            print_initWindow();
     
+    
+        list<pair<string, string> > fRecentFiles;
+        QStringList                 fRecentSessions;
+    
     signals :
     //Informing of a drop, a close event, ...
         void            drop(list<string>);
@@ -105,6 +117,8 @@ class FLWindow : public QMainWindow
         void            show_preferences();
         void            apropos();
         void            show_presentation_Action();
+        void            recall_Snapshot(string, bool);
+        void            front(QString);
     
     private slots :
         void            create_Empty();
@@ -126,6 +140,10 @@ class FLWindow : public QMainWindow
         void            preferences();
         void            aboutFaustLive();
         void            show_presentation();
+        void            open_Recent_File();
+        void            recall_Recent_Session();
+        void            import_Recent_Session();
+        void            frontShowFromMenu();
         
     public :
     
@@ -206,6 +224,17 @@ class FLWindow : public QMainWindow
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
+    
+    //Menu action
+        void            set_RecentFile(list<pair<string, string> > recents);
+        void            update_RecentFileMenu();
+    
+        void            set_RecentSession(QStringList recents);
+        void            update_RecentSessionMenu();
+    
+        void            addWinInMenu(QString name);
+        void            deleteWinInMenu(QString name);
+        void            initNavigateMenu(QList<QAction*> wins);
     
     public slots :
     //Modification of the compilation options

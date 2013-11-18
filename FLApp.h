@@ -309,6 +309,10 @@ class FLApp : public QApplication
         void                recall_Recent_Session();
         void                import_Recent_Session();
     
+    //--------Navigate
+    
+        void                frontShow(QString name);
+    
     //--------Window
         void                edit(FLWindow* win);
         void                edit_Action();
