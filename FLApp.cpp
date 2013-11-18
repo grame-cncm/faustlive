@@ -2576,7 +2576,7 @@ void FLApp::edit(FLWindow* win){
 #endif
 #ifdef __unix__
 //    printf("LINUX\n");
-    cmd = "xdg-open";
+    cmd = "xdg-open ";
 #endif
     cmd += source;
     
