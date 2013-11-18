@@ -2567,11 +2567,17 @@ void FLApp::edit(FLWindow* win){
     
     string source = win->get_Effect()->getSource();
     
-    string cmd("open ");
+    string cmd;
     
+#ifdef __APPLE__
+    cmd = "open ";
+#endif
+#ifdef __linux__
+    cmd = "xdg-open";
+#endif
     cmd += source;
     
-    QString pgm("TextEdit");
+//    QString pgm("TextEdit");
     QStringList args;
     args<<source.c_str();
     //    args.push_back(source.c_str());
