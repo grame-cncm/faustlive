@@ -1122,7 +1122,7 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
         connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
         connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-        connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+        connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
         connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
         connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
         connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
@@ -1558,7 +1558,7 @@ void FLApp::recall_Session(string filename){
             connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
             connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
             connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-            connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+            connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
             connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
             connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
             connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
@@ -2647,7 +2647,7 @@ void FLApp::duplicate(FLWindow* window){
     connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
     connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
     connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-    connect(win, SIGNAL(close()), this, SLOT(close_Window_Action()));
+    connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
     connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
     connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));

@@ -104,7 +104,7 @@ class FLWindow : public QMainWindow
         void            takeSnapshot();
         void            recallSnapshotFromMenu();
         void            importSnapshotFromMenu();
-        void            close();
+        void            closeWin(FLWindow*);
         void            shut_AllWindows();
         void            closeAllWindows();
         void            edit_Action();

@@ -138,7 +138,7 @@ bool FLWindow::is_Default(){
 void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
     if(!fShortcut)
-        emit close();
+        emit closeWin(this);
     else
         emit shut_AllWindows();
 }
@@ -893,7 +893,7 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    emit close();
+    emit closeWin(this);
 }
 
 void FLWindow::shut_All(){

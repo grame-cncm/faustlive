@@ -298,6 +298,7 @@ class FLApp : public QApplication
         void                shut_Window(); 
         void                shut_AllWindows();
         virtual void        closeAllWindows();
+        void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();
 
@@ -373,7 +374,6 @@ class FLApp : public QApplication
         virtual             ~FLApp();
     
         void                create_New_Window(string& name);
-        void                common_shutAction(FLWindow* win);
 
 };
 
