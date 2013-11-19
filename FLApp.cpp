@@ -985,6 +985,13 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
     leavingEffect->stop_Watcher();
     deleteWinFromSessionFile(win);
     
+    QString name = win->get_nameWindow().c_str();
+    name+=" : ";
+    name+= win->get_Effect()->getName().c_str();
+    
+    win->deleteWinInMenu(name);
+    
+    
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false);
     
     bool optionChanged;
