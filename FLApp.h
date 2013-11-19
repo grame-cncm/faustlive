@@ -204,6 +204,7 @@ class FLApp : public QApplication
         void                update_Recent_Session();
         
     //Save and Recall Session actions
+		bool				fRecalling;		//True when recalling for the app not to close whith last window
         void                recall_Session(string filename);
         void                addWinToSessionFile(FLWindow* win);
         void                deleteWinFromSessionFile(FLWindow* win);

@@ -117,6 +117,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fHomeRecentSessions = fSettingsFolder + "/FaustLive_SessionSavings.rf"; 
     recall_Recent_Sessions(fHomeRecentSessions);
     
+
     //Initializing preference and save dialog
     fErrorWindow = new FLErrorWindow();
     fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
@@ -2048,14 +2049,20 @@ void FLApp::importSnapshotFromMenu(){
 
 void FLApp::recall_Snapshot(string filename, bool importOption){ 
     
+	fRecalling = true;
+
     set_Current_Session(filename);
     
     QProcess myCmd;
+	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QByteArray error;
     
     string systemInstruct("tar xfv ");
     systemInstruct += filename +" -C /";
     
+	printf("Recall process\n");
+
+	myCmd.setProcessEnvironment(env);
     myCmd.start(systemInstruct.c_str());
     myCmd.waitForFinished();
     
@@ -2089,6 +2096,8 @@ void FLApp::recall_Snapshot(string filename, bool importOption){
     
     if(strcmp(error2.data(), "") != 0)
         fErrorWindow->print_Error(error2.data());
+
+	fRecalling = false;
 }
 
 //---------------RENAMING AND ALL FUNCTIONS TO IMPORT
@@ -2540,7 +2549,7 @@ void FLApp::common_shutAction(FLWindow* win){
     }
 
 #ifdef __linux__
-    if(FLW_List.size() == 0)
+    if(FLW_List.size() == 0 && !fRecalling)
         exit();
 #endif
 }
