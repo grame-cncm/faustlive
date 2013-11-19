@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include <QtNetwork>
+
 //Returns the content of a file passed in path
 string pathToContent(string path){
     
@@ -129,19 +131,19 @@ bool isStringInt(const char* word){
 //Search IP adress in ifconfig result
 QString searchLocalIP(){
 
-    char host_name[32];
-    gethostname(host_name, sizeof(host_name));
     
-    struct hostent* host = gethostbyname(host_name);
-    if (host) {
-        for (int i = 0; host->h_addr_list[i] != 0; ++i) {
-            struct in_addr addr;
-            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            printf("addr %s\n", inet_ntoa(addr));
-            
-            return QString(inet_ntoa(addr));
-        }
+    QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
+    
+    QList<QHostAddress>::iterator it;
+    
+    QString localhost("localhost"); 
+    
+    for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
+        if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
+            return it->toString();
+        else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+            localhost = it->toString();
     }
-    else
-        return QString("localhost");
+    
+    return localhost;
 }
