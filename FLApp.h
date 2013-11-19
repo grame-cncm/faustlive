@@ -55,14 +55,6 @@ class FLApp : public QApplication
     
     private :
     
-    //Utilitaries functions
-//        void                pathToContent(string path, string& Content);
-//        bool                deleteDirectoryAndContent(string& directory);
-//        bool                rmDir(const QString &dirPath);
-//    
-//        bool                cpDir(const QString &srcPath, const QString &dstPath);
-//        bool                isStringInt(const char* word);
-    
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
@@ -111,6 +103,7 @@ class FLApp : public QApplication
         QAction*            fPresentationAction;
     
         void                setup_Menu();
+        void                redirectMenuToWindow(FLWindow* win);
     
         QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     

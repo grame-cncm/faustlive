@@ -18,7 +18,7 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int port, int generalPort){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int generalPort, int port){
     
     fShortcut = false;
     fEffect = eff;
@@ -65,11 +65,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
         set_MenuBar();
 }
 
-FLWindow::~FLWindow(){
-    
-    delete fAudioManager;
-    delete fMenu;
-}
+FLWindow::~FLWindow(){}
 
 //Set up of the Window ToolBar
 void FLWindow::setMenu(){
@@ -138,7 +134,7 @@ bool FLWindow::is_Default(){
 void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
     if(!fShortcut)
-        emit closeWin(this);
+        emit closeWin();
     else
         emit shut_AllWindows();
 }
@@ -167,6 +163,8 @@ void FLWindow::shut_Window(){
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
     
+    hide();
+    
     if(fClientOpen)
         fAudioManager->stop();
     
@@ -178,6 +176,9 @@ void FLWindow::close_Window(){
     }
 //     printf("deleting instance = %p\n", current_DSP);   
     deleteDSPInstance(fCurrent_DSP);
+    
+    delete fAudioManager;
+    delete fMenu;
 }
 
 //Delete of QTinterface and of saving graphical interface
@@ -757,6 +758,7 @@ void FLWindow::set_MenuBar(){
     connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_All()));
     
     QAction* closeAllAction = new QAction(tr("&Closing"),this);
+    closeAllAction->setShortcut(tr("Ctrl+Q"));
     closeAllAction = new QAction(tr("&Quit FaustLive"),this);
     closeAllAction->setToolTip(tr("Close the application"));   
     connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAll()));
@@ -893,7 +895,8 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    emit closeWin(this);
+    
+    emit closeWin();
 }
 
 void FLWindow::shut_All(){

@@ -48,7 +48,6 @@ class FLWindow : public QMainWindow
         string          fHome;        //Folder of currentSession
 
         FLToolBar*      fMenu;  
-        QMenuBar*       fMenuBar;
         void            setMenu();
         void            set_MenuBar();
         QMenu*          fNavigateMenu;
@@ -104,7 +103,7 @@ class FLWindow : public QMainWindow
         void            takeSnapshot();
         void            recallSnapshotFromMenu();
         void            importSnapshotFromMenu();
-        void            closeWin(FLWindow*);
+        void            closeWin();
         void            shut_AllWindows();
         void            closeAllWindows();
         void            edit_Action();
@@ -156,7 +155,7 @@ class FLWindow : public QMainWindow
     //IDAudio = what architecture audio are we running in?
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int port = 5510, int generalPort = 5510);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int generalPort = 5510, int port = 5510);
         virtual ~FLWindow();
     
     //To close a window the safe way

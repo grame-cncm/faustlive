@@ -96,9 +96,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 //    frontWindow = new QAction* [200];
     
     //For the application not to quit when the last window is closed
-#ifdef __APPLE__
     setQuitOnLastWindowClosed(false);
-#endif
     
     fMenuBar = new QMenuBar;
     fFileMenu = new QMenu;
@@ -1058,6 +1056,45 @@ void FLApp::update_SourceInWin(FLWindow* win, string source){
 
 //---------------NEW
 
+//
+
+void FLApp::redirectMenuToWindow(FLWindow* win){
+    
+    win->set_RecentFile(fRecentFiles);
+    win->update_RecentFileMenu();
+    
+    win->set_RecentSession(fRecentSessions);
+    win->update_RecentSessionMenu();
+    win->initNavigateMenu(fFrontWindow);
+    
+    connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
+    
+    connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
+    connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+    connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
+    connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
+    connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
+    connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
+    connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
+    connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
+    connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
+    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
+    connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
+    connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
+    connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
+    connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
+    connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
+    connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
+    connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
+    
+    connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
+    connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
+    connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
+    connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
+    connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
+    connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+}
+
 //--Creation of a new window
 FLWindow* FLApp::new_Window(string& source, string& error){
     
@@ -1065,8 +1102,6 @@ FLWindow* FLApp::new_Window(string& source, string& error){
     
     //In case the source is empty, the effect is chosen by default 
     if(source.compare("") == 0){
-        
-        printf("EMPTY WINDOW\n");
         
         source = "process = !,!:0,0;";
         init = true;
@@ -1101,43 +1136,11 @@ FLWindow* FLApp::new_Window(string& source, string& error){
         int x, y;
         calculate_position(val, &x, &y);
         
-        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
+        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder, fPort);
         
         printf("WIN = %p\n", win);
         
-        win->set_RecentFile(fRecentFiles);
-        win->update_RecentFileMenu();
-        
-        win->set_RecentSession(fRecentSessions);
-        win->update_RecentSessionMenu();
-        win->initNavigateMenu(fFrontWindow);
-        
-        connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
-        
-        connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
-        connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
-        connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
-        connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
-        connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
-        connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
-        connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
-        connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-        connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
-        connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
-        connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
-        connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
-        connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
-        connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
-        connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
-        connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
-        connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
-        
-        connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
-        connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
-        connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
-        connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
-        connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
-        connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+        redirectMenuToWindow(win);
         
         if(win->init_Window(init, false, error)){
             
@@ -1306,11 +1309,11 @@ void FLApp::set_Current_File(string& pathName, string& effName){
     
     list<FLWindow*>::iterator it;
     
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
- 
+    for(it = FLW_List.begin(); it!=FLW_List.end() ; it++){
         (*it)->set_RecentFile(fRecentFiles);
         (*it)->update_RecentFileMenu();
     }
+        
 }
 
 //--Visual Update
@@ -1539,41 +1542,9 @@ void FLApp::recall_Session(string filename){
                 fErrorWindow->print_Error(error.c_str());
             }
             
-            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->portHttpd);
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, fPort, (*it)->portHttpd);
             
-            win->set_RecentFile(fRecentFiles);
-            win->update_RecentFileMenu();
-            
-            win->set_RecentSession(fRecentSessions);
-            win->update_RecentSessionMenu();
-            win->initNavigateMenu(fFrontWindow);
-            
-            connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
-            
-            connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
-            connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
-            connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
-            connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
-            connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
-            connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
-            connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
-            connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-            connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
-            connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
-            connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
-            connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
-            connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
-            connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
-            connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
-            connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
-            connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
-            connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
-            connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
-            connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
-            connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));    
-            connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
-            connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
-            
+            redirectMenuToWindow(win);
             
             //Modification of connection files with the new window & effect names
             
@@ -1777,8 +1748,11 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
                     
                     list<FLWindow*>::iterator it3;
                     
-                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++)
-                        (*it3)->deleteWinInMenu(name);
+                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++){
+                     
+                        if(win != *it3)
+                            (*it3)->deleteWinInMenu(name);
+                    }
                     //                    toRemove = *it;
                     break;
                 }
@@ -2457,7 +2431,7 @@ void FLApp::closeAllWindows(){
             set_Current_File(toto, tutu);
         
         (*it)->close_Window();
-        delete (*it);
+        (*it)->deleteLater();
     }
     FLW_List.clear();
     
@@ -2467,6 +2441,9 @@ void FLApp::closeAllWindows(){
     
     fExecutedEffects.clear();
     
+#ifdef __linux__
+    exit();
+#endif
 }
 
 //Shut all Windows from Menu
@@ -2527,6 +2504,7 @@ void FLApp::common_shutAction(FLWindow* win){
         set_Current_File(toto, tutu);
     
     deleteWinFromSessionFile(win);
+    sessionContentToFile(fSessionFile);
     
     win->shut_Window();
     
@@ -2547,11 +2525,24 @@ void FLApp::common_shutAction(FLWindow* win){
     }
     
     FLW_List.remove(win);
-    delete win;
+    win->deleteLater();
     
     if(toDelete != NULL){
         delete toDelete;
     }
+    
+    list<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+        
+        (*it)->set_RecentFile(fRecentFiles);
+        (*it)->update_RecentFileMenu();
+    }
+
+#ifdef __linux__
+    if(FLW_List.size() == 0)
+        exit();
+#endif
 }
 
 //--------------------------------Navigate----------
@@ -2628,43 +2619,9 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, fPort);
     
-    win->set_RecentFile(fRecentFiles);
-    win->update_RecentFileMenu();
-    
-    win->set_RecentSession(fRecentSessions);
-    win->update_RecentSessionMenu();
-    win->initNavigateMenu(fFrontWindow);
-    
-    connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
-    
-    connect(win, SIGNAL(rightClick(const QPoint &)), this, SLOT(redirect_RCAction(const QPoint &)));
-    connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
-    connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
-    connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
-    connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
-    connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
-    connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
-    connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
-    connect(win, SIGNAL(closeWin(FLWindow*)), this, SLOT(common_shutAction(FLWindow*)));
-    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
-    connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
-    connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
-    connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
-    connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
-    connect(win, SIGNAL(httpd_View_Window()), this, SLOT(httpd_View_Window()));
-    connect(win, SIGNAL(svg_View_Action()), this, SLOT(svg_View_Action()));
-    connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
-    
-    connect(win, SIGNAL(show_aboutQt()), this, SLOT(aboutQt()));
-    connect(win, SIGNAL(show_preferences()), this, SLOT(Preferences()));
-    connect(win, SIGNAL(apropos()), this, SLOT(apropos()));
-    connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
-    
-    connect(win, SIGNAL(recall_Snapshot(string, bool)), this, SLOT(recall_Snapshot(string, bool)));
-    connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
-    
+    redirectMenuToWindow(win);
     
     //Save then Copy of duplicated window's parameters
     window->save_Window();

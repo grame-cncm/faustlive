@@ -19,8 +19,6 @@
 #include "faust/gui/httpdUI.h"
 #include "utilities.h"
 
-#define kServerPort "7777"
-
 using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
