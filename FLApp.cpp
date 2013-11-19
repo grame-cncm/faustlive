@@ -941,6 +941,10 @@ void FLApp::synchronize_Window(){
                         //                        printf("WINDOW INDEX = %i\n", *it);
                         
                         deleteWinFromSessionFile(*it2);
+                        QString name = (*it2)->get_nameWindow().c_str();
+                        name+=" : ";
+                        name+= (*it2)->get_Effect()->getName().c_str();
+                        (*it2)->deleteWinInMenu(name);
                         addWinToSessionFile(*it2);
                         
                         string oldSource = modifiedEffect->getSource();
