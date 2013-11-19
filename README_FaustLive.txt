@@ -28,12 +28,17 @@ Make sure to download the current development trunk of these libraries.
 
 cd projetDIR
 
-//YOU CAN CHOSE THE AUDIO ARCHITECTURE SUPPORTED (CoreAudio, Jack, NetJack)
+--ON OSX : AUDIO ARCHITECTURE SUPPORTED (CoreAudio, Jack, NetJack)
 qmake -spec macx-g++ "CAVAR=1" "JVAR=1" "NJVAR=1"
 make
+You can create a self-contained qt application with : 
+	macdeployqt NAMEofAppBUNDLE
 
-To create a self-contained qt application, you can deploy the application with :
-	 macdeployqt NAMEofAppBUNDLE
+
+--ON LINUX : AUDIO ARCHITECTURE SUPPORTED (Jack, NetJack)
+qmake -makefile "JVAR=1" "NJVAR=1"
+make
+The executable file is in FaustLive.app/Contents/MacOs
 
 -----------------WARNINGS
 
