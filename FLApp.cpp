@@ -2591,26 +2591,12 @@ void FLApp::edit(FLWindow* win){
     
     string source = win->get_Effect()->getSource();
     
-    string cmd;
-    
-#ifdef __APPLE__
-//    printf("OSX\n");
-    cmd = "open ";
-#endif
-#ifdef __unix__
-//    printf("LINUX\n");
-    cmd = "xdg-open ";
-#endif
-    cmd += source;
-    
-//    QString pgm("TextEdit");
-    QStringList args;
-    args<<source.c_str();
-    //    args.push_back(source.c_str());
+    QUrl url = QUrl::fromLocalFile(source.c_str());
+    bool b = QDesktopServices::openUrl(url);
     
     string error = source + " could not be opened!";
     
-    if(system(cmd.c_str()))
+    if(!b)
         fErrorWindow->print_Error(error.c_str());
 }
 
@@ -2740,10 +2726,13 @@ void FLApp::viewSvg(FLWindow* win){
     string source = win->get_Effect()->getSource();
     string pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
     
-    string cmd = "open " + pathToOpen;
-    string error = pathToOpen + " could not be opened!";
+
+    QUrl url = QUrl::fromLocalFile(pathToOpen.c_str());
+    bool b = QDesktopServices::openUrl(url);
+
+   	string error = pathToOpen + " could not be opened!";
     
-    if(system(cmd.c_str()))
+    if(!b)
         fErrorWindow->print_Error(error.c_str());
 }
 
