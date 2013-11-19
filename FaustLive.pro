@@ -18,15 +18,17 @@ INCLUDEPATH += /opt/local/include
 ICON = FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
+unix:!macx{
+	message("LINUX")
+	all.commands += $(shell mkdir FaustLive.app)
+	all.commands += $(shell mkdir FaustLive.app/Contents)
+	all.commands += $(shell mkdir FaustLive.app/Contents/Resources)
+	all.commands += $(shell mkdir FaustLive.app/Contents/MacOs)
+}
 all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
-
 all.commands += $(shell cp -R Images Examples FaustLive.app/Contents/Resources/)
 
 MYFILES = $$system(ls $$FAUSTDIR/*.lib)
-
-# SUBSTR = .lib
-
-# VAR = $$find(MYFILES, $$SUBSTR)
 
 for(FILE, MYFILES) {
 	all.commands += $(shell cp $$FILE FaustLive.app/Contents/Resources/Libs)
@@ -34,8 +36,11 @@ for(FILE, MYFILES) {
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
 
-# QMAKE_CXXFLAGS += -g
-QMAKE_CXXFLAGS += -Wno-unused-variable
+unix:!macx{
+	all.commands += $(shell mv FaustLive FaustLive.app/Contents/MacOs)
+}
+
+QMAKE_CXXFLAGS += -Wno-unused-variable -g
 QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64

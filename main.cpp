@@ -35,13 +35,11 @@ int main(int argc, char *argv[])
     FLApp* app = new FLApp(argc, argv);
     
     //If app was executed with DSP as arguments
-    if(argc > 1){
-        for(int i=1; i < argc; i++){
+    for(int i=1; i < argc; i++){
             string dsp(argv[i]);
             
-            if(QFileInfo(dsp.c_str()).exists())
+            if(QFileInfo(argv[i]).exists())
                 app->create_New_Window(dsp);
-        }
     }
     
     app->exec();
