@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.1"
+#define FLVERSION   "1.2"
 #define DEFAULTNAME "DefaultName"
 
 #define kExportUrlFile "/ServerURL.txt"
@@ -265,7 +265,7 @@ class FLApp : public QApplication
     
     private slots :
         
-        void                launch_Server();
+        bool                launch_Server();
     
     //---------Drop on a window
     

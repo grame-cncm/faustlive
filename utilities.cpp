@@ -130,7 +130,8 @@ bool isStringInt(const char* word){
 
 //Search IP adress in ifconfig result
 QString searchLocalIP(){
-
+    
+    printf("Utilities... Search for IP\n");
     
     QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
     

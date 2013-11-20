@@ -58,11 +58,8 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     
     setMenu();
     
-    //    setAttribute(Qt::WA_MacNoClickThrough);
-    
-    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);
-    //    setAttribute(Qt::WA_DeleteOnClose);
-        set_MenuBar();
+    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);    
+    set_MenuBar();
 }
 
 FLWindow::~FLWindow(){}
