@@ -106,10 +106,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     setup_Menu();
     
-    fServerHttp = NULL;
-    fCompilingMessage = NULL;
-    launch_Server();
-    
 //    homeRecents = getenv("HOME");
     fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
     recall_Recent_Files(fRecentsFile);
@@ -123,6 +119,10 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
     fErrorWindow->init_Window();
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    
+    fServerHttp = NULL;
+    fCompilingMessage = NULL;
+    launch_Server();
 }
 
 FLApp::~FLApp(){
@@ -1160,6 +1160,7 @@ FLWindow* FLApp::new_Window(string& source, string& error){
             
             FLW_List.push_back(win);
             addWinToSessionFile(win);
+            
             first->launch_Watcher();
             
             //In case the compilation options have changed...
@@ -1279,8 +1280,8 @@ void FLApp::save_Recent_Files(){
             QString tata = it->second.c_str();
             text << toto <<' '<<tata<< endl;
         }
+        f.close();
     }
-    f.close();
 }
 
 void FLApp::recall_Recent_Files(string& filename){
@@ -1600,8 +1601,9 @@ void FLApp::save_Recent_Sessions(){
             QString toto = fRecentSessions[i];
             text << toto << endl;
         }
+        f.close();      
     }
-    f.close();
+
 }
 
 void FLApp::recall_Recent_Sessions(string& filename){
@@ -4220,14 +4222,20 @@ void FLApp::save_Mode(){
         
         if(fPort != atoi(fPortLine->text().toStdString().c_str())){
             fPort = atoi(fPortLine->text().toStdString().c_str());
-    
+            
+            stop_Server();
+            if(!launch_Server())
+                fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
+            else{
+                stringstream s;
+                s<<"Server Started On Port "<<fPort;
+                
+                fErrorWindow->print_Error(s.str().c_str());
+            }
             list<FLWindow*>::iterator it;
             
             for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
                 (*it)->set_generalPort(fPort);
-            
-            fServerHttp->stop();
-            fServerHttp->start(fPort);
         }   
     }
     else
@@ -4284,7 +4292,7 @@ void FLApp::save_Settings(string& home){
         
         QTextStream textWriting(&g);
         
-        textWriting<<server;
+        textWriting<<server<<' '<<fPort;
         g.close();
     }    
 }
@@ -4335,7 +4343,7 @@ void FLApp::recall_Settings(string& home){
     if(g.open(QFile::ReadOnly)){
         
         QTextStream textReading(&g);
-        textReading>>server;
+        textReading>>server>>fPort;
         
         g.close();
     }
@@ -4472,15 +4480,40 @@ void FLApp::StopProgressSlot(){
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
-void FLApp::launch_Server(){
+bool FLApp::launch_Server(){
     
     if(fServerHttp == NULL){
     
         fServerHttp = new FLServerHttp();
-        fServerHttp->start(fPort);
         
+        int i = 0;
+        
+        bool returning = true;
+        
+        while(!fServerHttp->start(fPort)){
+            
+            stringstream s;
+            s<<"Server Could Not Start On Port "<<fPort;
+            
+            fErrorWindow->print_Error(s.str().c_str());
+            
+            fPort++;
+            
+            if(i > 15){
+                returning = false;
+                break;
+            }
+            else{
+                i++;
+            }
+        }
+
         connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
+    
+        return returning;
     }
+    else
+        return false;
 }
 
 //Stop FaustLive Server

@@ -41,10 +41,14 @@ bool FLServerHttp::start(unsigned short port){
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
                                request_completed, NULL, MHD_OPTION_END);
     
-    printf("Server started???\n");
-    
-    return fDaemon != NULL;
-    
+    if(fDaemon!=NULL){
+        printf("Server started = %p \n", fDaemon);
+        return true;
+    }
+    else{
+        MHD_stop_daemon(fDaemon);
+        return false;
+    }
 }
 
 //Stop Server Listening

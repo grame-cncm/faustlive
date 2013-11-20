@@ -58,6 +58,7 @@ LIBS+= $$LLVMDIR $$LLVMLIBS
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
 
+LIBS+=-L/opt/local/lib
 LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
