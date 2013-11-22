@@ -58,50 +58,13 @@ class FLApp : public QApplication
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
-        QMenu *             fFileMenu;
-        QMenu *             fWindowMenu;
-        QMenu *             fNavigateMenu;
-        QMenu *             fHelpMenu;
     
-        QAction*            fServer;
-        QAction*            fServerStop;
-        QAction*            fNewAction;
-        QAction*            fOpenAction;
-    
-        QAction **          fOpenExamples;
-        QMenu *             fMenuOpen_Example;
-    
-        QMenu*              fOpenRecentAction;
         QAction**           fRecentFileAction;
-        
-        QAction*            fExportAction;
-        QAction*            fShutAction;
-        QAction*            fShutAllAction;
-        QAction*            fCloseAllAction;
-    
-        QAction*            fEditAction;
-        QAction*            fPasteAction;
-        QAction*            fDuplicateAction;
-    
-        QList<QAction*>     fFrontWindow;
-    
-        QAction*            fTakeSnapshotAction;
-        QAction*            fRecallSnapshotAction;
-        QAction*            fImportSnapshotAction;
-        QMenu*              fRecallRecentAction;
         QAction**           fRrecentSessionAction;
-        QMenu*              fImportRecentAction;
         QAction**           fIrecentSessionAction;
     
-        QAction*            fHttpdViewAction;
-        QAction*            fSvgViewAction;
-    
-        QAction*            fAboutQtAction;
-        QAction*            fPreferencesAction;
-        QAction*            fAboutAction; 
-        QAction*            fVersionAction;
-        QAction*            fPresentationAction;
-    
+        QList<QString>     fFrontWindow;
+
         void                setup_Menu();
         void                redirectMenuToWindow(FLWindow* win);
     
@@ -151,9 +114,9 @@ class FLApp : public QApplication
     //Recent Files Parameters and functions
         string              fRecentsFile;    //Path to  Recent Dsp file
         list<pair<string, string> >         fRecentFiles;
-        void                recall_Recent_Files(string& filename);
+        void                recall_Recent_Files(const string& filename);
         void                save_Recent_Files();
-        void                set_Current_File(string& pathName, string& effName);
+        void                set_Current_File(const string& pathName, const string& effName);
         void                update_Recent_File();
     
     //When the application is launched without parameter, this timer will start a initialized window
@@ -184,8 +147,8 @@ class FLApp : public QApplication
         string              fStyleChoice;
     
         void                init_PreferenceWindow();
-        void                save_Settings(string& home);
-        void                recall_Settings(string& home);
+        void                save_Settings(const string& home);
+        void                recall_Settings(const string& home);
     
         void                update_AudioArchitecture();
     
@@ -199,22 +162,22 @@ class FLApp : public QApplication
         string              fHomeRecentSessions;
         QStringList         fRecentSessions;
         void                save_Recent_Sessions();
-        void                recall_Recent_Sessions(string& filename); 
-        void                set_Current_Session(string& pathName);
+        void                recall_Recent_Sessions(const string& filename); 
+        void                set_Current_Session(const string& pathName);
         void                update_Recent_Session();
         
     //Save and Recall Session actions
 		bool				fRecalling;		//True when recalling for the app not to close whith last window
-        void                recall_Session(string filename);
+        void                recall_Session(const string& filename);
         void                addWinToSessionFile(FLWindow* win);
         void                deleteWinFromSessionFile(FLWindow* win);
         void                update_CurrentSession();
     
     //In case of an import, those steps are necessary to modify the session before opening it
         list<std::pair<int, int> >  establish_indexChanges(list<WinInSession*>* session);
-        void                copy_WindowsFolders(string& srcDir, string& dstDir, list<std::pair<string,string> > indexChanges);
-        void                copy_AllSources(string& srcDir, string& dstDir, list<std::pair<string,string> > nameChanges, string extension);
-        void                copy_SVGFolders(string& srcDir, string& dstDir, list<std::pair<string,string> > nameChanges);
+        void                copy_WindowsFolders(const string& srcDir, const string& dstDir, list<std::pair<string,string> > indexChanges);
+        void                copy_AllSources(const string& srcDir, const string& dstDir, list<std::pair<string,string> > nameChanges, const string extension);
+        void                copy_SVGFolders(const string& srcDir, const string& dstDir, list<std::pair<string,string> > nameChanges);
     
         void                establish_sourceChanges(list<std::pair<string,string> > nameChanges, list<WinInSession*>* session);
     
@@ -226,39 +189,39 @@ class FLApp : public QApplication
         virtual bool        event(QEvent *ev);
     
     //Functions of read/write of a session description file
-        void                sessionContentToFile(string filename);
-        void                fileToSessionContent(string filename, list<WinInSession*>* session);
+        void                sessionContentToFile(const string& filename);
+        void                fileToSessionContent(const string& filename, list<WinInSession*>* session);
     
     //Reset of the Folders contained in the current Session Folder
         void                reset_CurrentSession();
     
     //Functions of rehabilitation if sources disapears
         void                currentSessionRestoration(list<WinInSession*>* session);
-        void                snapshotRestoration(string& file, list<WinInSession*>* session);
+        void                snapshotRestoration(const string& file, list<WinInSession*>* session);
     
     //-----------------Creation of Effects
 
-    string                  ifUrlToText(string& source);
+    string                  ifUrlToText(const string& source);
     //When the source of the effect is not a file but text, it has to be stored in a file
-    void                    createSourceFile(string& sourceName, string& content);
+    void                    createSourceFile(const string& sourceName, const string& content);
     //Updating the content of the backup file 
-    void                    update_Source(string& oldSource, string& newSource);
+    void                    update_Source(const string& oldSource, const string& newSource);
     
     string                  getDeclareName(string text);
     
-    string                  renameEffect(string source, string nomEffet);
+    string                  renameEffect(const string& source, const string& nomEffet);
     
-    FLEffect*               getEffectFromSource(string& source, string& nameEffect, string& sourceFolder, string compilationOptions, int optVal, string& error, bool init);
+    FLEffect*               getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int optVal, string& error, bool init);
     
     //-----------------Questions about the current State
     
         bool                isIndexUsed(int index, list<int> currentIndexes);
-        bool                isEffectInCurrentSession(string sourceToCompare);
-        string              getNameEffectFromSource(string sourceToCompare);
-        bool                isEffectNameInCurrentSession(string& sourceToCompare, string& name);
+        bool                isEffectInCurrentSession(const string& sourceToCompare);
+        string              getNameEffectFromSource(const string& sourceToCompare);
+        bool                isEffectNameInCurrentSession(const string& sourceToCompare, const string& name);
         list<string>        getNameRunningEffects();
         list<int>           WindowCorrespondingToEffect(FLEffect* eff);
-        void                removeFilesOfWin(string sourceName, string effName);
+        void                removeFilesOfWin(const string& sourceName, const string& effName);
 
         FLWindow*           getActiveWin();
         FLWindow*           getWinFromHttp(int port);
@@ -269,7 +232,7 @@ class FLApp : public QApplication
     
     //---------Drop on a window
     
-        void                update_SourceInWin(FLWindow* win, string source);
+        void                update_SourceInWin(FLWindow* win, const string& source);
         void                drop_Action(list<string>);
     
     //---------Presentation Window Slots
@@ -284,11 +247,11 @@ class FLApp : public QApplication
         void                itemDblClick(QListWidgetItem* item);
     
     //---------File
-        FLWindow*           new_Window(string& source, string& error);
+        FLWindow*           new_Window(const string& mySource, string& error);
         void                create_Empty_Window();
         void                open_New_Window();
         void                open_Recent_File();
-        void                open_Recent_File(string toto);
+        void                open_Recent_File(const string& toto);
         void                shut_Window(); 
         void                shut_AllWindows();
         virtual void        closeAllWindows();
@@ -298,7 +261,7 @@ class FLApp : public QApplication
 
     //--Session
         void                take_Snapshot();
-        void                recall_Snapshot(string filename, bool importOption);
+        void                recall_Snapshot(const string& filename, bool importOption);
         void                recallSnapshotFromMenu();
         void                importSnapshotFromMenu();
         void                recall_Recent_Session();
@@ -327,12 +290,9 @@ class FLApp : public QApplication
         void                export_Win(FLWindow* Win);
         void                export_Action();
     
-    //--------RightClickEvent
-        void                redirect_RCAction(const QPoint & p);
-    
     //---------Preferences
         void                styleClicked();
-        void                styleClicked(string style);
+        void                styleClicked(const string& style);
         void                Preferences();
         void                save_Mode();
         void                cancelPref();
@@ -351,14 +311,13 @@ class FLApp : public QApplication
         void                update_ProgressBar();
     
     //--------Long operations entertainment
-        void                display_CompilingProgress(string msg);
+        void                display_CompilingProgress(const string& msg);
         void                StopProgressSlot(); 
     
     //--------Error received
         void                errorPrinting(const char* msg);
     
     //--------Server Response
-//        void                close_Window_FormHttp(const char* nameEffect);
         void                compile_HttpData(const char* data, int port);
         void                stop_Server();
     
@@ -367,7 +326,7 @@ class FLApp : public QApplication
                             FLApp(int& argc, char** argv);
         virtual             ~FLApp();
     
-        void                create_New_Window(string& name);
+        void                create_New_Window(const string& name);
 
 };
 

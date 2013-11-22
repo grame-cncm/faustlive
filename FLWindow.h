@@ -50,6 +50,8 @@ class FLWindow : public QMainWindow
         FLToolBar*      fMenu;  
         void            setMenu();
         void            set_MenuBar();
+        
+        QMenu*        fWindowMenu;
         QMenu*          fNavigateMenu;
         QAction**       fRecentFileAction;
         QAction**       fRrecentSessionAction;
@@ -94,7 +96,6 @@ class FLWindow : public QMainWindow
     signals :
     //Informing of a drop, a close event, ...
         void            drop(list<string>);
-        void            rightClick(const QPoint&);
         void            error(const char*);
     
         void            create_Empty_Window();
@@ -233,7 +234,7 @@ class FLWindow : public QMainWindow
     
         void            addWinInMenu(QString name);
         void            deleteWinInMenu(QString name);
-        void            initNavigateMenu(QList<QAction*> wins);
+        void            initNavigateMenu(QList<QString> wins);
     
     public slots :
     //Modification of the compilation options
