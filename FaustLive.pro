@@ -26,7 +26,6 @@ unix:!macx{
 	all.commands += $(shell mkdir FaustLive.app/Contents/MacOs)
 }
 all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
-all.commands += $(shell cp -R Images Examples FaustLive.app/Contents/Resources/)
 
 MYFILES = $$system(ls $$FAUSTDIR/*.lib)
 
@@ -165,3 +164,5 @@ SOURCES += 	AudioCreator.cpp \
 			FLApp.cpp \
 			main.cpp \
     		SimpleParser.cpp
+
+ RESOURCES     = Resources/application.qrc

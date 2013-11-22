@@ -119,11 +119,12 @@ class FLWindow : public QMainWindow
         void            show_presentation_Action();
         void            recall_Snapshot(string, bool);
         void            front(QString);
+        void            open_Ex(QString);
     
     private slots :
         void            create_Empty();
         void            open_New();
-        void            open_Recent();
+        void            open_Example();
         void            take_Snapshot();
         void            recallSnapshot();
         void            importSnapshot();

@@ -62,6 +62,12 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
         direct.mkdir(fIRFolder.c_str());
     }  
     
+    fExamplesFolder = fSessionFolder + "/Examples";
+    if(!QFileInfo(fExamplesFolder.c_str()).exists()){
+        QDir direct(fExamplesFolder.c_str());
+        direct.mkdir(fExamplesFolder.c_str());
+    }  
+    
     QDir direc(fSessionFile.c_str());
     
     //Initializing screen parameters
@@ -173,12 +179,9 @@ void FLApp::setup_Menu(){
     
     QMenu* menuOpen_Example = new QMenu(tr("&Open Example"), fileMenu);
     
-    QString examplesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath();
-    examplesPath += "/Resources/Examples";
+    QDir examplesDir(":/");
     
-    if(QFileInfo(examplesPath).exists()){
-    
-        QDir examplesDir(examplesPath);
+    if(examplesDir.cd("Examples")){
     
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
     
@@ -680,9 +683,9 @@ string FLApp::renameEffect(const string& source, const string& nomEffet){
     
     string newName(nomEffet);
     
-    while(isEffectNameInCurrentSession(source , nomEffet)){
+    while(isEffectNameInCurrentSession(source , newName)){
     
-        FLrenameDialog* Msg = new FLrenameDialog(nomEffet, 0);
+        FLrenameDialog* Msg = new FLrenameDialog(newName, 0);
         Msg->raise();
         Msg->exec();
         newName = Msg->getNewName();
@@ -991,6 +994,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
     connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
+    connect(win, SIGNAL(open_Ex(QString)), this, SLOT(open_Example_Action(QString)));
     connect(win, SIGNAL(open_File(string)), this, SLOT(open_Recent_File(string)));
     connect(win, SIGNAL(takeSnapshot()), this, SLOT(take_Snapshot()));
     connect(win, SIGNAL(recallSnapshotFromMenu()), this, SLOT(recallSnapshotFromMenu()));
@@ -1153,20 +1157,41 @@ void FLApp::open_New_Window(){
 
 //--------------OPEN EXAMPLE
 
+void FLApp::open_Example_Action(QString pathInQResource){
+    
+    QFileInfo toOpen(pathInQResource);
+    fExampleToOpen = toOpen.baseName().toStdString();
+    open_Example_Action();
+    
+}
+
 void FLApp::open_Example_Action(){
     
-    string path = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Examples/" + fExampleToOpen + ".dsp";
+    QDir examplesDir(":/");
     
-    if(QFileInfo(path.c_str()).exists()){
+    if(examplesDir.cd("Examples")){
+    
+        string path = fExampleToOpen + ".dsp";
         
-        fPresWin->hide();
-        
-        FLWindow* win = getActiveWin();
-        
-        if(win != NULL && win->is_Default())
-            update_SourceInWin(win, path);
-        else
-            create_New_Window(path);
+        if(QFileInfo(examplesDir.absoluteFilePath(path.c_str())).exists()){
+            
+            path = examplesDir.absoluteFilePath(path.c_str()).toStdString();
+            
+            string pathInSession = fExamplesFolder + "/" + fExampleToOpen + ".dsp";
+            
+            QFile file(examplesDir.absoluteFilePath(path.c_str()));
+            
+            file.copy(pathInSession.c_str());
+            
+            fPresWin->hide();
+            
+            FLWindow* win = getActiveWin();
+            
+            if(win != NULL && win->is_Default())
+                update_SourceInWin(win, pathInSession);
+            else
+                create_New_Window(pathInSession);
+        }
     }
 }
 
@@ -1685,11 +1710,8 @@ void FLApp::update_CurrentSession(){
     for (it = FLW_List.begin(); it != FLW_List.end(); it++){
         
         deleteWinFromSessionFile(*it);
-        
-        printf("DELETE WIN\n");
-        
         addWinToSessionFile(*it);
-        printf("ADDED WIN\n");
+        
         (*it)->save_Window();
     }
 }
@@ -2968,7 +2990,11 @@ void FLApp::itemDblClick(QListWidgetItem* item){
 //Init Presentation Menu
 void FLApp::init_presentationWindow(){
     
-    string ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Images/";
+    QDir ImagesDir(":/");
+    
+    ImagesDir.cd("Images");
+    
+    QFileInfoList child = ImagesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
     
     QGroupBox*      iconeBox = new QGroupBox;
     QGroupBox*      buttonBox = new QGroupBox;
@@ -2996,8 +3022,7 @@ void FLApp::init_presentationWindow(){
     
     QLabel *image = new QLabel();
     //Path of the executable + the presentation Image
-    string pathImage = ImagesPath + "Presentation_Image.png";
-    QPixmap presImg(pathImage.c_str());
+    QPixmap presImg(ImagesDir.absoluteFilePath("Presentation_Image.png"));
     presImg.scaledToWidth(100, Qt::SmoothTransformation);
     presImg.scaledToHeight(100, Qt::SmoothTransformation);
     image->setPixmap(presImg);
@@ -3022,8 +3047,7 @@ void FLApp::init_presentationWindow(){
     
     QLabel *new_Image = new QLabel(gridBox);
     //Path of the executable + the presentation Image
-    string pathNew = ImagesPath + "InitWin.png";
-    QPixmap newPix(pathNew.c_str());
+    QPixmap newPix(ImagesDir.absoluteFilePath("InitWin.png"));
     newPix = newPix.scaledToWidth(60, Qt::SmoothTransformation);
     new_Image->setPixmap(newPix);
     layout2->addWidget(new_Image, 0, 0);
@@ -3037,8 +3061,7 @@ void FLApp::init_presentationWindow(){
     connect(new_Window, SIGNAL(clicked()), this, SLOT(new_Window_pres()));
     
     QLabel *open_Image = new QLabel(gridBox);
-    string pathOpen = ImagesPath + "OpenWin.png";
-    QPixmap openPix(pathOpen.c_str());
+    QPixmap openPix(ImagesDir.absoluteFilePath("OpenWin.png"));
     openPix = openPix.scaledToWidth(60, Qt::SmoothTransformation);
     open_Image->setPixmap(openPix);
     layout2->addWidget(open_Image, 1, 0);
@@ -3052,8 +3075,7 @@ void FLApp::init_presentationWindow(){
     connect(open_Window, SIGNAL(clicked()), this, SLOT(open_Window_pres()));
     
     QLabel *snap_Image = new QLabel(gridBox);
-    string pathSnap = ImagesPath + "RecallMenu.png";
-    QPixmap snapPix(pathSnap.c_str());
+    QPixmap snapPix(ImagesDir.absoluteFilePath("RecallMenu.png"));
     snapPix = snapPix.scaledToWidth(60, Qt::SmoothTransformation);
     snap_Image->setPixmap(snapPix);
     layout2->addWidget(snap_Image, 2, 0);
@@ -3067,8 +3089,7 @@ void FLApp::init_presentationWindow(){
     connect(open_Session, SIGNAL(clicked()), this, SLOT(open_Session_pres()));
     
     QLabel *help_Image = new QLabel(gridBox);
-    string pathHelp = ImagesPath + "HelpMenu.png";
-    QPixmap helpPix(pathHelp.c_str());
+    QPixmap helpPix(ImagesDir.absoluteFilePath("HelpMenu.png"));
     helpPix = helpPix.scaledToWidth(60, Qt::SmoothTransformation);
     help_Image->setPixmap(helpPix);
     layout2->addWidget(help_Image, 3, 0);
@@ -3089,12 +3110,9 @@ void FLApp::init_presentationWindow(){
     
     QListWidget *vue = new QListWidget(openExamples);
     
-    QString examplesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath();
-    examplesPath += "/Resources/Examples";
+    QDir examplesDir(":/");
     
-    if(QFileInfo(examplesPath).exists()){
-    
-    QDir examplesDir(examplesPath);
+    if(examplesDir.cd("Examples")){
     
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
         

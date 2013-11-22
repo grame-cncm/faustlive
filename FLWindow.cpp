@@ -675,12 +675,9 @@ void FLWindow::set_MenuBar(){
     
     QMenu* menuOpen_Example = new QMenu(tr("&Open Example"), fileMenu);
     
-    QString examplesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath();
-    examplesPath += "/Resources/Examples";
+    QDir examplesDir(":/");
     
-    if(QFileInfo(examplesPath).exists()){
-        
-        QDir examplesDir(examplesPath);
+    if(examplesDir.cd("Examples")){
         
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
         
@@ -693,7 +690,7 @@ void FLWindow::set_MenuBar(){
             
             openExamples[i] = new QAction(it->baseName(), menuOpen_Example);
             openExamples[i]->setData(QVariant(it->absoluteFilePath()));
-            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Recent()));
+            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Example()));
             
             menuOpen_Example->addAction(openExamples[i]);
             i++;
@@ -876,12 +873,12 @@ void FLWindow::open_New(){
     emit open_New_Window();
 }
 
-void FLWindow::open_Recent(){
+void FLWindow::open_Example(){
     
     QAction* action = qobject_cast<QAction*>(sender());
-    string toto(action->data().toString().toStdString());
+    QString toto(action->data().toString());
     
-    emit open_File(toto);
+    emit open_Ex(toto);
 }
 
 void FLWindow::take_Snapshot(){

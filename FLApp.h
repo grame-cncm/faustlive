@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.2"
+#define FLVERSION   "1.3"
 #define DEFAULTNAME "DefaultName"
 
 #define kExportUrlFile "/ServerURL.txt"
@@ -110,6 +110,7 @@ class FLApp : public QApplication
         string              fSourcesFolder; //Folder with the copy of the sources
         string              fSVGFolder;   //Folder with the SVG processes
         string              fIRFolder;    //Folder with the Bitcode files
+        string              fExamplesFolder;    //Folder containing Examples copied from QResources
         
     //Recent Files Parameters and functions
         string              fRecentsFile;    //Path to  Recent Dsp file
@@ -237,6 +238,7 @@ class FLApp : public QApplication
     
     //---------Presentation Window Slots
     
+        void                open_Example_Action(QString pathInQResource);
         void                open_Example_Action();
         void                new_Window_pres();
         void                open_Window_pres();
