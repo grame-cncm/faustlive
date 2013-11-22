@@ -1,0 +1,29 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>Images/Check.png</file>
+    <file>Images/faustlive.png</file>
+    <file>Images/HelpMenu.png</file>
+    <file>Images/InitWin.png</file>
+    <file>Images/NotCheck.png</file>
+    <file>Images/OpenWin.png</file>
+    <file>Images/Presentation_Image.png</file>
+    <file>Images/RecallMenu.png</file>
+    <file>Examples/cubic_distortion.dsp</file>
+    <file>Examples/dbmeter.dsp</file>
+    <file>Examples/echo.dsp</file>
+    <file>Examples/envelop.dsp</file>
+    <file>Examples/freeverb.dsp</file>
+    <file>Examples/harpe.dsp</file>
+    <file>Examples/karplus.dsp</file>
+    <file>Examples/lowcut.dsp</file>
+	<file>Examples/noise.dsp</file>
+	<file>Examples/osc.dsp</file>
+	<file>Examples/panpot.dsp</file>
+	<file>Examples/phaser_flanger.dsp</file>
+	<file>Examples/pitch_shifter.dsp</file>
+	<file>Examples/quadecho.dsp</file>
+	<file>Examples/smoothdelay.dsp</file>
+	<file>Examples/stereoecho.dsp</file>
+	<file>Examples/zita_rev1.dsp</file>
+</qresource>
+</RCC>
