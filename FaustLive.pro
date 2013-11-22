@@ -15,7 +15,7 @@ DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 
-ICON = FaustLiveIcon.icns
+ICON = Resources/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)

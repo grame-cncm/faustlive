@@ -28,6 +28,7 @@ public:
 		AVOIDDENORMALS;
 		fAudio->open();
 	    DSP->init(fAudio->frequency());
+		fAudio->longinfo();
  		return true;
     }
     
