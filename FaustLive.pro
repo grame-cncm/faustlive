@@ -18,6 +18,9 @@ INCLUDEPATH += /opt/local/include
 ICON = Resources/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
+OBJECTS_DIR += src
+MOC_DIR += src
+
 all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
 
 MYFILES = $$system(ls $$FAUSTDIR/*.lib)

@@ -25,7 +25,7 @@
 		</dict>
 	</array>
 	<key>CFBundleIconFile</key>
-	<string>FaustLiveIcon.icns</string>
+	<string>Resources/FaustLiveIcon.icns</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleGetInfoString</key>
