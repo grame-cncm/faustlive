@@ -18,13 +18,6 @@ INCLUDEPATH += /opt/local/include
 ICON = FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
-unix:!macx{
-	message("LINUX")
-	all.commands += $(shell mkdir FaustLive.app)
-	all.commands += $(shell mkdir FaustLive.app/Contents)
-	all.commands += $(shell mkdir FaustLive.app/Contents/Resources)
-	all.commands += $(shell mkdir FaustLive.app/Contents/MacOs)
-}
 all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
 
 MYFILES = $$system(ls $$FAUSTDIR/*.lib)
@@ -34,10 +27,6 @@ for(FILE, MYFILES) {
 }
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
-
-unix:!macx{
-	all.commands += $(shell mv FaustLive FaustLive.app/Contents/MacOs)
-}
 
 QMAKE_CXXFLAGS += -Wno-unused-variable -g
 QMAKE_EXTRA_TARGETS += all
@@ -165,4 +154,28 @@ SOURCES += 	AudioCreator.cpp \
 			main.cpp \
     		SimpleParser.cpp
 
+unix:!macx{
+
+	filealias.files = FaustLive.desktop
+	filealias.path = /usr/share/applications/
+	
+	fileapp.files = FaustLive 
+	fileapp.path = /usr/bin
+
+	iconXpm.files = Resources/Images/faustlive.xpm 
+	iconXpm.path = /usr/share/pixmaps/
+	
+	iconPng.files = Resources/Images/faustlive.png
+	iconPng.path = /usr/share/icons/hicolor/32x32/apps/
+
+	iconSvg.files = Resources/Images/faustlive.svg
+	iconSvg.path = /usr/share/icons/hicolor/scalable/apps/
+
+	INSTALLS += filealias fileapp iconXpm iconPng iconSvg
+}
+
  RESOURCES     = Resources/application.qrc
+
+
+
+

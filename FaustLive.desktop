@@ -5,7 +5,7 @@ GenericName=Faust Dynamic Compiler
 Comment=Embbeded Faust and LLVM Compiler in a QT application
 Version=1.0
 Terminal=false
-Exec=FaustLive.app/Contents/MacOs/FaustLive
+Exec=FaustLive
 Icon=faustlive
 Categories=Development;
 
