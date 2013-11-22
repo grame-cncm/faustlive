@@ -49,7 +49,7 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
     fCompilationOptions = compilationMode;
     fOpt_level = optValue;
     
-    bool sucess = buildFactory(&fFactory, fOpt_level, error, currentSVGFolder, currentIRFolder);
+    bool sucess = buildFactory(&fFactory, error, currentSVGFolder, currentIRFolder);
     
     if(sucess){
         
@@ -70,7 +70,7 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
 //---------------FACTORY ACTIONS
 
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/, string& error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
     int argc = 2 + get_numberParameters(fCompilationOptions);
@@ -160,8 +160,8 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, int /*opt_level*/
 }
 
 
-//Parsing the compilation options
-int FLEffect::get_numberParameters(string compilOptions){
+//Get number of compilation options
+int FLEffect::get_numberParameters(const string& compilOptions){
     
     string copy = compilOptions;
     
@@ -181,9 +181,10 @@ int FLEffect::get_numberParameters(string compilOptions){
     
 }
 
+//Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway.
+//Returns : the first option found
+//CompilOptions : the rest of the options are kept in
 string FLEffect::parse_compilationParams(string& compilOptions){
-    
-    //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway!    
     
     string returning = "";
     
@@ -207,7 +208,7 @@ bool FLEffect::update_Factory(string& error, string currentSVGFolder, string cur
     
     llvm_dsp_factory* factory_update = NULL;
     
-    if(buildFactory(&factory_update, fOpt_level, error, currentSVGFolder, currentIRFolder)){
+    if(buildFactory(&factory_update, error, currentSVGFolder, currentIRFolder)){
         fFactory = factory_update;
         return true;
     }
@@ -253,13 +254,13 @@ void FLEffect::stop_Watcher(){
 void FLEffect::launch_Watcher(){
     
     printf("PATH WATCHED= %s\n", fSource.c_str());
+    
     fWatcher->addPath(fSource.c_str());
 }
 
 //--------------ACCESSORS
 
 string FLEffect::getSource(){
-    
     return fSource;
 }
 

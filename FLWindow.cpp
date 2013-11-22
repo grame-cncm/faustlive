@@ -22,6 +22,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     
     fShortcut = false;
     fEffect = eff;
+    fHttpdWindow = NULL;
     fPortHttp = port;
     fGeneralPort = generalPort;
     
@@ -39,9 +40,6 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     QDir direct;
     direct.mkdir(fHome.c_str());
     
-    fHttpdWindow = new HTTPWindow();
-    connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
-    
     fRCInterface = NULL;
     fOscInterface = NULL;
     fMenu = NULL;
@@ -58,7 +56,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     
     setMenu();
     
-    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);    
+    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4); 
     set_MenuBar();
 }
 
@@ -86,6 +84,8 @@ void FLWindow::modifiedOptions(string text, int value, int port){
     
     if(fPortHttp != port)
         fPortHttp = port;
+    
+    printf("PORT HTTP = %i\n", fPortHttp);
     
     fEffect->update_compilationOptions(text, value);
 }
@@ -584,7 +584,7 @@ int FLWindow::get_Port(){
     if(fHttpdWindow != NULL)
         return fHttpdWindow->get_Port();
     else
-        return 0;
+        return fPortHttp;
 }
 
 //------------------------HTTPD
@@ -601,6 +601,11 @@ int FLWindow::calculate_Coef(){
 
 //Initalization of QrCode Window
 bool FLWindow::init_Httpd(string& error){
+    
+    if(fHttpdWindow == NULL){
+        fHttpdWindow = new HTTPWindow();
+        connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
+    }
     
     if(fHttpdWindow != NULL){
         fHttpdWindow->search_IPadress();
@@ -650,7 +655,7 @@ void FLWindow::set_generalPort(int port){
 
 void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
     
-    emit rightClick(ev->globalPos());
+    fWindowMenu->exec(ev->globalPos());
 }
 
 void FLWindow::set_MenuBar(){
@@ -813,15 +818,15 @@ void FLWindow::set_MenuBar(){
     exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
     connect(exportAction, SIGNAL(triggered()), this, SLOT(exportManage()));
     
-    QMenu* windowMenu = menuBar()->addMenu(tr("&Window"));
-    windowMenu->addAction(editAction);
-    windowMenu->addAction(pasteAction);
-    windowMenu->addAction(duplicateAction);
-    windowMenu->addSeparator();
-    windowMenu->addAction(httpdViewAction);
-    windowMenu->addAction(svgViewAction);
-    windowMenu->addSeparator();
-    windowMenu->addAction(exportAction);
+    fWindowMenu = menuBar()->addMenu(tr("&Window"));
+    fWindowMenu->addAction(editAction);
+    fWindowMenu->addAction(pasteAction);
+    fWindowMenu->addAction(duplicateAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(httpdViewAction);
+    fWindowMenu->addAction(svgViewAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(exportAction);
     
     menuBar()->addSeparator();
     
@@ -1027,20 +1032,20 @@ void FLWindow::import_Recent_Session(){
     emit recall_Snapshot(toto, true);
 }
 
-void FLWindow::initNavigateMenu(QList<QAction*> wins){
+void FLWindow::initNavigateMenu(QList<QString> wins){
         
-    QList<QAction*>::iterator it;
+    QList<QString>::iterator it;
     for(it = wins.begin(); it != wins.end() ; it++){
 
-        QAction* fifiWindow = new QAction((*it)->data().toString(), fNavigateMenu);
+        QAction* fifiWindow = new QAction(*it, fNavigateMenu);
         fFrontWindow.push_back(fifiWindow);
         
-        fifiWindow->setData(QVariant((*it)->data().toString()));
+        fifiWindow->setData(QVariant(*it));
         connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
         
         fNavigateMenu->addAction(fifiWindow);
         
-        printf("NAME = %s\n", (*it)->data().toString().toStdString().c_str());
+        printf("NAME = %s\n", (*it).toStdString().c_str());
     }
 }
 

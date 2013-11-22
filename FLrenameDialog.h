@@ -31,7 +31,7 @@ class FLrenameDialog : public QDialog{
     QLineEdit*      fFilenameBox;
     QPushButton*    fYes_Button;
     
-                    FLrenameDialog(string& name,QWidget* parent = NULL);
+                    FLrenameDialog(const string& name,QWidget* parent = NULL);
                     ~FLrenameDialog();
     string          getNewName();
     
