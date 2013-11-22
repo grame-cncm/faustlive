@@ -52,21 +52,21 @@ LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 
-HEADERS += utilities.h 
-SOURCES += utilities.cpp
+HEADERS += src/utilities.h 
+SOURCES += src/utilities.cpp
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
-	HEADERS += 	CA_audioFactory.h\
-				CA_audioSettings.h\
-				CA_audioManager.h\
-				CA_audioFader.h 
+	HEADERS += 	src/CA_audioFactory.h\
+				src/CA_audioSettings.h\
+				src/CA_audioManager.h\
+				src/CA_audioFader.h 
 				
-	SOURCES += 	CA_audioFactory.cpp \
-				CA_audioSettings.cpp \
-				CA_audioManager.cpp 
+	SOURCES += 	src/CA_audioFactory.cpp \
+				src/CA_audioSettings.cpp \
+				src/CA_audioManager.cpp 
 }else{
 	message("COREAUDIO NOT LINKED")
 }
@@ -75,15 +75,15 @@ equals(JVAR, 1){
 	message("JACK LINKED")
 	LIBS+= -ljack
 	DEFINES += JACK
-	HEADERS += 	JA_audioFactory.h \
-				JA_audioSettings.h \
-				JA_audioManager.h \
-				JA_audioFader.h \
+	HEADERS += 	src/JA_audioFactory.h \
+				src/JA_audioSettings.h \
+				src/JA_audioManager.h \
+				src/JA_audioFader.h \
 	
-	SOURCES += 	JA_audioSettings.cpp \
-				JA_audioManager.cpp \
-				JA_audioFactory.cpp \
-				JA_audioFader.cpp 
+	SOURCES += 	src/JA_audioSettings.cpp \
+				src/JA_audioManager.cpp \
+				src/JA_audioFactory.cpp \
+				src/JA_audioFader.cpp 
 }else{
 	message("JACK NOT LINKED")
 }	
@@ -92,15 +92,15 @@ equals(NJVAR, 1){
 	message("NETJACK LINKED")
 	LIBS += -ljacknet
 	DEFINES += NETJACK
-	HEADERS += 	NJ_audioFactory.h \
-				NJ_audioSettings.h \
-				NJ_audioManager.h \
-				NJ_audioFader.h \
+	HEADERS += 	src/NJ_audioFactory.h \
+				src/NJ_audioSettings.h \
+				src/NJ_audioManager.h \
+				src/NJ_audioFader.h \
 	
-	SOURCES += 	NJ_audioFactory.cpp \
-				NJ_audioSettings.cpp \
-				NJ_audioManager.cpp \
-				NJ_audioFader.cpp 
+	SOURCES += 	src/NJ_audioFactory.cpp \
+				src/NJ_audioSettings.cpp \
+				src/NJ_audioManager.cpp \
+				src/NJ_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		
@@ -109,50 +109,50 @@ equals(ALVAR, 1){
 	message("ALSA LINKED")
 	LIBS += -lasound
 	DEFINES += ALSA
-	HEADERS += 	AL_audioFactory.h \
-				AL_audioSettings.h \
-				AL_audioManager.h \
-				AL_audioFader.h \
+	HEADERS += 	src/AL_audioFactory.h \
+				src/AL_audioSettings.h \
+				src/AL_audioManager.h \
+				src/AL_audioFader.h \
 	
-	SOURCES += 	AL_audioFactory.cpp \
-				AL_audioSettings.cpp \
-				AL_audioManager.cpp 
+	SOURCES += 	src/AL_audioFactory.cpp \
+				src/AL_audioSettings.cpp \
+				src/AL_audioManager.cpp 
 }else{
 	message("ALSA NOT LINKED")
 }		
 
-HEADERS +=	AudioSettings.h \
-			AudioManager.h \
-			AudioFactory.h \
-			AudioCreator.h \
-			AudioFader_Interface.h \
-			AudioFader_Implementation.h \
+HEADERS +=	src/AudioSettings.h \
+			src/AudioManager.h \
+			src/AudioFactory.h \
+			src/AudioCreator.h \
+			src/AudioFader_Interface.h \
+			src/AudioFader_Implementation.h \
 			/usr/local/include/faust/gui/faustqt.h \
-			FJUI.h \
-			FLToolBar.h \
-			HTTPWindow.h \
-			FLrenameDialog.h \
-			FLErrorWindow.h \
-			FLExportManager.h \
-			FLServerHttp.h \
-			FLEffect.h \
-			FLWindow.h \ 
-			FLApp.h \
-    		SimpleParser.h
+			src/FJUI.h \
+			src/FLToolBar.h \
+			src/HTTPWindow.h \
+			src/FLrenameDialog.h \
+			src/FLErrorWindow.h \
+			src/FLExportManager.h \
+			src/FLServerHttp.h \
+			src/FLEffect.h \
+			src/FLWindow.h \ 
+			src/FLApp.h \
+    		src/SimpleParser.h
 							
-SOURCES += 	AudioCreator.cpp \
-			AudioFader_Implementation.cpp \
-			FLToolBar.cpp \
-			HTTPWindow.cpp \
-			FLrenameDialog.cpp \
-			FLErrorWindow.cpp \
-			FLExportManager.cpp \
-			FLServerHttp.cpp \
-			FLEffect.cpp \
-			FLWindow.cpp \ 
-			FLApp.cpp \
-			main.cpp \
-    		SimpleParser.cpp
+SOURCES += 	src/AudioCreator.cpp \
+			src/AudioFader_Implementation.cpp \
+			src/FLToolBar.cpp \
+			src/HTTPWindow.cpp \
+			src/FLrenameDialog.cpp \
+			src/FLErrorWindow.cpp \
+			src/FLExportManager.cpp \
+			src/FLServerHttp.cpp \
+			src/FLEffect.cpp \
+			src/FLWindow.cpp \ 
+			src/FLApp.cpp \
+			src/main.cpp \
+    		src/SimpleParser.cpp
 
 unix:!macx{
 
