@@ -158,26 +158,6 @@ SOURCES += 	src/AudioCreator.cpp \
 			src/main.cpp \
     		src/SimpleParser.cpp
 
-unix:!macx{
-
-	filealias.files = FaustLive.desktop
-	filealias.path = /usr/share/applications/
-	
-	fileapp.files = FaustLive 
-	fileapp.path = /usr/bin
-
-	iconXpm.files = Resources/Images/faustlive.xpm 
-	iconXpm.path = /usr/share/pixmaps/
-	
-	iconPng.files = Resources/Images/faustlive.png
-	iconPng.path = /usr/share/icons/hicolor/32x32/apps/
-
-	iconSvg.files = Resources/Images/faustlive.svg
-	iconSvg.path = /usr/share/icons/hicolor/scalable/apps/
-
-	INSTALLS += filealias fileapp iconXpm iconPng iconSvg
-}
-
  RESOURCES     = Resources/application.qrc
 
 
