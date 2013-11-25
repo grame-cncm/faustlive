@@ -22,15 +22,15 @@ OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
 
-all.commands += $(shell mkdir FaustLive.app/Contents/Resources/Libs)
+all.commands += $(shell mkdir Resources/Libs)
 
 MYFILES = $$system(ls $$FAUSTDIR/*.lib)
 
 for(FILE, MYFILES) {
-	all.commands += $(shell cp $$FILE FaustLive.app/Contents/Resources/Libs)
+	all.commands += $(shell cp $$FILE Resources/Libs)
 }
 
-all.commands += $(shell cp $$FAUSTDIR/scheduler.ll FaustLive.app/Contents/Resources/Libs)
+all.commands += $(shell cp $$FAUSTDIR/scheduler.ll /Resources/Libs)
 
 QMAKE_CXXFLAGS += -Wno-unused-variable -g
 QMAKE_EXTRA_TARGETS += all

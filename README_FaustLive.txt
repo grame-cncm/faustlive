@@ -28,22 +28,20 @@ Make sure to download the current development trunk of these libraries.
 
 cd projetDIR
 
---ON OSX : AUDIO ARCHITECTURE SUPPORTED (CoreAudio, Jack, NetJack)
-qmake -spec macx-g++ "CAVAR=1" "JVAR=1" "NJVAR=1"
 make
-You can create a self-contained qt application with : 
-	macdeployqt NAMEofAppBUNDLE
+sudo make install
 
+OSX default audio = CoreAudio
+Linux default audio = JackAudio
 
---ON LINUX : AUDIO ARCHITECTURE SUPPORTED (Jack, NetJack)
-qmake -makefile "JVAR=1" "NJVAR=1"
-make
-The executable file is in FaustLive.app/Contents/MacOs
+To add Jack or NetJack to compilation
+make JACK=1 NETJACK=1
+
 
 -----------------WARNINGS
 
 1) If you want to recompile with new compilation options, you will have to execute 
-	"make clean" before doing the qmake and make
+	"make clean" before doing make
 
 2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
 	if the version changes. For now llvm 3.1 is used
