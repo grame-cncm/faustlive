@@ -125,6 +125,23 @@ equals(ALVAR, 1){
 	message("ALSA NOT LINKED")
 }		
 
+equals(PAVAR, 1){
+	message("PORT AUDIO LINKED")
+	LIBS += -lportaudio
+	DEFINES += PORTAUDIO
+	HEADERS += 	src/PA_audioFactory.h \
+				src/PA_audioSettings.h \
+				src/PA_audioManager.h \
+				src/PA_audioFader.h \
+	
+	SOURCES += 	src/PA_audioFader.cpp \
+				src/PA_audioFactory.cpp \
+				src/PA_audioSettings.cpp \
+				src/PA_audioManager.cpp 
+}else{
+	message("PORT AUDIO NOT LINKED")
+}		
+
 HEADERS +=	src/AudioSettings.h \
 			src/AudioManager.h \
 			src/AudioFactory.h \

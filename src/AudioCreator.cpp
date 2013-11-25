@@ -32,6 +32,10 @@
 #include "AL_audioFactory.h"
 #endif
 
+#ifdef PORTAUDIO
+#include "PA_audioFactory.h"
+#endif
+
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
@@ -51,6 +55,9 @@ enum audioArchi{
 #ifdef ALSA
     kAlsaaudio
 #endif
+#ifdef PORTAUDIO
+    kPortaudio
+#endif
 };
 
 AudioCreator* AudioCreator::_instance = 0;
@@ -67,7 +74,7 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
 //Conditionnal compilation | the options are disabled when not chosen as qmake options
 #ifdef COREAUDIO
-    fAudioArchi->addItem("Core Audio");
+    fAudioArchi->addItem("CoreAudio");
 #endif
 
 #ifdef JACK
@@ -79,6 +86,9 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
 #endif
 #ifdef ALSA
     fAudioArchi->addItem("Alsa");
+#endif
+#ifdef PORTAUDIO
+    fAudioArchi->addItem("PortAudio");
 #endif
     
     readSettings();
@@ -194,6 +204,12 @@ AudioFactory* AudioCreator::createFactory(int index){
         case kAlsaaudio:
             
             return new AL_audioFactory();
+            break;
+#endif  
+#ifdef PORTAUDIO
+        case kPortaudio:
+            
+            return new PA_audioFactory();
             break;
 #endif  
         default:

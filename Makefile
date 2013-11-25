@@ -20,8 +20,11 @@ endif
 ifeq ($(NETJACK), 1)
      QM-DEFS += "NJVAR=1" 
 endif 
-ifeq ($(CAJACK), 1)
+ifeq ($(COREAUDIO), 1)
      QM-DEFS += "CAVAR=1" 
+endif
+ifeq ($(PORTAUDIO), 1)
+     QM-DEFS += "PAVAR=1" 
 endif
 
 ####### Targets
@@ -38,7 +41,9 @@ install-Darwin:
 	cp -r FaustLive.app /Applications
 	cp -r Resources/Libs FaustLive.app/Contents/Resources
 	
-uninstall-Darwin: rm -rf /Applications/FaustLive.app 
+uninstall-Darwin: 
+	rm -rf FaustLive.app/Contents/Resources/Libs
+	rm -rf /Applications/FaustLive.app 
 
 install-Linux :
 	install FaustLive $(PREFIX)/bin
