@@ -34,8 +34,8 @@ sudo make install
 OSX default audio = CoreAudio
 Linux default audio = JackAudio
 
-To add Jack or NetJack to compilation
-make JACK=1 NETJACK=1
+To add Jack/NetJack or PortAudio to compilation
+make JACK=1 NETJACK=1 PORTAUDIO=1
 
 
 -----------------WARNINGS
