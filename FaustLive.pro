@@ -30,7 +30,7 @@ for(FILE, MYFILES) {
 	all.commands += $(shell cp $$FILE Resources/Libs)
 }
 
-all.commands += $(shell cp $$FAUSTDIR/scheduler.ll /Resources/Libs)
+all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources/Libs)
 
 QMAKE_CXXFLAGS += -Wno-unused-variable -g
 QMAKE_EXTRA_TARGETS += all

@@ -98,7 +98,12 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
     //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
     char libraryPath[256];
     
+#ifdef __APPLE__
     snprintf(libraryPath, 255, "%s%s", QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
+#endif
+#ifdef __linux__
+    snprintf(libraryPath, 255, "%s%s", QFileInfo( QCoreApplication::applicationFilePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
+#endif
     
     QString testtest(libraryPath);
     testtest += "scheduler.ll";
