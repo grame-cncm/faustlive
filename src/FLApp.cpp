@@ -4138,14 +4138,8 @@ void FLApp::save_Mode(){
             fPort = atoi(fPortLine->text().toStdString().c_str());
             
             stop_Server();
-            if(!launch_Server())
-                fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
-            else{
-                stringstream s;
-                s<<"Server Started On Port "<<fPort;
-                
-                fErrorWindow->print_Error(s.str().c_str());
-            }
+            launch_Server();
+            
             list<FLWindow*>::iterator it;
             
             for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
@@ -4394,15 +4388,15 @@ void FLApp::StopProgressSlot(){
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
-bool FLApp::launch_Server(){
+void FLApp::launch_Server(){
+
+    bool returning = true;
     
     if(fServerHttp == NULL){
     
         fServerHttp = new FLServerHttp();
         
         int i = 0;
-        
-        bool returning = true;
         
         while(!fServerHttp->start(fPort)){
             
@@ -4423,11 +4417,18 @@ bool FLApp::launch_Server(){
         }
 
         connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-    
-        return returning;
     }
     else
-        return false;
+        returning = false;
+    
+    if(!returning)
+        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
+    else{
+        stringstream s;
+        s<<"Server Started On Port "<<fPort;
+        fErrorWindow->print_Error(s.str().c_str());
+    }
+    
 }
 
 //Stop FaustLive Server

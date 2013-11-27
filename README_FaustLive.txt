@@ -41,7 +41,8 @@ make JACK=1 NETJACK=1 PORTAUDIO=1
 -----------------WARNINGS
 
 1) If you want to recompile with new compilation options, you will have to execute 
-	"make clean" before doing make
+	"make clean" before doing "make"
+	& "make uninstall" before "make install"
 
 2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
 	if the version changes. For now llvm 3.1 is used
