@@ -33,7 +33,11 @@ all : Makefile.qt4
 	make -f Makefile.qt4
 
 install : install-$(system)
+
 uninstall : uninstall-$(system)
+
+dmg :
+	macdeployqt FaustLive.app -dmg
 
 ####### Install
 
