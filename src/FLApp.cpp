@@ -196,7 +196,7 @@ void FLApp::setup_Menu(){
             
             openExamples[i] = new QAction(it->baseName(), menuOpen_Example);
             openExamples[i]->setData(QVariant(it->absoluteFilePath()));
-            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
+            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Example_Action()));
             
             menuOpen_Example->addAction(openExamples[i]);
             i++;
