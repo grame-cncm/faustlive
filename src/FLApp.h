@@ -229,7 +229,7 @@ class FLApp : public QApplication
     
     private slots :
         
-        bool                launch_Server();
+        void                launch_Server();
     
     //---------Drop on a window
     
