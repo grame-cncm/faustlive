@@ -128,7 +128,7 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
         
         printf("ABOUT TO BUILD with = %s\n", libraryPath);
         
-        char getError[256];
+        std::string getError;
         
         *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", getError, fOpt_level);
         
