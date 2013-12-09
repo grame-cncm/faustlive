@@ -50,10 +50,10 @@ enum audioArchi{
     kJackaudio,
 #endif
 #ifdef NETJACK
-    kNetjackaudio
+    kNetjackaudio,
 #endif
 #ifdef ALSA
-    kAlsaaudio
+    kAlsaaudio,
 #endif
 #ifdef PORTAUDIO
     kPortaudio
@@ -93,7 +93,7 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
     readSettings();
     
-    printf("fAudioIndex = %i\n", fAudioIndex);
+//    printf("fAudioIndex = %i\n", fAudioIndex);
     
     fFactory = createFactory(fAudioIndex);
         
@@ -108,14 +108,14 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
     
     fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
     
-    printf("fIntermediateSettings = %p\n", fIntermediateSettings);
+//    printf("fIntermediateSettings = %p\n", fIntermediateSettings);
     
     fLayout->addRow(fSettingsBox);
     
     fMenu->setLayout(fLayout);
 
     fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
-    printf("fIntermediateSettings = %p\n", fCurrentSettings);
+//    printf("fIntermediateSettings = %p\n", fCurrentSettings);
 }
 
 //Returns the instance of the audioCreator
@@ -128,6 +128,8 @@ AudioCreator* AudioCreator::_Instance(string homeFolder, QGroupBox* box){
 
 AudioCreator::~AudioCreator(){
 
+//    printf("AudioCreator::~Destructor\n");
+    
     writeSettings();
     
     delete fFactory;
@@ -140,10 +142,14 @@ AudioCreator::~AudioCreator(){
 //Set or Save fAudioIndex with the visual parameter chosen
 void AudioCreator::setCurrentSettings(int index){
     
+//    printf("AudioCreator::SetCurrentSettings\n");
+
     fAudioArchi->setCurrentIndex(index);
 }
 
 void AudioCreator::saveCurrentSettings(){
+    
+//    printf("AudioCreator::SaveCurrentSettings\n");
     
     fAudioIndex = fAudioArchi->currentIndex();
     
@@ -157,6 +163,8 @@ void AudioCreator::saveCurrentSettings(){
 
 //Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index){
+    
+    printf("AudioCreator::indexChanged\n");
     
     if(fFactory != NULL)
         delete fFactory;
@@ -178,6 +186,8 @@ void AudioCreator::indexChanged(int index){
 
 //Creation of the Factory/Settings/Manager depending on audio index
 AudioFactory* AudioCreator::createFactory(int index){
+    
+//        printf("AudioCreator::createFactory\n");
     
     switch(index){
 #ifdef COREAUDIO
@@ -219,17 +229,23 @@ AudioFactory* AudioCreator::createFactory(int index){
 
 AudioSettings* AudioCreator::createAudioSettings(string homeFolder, QGroupBox* parent){
 
+//        printf("AudioCreator::createAudioSettings");
+    
     return fFactory->createAudioSettings(homeFolder, parent);
     
 }
 
 AudioManager* AudioCreator::createAudioManager(AudioSettings* audioParameters){
 
+//        printf("AudioCreator::createAudioManager\n");
+    
     return fFactory->createAudioManager(audioParameters);
 }
 
 //Save and read settings in the saving file
 void AudioCreator::readSettings(){
+    
+//    printf("AudioCreator::readSettings\n");
     
     QString boxText;
     
@@ -258,6 +274,8 @@ void AudioCreator::readSettings(){
 
 void AudioCreator::writeSettings(){
     
+//        printf("AudioCreator::writeSettings\n");
+    
     //fSavedSettings = fSettings + Modifier le fichier
     
     QFile f(fSavingFile.c_str()); 
@@ -281,17 +299,21 @@ string AudioCreator::get_ArchiName(){
 
 AudioSettings* AudioCreator::getCurrentSettings(){
     
+//    printf("AudioCreator::GetCurrentSettings\n");
     return fCurrentSettings;
 }
 
 AudioSettings* AudioCreator::getNewSettings(){
+    
+//    printf("AudioCreator::getNewSettings\n");
     
     return fIntermediateSettings;
 }
 
 void AudioCreator::reset_Settings(){
     
-    indexChanged(fAudioIndex);
+//    printf("AudioCreator::reset_Settings\n");
+//    indexChanged(fAudioIndex);
     setCurrentSettings(fAudioIndex);
     fIntermediateSettings->writeSettings();
 }
@@ -300,6 +322,8 @@ void AudioCreator::reset_Settings(){
 //Determines if the audio has to be reloaded
 bool AudioCreator::didSettingChanged(){
     
+//    printf("AudioCreator::didSettings\n");
+    
     fIntermediateSettings->storeVisualSettings();
     
     if(fAudioIndex != fAudioArchi->currentIndex()){
@@ -307,7 +331,8 @@ bool AudioCreator::didSettingChanged(){
     }
     else{
         
-        if(!((*fCurrentSettings)==(*fIntermediateSettings))){
+        if(!((*fCurrentSettings)==(*fIntermediateSettings)))
+        {
             return true;
         }
         else{

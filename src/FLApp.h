@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.3"
+#define FLVERSION   "1.4"
 #define DEFAULTNAME "DefaultName"
 
 #define kExportUrlFile "/ServerURL.txt"
@@ -47,6 +47,8 @@ struct WinInSession{
     string compilationOptions; //Compilation options tied to the effect contained in the window
     int opt_level;  //Optimization level for llvm compiler
     int portHttpd;
+    string remoteServer;
+
 };
 
 class FLApp : public QApplication
@@ -104,6 +106,9 @@ class FLApp : public QApplication
         list<WinInSession*>  fSessionContent;    //Describes the state of the application 
     
         string              fWindowBaseName; //Name of Application
+    
+        void                create_Session_Hierarchy();
+    
         string              fSessionFolder; //Path to currentSession Folder
         string              fSettingsFolder;   //Path to currentSettings Folder
         string              fSessionFile; //Path to currentSession DescriptionFile

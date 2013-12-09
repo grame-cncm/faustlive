@@ -51,13 +51,16 @@ FLExportManager::~FLExportManager()
 void FLExportManager::targetsDescriptionReceived()
 {
     QNetworkReply* response = (QNetworkReply*)QObject::sender();
-    QByteArray key = response->readAll();
-    const char* p = key.data();
-
-    if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
-
-        // prepare plaform menu
-
+    
+    if(response->error() == QNetworkReply::NoError){
+        
+        QByteArray key = response->readAll();
+        const char* p = key.data();
+        
+        if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
+            
+            // prepare plaform menu
+            
             fExportPlatform->hide();
             fExportPlatform->clear();
             for (size_t i=0; i<fPlatforms.size();i++) 
@@ -74,14 +77,20 @@ void FLExportManager::targetsDescriptionReceived()
                 fExportArchi->addItem(archs[i].c_str());
             
             fExportArchi->show();
-    } 
-    else {
-
-        std::cerr << "Error : targetsDescriptionReceived() received an incorrect JSON " << *p << std::endl;
+        } 
+        else {
+            
+            std::cerr << "Error : targetsDescriptionReceived() received an incorrect JSON " << *p << std::endl;
+            
+            fMenu2Layout->addRow(new QLabel(""));
+            fMenu2Layout->addRow(new QLabel("Web Service is not available."));
+            fMenu2Layout->addRow(new QLabel("Verify the web service URL in the preferences."));
+        }
+    }
+    else{
         
         fMenu2Layout->addRow(new QLabel(""));
-        fMenu2Layout->addRow(new QLabel("Web Service is not available."));
-        fMenu2Layout->addRow(new QLabel("Verify the web service URL in the preferences."));
+        fMenu2Layout->addRow(new QLabel("Target Not received."));
     }
 
 }
@@ -101,6 +110,7 @@ void FLExportManager::init()
     
     QNetworkReply *targetReply = manager->get(request);
     connect(targetReply, SIGNAL(finished()), this, SLOT(targetsDescriptionReceived()));
+    connect(targetReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
     
     std::cerr << "FLExportManager::init()" << std::endl;
     QFormLayout* exportLayout = new QFormLayout;

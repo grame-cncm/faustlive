@@ -55,6 +55,7 @@ LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
+LIBS+=-lcurl
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -159,7 +160,10 @@ HEADERS +=	src/AudioSettings.h \
 			src/FLEffect.h \
 			src/FLWindow.h \ 
 			src/FLApp.h \
-    		src/SimpleParser.h
+    		src/SimpleParser.h \
+    		src/JsonParser.h \
+    		src/Remote_DSP_Factory.h \
+    		src/Remote_DSP.h
 							
 SOURCES += 	src/AudioCreator.cpp \
 			src/AudioFader_Implementation.cpp \
@@ -173,7 +177,10 @@ SOURCES += 	src/AudioCreator.cpp \
 			src/FLWindow.cpp \ 
 			src/FLApp.cpp \
 			src/main.cpp \
-    		src/SimpleParser.cpp
+    		src/SimpleParser.cpp \
+    		src/JsonParser.cpp \
+    		src/Remote_DSP_Factory.cpp \
+    		src/Remote_DSP.cpp
 
  RESOURCES     = Resources/application.qrc
 

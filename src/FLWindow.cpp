@@ -15,16 +15,21 @@ list<GUI*>               GUI::fGuiList;
 #include <sstream>
 #include "FLToolBar.h"
 #include "utilities.h"
+#include "Remote_DSP_Factory.h"
+#include "Remote_DSP.h"
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int generalPort, int port){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int generalPort, int port, string ipRemoteServer){
     
     fShortcut = false;
     fEffect = eff;
     fHttpdWindow = NULL;
     fPortHttp = port;
     fGeneralPort = generalPort;
+    
+    fIsLocal = true;
+    fIpRemoteServer = ipRemoteServer;
     
     setAcceptDrops(true);
     
@@ -44,9 +49,9 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fOscInterface = NULL;
     fMenu = NULL;
     
-    string folder = home + "/Settings";
+    fSettingsFolder = home + "/Settings";
     
-    AudioCreator* creator = AudioCreator::_Instance(folder, NULL);
+    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
     
     fAudioManager = creator->createAudioManager(creator->getCurrentSettings());
     fClientOpen = false;
@@ -69,7 +74,8 @@ void FLWindow::setMenu(){
     
     addToolBar(fMenu);
     
-    connect(fMenu, SIGNAL(modified(string, int, int)), this, SLOT(modifiedOptions(string, int, int)));
+    connect(fMenu, SIGNAL(modified(string, int, int, const string&)), this, SLOT(modifiedOptions(const string&, int, int, const string&)));
+    connect(fMenu, SIGNAL(remoteStateChanged(int)), this, SLOT(changeRemoteState(int)));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
 }
@@ -80,7 +86,10 @@ void FLWindow::errorPrint(const char* msg){
 }
 
 //Reaction to the modifications of the ToolBar options
-void FLWindow::modifiedOptions(string text, int value, int port){
+void FLWindow::modifiedOptions(string text, int value, int port, const string& ipServer){
+    
+    if(ipServer.compare(fIpRemoteServer) != 0)
+        fIpRemoteServer = ipServer;
     
     if(fPortHttp != port)
         fPortHttp = port;
@@ -112,6 +121,28 @@ void FLWindow::resizingBig(){
 //
 //    printf("SIZE AFTER RESIZE = %i || %i\n", winSize.width(), winSize.height());
     adjustSize();
+}
+
+//If CheckBox of ToolBar is checked or uncheck, the calculation has to be restored in or send out
+void FLWindow::changeRemoteState(int state){
+    
+    string error("");
+    
+//Checked = send dsp away
+    if(state){
+        
+        if(update_Window(kGetRemote, NULL, 3, error))
+            emit errorPrint("Remote Processing Activated");
+        else
+            emit errorPrint(error.c_str());
+    }
+    else{
+
+        if(update_Window(kGetLocal, fEffect, 3, error))
+            emit errorPrint("Remote Processing Desactivated");
+        else
+            emit errorPrint(error.c_str());
+    }
 }
 
 //Does window contain a default Faust process?
@@ -172,7 +203,9 @@ void FLWindow::close_Window(){
         fHttpdWindow = NULL;
     }
 //     printf("deleting instance = %p\n", current_DSP);   
-    deleteDSPInstance(fCurrent_DSP);
+    deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
+    
+    printf("DELETE AUDIO MANAGER FROM CLOSE WIN\n");
     
     delete fAudioManager;
     delete fMenu;
@@ -305,6 +338,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(fEffect->getOptValue());
     fMenu->setPort(fPortHttp);
+    fMenu->setIP(fIpRemoteServer);
     
     if (fCurrent_DSP == NULL){
         errorMsg = "Impossible to create a DSP instance"; 
@@ -363,7 +397,9 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
+bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, int optVal, string& error){
+    
+    printf("FLWindow::update_Win\n");
     
     //Step 1 : Save the parameters of the actual interface
     fXPos = this->geometry().x();
@@ -382,10 +418,39 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
     
     fOscInterface = new OSCUI(argv[0], 1, argv);
     
+    string newName = fEffect->getName();
+    
+    dsp* charging_DSP = NULL;
+    Remote_DSP_Factory* charging_Factory = NULL;
+    
+    if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
     //Step 4 : creating the new DSP instance
-    llvm_dsp* charging_DSP = createDSPInstance(newEffect->getFactory());
-    //    printf("charging DSP = %p\n", charging_DSP);
-    if (fCurrent_DSP == NULL)
+        charging_DSP = createDSPInstance(newEffect->getFactory());
+        newName = newEffect->getName();
+    }
+    else if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
+        //Step 4 : creating the new DSP instance
+        
+        int nArg = 2;
+        char* argu[2];
+        
+        argu[0] = "--NJ_ip";
+        argu[1] = (char*)(searchLocalIP().toStdString().c_str());
+        
+        charging_Factory = createRemoteFactory(fIpRemoteServer, pathToContent(fEffect->getSource()).c_str(), nArg, argu, 3, error);
+        
+        if(charging_Factory == NULL)
+            return false;
+        
+        charging_DSP = createRemoteInstance(charging_Factory, 44100, 512, error);
+        
+        if (charging_DSP == NULL)
+            deleteRemoteFactory(charging_Factory);
+        
+        //    printf("charging DSP = %p\n", charging_DSP);
+    }
+    
+    if (charging_DSP == NULL)
         return false;
     
     //Step 5 : get the new compilation parameters
@@ -395,10 +460,11 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(optVal);
     fMenu->setPort(fPortHttp);
+    fMenu->setIP(fIpRemoteServer);
     
     if(fRCInterface && fOscInterface){
         
-        if(!fAudioManager->init_FadeAudio(error, newEffect->getName().c_str(), charging_DSP)){
+        if(!fAudioManager->init_FadeAudio(error, newName.c_str(), charging_DSP)){
             
 //            printf("INIT FADE AUDIO FAILED\n");
             
@@ -423,7 +489,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
         }
         
         //Step 6 : Set the new interface
-        string inter = fWindowName + " : " + newEffect->getName();
+        string inter = fWindowName + " : " + newName;
         
         fInterface = new QTGUI(this, inter.c_str());
         
@@ -444,7 +510,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
         fAudioManager->wait_EndFade();
         
         //Step 8 : Change the current DSP as the dropped one
-        llvm_dsp* VecInt;
+        dsp* VecInt;
         
 //        printf("CURRENT DSP = %p\n", fCurrent_DSP);
 //        printf("CHARGING DSP = %p\n", charging_DSP);
@@ -454,8 +520,34 @@ bool FLWindow::update_Window(FLEffect* newEffect, int optVal, string& error){
         charging_DSP = VecInt;
         
 //        printf("deleting DSP leaving = %p\n", charging_DSP);
-        deleteDSPInstance(charging_DSP);
-        fEffect = newEffect;
+        
+        if(becomeRemote == kGetRemote){
+            deleteDSPInstance((llvm_dsp*)charging_DSP);
+            fIsLocal = true;
+            fRemoteFactory = charging_Factory;
+        }
+        else if(becomeRemote == kGetLocal){
+            deleteRemoteInstance((Remote_DSP*)charging_DSP);
+            deleteRemoteFactory(fRemoteFactory);
+            fIsLocal = false;
+        }
+        else{
+            if(fIsLocal){
+                deleteDSPInstance((llvm_dsp*)charging_DSP);
+                fEffect = newEffect;
+            }
+            else{
+                
+                Remote_DSP_Factory* factoryInt;
+                
+                factoryInt = fRemoteFactory;
+                fRemoteFactory = charging_Factory; 
+                charging_Factory = factoryInt;
+                
+                deleteRemoteInstance((Remote_DSP*)charging_DSP);
+                deleteRemoteFactory(charging_Factory);
+            }
+        }
         
         //Step 9 : Launch User Interface
         fInterface->run();
@@ -494,10 +586,12 @@ void FLWindow::start_Audio(){
 //Switch of Audio architecture
 bool FLWindow::update_AudioArchitecture(string& error){
     
-    AudioCreator* creator = AudioCreator::_Instance("/Users/denoux/CurrentSession/Settings", NULL);
+    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
     delete fAudioManager;
     
     fAudioManager = creator->createAudioManager(creator->getNewSettings());
+    
+    printf("NEW MANAGER\n");
     
     if(init_audioClient(error))
         return true;
@@ -585,6 +679,10 @@ int FLWindow::get_Port(){
         return fHttpdWindow->get_Port();
     else
         return fPortHttp;
+}
+
+string FLWindow::get_RemoteServerIP(){
+    return fIpRemoteServer;
 }
 
 //------------------------HTTPD

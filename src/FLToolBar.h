@@ -32,19 +32,12 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
         QLineEdit*          fPortLine;
     
+        QLineEdit*          fRemoteLine;
+        QCheckBox*          fRemoteCheckBox;
     
-        QWidget*            fWidget1;
-        QWidget*            fWidget2;
-        QWidget*            fWidget3;
-        QLabel*             fText;
-        QLabel*             fOptText;
-        QLabel*             fPortText;
+        QWidget*            fWidget1;;  
         QVBoxLayout*        fLayout1;
-        QVBoxLayout*        fLayout2;
-        QVBoxLayout*        fLayout3;
         QAction*            fAction1;
-        QAction*            fAction2;
-        QAction*            fAction3;
     
     public:
     
@@ -54,23 +47,27 @@ class FLToolBar : public QToolBar{
     void setOptions(string options);
     void setVal(int value);
     void setPort(int port);
+    void setIP(const string& ip);
     
     string getOptions();
     int getVal();
     int getPort();
+    string getIP();
     
     
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);
     void    collapseAction(QTreeWidgetItem* item);
+    void    sendRemoteProcessing(int state);
     
     signals :
     
-       void  modified(string option, int val, int port);
+       void  modified(const string& option, int val, int port, const string& ip);
         void sizeGrowth();
         void sizeReduction();
     
+        void remoteStateChanged(int state);
 };
 
 #endif

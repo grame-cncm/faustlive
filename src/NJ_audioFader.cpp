@@ -111,9 +111,9 @@ bool NJ_audioFader::start() {
 
 void NJ_audioFader::stop() {
     jack_net_slave_deactivate(fNet);
-    printf("NET DEACTiVATE\n");
+//    printf("NET DEACTiVATE\n");
     jack_net_slave_close(fNet);
-    printf("NET CLOSE = %p\n", this);
+//    printf("NET CLOSE = %p\n", this);
 }
 
 void NJ_audioFader::launch_fadeIn(){

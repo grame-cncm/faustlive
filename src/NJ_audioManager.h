@@ -23,6 +23,12 @@ class NJ_audioManager : public AudioManager{
     //Settings are common to the 2 audioFader that can co-exist during a crossfade
     NJ_audioSettings*       fSettings;
     
+//    int             fCV;
+//    string          fIP;
+//    int             fPort;
+//    int             fLatency;
+
+    
     NJ_audioFader* fCurrentAudio;
     NJ_audioFader* fFadeInAudio;
     

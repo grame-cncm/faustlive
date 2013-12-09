@@ -22,4 +22,6 @@ bool isStringInt(const char* word);
 
 QString searchLocalIP();
 
+const char* lopts(char *argv[], const char *name, const char* def);
+
 #endif

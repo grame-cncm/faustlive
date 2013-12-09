@@ -34,8 +34,16 @@
 class QTGUI;
 class FLToolBar;
 class OSCUI;
+class Remote_DSP_Factory;
 
 using namespace std;
+
+enum updateType{
+    kCrossFade,
+    kGetLocal,
+    kGetRemote
+};
+
 
 class FLWindow : public QMainWindow
 {
@@ -46,12 +54,13 @@ class FLWindow : public QMainWindow
         bool            fShortcut;   //True if ALT is pressed when x button is pressed
     
         string          fHome;        //Folder of currentSession
-
+        string          fSettingsFolder;
+    
         FLToolBar*      fMenu;  
         void            setMenu();
         void            set_MenuBar();
         
-        QMenu*        fWindowMenu;
+        QMenu*          fWindowMenu;
         QMenu*          fNavigateMenu;
         QAction**       fRecentFileAction;
         QAction**       fRrecentSessionAction;
@@ -71,7 +80,11 @@ class FLWindow : public QMainWindow
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
-        llvm_dsp*       fCurrent_DSP;    //DSP instance of the effect factory running
+        Remote_DSP_Factory*     fRemoteFactory;
+        dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
+        bool            fIsLocal;      //True = llvm | False = remote
+    
+        string          fIpRemoteServer;
     
     //Position on screen
         int             fXPos;
@@ -154,10 +167,10 @@ class FLWindow : public QMainWindow
     //Effect = effect that will be contained in the window
     //x,y = position on screen
     //appHome = current Session folder
-    //IDAudio = what architecture audio are we running in?
+    //GeneralPort = what 
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int generalPort = 5510, int port = 5510);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int generalPort = 5510, int port = 5510, string ipRemoteServer = "127.0.0.1");
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -182,7 +195,7 @@ class FLWindow : public QMainWindow
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(FLEffect* newEffect, int optVal, string& error);
+        bool            update_Window(int becomeRemote, FLEffect* newEffect, int optVal, string& error);
     
         bool            update_AudioArchitecture(string& error);
     
@@ -215,6 +228,7 @@ class FLWindow : public QMainWindow
         int             get_x();
         int             get_y();
         int             get_Port();
+        string             get_RemoteServerIP();
         bool            is_Default();
     
     //Accessors to httpd Window
@@ -239,9 +253,10 @@ class FLWindow : public QMainWindow
     
     public slots :
     //Modification of the compilation options
-        void            modifiedOptions(string text, int value, int port);
+        void            modifiedOptions(string text, int value, int port, const string& ipServer);
         void            resizingBig();
         void            resizingSmall();
+        void            changeRemoteState(int state);
     
     //Raises and shows the window
         void            frontShow();

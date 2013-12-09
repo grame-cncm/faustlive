@@ -17,9 +17,7 @@
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
-FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
-    
-    fWindowBaseName = "FLW";
+void FLApp::create_Session_Hierarchy(){    
     
     //Initialization of current Session Path  
     
@@ -50,6 +48,10 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
         direct.mkdir(fSettingsFolder.c_str());
     }
     
+    fHomeSettings = fSettingsFolder + "/FaustLive_Settings.rf"; 
+    fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
+    fHomeRecentSessions = fSettingsFolder + "/FaustLive_SessionSavings.rf"; 
+    
     fSVGFolder = fSessionFolder + "/SVG";
     if(!QFileInfo(fSVGFolder.c_str()).exists()){
         QDir direct(fSVGFolder.c_str());
@@ -69,6 +71,48 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     }  
     
     QDir direc(fSessionFile.c_str());
+}
+
+//void FLApp::WriteInFile(const string& file, ...){
+//    
+//    
+//}
+//
+//void FLApp::ReadInFile(const string& file, ...){
+//    
+//    va_list va;
+//    va_start (va, n);
+//    
+//    int i;
+//    
+//    for (i = 0; i < n; i++)
+//    {
+//        int c = va_arg (va, int);
+//    }
+//    putchar ('\n');
+//    va_end (va);
+//    
+//    
+//    QFile f(fSessionFile.c_str());
+//    QString text("");
+//    
+//    if(f.open(QFile::ReadOnly)){
+//        
+//        QTextStream textReading(&f);
+//        
+//        textReading>>text;
+//        f.close();
+//    }
+//
+//    return text.toStdString();
+//}
+
+FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
+    
+    fWindowBaseName = "FLW";
+
+    //Create Session Folder
+    create_Session_Hierarchy();
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
@@ -76,8 +120,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fScreenHeight = screenSize.height();
     
     //Initializing preference
-    fHomeSettings = fSettingsFolder + "/FaustLive_Settings.rf"; 
-
     fOpt_level = 3;
     fServerUrl = "http://faust.grame.fr:8888";
     fPort = 7777;
@@ -99,23 +141,16 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fRecentFileAction = new QAction* [kMAXRECENTFILES];
     fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
-//    frontWindow = new QAction* [200];
     
     //For the application not to quit when the last window is closed
     setQuitOnLastWindowClosed(false);
     
     fMenuBar = new QMenuBar;
-    
     setup_Menu();
     
-//    homeRecents = getenv("HOME");
-    fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
     recall_Recent_Files(fRecentsFile);
-//    homeRecents = getenv("HOME");
-    fHomeRecentSessions = fSettingsFolder + "/FaustLive_SessionSavings.rf"; 
     recall_Recent_Sessions(fHomeRecentSessions);
     
-
     //Initializing preference and save dialog
     fErrorWindow = new FLErrorWindow();
     fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
@@ -149,8 +184,8 @@ FLApp::~FLApp(){
     delete fMenuBar;
     
     delete fInitTimer;
-    delete fPresWin;
     
+    delete fPresWin;
     delete fHelpWindow;
     delete fErrorWindow;
     
@@ -332,14 +367,15 @@ void FLApp::init_Timer_Action(){
             QString text("");
             
             if(f.open(QFile::ReadOnly)){
-                
+        
                 QTextStream textReading(&f);
-                
+            
                 textReading>>text;
                 f.close();
             }
+//            string text = ReadInFile(fSessionFile);
             
-            if(text.toStdString().compare("") == 0){
+            if(text.compare("") == 0){
                 
                 show_presentation_Action();
             }
@@ -352,8 +388,6 @@ void FLApp::init_Timer_Action(){
             show_presentation_Action();
         }
     }
-    //    else
-    //        presWin = NULL;
 }
 
 //-----------------Operations on indexes of the windows contained in the application
@@ -844,7 +878,7 @@ void FLApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-                    if(!(*it2)->update_Window(modifiedEffect, modifiedEffect->getOptValue(),error)){
+                    if(!(*it2)->update_Window(kCrossFade, modifiedEffect, modifiedEffect->getOptValue(),error)){
                         fErrorWindow->print_Error(error.c_str());
                         break;
                     }
@@ -916,7 +950,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
     
     
-    if(newEffect == NULL || (!(win)->update_Window(newEffect, fOpt_level,error))){
+    if(newEffect == NULL || (!(win)->update_Window(kCrossFade, newEffect, fOpt_level, error))){
         //If the change fails, the leaving effect has to be reimplanted
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);
@@ -1322,7 +1356,7 @@ void FLApp::sessionContentToFile(const string& filename){
             //     printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
             
             
-            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<' '<<(*it)->portHttpd<<endl;
+            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<' '<<(*it)->portHttpd<<' '<<(*it)->remoteServer.c_str()<<endl;
             
         }
         f.close();
@@ -1344,10 +1378,10 @@ void FLApp::fileToSessionContent(const string& filename, list<WinInSession*>* se
             
             int id = 0;
             int opt, port;
-            QString Source, Nom, CompilationOptions;
+            QString Source, Nom, CompilationOptions, ServerIP;
             float x,y;
             
-            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>port;
+            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>port>>ServerIP;
             
             if(id != 0){
                 
@@ -1360,6 +1394,7 @@ void FLApp::fileToSessionContent(const string& filename, list<WinInSession*>* se
                 intermediate->compilationOptions = CompilationOptions.toStdString();
                 intermediate->opt_level = opt;
                 intermediate->portHttpd = port;
+                intermediate->remoteServer = ServerIP.toStdString();
                 
                 //                printf("FILLING ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", intermediate->ID, intermediate->source.c_str(), intermediate->name.c_str(), intermediate->x, intermediate->y, intermediate->compilationOptions.c_str());
                 
@@ -1488,7 +1523,7 @@ void FLApp::recall_Session(const string& filename){
                 fErrorWindow->print_Error(error.c_str());
             }
             
-            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, fPort, (*it)->portHttpd);
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, fPort, (*it)->portHttpd, (*it)->remoteServer);
             
             redirectMenuToWindow(win);
             
@@ -1647,6 +1682,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->compilationOptions = compilationOptions.c_str();
     intermediate->opt_level = win->get_Effect()->getOptValue();
     intermediate->portHttpd = win->get_Port();
+    intermediate->remoteServer = win->get_RemoteServerIP();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
@@ -2519,6 +2555,8 @@ void FLApp::edit(FLWindow* win){
     
     string source = win->get_Effect()->getSource();
     
+    printf("SOURCE = %s\n", source.c_str());
+    
     QUrl url = QUrl::fromLocalFile(source.c_str());
     bool b = QDesktopServices::openUrl(url);
     
@@ -2729,6 +2767,12 @@ void FLApp::setToolText(const QString & currentText){
         fToolText->setHtml("<br>Jack (the Jack Audio Connection Kit) is a low-latency audio server. It can connect any number of different applications to a single hardware audio device.<br><br>YOU CAN DOWNLOAD IT HERE : <a href =http://www.jackosx.com> www.jackosx.com</a>\n");
     else if(currentText.compare("NETJACK") == 0)
         fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. That way you can send your audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+    else if(currentText.compare("PORTAUDIO") == 0)
+        fToolText->setHtml("<br>PortAudio is a free, cross-platform, open-source, audio I/O library. <br><br>""LEARN MORE ABOUT PORTAUDIO : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+    else if(currentText.compare("LIB QRENCODE") == 0)
+        fToolText->setHtml("<br>Libqrencode is a C library for encoding data in a QR Code symbol, a kind of 2D symbology that can be scanned by handy terminals such as a mobile phone with CCD.<br><br>""LEARN MORE ABOUT LIB QRENCODE : <a href = http://fukuchi.org/works/qrencode> fukuchi.org/works/qrencode</a>\n");
+    else if(currentText.compare("LIB MICROHTTPD") == 0)
+        fToolText->setHtml("<br>GNU libmicrohttpd is a small C library that is supposed to make it easy to run an HTTP server as part of an application.<br><br>""LEARN MORE ABOUT LIB MICROHTTPD : <a href = http://www.gnu.org/software/libmicrohttpd> gnu.org/software/libmicrohttpd</a>\n");
 }
 
 //Set Text in Application Properties Menu of HELP
@@ -2843,6 +2887,13 @@ void FLApp::init_HelpWindow(){
 #ifdef NETJACK
     vue->addItem(QString(tr("NETJACK")));
 #endif
+    
+#ifdef PORTAUDIO
+    vue->addItem(QString(tr("PORTAUDIO")));
+#endif
+    
+    vue->addItem(QString(tr("LIB MICROHTTPD")));
+    vue->addItem(QString(tr("LIB QRENCODE")));
     
     vue->setMaximumWidth(100);
     connect(vue, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setToolText(const QString &)));
