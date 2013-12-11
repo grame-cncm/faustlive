@@ -27,8 +27,8 @@ Remote_DSP::~Remote_DSP(){
         delete fInControl;
         delete fOutControl;
         
-        delete fInputs;
-        delete fOutputs;
+        delete[] fInputs;
+        delete[] fOutputs;
         
         jack_net_master_close(fNetJack); 
         fNetJack = 0;
@@ -137,15 +137,13 @@ void Remote_DSP::buildUserInterface(UI* ui){
         
     }
     
-     setlocale(LC_ALL, tmp_local);
-    
+    setlocale(LC_ALL, tmp_local);
 }
 
 void Remote_DSP::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
     
     for(int i=0; i<size1; i++){
-        for(int j=0; j<size2; j++)
-            buffer[i][j] = 0.0f;
+        memset(buffer[i], 0, size2*sizeof(float));
     }
 }
 
@@ -164,8 +162,8 @@ void Remote_DSP::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
     int res;
     if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
-        fillBufferWithZeros(getNumOutputs(), count, output);
         printf("jack_net_master_send failure %d\n", res);
+        fillBufferWithZeros(getNumOutputs(), count, output);
     }
     if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
         printf("jack_net_master_recv failure %d\n", res);
@@ -193,10 +191,8 @@ bool Remote_DSP::init(int samplingFreq, int buffer_size, string& error){
     fOutControl = new float[fBufferSize];
     fInControl = new float[fBufferSize];
     
-    for(int i=0; i<fBufferSize; i++){
-        fOutControl[i] = 0.0f;
-        fInControl[i] = 0.0f;
-    }
+    memset(fOutControl, 0, fBufferSize*sizeof(float));
+    memset(fInControl, 0, fBufferSize*sizeof(float));
     
 //  INIT SAMPLING RATE
 //    fSamplingFreq = samplingFreq;
@@ -245,7 +241,7 @@ bool Remote_DSP::init(int samplingFreq, int buffer_size, string& error){
     
     curl = curl_easy_init();
     
-    bool   isOpen = false;
+    bool isOpen = false;
     
     if (curl) {
         
