@@ -33,7 +33,20 @@ all : Makefile.qt4
 	make -f Makefile.qt4
 
 install : install-$(system)
+
 uninstall : uninstall-$(system)
+
+
+####### Packages
+
+# make a binary distribution .dmg file for OSX
+dmg :
+	macdeployqt FaustLive.app -dmg
+	
+# make a source distribution .zip file
+dist :
+	git archive -o FaustLive.zip --prefix=FaustLive/ HEAD
+
 
 ####### Install
 
