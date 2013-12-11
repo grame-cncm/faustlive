@@ -313,7 +313,7 @@ AudioSettings* AudioCreator::getNewSettings(){
 void AudioCreator::reset_Settings(){
     
 //    printf("AudioCreator::reset_Settings\n");
-//    indexChanged(fAudioIndex);
+    indexChanged(fAudioIndex);
     setCurrentSettings(fAudioIndex);
     fIntermediateSettings->writeSettings();
 }

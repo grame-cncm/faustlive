@@ -195,7 +195,7 @@ class FLWindow : public QMainWindow
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(int becomeRemote, FLEffect* newEffect, int optVal, string& error);
+        bool            update_Window(int becomeRemote, FLEffect* newEffect, string& error);
     
         bool            update_AudioArchitecture(string& error);
     

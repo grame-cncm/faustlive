@@ -21,16 +21,13 @@ class NJ_audioManager : public AudioManager{
     Q_OBJECT
     
     //Settings are common to the 2 audioFader that can co-exist during a crossfade
-    NJ_audioSettings*       fSettings;
+    int                     fCV;
+    string                  fIP;
+    int                     fPort;
+    int                     fLatency;
     
-//    int             fCV;
-//    string          fIP;
-//    int             fPort;
-//    int             fLatency;
-
-    
-    NJ_audioFader* fCurrentAudio;
-    NJ_audioFader* fFadeInAudio;
+    NJ_audioFader*          fCurrentAudio;
+    NJ_audioFader*          fFadeInAudio;
     
     public :
         NJ_audioManager(AudioSettings* as);
@@ -47,6 +44,9 @@ class NJ_audioManager : public AudioManager{
         virtual void start_Fade();
     
         virtual void wait_EndFade();
+    
+        virtual int buffer_size();
+        virtual int sample_rate();
     
     private slots :
     

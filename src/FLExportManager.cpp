@@ -82,15 +82,17 @@ void FLExportManager::targetsDescriptionReceived()
             
             std::cerr << "Error : targetsDescriptionReceived() received an incorrect JSON " << *p << std::endl;
             
+            
             fMenu2Layout->addRow(new QLabel(""));
-            fMenu2Layout->addRow(new QLabel("Web Service is not available."));
-            fMenu2Layout->addRow(new QLabel("Verify the web service URL in the preferences."));
+            fMenu2Layout->addRow(new QLabel("Targets Could not be parsed."));
+            
         }
     }
     else{
         
         fMenu2Layout->addRow(new QLabel(""));
-        fMenu2Layout->addRow(new QLabel("Target Not received."));
+        fMenu2Layout->addRow(new QLabel("Web Service is not available."));
+        fMenu2Layout->addRow(new QLabel("Verify the web service URL in the preferences."));
     }
 
 }
@@ -110,7 +112,6 @@ void FLExportManager::init()
     
     QNetworkReply *targetReply = manager->get(request);
     connect(targetReply, SIGNAL(finished()), this, SLOT(targetsDescriptionReceived()));
-    connect(targetReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
     
     std::cerr << "FLExportManager::init()" << std::endl;
     QFormLayout* exportLayout = new QFormLayout;
@@ -216,8 +217,11 @@ void FLExportManager::readKey(){
         string ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Images/";
         string pathCheck = ImagesPath + "Check.png";
         
-        QPixmap checkImg(pathCheck.c_str());    
-        fCheck1->setPixmap(checkImg);
+        if(QFileInfo(pathCheck.c_str()).exists()){
+            
+            QPixmap checkImg(pathCheck.c_str());    
+            fCheck1->setPixmap(checkImg);
+        }
         
         fMsgLayout->insertRow(3, new QLabel(tr("Remote Compilation")), fCheck2);
         
@@ -241,11 +245,15 @@ void FLExportManager::networkError(QNetworkReply::NetworkError /*msg*/){
     string pathNotCheck = ImagesPath + "NotCheck.png";
     QPixmap notCheckImg(pathNotCheck.c_str());
     
-    if(fStep == 0)
-        fCheck1->setPixmap(notCheckImg);
-    else
-        fCheck2->setPixmap(notCheckImg);
-    
+    if(QFileInfo(pathNotCheck.c_str()).exists()){
+        
+        printf("Path existed\n");
+        
+        if(fStep == 0)
+            fCheck1->setPixmap(notCheckImg);
+        else
+            fCheck2->setPixmap(notCheckImg);
+    }
     delete fPrgBar;
     
     QTextEdit* textZone = new QTextEdit;
@@ -391,9 +399,11 @@ void FLExportManager::showSaveB(){
         
         string pathCheck = ImagesPath + "Check.png";
         QPixmap checkImg(pathCheck.c_str());
-        fCheck2->setPixmap(checkImg);
-        fCheck2->show();
         
+        if(QFileInfo(pathCheck.c_str()).exists()){
+            fCheck2->setPixmap(checkImg);
+            fCheck2->show();
+        }
         delete fPrgBar;
         
         QString sucessMsg = fFilenameToSave.c_str();

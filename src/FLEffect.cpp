@@ -12,6 +12,7 @@
 
 #define LIBRARY_PATH "/Resources/Libs/"
 
+#include "faust/llvm-dsp.h"
 
 /***********************************EFFECT IMPLEMENTATION*********************************/
 
@@ -130,7 +131,7 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
         
         std::string getError;
         
-        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, "", "", "", getError, fOpt_level);
+        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, string(""), string(""), string(""), getError, fOpt_level);
         
         error = getError;
         

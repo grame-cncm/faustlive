@@ -39,10 +39,10 @@ uninstall : uninstall-$(system)
 
 install-Darwin: 
 	cp -r FaustLive.app /Applications
-	cp -r Resources/Libs FaustLive.app/Contents/Resources
+	cp -r Resources/ FaustLive.app/Contents/Resources
 	
 uninstall-Darwin: 
-	rm -rf FaustLive.app/Contents/Resources/Libs
+	rm -rf FaustLive.app/Contents/Resources/
 	rm -rf /Applications/FaustLive.app 
 
 install-Linux :

@@ -42,17 +42,15 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fWidget1 = new QWidget;
     
     QLabel* text = new QLabel(tr("FAUST Compiler Options"), fWidget1);
-    text->setAlignment(Qt::AlignCenter);
+//    text->setAlignment(Qt::AlignCenter);
     
     QLabel* optText = new QLabel(tr("LLVM Optimization"), fWidget1);
-    optText->setAlignment(Qt::AlignCenter);
+//    optText->setAlignment(Qt::AlignCenter);
     
     QLabel* portText = new QLabel(tr("HTTPD Port"), fWidget1);
-    portText->setAlignment(Qt::AlignCenter);
+//    portText->setAlignment(Qt::AlignCenter);
     
     fRemoteCheckBox = new QCheckBox(tr("REMOTE Processing IP"), fWidget1);
-//    QLabel* remoteLabel = new QLabel(tr("REMOTE Processing IP"), fWidget1);
-//    fRemoteCheckBox->setAlignment(Qt::AlignCenter);
     
     fOptionLine = new QLineEdit(tr(""), fWidget1);
     fOptValLine = new QLineEdit(tr(""), fWidget1);

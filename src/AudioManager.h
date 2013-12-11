@@ -37,7 +37,11 @@ class AudioManager : public QObject, public audio{
     
     virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
     virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
+    
     virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
+    
+    virtual int buffer_size() =0 ;
+    virtual int sample_rate() = 0;
     
     signals : 
     

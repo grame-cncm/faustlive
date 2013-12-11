@@ -18,6 +18,8 @@ list<GUI*>               GUI::fGuiList;
 #include "Remote_DSP_Factory.h"
 #include "Remote_DSP.h"
 
+#include "faust/llvm-dsp.h"
+
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
 FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int generalPort, int port, string ipRemoteServer){
@@ -131,14 +133,14 @@ void FLWindow::changeRemoteState(int state){
 //Checked = send dsp away
     if(state){
         
-        if(update_Window(kGetRemote, NULL, 3, error))
+        if(update_Window(kGetRemote, NULL, error))
             emit errorPrint("Remote Processing Activated");
         else
             emit errorPrint(error.c_str());
     }
     else{
 
-        if(update_Window(kGetLocal, fEffect, 3, error))
+        if(update_Window(kGetLocal, fEffect, error))
             emit errorPrint("Remote Processing Desactivated");
         else
             emit errorPrint(error.c_str());
@@ -397,7 +399,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
 }
 
 //Change of the effect in a Window
-bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, int optVal, string& error){
+bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& error){
     
     printf("FLWindow::update_Win\n");
     
@@ -424,11 +426,13 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, int optVal, 
     Remote_DSP_Factory* charging_Factory = NULL;
     
     if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
-    //Step 4 : creating the new DSP instance
+    
+        //Step 4 : creating the new DSP instance
         charging_DSP = createDSPInstance(newEffect->getFactory());
         newName = newEffect->getName();
     }
     else if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
+        
         //Step 4 : creating the new DSP instance
         
         int nArg = 2;
@@ -437,12 +441,14 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, int optVal, 
         argu[0] = "--NJ_ip";
         argu[1] = (char*)(searchLocalIP().toStdString().c_str());
         
-        charging_Factory = createRemoteFactory(fIpRemoteServer, pathToContent(fEffect->getSource()).c_str(), nArg, argu, 3, error);
+        charging_Factory = createRemoteFactory(fIpRemoteServer, pathToContent(fEffect->getSource()).c_str(), nArg, argu, fEffect->getOptValue(), error);
         
         if(charging_Factory == NULL)
             return false;
         
-        charging_DSP = createRemoteInstance(charging_Factory, 44100, 512, error);
+//        printf("SR & BS = %i | %i\n", fAudioManager->sample_rate(), fAudioManager->buffer_size());
+        
+        charging_DSP = createRemoteInstance(charging_Factory, fAudioManager->sample_rate(), fAudioManager->buffer_size(), error);
         
         if (charging_DSP == NULL)
             deleteRemoteFactory(charging_Factory);
@@ -458,7 +464,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, int optVal, 
     if(textOptions.compare(" ") == 0)
         textOptions = "";
     fMenu->setOptions(textOptions.c_str());
-    fMenu->setVal(optVal);
+    fMenu->setVal(fEffect->getOptValue());
     fMenu->setPort(fPortHttp);
     fMenu->setIP(fIpRemoteServer);
     

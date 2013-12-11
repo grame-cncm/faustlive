@@ -116,6 +116,10 @@ public:
 //        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
         return fCrossFadeDevice.get_doWeFadeOut();
     }
+    
+    virtual int buffer_size() { return fFramesPerBuf; }
+    virtual int sample_rate() { return fSampleRate; }
+    
 };
 
 #endif

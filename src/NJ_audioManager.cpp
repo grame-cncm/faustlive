@@ -14,11 +14,14 @@
 
 NJ_audioManager::NJ_audioManager(AudioSettings* as): AudioManager(as){
     
-    fSettings = dynamic_cast<NJ_audioSettings*>(as);
+    NJ_audioSettings* settings = dynamic_cast<NJ_audioSettings*>(as);
     
-//    printf("SETTINGS = %i || %s || %i || %i\n", fSettings->get_compressionValue(), fSettings->get_IP().c_str(), fSettings->get_Port(), fSettings->get_latency());
+    fCV = settings->get_compressionValue();
+    fIP = settings->get_IP();
+    fPort = settings->get_Port();
+    fLatency = settings->get_latency();
     
-    fCurrentAudio = new NJ_audioFader(fSettings->get_compressionValue(), fSettings->get_IP(), fSettings->get_Port(), fSettings->get_latency());
+    fCurrentAudio = new NJ_audioFader(fCV, fIP, fPort, fLatency);
     
     connect(fCurrentAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
 }
@@ -56,9 +59,7 @@ void NJ_audioManager::stop(){
 //Init new audio, that will fade in current audio
 bool NJ_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
     
-    printf("fSettings = %p \n", fSettings);
-    
-    fFadeInAudio = new NJ_audioFader(fSettings->get_compressionValue(), fSettings->get_IP(), fSettings->get_Port(), fSettings->get_latency());
+    fFadeInAudio = new NJ_audioFader(fCV, fIP, fPort, fLatency);
     
 //    printf("INIT_FADEAUDIO THIS = %p \n",fFadeInAudio);
     
@@ -98,3 +99,9 @@ void NJ_audioManager::send_Error(const char* msg){
     
     emit errorSignal(msg);
 }
+
+int NJ_audioManager::buffer_size(){return fCurrentAudio->buffer_size();}
+
+int NJ_audioManager::sample_rate(){return fCurrentAudio->sample_rate();}
+
+

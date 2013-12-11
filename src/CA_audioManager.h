@@ -20,8 +20,8 @@ class CA_audioManager : public AudioManager{
 
     Q_OBJECT
     
-    //Settings are common to the 2 audioFader that can co-exist during a crossfade
-        CA_audioSettings*   fSettings;
+    //Settings are common to the 2 audioFader that can co-exist during a crossfade    
+        int                 fBufferSize;
     
         CA_audioFader*      fCurrentAudio;
         CA_audioFader*      fFadeInAudio;
@@ -39,6 +39,8 @@ class CA_audioManager : public AudioManager{
         virtual void start_Fade();
         virtual void wait_EndFade();
     
+        virtual int buffer_size();
+        virtual int sample_rate();
 };
 
 #endif

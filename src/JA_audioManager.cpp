@@ -98,3 +98,10 @@ void JA_audioManager::change_Connections(string homeDir, list<pair<string, strin
     fInterface->update(homeDir.c_str(), changeTable);
 }
 
+int JA_audioManager::buffer_size(){
+    return fCurrentAudio->buffer_size();
+}
+
+int JA_audioManager::sample_rate(){
+    return fCurrentAudio->sample_rate();
+}

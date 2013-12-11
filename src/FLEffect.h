@@ -16,7 +16,9 @@
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
-#include "faust/llvm-dsp.h"
+
+class llvm_dsp_factory;
+class llvm_dsp;
 
 using namespace std;
 

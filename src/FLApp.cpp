@@ -878,7 +878,7 @@ void FLApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-                    if(!(*it2)->update_Window(kCrossFade, modifiedEffect, modifiedEffect->getOptValue(),error)){
+                    if(!(*it2)->update_Window(kCrossFade, modifiedEffect, error)){
                         fErrorWindow->print_Error(error.c_str());
                         break;
                     }
@@ -950,7 +950,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
     
     
-    if(newEffect == NULL || (!(win)->update_Window(kCrossFade, newEffect, fOpt_level, error))){
+    if(newEffect == NULL || (!(win)->update_Window(kCrossFade, newEffect, error))){
         //If the change fails, the leaving effect has to be reimplanted
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);

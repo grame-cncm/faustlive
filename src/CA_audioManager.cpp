@@ -14,9 +14,11 @@
 
 CA_audioManager::CA_audioManager(AudioSettings* as) : AudioManager(as){
 
-    fSettings = dynamic_cast<CA_audioSettings*>(as);
+    CA_audioSettings* settings = dynamic_cast<CA_audioSettings*>(as);
     
-    fCurrentAudio = new CA_audioFader(fSettings->get_BufferSize());
+    fBufferSize = settings->get_BufferSize();
+    
+    fCurrentAudio = new CA_audioFader(fBufferSize);
     
 }
 
@@ -56,7 +58,7 @@ bool CA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
 
     printf("CA_audioManager::init_FadeAudio\n");
     
-    fFadeInAudio = new CA_audioFader(fSettings->get_BufferSize());
+    fFadeInAudio = new CA_audioFader(fBufferSize);
     
     if(fFadeInAudio->init(name, DSP))
         return true;
@@ -103,3 +105,13 @@ void CA_audioManager::wait_EndFade(){
     delete fFadeInAudio;
     
 }
+
+int CA_audioManager::buffer_size(){
+    return fCurrentAudio->buffer_size();
+}
+
+int CA_audioManager::sample_rate(){
+    return fCurrentAudio->sample_rate();
+}
+
+
