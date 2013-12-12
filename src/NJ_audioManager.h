@@ -26,6 +26,9 @@ class NJ_audioManager : public AudioManager{
     int                     fPort;
     int                     fLatency;
     
+    int                     fBufSize;
+    int                     fSplRate;
+    
     NJ_audioFader*          fCurrentAudio;
     NJ_audioFader*          fFadeInAudio;
     

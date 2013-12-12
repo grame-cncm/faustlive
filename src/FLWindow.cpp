@@ -135,15 +135,19 @@ void FLWindow::changeRemoteState(int state){
         
         if(update_Window(kGetRemote, NULL, error))
             emit errorPrint("Remote Processing Activated");
-        else
+        else{
             emit errorPrint(error.c_str());
+//            emit closeWin();
+        }
     }
     else{
 
         if(update_Window(kGetLocal, fEffect, error))
             emit errorPrint("Remote Processing Desactivated");
-        else
+        else{
             emit errorPrint(error.c_str());
+//            emit closeWin();
+        }
     }
 }
 

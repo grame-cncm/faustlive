@@ -41,6 +41,7 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
+//        void         set_NumOutput(int num);
     
     signals :
         void error(const char*);

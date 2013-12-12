@@ -34,8 +34,11 @@ NJ_audioManager::~NJ_audioManager(){
 //INIT interface to correspond to JackAudio init interface
 bool NJ_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
-    if(init(name, DSP))
+//    fCurrentAudio->set_NumOutput(DSP->getNumOutputs());
+    
+    if(init(name, DSP)){
         return true;
+    }
     else{
         error = "Impossible to init NetJackAudio";
         return false;
@@ -64,9 +67,12 @@ bool NJ_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
 //    printf("INIT_FADEAUDIO THIS = %p \n",fFadeInAudio);
     
     connect(fFadeInAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
+//    
+//    fFadeInAudio->set_NumOutput(DSP->getNumOutputs());
     
-    if(fFadeInAudio->init(name, DSP))
+    if(fFadeInAudio->init(name, DSP)){
         return true;
+    }
     else{
         error = "Impossible to fade NetJack Client";
         return false;
@@ -85,7 +91,16 @@ void NJ_audioManager::start_Fade(){
 //When the crossfade ends, FadeInAudio becomes the current audio 
 void NJ_audioManager::wait_EndFade(){
  
-    while(fCurrentAudio->get_FadeOut() == 1){}
+    int i=0;
+    
+    while(fCurrentAudio->get_FadeOut() == 1){ 
+        
+        //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
+        if(i > 300) 
+            break; 
+        else 
+            i++;
+    }
     
     fCurrentAudio->stop();
     NJ_audioFader* intermediate = fCurrentAudio;
@@ -100,7 +115,9 @@ void NJ_audioManager::send_Error(const char* msg){
     emit errorSignal(msg);
 }
 
-int NJ_audioManager::buffer_size(){return fCurrentAudio->buffer_size();}
+int NJ_audioManager::buffer_size(){
+    return fCurrentAudio->buffer_size();
+}
 
 int NJ_audioManager::sample_rate(){return fCurrentAudio->sample_rate();}
 

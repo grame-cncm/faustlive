@@ -31,6 +31,7 @@ endif
 
 all : Makefile.qt4
 	make -f Makefile.qt4
+	cp -r Resources/ FaustLive.app/Contents/Resources
 
 install : install-$(system)
 
@@ -52,10 +53,8 @@ dist :
 
 install-Darwin: 
 	cp -r FaustLive.app /Applications
-	cp -r Resources/ FaustLive.app/Contents/Resources
 	
 uninstall-Darwin: 
-	rm -rf FaustLive.app/Contents/Resources/
 	rm -rf /Applications/FaustLive.app 
 
 install-Linux :
