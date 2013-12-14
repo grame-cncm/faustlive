@@ -24,6 +24,7 @@ class NJ_audioManager : public AudioManager{
     int                     fCV;
     string                  fIP;
     int                     fPort;
+    int                     fMTU;
     int                     fLatency;
     
     int                     fBufSize;
@@ -48,8 +49,8 @@ class NJ_audioManager : public AudioManager{
     
         virtual void wait_EndFade();
     
-        virtual int buffer_size();
-        virtual int sample_rate();
+        virtual int get_buffer_size();
+        virtual int get_sample_rate();
     
     private slots :
     

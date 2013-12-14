@@ -10,13 +10,15 @@
 
 #include "NJ_audioFader.h"
 
-NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_port, int latency, QObject* parent)
-: QObject(parent), netjackaudio(celt, master_ip, master_port, latency)
+NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency, QObject* parent)
+: QObject(parent), netjackaudio(celt, master_ip, master_port, mtu, latency)
 {
+/*
     fCelt = celt;
     fMasterIP = master_ip;
     fMasterPort = master_port;
     fLatency = latency;
+*/
     
     reset_Values();
     fNumberRestartAttempts = 0;
@@ -25,6 +27,7 @@ NJ_audioFader::NJ_audioFader(int celt, const std::string master_ip, int master_p
 NJ_audioFader::~NJ_audioFader(){}
 
 //CallBack in case of network failure
+/*
 int NJ_audioFader::net_restart(void* arg) 
 {
     AVOIDDENORMALS;
@@ -44,8 +47,27 @@ int NJ_audioFader::net_restart(void* arg)
     
     return 1;
 }
+*/
+
+int NJ_audioFader::restart_cb()
+{
+    // printf("Network failure, restart...\n");
+    
+    if(fNumberRestartAttempts < 10){
+        emit error("Network failure, restart...");    
+        fNumberRestartAttempts++;
+        return 0;
+    }
+    else{
+        emit error("Impossible to restart Network");
+        fNumberRestartAttempts = 0;
+    }
+    
+    return 1;
+}
 
 //Reimplementing Audio callback to add the crossfade procedure
+/*
 int NJ_audioFader::net_process(jack_nframes_t buffer_size,
                                         int,
                                         float** audio_input_buffer,
@@ -58,24 +80,34 @@ int NJ_audioFader::net_process(jack_nframes_t buffer_size,
                                         void* arg) {
     AVOIDDENORMALS;
     NJ_audioFader* obj = (NJ_audioFader*)arg;
-    printf("OBJ = %p\n", obj);
+    //printf("OBJ = %p\n", obj);
     obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
     
-    obj->crossfade_Calcul(buffer_size, obj->fNumberOutput, audio_output_buffer);
+    obj->crossfade_Calcul(buffer_size, obj->fDsp->getNumOutputs(), audio_output_buffer);
     return 0;
+}
+*/
+
+void NJ_audioFader::process(int count,  float** inputs, float** outputs)
+{
+     AVOIDDENORMALS;
+     fDsp->compute(count, inputs, outputs);
+     crossfade_Calcul(count, fDsp->getNumOutputs(), outputs);
 }
 
 bool NJ_audioFader::init(const char* name, dsp* DSP) {
     
-    fDsp = DSP;
+    //fDsp = DSP;
     
-    fNumberOutput = DSP->getNumOutputs();
+    //fNumberOutput = DSP->getNumOutputs();
+    
+    /*
     
     jack_slave_t request = {
         DSP->getNumInputs(),
         DSP->getNumOutputs(),
         0, 0,
-        DEFAULT_MTU,
+        fMTU,
         2,
         (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
         (fCelt > 0) ? fCelt : 0,
@@ -98,11 +130,16 @@ bool NJ_audioFader::init(const char* name, dsp* DSP) {
 #endif
     jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
     
+    
     fDsp->init(fResult.sample_rate);
     return true;
+    */
+    
+    return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs());
 }
 
-bool NJ_audioFader::start() {
+bool NJ_audioFader::start() 
+{
     if (jack_net_slave_activate(fNet)) {
         printf("cannot activate net");
         return false;
@@ -110,7 +147,8 @@ bool NJ_audioFader::start() {
     return true;
 }
 
-void NJ_audioFader::stop() {
+void NJ_audioFader::stop() 
+{
     jack_net_slave_deactivate(fNet);
 //    printf("NET DEACTiVATE\n");
     jack_net_slave_close(fNet);
