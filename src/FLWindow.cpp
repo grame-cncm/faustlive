@@ -15,8 +15,11 @@ list<GUI*>               GUI::fGuiList;
 #include <sstream>
 #include "FLToolBar.h"
 #include "utilities.h"
+
+#ifdef NETJACK
 #include "Remote_DSP_Factory.h"
 #include "Remote_DSP.h"
+#endif
 
 #include "faust/llvm-dsp.h"
 
@@ -427,14 +430,17 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     string newName = fEffect->getName();
     
     dsp* charging_DSP = NULL;
+#ifdef NETJACK
     Remote_DSP_Factory* charging_Factory = NULL;
-    
+#endif
+
     if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
     
         //Step 4 : creating the new DSP instance
         charging_DSP = createDSPInstance(newEffect->getFactory());
         newName = newEffect->getName();
     }
+#ifdef NETJACK
     else if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
         
         //Step 4 : creating the new DSP instance
@@ -459,7 +465,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         
         //    printf("charging DSP = %p\n", charging_DSP);
     }
-    
+#endif
     if (charging_DSP == NULL)
         return false;
     
@@ -534,18 +540,21 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         if(becomeRemote == kGetRemote){
             deleteDSPInstance((llvm_dsp*)charging_DSP);
             fIsLocal = true;
+#ifdef NETJACK            
             fRemoteFactory = charging_Factory;
         }
         else if(becomeRemote == kGetLocal){
             deleteRemoteInstance((Remote_DSP*)charging_DSP);
             deleteRemoteFactory(fRemoteFactory);
             fIsLocal = false;
+#endif
         }
         else{
             if(fIsLocal){
                 deleteDSPInstance((llvm_dsp*)charging_DSP);
                 fEffect = newEffect;
             }
+#ifdef NETJACK
             else{
                 
                 Remote_DSP_Factory* factoryInt;
@@ -557,6 +566,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
                 deleteRemoteInstance((Remote_DSP*)charging_DSP);
                 deleteRemoteFactory(charging_Factory);
             }
+#endif
         }
         
         //Step 9 : Launch User Interface
