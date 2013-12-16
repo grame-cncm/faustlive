@@ -456,9 +456,9 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         if(charging_Factory == NULL)
             return false;
         
-//        printf("SR & BS = %i | %i\n", fAudioManager->sample_rate(), fAudioManager->buffer_size());
+//        printf("SR & BS = %i | %i\n", fAudioManager->sample_rate(), fAudioManager->get_buffer_size());
         
-        charging_DSP = createRemoteInstance(charging_Factory, fAudioManager->sample_rate(), fAudioManager->buffer_size(), error);
+        charging_DSP = createRemoteInstance(charging_Factory, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
         
         if (charging_DSP == NULL)
             deleteRemoteFactory(charging_Factory);

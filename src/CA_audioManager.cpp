@@ -106,12 +106,12 @@ void CA_audioManager::wait_EndFade(){
     
 }
 
-int CA_audioManager::buffer_size(){
-    return fCurrentAudio->buffer_size();
+int CA_audioManager::get_buffer_size(){
+    return fCurrentAudio->get_buffer_size();
 }
 
-int CA_audioManager::sample_rate(){
-    return fCurrentAudio->sample_rate();
+int CA_audioManager::get_sample_rate(){
+    return fCurrentAudio->get_sample_rate();
 }
 
 

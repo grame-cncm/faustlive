@@ -20,8 +20,9 @@ NJ_audioManager::NJ_audioManager(AudioSettings* as): AudioManager(as){
     fIP = settings->get_IP();
     fPort = settings->get_Port();
     fLatency = settings->get_latency();
+    fMTU = DEFAULT_MTU; // TODO
     
-    fCurrentAudio = new NJ_audioFader(fCV, fIP, fPort, fLatency);
+    fCurrentAudio = new NJ_audioFader(fCV, fIP, fPort, fMTU, fLatency);
     
     connect(fCurrentAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
 }
@@ -115,10 +116,10 @@ void NJ_audioManager::send_Error(const char* msg){
     emit errorSignal(msg);
 }
 
-int NJ_audioManager::buffer_size(){
-    return fCurrentAudio->buffer_size();
+int NJ_audioManager::get_buffer_size(){
+    return fCurrentAudio->get_buffer_size();
 }
 
-int NJ_audioManager::sample_rate(){return fCurrentAudio->sample_rate();}
+int NJ_audioManager::get_sample_rate(){return fCurrentAudio->get_sample_rate();}
 
 
