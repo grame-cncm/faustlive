@@ -261,7 +261,7 @@ void FLServerHttp::compile_Failed(string error){
 }
 
 //Accessor to Max Client Number
-const int FLServerHttp::getMaxClients(){ 
+int FLServerHttp::getMaxClients(){ 
     return fMax_clients; 
 }
 

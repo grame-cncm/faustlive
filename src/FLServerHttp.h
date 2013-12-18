@@ -195,7 +195,7 @@ class FLServerHttp : public QObject{
                     FLServerHttp();
                     ~FLServerHttp();
     
-    const int       getMaxClients();
+    int             getMaxClients();
     
     bool            start(unsigned short port);
     void            stop();
