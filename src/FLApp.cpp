@@ -2758,28 +2758,28 @@ void FLApp::drop_Action(list<string> sources){
 void FLApp::setToolText(const QString & currentText){
     
     if(currentText.compare("FAUST") == 0)
-        fToolText->setHtml("<br>\nTo develop your own effects, you will need to handle Faust language.<br><br>""LEARN MORE ABOUT FAUST : <a href = http://faust.grame.fr>faust.grame.fr</a>");
+        fToolText->setHtml("<br>\nTo develop your own effects, you will need to learn the Faust language.<br><br>""LEARN MORE ABOUT FAUST : <a href = http://faust.grame.fr>faust.grame.fr</a>");
     else if(currentText.compare("LLVM") == 0)
-        fToolText->setHtml("<br>\nThanks to its embedded LLVM compiler, this application allows dynamical compilation of your faust objects.<br><br>""LEARN MORE ABOUT LLVM : <a href = http://llvm.org>llvm.org</a>");
+        fToolText->setHtml("<br>\nThanks to its embedded LLVM compiler, this application allows dynamic compilation of your Faust objects.<br><br>""LEARN MORE ABOUT LLVM : <a href = http://llvm.org>llvm.org</a>");
     else if(currentText.compare("COREAUDIO") == 0)
         fToolText->setHtml("<br>Core Audio is the digital audio infrastructure of MAC OS X.<br><br>""LEARN MORE ABOUT COREAUDIO : <a href = http://developer.apple.com/library/ios/#documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatisCoreAudio/WhatisCoreAudio.html>developer.apple.com </a> ");
     else if(currentText.compare("JACK") == 0)
         fToolText->setHtml("<br>Jack (the Jack Audio Connection Kit) is a low-latency audio server. It can connect any number of different applications to a single hardware audio device.<br><br>YOU CAN DOWNLOAD IT HERE : <a href =http://www.jackosx.com> www.jackosx.com</a>\n");
     else if(currentText.compare("NETJACK") == 0)
-        fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. That way you can send your audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+        fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. It allows to send audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
     else if(currentText.compare("PORTAUDIO") == 0)
         fToolText->setHtml("<br>PortAudio is a free, cross-platform, open-source, audio I/O library. <br><br>""LEARN MORE ABOUT PORTAUDIO : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
     else if(currentText.compare("LIB QRENCODE") == 0)
         fToolText->setHtml("<br>Libqrencode is a C library for encoding data in a QR Code symbol, a kind of 2D symbology that can be scanned by handy terminals such as a mobile phone with CCD.<br><br>""LEARN MORE ABOUT LIB QRENCODE : <a href = http://fukuchi.org/works/qrencode> fukuchi.org/works/qrencode</a>\n");
     else if(currentText.compare("LIB MICROHTTPD") == 0)
-        fToolText->setHtml("<br>GNU libmicrohttpd is a small C library that is supposed to make it easy to run an HTTP server as part of an application.<br><br>""LEARN MORE ABOUT LIB MICROHTTPD : <a href = http://www.gnu.org/software/libmicrohttpd> gnu.org/software/libmicrohttpd</a>\n");
+        fToolText->setHtml("<br>GNU libmicrohttpd is a small C library that allows running an HTTP server as part of an application.<br><br>""LEARN MORE ABOUT LIB MICROHTTPD : <a href = http://www.gnu.org/software/libmicrohttpd> gnu.org/software/libmicrohttpd</a>\n");
 }
 
 //Set Text in Application Properties Menu of HELP
 void FLApp::setAppPropertiesText(const QString& currentText){
     
     if(currentText.compare("New Default Window")==0)
-        fAppText->setPlainText("\nCreates a new window containing a simple faust process.\n\n process = !,!:0,0; ");
+        fAppText->setPlainText("\nCreates a new window containing a simple Faust process.\n\n process = !,!:0,0; ");
     
     else if(currentText.compare("Open")==0)
         fAppText->setPlainText("\nCreates a new window containing the DSP you choose on disk.\n");
@@ -2788,13 +2788,13 @@ void FLApp::setAppPropertiesText(const QString& currentText){
         fAppText->setPlainText("\nSaves the actual state of the application in a folder.tar : all the windows, their graphical parameters, their audio connections, their position on the screen.\n");
     
     else if(currentText.compare("Recall Snapshot")==0)
-        fAppText->setPlainText("\nRestores the state of the application as saved. All current windows are closed. If one of the source file can't be found, a back up file is used\n");
+        fAppText->setPlainText("\nRestores the state of the application as saved. All current windows are closed. If one of the source file can't be found, a back up file is used.\n");
     
     else if(currentText.compare("Import Snapshot")==0)
         fAppText->setPlainText("\nAdds the state of the application as saved to the current state of the application. That way, current windows are not closed. Some audio application/windows may have to be renamed during the importation.\n");
     
     else if(currentText.compare("Navigate")==0)
-        fAppText->setPlainText("\nBrings to front end the chosen running window\n");
+        fAppText->setPlainText("\nBrings the chosen running window to front end.\n");
     
     else if(currentText.compare("Preferences")==0)
         fAppText->setPlainText("\nYou can choose default compilation options for new windows.\n\n The compilation web service URL can be modified.\n\n If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\n You can also choose the graphical style of the application.\n");
@@ -2808,28 +2808,28 @@ void FLApp::setAppPropertiesText(const QString& currentText){
 void FLApp::setWinPropertiesText(const QString& currentText){
     
     if(currentText.compare("Audio Cnx/Dcnx")==0)
-        fWinText->setPlainText("\nWith Jack router, you can connect a window to another one or to an external application like I-Tunes, VLC or directly to the computer input/output.\nYou can choose Jack as the audio architecture in the preferences.");
+        fWinText->setPlainText("\nWith JackRouter audio device, you can connect a window to another one or to an external application like iTunes, VLC or directly to the computer input/output.\nYou can choose Jack as the audio architecture in the preferences.");
         
     else if(currentText.compare("Edit Source")==0)
-        fWinText->setPlainText("\nThe code Faust corresponding to the active window is opened in a text editor for you to change it. When you save your modification, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connections that can be kept will stay unmodified.");
+        fWinText->setPlainText("\nThe Faust code corresponding to the active window is opened in a text editor to be edited. When you save your modification, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connections that can be kept will stay unmodified.");
             
     else if(currentText.compare("Drag and Drop / Paste")==0)
-        fWinText->setPlainText("\nIn a window, you can drop or paste : \n - File.dsp\n - Faust code\n - Faust URL\n An audio crossfade will be calculated between the outcoming and the incoming audio application. The new application will be connected as the outcoming one.\n");
+        fWinText->setPlainText("\nIn a window, you can drop or paste : \n - File.dsp\n - Faust code\n - Faust URL\nAn audio crossfade will be calculated between the outcoming and the incoming audio application. The new application will be connected as the outcoming one.\n");
     
     else if(currentText.compare("Duplicate")==0)
         fWinText->setPlainText("\nCreates a new window, that has the same characteristics : same Faust code, same graphical parameters, same audio connections as the active window.\n");
     
     else if(currentText.compare("View QrCode")==0)
-        fWinText->setPlainText("\nYou can display a new window with a QRcode so that you can control the userInterface of the audio application remotely.");
+        fWinText->setPlainText("\nYou can display a new window with a QRcode so that you can remotely control the User Interface of the audio application.");
     
     else if(currentText.compare("Window Options")==0)
-        fWinText->setPlainText("\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the Llvm compiler. If several windows correspond to the same audio application, they will load the chosen options.\n The Httpd Port corresponds to the connection port for remote controlling of the interface.");
+        fWinText->setPlainText("\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.\nThe Httpd Port corresponds to the connection port for remote control of the interface.");
     
     else if(currentText.compare("View SVG")==0)
-        fWinText->setPlainText("\nYou can display the SVG diagramm of the active Window. It we be open in your chosen default navigator.");
+        fWinText->setPlainText("\nYou can display the SVG diagram of the active Window. It will be opened in your chosen default navigator.");
     
     else if(currentText.compare("Export")==0)
-        fWinText->setPlainText("\nA web service is available to export your Faust application for another Platform or/and architecture.");
+        fWinText->setPlainText("\nA web service is available to campile and export your Faust application for another platform or/and architecture.");
     
 }
 
@@ -2851,7 +2851,7 @@ void FLApp::init_HelpWindow(){
     
     QVBoxLayout* generalLayout = new QVBoxLayout;
     
-    QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamical compiler for processors coded with Faust.\nIt embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
+    QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamic compiler for audio DSP programs coded with Faust. It embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
     
     QLineEdit* lineEdit = new QLineEdit(tr("DISTRIBUTED by GRAME - Centre de Creation Musicale"));
     
