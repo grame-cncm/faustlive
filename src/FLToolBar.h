@@ -26,14 +26,17 @@ class FLToolBar : public QToolBar{
     private:
     
         QTreeWidget*        fTreeWidget;
+        QTreeWidget*        fTreeWidget2;
         QTreeWidgetItem *   fItem;
         QTreeWidgetItem *   fItem2;
+        QTreeWidgetItem *   fItem3;
+        QTreeWidgetItem *   fItem4;
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
         QLineEdit*          fPortLine;
     
-        QLineEdit*          fRemoteLine;
-        QCheckBox*          fRemoteCheckBox;
+        QPushButton*        fRemoteButton;
+        bool                fRemoteEnabled;
     
         QWidget*            fWidget1;;  
         QVBoxLayout*        fLayout1;
@@ -47,23 +50,23 @@ class FLToolBar : public QToolBar{
     void setOptions(string options);
     void setVal(int value);
     void setPort(int port);
-    void setIP(const string& ip);
     
     string getOptions();
     int getVal();
     int getPort();
-    string getIP();
     
+    void    remoteFailed(bool fromNotToRemote);
     
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);
     void    collapseAction(QTreeWidgetItem* item);
     void    sendRemoteProcessing(int state);
+    void    openRemoteBox();
     
     signals :
     
-       void  modified(const string& option, int val, int port, const string& ip);
+       void  modified(const string& option, int val, int port);
         void sizeGrowth();
         void sizeReduction();
     

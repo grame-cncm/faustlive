@@ -41,46 +41,38 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fWidget1 = new QWidget;
     
-    QLabel* text = new QLabel(tr("FAUST Compiler Options"), fWidget1);
-//    text->setAlignment(Qt::AlignCenter);
-    
-    QLabel* optText = new QLabel(tr("LLVM Optimization"), fWidget1);
-//    optText->setAlignment(Qt::AlignCenter);
-    
-    QLabel* portText = new QLabel(tr("HTTPD Port"), fWidget1);
-//    portText->setAlignment(Qt::AlignCenter);
-    
-    fRemoteCheckBox = new QCheckBox(tr("REMOTE Processing IP"), fWidget1);
-    
     fOptionLine = new QLineEdit(tr(""), fWidget1);
     fOptValLine = new QLineEdit(tr(""), fWidget1);
     fPortLine = new QLineEdit(tr(""), fWidget1);
-    fRemoteLine = new QLineEdit(tr(""), fWidget1);
+
 
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
     
     fLayout1 = new QVBoxLayout;
     
-    fLayout1->addWidget(text);
+    fLayout1->addWidget(new QLabel(tr("FAUST Compiler Options"), fWidget1));
     fLayout1->addWidget(fOptionLine);
     
-    fLayout1->addWidget(optText);
+    fLayout1->addWidget(new QLabel(tr("LLVM Optimization"), fWidget1));
     fLayout1->addWidget(fOptValLine);
     
-    fLayout1->addWidget(portText);
+    fLayout1->addWidget(new QLabel(tr("HTTPD Port"), fWidget1));
     fLayout1->addWidget(fPortLine);
-
-    fLayout1->addWidget(fRemoteCheckBox);
-    fLayout1->addWidget(fRemoteLine);
-    
-    fWidget1->setLayout(fLayout1);
     
     connect (fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    connect(fRemoteLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    connect(fRemoteCheckBox, SIGNAL(stateChanged (int)), this, SLOT(sendRemoteProcessing(int)));
+
+#ifdef NETJACK
+    fRemoteEnabled = false;
+    fRemoteButton = new QPushButton(tr("Enable remote Processing"));
+    fLayout1->addWidget(new QLabel(tr(""), fWidget1));
+    fLayout1->addWidget(fRemoteButton);    
+    connect(fRemoteButton, SIGNAL(released()), this, SLOT(openRemoteBox()));
+#endif
+    
+    fWidget1->setLayout(fLayout1);
 }
 
 ///*item*/ is useless but QT signal forces the slot parameters
@@ -98,6 +90,37 @@ void FLToolBar::expansionAction(QTreeWidgetItem * /*item*/){
     emit sizeGrowth();
 }
 
+void FLToolBar::openRemoteBox(){
+    
+    if(!fRemoteButton->isDown()){
+        
+        printf("Enable remote\n");
+        
+        fRemoteButton->setDown(true);
+        emit remoteStateChanged(true);
+        fRemoteEnabled = true;
+    }
+    else{
+        fRemoteButton->setDown(false);
+        emit remoteStateChanged(false); 
+        fRemoteEnabled = false;
+    }
+
+}
+
+void FLToolBar::remoteFailed(bool fromNotToRemote){
+    
+    if(fromNotToRemote){
+        
+        fRemoteButton->setDown(false);
+        fRemoteEnabled = false;
+    }
+    else{
+        fRemoteButton->setDown(true);
+        fRemoteEnabled = true;
+    }
+}
+
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     
     removeAction(fAction1);
@@ -106,28 +129,12 @@ void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     emit sizeReduction();
 }
 
-FLToolBar::~FLToolBar(){
-
-//    delete fOptionLine;
-//    delete fOptValLine;
-//    delete fOptText;
-//    delete fText;
-//    delete fWidget1;
-//    delete fWidget2;
-//    delete fItem2;
-//    delete fItem;
-//    delete fTreeWidget;
-//    delete fLayout1;
-//    delete fLayout2;
-
-}
+FLToolBar::~FLToolBar(){}
 
 //Reaction to enter one of the QlineEdit
 void FLToolBar::modifiedOptions(){
     
     string text = fOptionLine->text().toStdString();
-    
-    string textIP = fRemoteLine->text().toStdString();
     
     int value = 3;
     
@@ -143,7 +150,7 @@ void FLToolBar::modifiedOptions(){
     
 //    printf("value = %i// text = %s\n", value, text.c_str());
     
-    emit modified(text, value, port, textIP);
+    emit modified(text, value, port);
 }
 
 //Accessors to FLToolBar values
@@ -189,18 +196,9 @@ void FLToolBar::setPort(int port){
     fPortLine->setText(ss.str().c_str());
 }
 
-void FLToolBar::setIP(const string& ip){
-    
-    fRemoteLine->setText(ip.c_str());
-}
-
-string FLToolBar::getIP(){
-    
-    return fRemoteLine->text().toStdString();
-}
-
 void FLToolBar::sendRemoteProcessing(int state){
     
+    modifiedOptions();
     emit remoteStateChanged(state);
 }
 

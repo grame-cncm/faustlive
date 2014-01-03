@@ -14,7 +14,8 @@
     <file>Examples/envelop.dsp</file>
     <file>Examples/freeverb.dsp</file>
     <file>Examples/harpe.dsp</file>
-    <file>Examples/karplus.dsp</file>
+<file>Examples/harpeautomation.dsp</file>    
+<file>Examples/karplus.dsp</file>
     <file>Examples/lowcut.dsp</file>
 	<file>Examples/noise.dsp</file>
 	<file>Examples/osc.dsp</file>
@@ -24,6 +25,7 @@
 	<file>Examples/quadecho.dsp</file>
 	<file>Examples/smoothdelay.dsp</file>
 	<file>Examples/stereoecho.dsp</file>
+<file>Examples/wahwah.dsp</file>
 	<file>Examples/zita_rev1.dsp</file>
 </qresource>
 </RCC>

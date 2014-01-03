@@ -31,10 +31,12 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
+#include <dns_sd.h>
+
 class QTGUI;
 class FLToolBar;
 class OSCUI;
-class Remote_DSP_Factory;
+class remote_dsp_factory;
 
 using namespace std;
 
@@ -80,11 +82,13 @@ class FLWindow : public QMainWindow
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
-        Remote_DSP_Factory*     fRemoteFactory;
+        remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
         bool            fIsLocal;      //True = llvm | False = remote
     
         string          fIpRemoteServer;
+        QListWidget*        fMachineList; // List of available machines for remote processing
+        map<string, string> fHostNameToIP;  //Correspondance of name to IP of remote server
     
     //Position on screen
         int             fXPos;
@@ -105,6 +109,27 @@ class FLWindow : public QMainWindow
     
         list<pair<string, string> > fRecentFiles;
         QStringList                 fRecentSessions;
+    
+    
+    static void     browsingCallback(DNSServiceRef sdRef,
+                                    DNSServiceFlags flags,
+                                    uint32_t interfaceIndex,
+                                    DNSServiceErrorType errorCode,
+                                    const char *serviceName,
+                                    const char *regtype,
+                                    const char *replyDomain,
+                                    void *context );
+    
+    static void     resolvingCallback(DNSServiceRef sdRef,
+                                DNSServiceFlags flags,
+                                uint32_t interfaceIndex,
+                                DNSServiceErrorType errorCode,
+                                const char *fullname,
+                                const char *hosttarget,
+                                uint16_t port, /* In network byte order */
+                                uint16_t txtLen,
+                                const unsigned char *txtRecord,
+                                void *context );
     
     signals :
     //Informing of a drop, a close event, ...
@@ -253,10 +278,11 @@ class FLWindow : public QMainWindow
     
     public slots :
     //Modification of the compilation options
-        void            modifiedOptions(string text, int value, int port, const string& ipServer);
+        void            modifiedOptions(string text, int value, int port);
         void            resizingBig();
         void            resizingSmall();
         void            changeRemoteState(int state);
+        bool            openRemoteBox();
     
     //Raises and shows the window
         void            frontShow();

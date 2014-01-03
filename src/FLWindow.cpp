@@ -17,8 +17,7 @@ list<GUI*>               GUI::fGuiList;
 #include "utilities.h"
 
 #ifdef NETJACK
-#include "Remote_DSP_Factory.h"
-#include "Remote_DSP.h"
+#include "faust/remote-dsp.h"
 #endif
 
 #include "faust/llvm-dsp.h"
@@ -78,8 +77,8 @@ void FLWindow::setMenu(){
     fMenu = new FLToolBar(this);
     
     addToolBar(fMenu);
-    
-    connect(fMenu, SIGNAL(modified(string, int, int, const string&)), this, SLOT(modifiedOptions(const string&, int, int, const string&)));
+     
+    connect(fMenu, SIGNAL(modified(string, int, int)), this, SLOT(modifiedOptions(const string&, int, int)));
     connect(fMenu, SIGNAL(remoteStateChanged(int)), this, SLOT(changeRemoteState(int)));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
@@ -91,10 +90,7 @@ void FLWindow::errorPrint(const char* msg){
 }
 
 //Reaction to the modifications of the ToolBar options
-void FLWindow::modifiedOptions(string text, int value, int port, const string& ipServer){
-    
-    if(ipServer.compare(fIpRemoteServer) != 0)
-        fIpRemoteServer = ipServer;
+void FLWindow::modifiedOptions(string text, int value, int port){
     
     if(fPortHttp != port)
         fPortHttp = port;
@@ -136,20 +132,26 @@ void FLWindow::changeRemoteState(int state){
 //Checked = send dsp away
     if(state){
         
-        if(update_Window(kGetRemote, NULL, error))
-            emit errorPrint("Remote Processing Activated");
-        else{
-            emit errorPrint(error.c_str());
-//            emit closeWin();
+        if(openRemoteBox()){
+            
+            printf("STATE CHANGED\n");
+                
+            if(update_Window(kGetRemote, NULL, error))
+                emit errorPrint("Remote Processing Activated");
+            else{
+                emit errorPrint(error.c_str());
+            }
         }
+        else
+            fMenu->remoteFailed(true);
     }
     else{
 
         if(update_Window(kGetLocal, fEffect, error))
             emit errorPrint("Remote Processing Desactivated");
         else{
+            fMenu->remoteFailed(false);
             emit errorPrint(error.c_str());
-//            emit closeWin();
         }
     }
 }
@@ -164,6 +166,119 @@ bool FLWindow::is_Default(){
     else 
         return false;
 }
+
+//---------------------------BONJOUR API
+
+//-----To process the Service Refs, this thread is activated
+static void* threadCallback(void *arg){
+    
+    printf("Thread callback\n");
+    
+    DNSServiceRef sd = *((DNSServiceRef*)arg);
+    
+    while(1){
+        DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        if(err != kDNSServiceErr_NoError)
+            pthread_exit(0);
+    }
+}
+
+//--- Callback whenever a server in the regtype/replyDomain is found
+void FLWindow::browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context ){
+    
+    if(string(serviceName).find("RemoteProcessing") != string::npos){
+        
+        DNSServiceRef sd;
+        
+        DNSServiceResolve (&sd,flags,interfaceIndex,serviceName, regtype, replyDomain, &FLWindow::resolvingCallback, context);
+        
+        pthread_t myNewThread;
+        
+        if(!pthread_create(&myNewThread, NULL, &threadCallback, &sd));
+    }
+    
+}
+
+//--- Callback resolving the hostname from the service name
+void FLWindow::resolvingCallback(DNSServiceRef sdRef,
+                           DNSServiceFlags flags,
+                           uint32_t interfaceIndex,
+                           DNSServiceErrorType errorCode,
+                           const char *fullname,
+                           const char *hosttarget,
+                           uint16_t port, /* In network byte order */
+                           uint16_t txtLen,
+                           const unsigned char *txtRecord,
+                           void *context ){
+
+    string host = fullname;
+    
+    string ipAddr = host.substr(0, host.find(".RemoteProcessing"));
+    
+    string finalIP("");
+    
+    for(int i=0; i<ipAddr.length(); ++i){
+        if(isdigit(ipAddr[i]) || ipAddr[i]=='.')
+            finalIP+=ipAddr[i];
+    }
+    
+    QListWidgetItem* machine1 = new QListWidgetItem(hosttarget);
+    
+    if(context != NULL){
+     
+        FLWindow* win = (FLWindow*) context;
+        win->fMachineList->addItem(machine1);
+        win->fHostNameToIP[hosttarget] = finalIP;
+    }
+    
+    DNSServiceRefDeallocate(sdRef);
+}
+
+//Shows the list of remote machine activated
+bool FLWindow::openRemoteBox(){
+    
+    QDialog* box = new QDialog;
+    
+    QVBoxLayout* boxLayout = new QVBoxLayout;
+    
+    fMachineList = new QListWidget(box);
+
+//---------Research of available remote machines
+    
+    DNSServiceRef sd;
+    DNSServiceErrorType err1 = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &FLWindow::browsingCallback, this);
+    
+    pthread_t myNewThread;
+    if(!pthread_create(&myNewThread, NULL, &threadCallback, &sd));
+    
+//    --------------------------------------------------------
+    
+    QDialogButtonBox*        buttonBox = new QDialogButtonBox(Qt::Horizontal, box);
+    
+    QPushButton* cancelBox = buttonBox->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+    connect(cancelBox, SIGNAL(clicked()), box, SLOT(reject()));
+    QPushButton* okBox = buttonBox->addButton(tr("Ok"), QDialogButtonBox::AcceptRole);
+    connect(okBox, SIGNAL(clicked()), box, SLOT(accept()));
+    
+    boxLayout->addWidget(new QLabel(tr("<h2>Choose your remote machine</h2>")));
+    boxLayout->addWidget(fMachineList);
+    boxLayout->addWidget(buttonBox);
+    
+    box->setLayout(boxLayout);
+    box->adjustSize();
+    
+    int res = box->exec();
+    
+    pthread_cancel(myNewThread);
+    DNSServiceRefDeallocate(sd);
+    
+    if(res && fMachineList->currentItem() != NULL ){
+        fIpRemoteServer = fHostNameToIP[fMachineList->currentItem()->text().toStdString()];
+        return true;
+    }
+    else
+        return false;
+} 
 
 //------------------------CLOSING ACTIONS
 
@@ -347,7 +462,6 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(fEffect->getOptValue());
     fMenu->setPort(fPortHttp);
-    fMenu->setIP(fIpRemoteServer);
     
     if (fCurrent_DSP == NULL){
         errorMsg = "Impossible to create a DSP instance"; 
@@ -431,7 +545,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     
     dsp* charging_DSP = NULL;
 #ifdef NETJACK
-    Remote_DSP_Factory* charging_Factory = NULL;
+    remote_dsp_factory* charging_Factory = NULL;
 #endif
 
     if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
@@ -446,22 +560,22 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         //Step 4 : creating the new DSP instance
         
         int nArg = 2;
-        char* argu[2];
+        const char* argu[2];
         
         argu[0] = "--NJ_ip";
-        argu[1] = (char*)(searchLocalIP().toStdString().c_str());
+        argu[1] = (searchLocalIP().toStdString().c_str());
         
-        charging_Factory = createRemoteFactory(fIpRemoteServer, pathToContent(fEffect->getSource()).c_str(), nArg, argu, fEffect->getOptValue(), error);
+        charging_Factory = createRemoteDSPFactory(0, NULL, fIpRemoteServer, 7777,  pathToContent(fEffect->getSource()).c_str(), error, fEffect->getOptValue());
         
         if(charging_Factory == NULL)
             return false;
         
 //        printf("SR & BS = %i | %i\n", fAudioManager->sample_rate(), fAudioManager->get_buffer_size());
         
-        charging_DSP = createRemoteInstance(charging_Factory, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
+        charging_DSP = createRemoteDSPInstance(charging_Factory, nArg, argu, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
         
         if (charging_DSP == NULL)
-            deleteRemoteFactory(charging_Factory);
+            deleteRemoteDSPFactory(charging_Factory);
         
         //    printf("charging DSP = %p\n", charging_DSP);
     }
@@ -476,7 +590,6 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     fMenu->setOptions(textOptions.c_str());
     fMenu->setVal(fEffect->getOptValue());
     fMenu->setPort(fPortHttp);
-    fMenu->setIP(fIpRemoteServer);
     
     if(fRCInterface && fOscInterface){
         
@@ -544,8 +657,8 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
             fRemoteFactory = charging_Factory;
         }
         else if(becomeRemote == kGetLocal){
-            deleteRemoteInstance((Remote_DSP*)charging_DSP);
-            deleteRemoteFactory(fRemoteFactory);
+            deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
+            deleteRemoteDSPFactory(fRemoteFactory);
             fIsLocal = false;
 #endif
         }
@@ -557,14 +670,14 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
 #ifdef NETJACK
             else{
                 
-                Remote_DSP_Factory* factoryInt;
+                remote_dsp_factory* factoryInt;
                 
                 factoryInt = fRemoteFactory;
                 fRemoteFactory = charging_Factory; 
                 charging_Factory = factoryInt;
                 
-                deleteRemoteInstance((Remote_DSP*)charging_DSP);
-                deleteRemoteFactory(charging_Factory);
+                deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
+                deleteRemoteDSPFactory(charging_Factory);
             }
 #endif
         }

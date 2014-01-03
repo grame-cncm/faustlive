@@ -56,6 +56,7 @@ LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
+LIBS+=-lfaustremote
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -101,11 +102,14 @@ equals(NJVAR, 1){
 				src/NJ_audioSettings.h \
 				src/NJ_audioManager.h \
 				src/NJ_audioFader.h \
+				src/JsonParser.h \
+							
 	
 	SOURCES += 	src/NJ_audioFactory.cpp \
 				src/NJ_audioSettings.cpp \
 				src/NJ_audioManager.cpp \
-				src/NJ_audioFader.cpp 
+				src/NJ_audioFader.cpp \
+				src/JsonParser.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		
@@ -161,10 +165,8 @@ HEADERS +=	src/AudioSettings.h \
 			src/FLWindow.h \ 
 			src/FLApp.h \
     		src/SimpleParser.h \
-    		src/JsonParser.h \
-    		src/Remote_DSP_Factory.h \
-    		src/Remote_DSP.h
-							
+    		src/FLRemoteManager.h
+
 SOURCES += 	src/AudioCreator.cpp \
 			src/AudioFader_Implementation.cpp \
 			src/FLToolBar.cpp \
@@ -178,9 +180,7 @@ SOURCES += 	src/AudioCreator.cpp \
 			src/FLApp.cpp \
 			src/main.cpp \
     		src/SimpleParser.cpp \
-    		src/JsonParser.cpp \
-    		src/Remote_DSP_Factory.cpp \
-    		src/Remote_DSP.cpp
+    		src/FLRemoteManager.cpp
 
  RESOURCES     = Resources/application.qrc
 
