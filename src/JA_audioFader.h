@@ -59,7 +59,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
         virtual bool get_FadeOut();
     
         virtual void upDate_DSP();
-
 };
 
 #endif

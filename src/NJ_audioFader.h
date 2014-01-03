@@ -20,22 +20,9 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
 {
     Q_OBJECT
         
-    //int     fNumberOutput;           // DSP's number of outputs
     int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
     
     //static int net_restart(void* arg);
-    
-    /*
-    
-     static int net_sample_rate(jack_nframes_t nframes, void* arg) 
-        {
-            NJ_audioFader* obj = (NJ_audioFader*)arg;
-            printf("New sample rate = %u\n", nframes);
-            obj->fDsp->init(nframes);
-            return 0;
-        }
-        
-        */
         
     virtual int restart_cb();
         
@@ -47,11 +34,6 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
     }
     
     void process(int count, float** inputs, float** outputs);
-    
-    /*
-    static int net_process(jack_nframes_t buffer_size,
-                           int, float** audio_input_buffer, int, void**, int, float** audio_output_buffer, int, void**, void* arg);  
-    */
     
     public:
     
@@ -67,7 +49,6 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
-//        void         set_NumOutput(int num);
     
     signals :
         void error(const char*);

@@ -20,7 +20,7 @@ class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader
 public:
 
     crossfade_TCoreAudioRenderer(){
-        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
+//        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
        reset_Values();
     }
     

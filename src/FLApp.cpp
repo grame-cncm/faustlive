@@ -3081,7 +3081,7 @@ void FLApp::init_presentationWindow(){
     layout->addWidget(image);
     iconeBox->setLayout(layout);
     
-    QLabel* text = new QLabel("<h2>WELCOME TO FAUST LIVE</h2>\nDynamical Faust Compiler");  
+    QLabel* text = new QLabel("<h2>WELCOME TO FAUST LIVE</h2>\nDynamic Faust Compiler");  
     text->setAlignment(Qt::AlignCenter);
     text->setStyleSheet("*{color: black}");
     
@@ -4082,7 +4082,7 @@ void FLApp::init_PreferenceWindow(){
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
     layoutNet->addRow(new QLabel(tr("")));
-    layoutNet->addRow(new QLabel(tr("Remote Dropping Service Port")), fPortLine);
+    layoutNet->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
     
     menu4->setLayout(layoutNet);
     

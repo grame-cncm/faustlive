@@ -44,8 +44,8 @@ class JA_audioManager : public AudioManager{
     virtual void save_Connections(string homeDir);
     virtual void change_Connections(string homeDir, list<pair<string, string> > changeTable);
     
-    virtual int buffer_size();
-    virtual int sample_rate();
+    virtual int get_buffer_size();
+    virtual int get_sample_rate();
 };
 
 #endif
