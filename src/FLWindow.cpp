@@ -519,7 +519,11 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
     return false;
 }
 
-//Change of the effect in a Window
+//Modification of the process in the window
+//CASE 1 = Update of Effect in local processing
+//CASE 2 = Update from remote processing to local processing
+//CASE 3 = Update from local processing to local processing
+//CASE 4 = Update of Effect in remote processing
 bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& error){
     
     printf("FLWindow::update_Win\n");
@@ -533,7 +537,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     hide(); 
     deleteInterfaces();
     
-    //Step 3 : creating the user interface
+    //Step 3 : creating the user interfaces
     fRCInterface = new FUI();
     
     char* argv[1];
@@ -543,21 +547,25 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     
     string newName = fEffect->getName();
     
-    dsp* charging_DSP = NULL;
-#ifdef NETJACK
-    remote_dsp_factory* charging_Factory = NULL;
-#endif
-
-    if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
+    //Step 4 : creating the new DSP instance
     
-        //Step 4 : creating the new DSP instance
+//CASE 1 & 2
+    dsp* charging_DSP = NULL;
+    
+    if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
+
         charging_DSP = createDSPInstance(newEffect->getFactory());
         newName = newEffect->getName();
+        
+        if (charging_DSP == NULL)
+            return false;
     }
 #ifdef NETJACK
-    else if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
-        
-        //Step 4 : creating the new DSP instance
+    
+//CASE 3 & 4 
+    remote_dsp_factory* charging_Factory = NULL;
+    
+    if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
         
         int nArg = 2;
         const char* argu[2];
@@ -569,19 +577,13 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         
         if(charging_Factory == NULL)
             return false;
-        
-//        printf("SR & BS = %i | %i\n", fAudioManager->sample_rate(), fAudioManager->get_buffer_size());
-        
+
         charging_DSP = createRemoteDSPInstance(charging_Factory, nArg, argu, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
         
         if (charging_DSP == NULL)
             deleteRemoteDSPFactory(charging_Factory);
-        
-        //    printf("charging DSP = %p\n", charging_DSP);
     }
 #endif
-    if (charging_DSP == NULL)
-        return false;
     
     //Step 5 : get the new compilation parameters
     string textOptions = fEffect->getCompilationOptions();
@@ -592,12 +594,11 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     fMenu->setPort(fPortHttp);
     
     if(fRCInterface && fOscInterface){
-        
-        if(!fAudioManager->init_FadeAudio(error, newName.c_str(), charging_DSP)){
+
+        //Step 6 : init crossfade
+        if(!charging_DSP || !fAudioManager->init_FadeAudio(error, newName.c_str(), charging_DSP)){
             
-//            printf("INIT FADE AUDIO FAILED\n");
-            
-            //Step 6 : Recall the parameters of the window
+            //Step 7 : Restart previous interface
             string intermediate = fWindowName + " : " + fEffect->getName();
             
             fInterface = new QTGUI(this, intermediate.c_str());
@@ -610,14 +611,14 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
             setGeometry(fXPos, fYPos, 0, 0);
             adjustSize();
             show();
-            //Step 9 : Launch User Interface
+            
             fInterface->run();
             fOscInterface->run();
             
             return false;
         }
         
-        //Step 6 : Set the new interface
+        //Step 7 : Set the new interface & Recall the parameters of the window
         string inter = fWindowName + " : " + newName;
         
         fInterface = new QTGUI(this, inter.c_str());
@@ -626,10 +627,9 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         charging_DSP->buildUserInterface(fInterface);
         charging_DSP->buildUserInterface(fOscInterface);
         
-        //Step 7 : Recall the parameters of the window
-        
         recall_Window();
         
+        //Step 8 : start crossfade and wait for its end
         fAudioManager->start_Fade();
         
         setGeometry(fXPos, fYPos, 0, 0);
@@ -638,51 +638,47 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
         
         fAudioManager->wait_EndFade();
         
-        //Step 8 : Change the current DSP as the dropped one
+        //Step 10 : Change the current DSP as the dropped one
         dsp* VecInt;
-        
-//        printf("CURRENT DSP = %p\n", fCurrent_DSP);
-//        printf("CHARGING DSP = %p\n", charging_DSP);
         
         VecInt = fCurrent_DSP;
         fCurrent_DSP = charging_DSP; 
         charging_DSP = VecInt;
         
-//        printf("deleting DSP leaving = %p\n", charging_DSP);
+        //Step 11 : Delete old resources
         
-        if(becomeRemote == kGetRemote){
+//    CASE 1
+        if(becomeRemote == kCrossFade && fIsLocal){
+            deleteDSPInstance((llvm_dsp*)charging_DSP);
+            fEffect = newEffect;
+        }
+#ifdef NETJACK
+//    CASE 2    
+        else if(becomeRemote == kGetRemote){
             deleteDSPInstance((llvm_dsp*)charging_DSP);
             fIsLocal = true;
-#ifdef NETJACK            
             fRemoteFactory = charging_Factory;
         }
+//     CASE 3   
         else if(becomeRemote == kGetLocal){
             deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
             deleteRemoteDSPFactory(fRemoteFactory);
             fIsLocal = false;
-#endif
-        }
+        }   
+//     CASE 4   
         else{
-            if(fIsLocal){
-                deleteDSPInstance((llvm_dsp*)charging_DSP);
-                fEffect = newEffect;
-            }
-#ifdef NETJACK
-            else{
-                
-                remote_dsp_factory* factoryInt;
-                
-                factoryInt = fRemoteFactory;
-                fRemoteFactory = charging_Factory; 
-                charging_Factory = factoryInt;
-                
-                deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
-                deleteRemoteDSPFactory(charging_Factory);
-            }
-#endif
+            remote_dsp_factory* factoryInt;
+            
+            factoryInt = fRemoteFactory;
+            fRemoteFactory = charging_Factory; 
+            charging_Factory = factoryInt;
+            
+            deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
+            deleteRemoteDSPFactory(charging_Factory);
         }
+#endif
         
-        //Step 9 : Launch User Interface
+        //Step 12 : Launch User Interface
         fInterface->run();
         fOscInterface->run();
         return true;
@@ -1095,7 +1091,7 @@ void FLWindow::set_MenuBar(){
     helpMenu->addAction(preferencesAction);
 }
 
-//------SLOTS FROM MENU ACTIONS THAT REDIRECT TO FLAPP
+//------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
 void FLWindow::create_Empty(){
     emit create_Empty_Window();
 }

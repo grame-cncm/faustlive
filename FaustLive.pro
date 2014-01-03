@@ -164,8 +164,7 @@ HEADERS +=	src/AudioSettings.h \
 			src/FLEffect.h \
 			src/FLWindow.h \ 
 			src/FLApp.h \
-    		src/SimpleParser.h \
-    		src/FLRemoteManager.h
+    		src/SimpleParser.h 
 
 SOURCES += 	src/AudioCreator.cpp \
 			src/AudioFader_Implementation.cpp \
@@ -179,8 +178,7 @@ SOURCES += 	src/AudioCreator.cpp \
 			src/FLWindow.cpp \ 
 			src/FLApp.cpp \
 			src/main.cpp \
-    		src/SimpleParser.cpp \
-    		src/FLRemoteManager.cpp
+    		src/SimpleParser.cpp 
 
  RESOURCES     = Resources/application.qrc
 
