@@ -1094,7 +1094,7 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
         int x, y;
         calculate_position(val, &x, &y);
         
-        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder, fPort);
+        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
         
         printf("WIN = %p\n", win);
         
@@ -1356,7 +1356,7 @@ void FLApp::sessionContentToFile(const string& filename){
             //     printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
             
             
-            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<' '<<(*it)->portHttpd<<' '<<(*it)->remoteServer.c_str()<<endl;
+            textWriting<<(*it)->ID<<' '<<QString((*it)->source.c_str())<<' '<<QString((*it)->name.c_str())<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<QString((*it)->compilationOptions.c_str())<<' '<<(*it)->opt_level<<' '<<(*it)->oscPort<<' '<<(*it)->portHttpd<<endl;
             
         }
         f.close();
@@ -1377,11 +1377,11 @@ void FLApp::fileToSessionContent(const string& filename, list<WinInSession*>* se
         while(!textReading.atEnd()){
             
             int id = 0;
-            int opt, port;
+            int opt, portHttp, portOsc;
             QString Source, Nom, CompilationOptions, ServerIP;
             float x,y;
             
-            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>port>>ServerIP;
+            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>portOsc>>portHttp;
             
             if(id != 0){
                 
@@ -1393,8 +1393,8 @@ void FLApp::fileToSessionContent(const string& filename, list<WinInSession*>* se
                 intermediate->y = y;
                 intermediate->compilationOptions = CompilationOptions.toStdString();
                 intermediate->opt_level = opt;
-                intermediate->portHttpd = port;
-                intermediate->remoteServer = ServerIP.toStdString();
+                intermediate->oscPort = portOsc;
+                intermediate->portHttpd = portHttp;
                 
                 //                printf("FILLING ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", intermediate->ID, intermediate->source.c_str(), intermediate->name.c_str(), intermediate->x, intermediate->y, intermediate->compilationOptions.c_str());
                 
@@ -1523,7 +1523,7 @@ void FLApp::recall_Session(const string& filename){
                 fErrorWindow->print_Error(error.c_str());
             }
             
-            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, fPort, (*it)->portHttpd, (*it)->remoteServer);
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->oscPort, (*it)->portHttpd);
             
             redirectMenuToWindow(win);
             
@@ -1681,8 +1681,8 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->y = (float)win->get_y()/(float)fScreenHeight;
     intermediate->compilationOptions = compilationOptions.c_str();
     intermediate->opt_level = win->get_Effect()->getOptValue();
+    intermediate->oscPort= win->get_oscPort();
     intermediate->portHttpd = win->get_Port();
-    intermediate->remoteServer = win->get_RemoteServerIP();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
@@ -2591,7 +2591,7 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, fPort);
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
     
     redirectMenuToWindow(win);
     
@@ -2671,7 +2671,7 @@ void FLApp::viewHttpd(FLWindow* win){
     
     string error;
     
-    if(!win->init_Httpd(error))
+    if(!win->init_Httpd(error, fPort))
         fErrorWindow->print_Error(error.c_str());
 }
 
@@ -4190,11 +4190,6 @@ void FLApp::save_Mode(){
             
             stop_Server();
             launch_Server();
-            
-            list<FLWindow*>::iterator it;
-            
-            for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-                (*it)->set_generalPort(fPort);
         }   
     }
     else

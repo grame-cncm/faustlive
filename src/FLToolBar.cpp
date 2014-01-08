@@ -44,7 +44,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fOptionLine = new QLineEdit(tr(""), fWidget1);
     fOptValLine = new QLineEdit(tr(""), fWidget1);
     fPortLine = new QLineEdit(tr(""), fWidget1);
-
+    fPortOscLine = new QLineEdit(tr(""), fWidget1);
 
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
@@ -60,16 +60,21 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fLayout1->addWidget(new QLabel(tr("HTTPD Port"), fWidget1));
     fLayout1->addWidget(fPortLine);
     
+    fLayout1->addWidget(new QLabel(tr("OSC Port"), fWidget1));
+    fLayout1->addWidget(fPortOscLine);
+    
     connect (fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 
 #ifdef NETJACK
     fRemoteEnabled = false;
-    fRemoteButton = new QPushButton(tr("Enable remote Processing"));
+    fRemoteButton = new QPushButton();
+    fRemoteButton->setText(tr("Enable remote Processing"));
     fLayout1->addWidget(new QLabel(tr(""), fWidget1));
     fLayout1->addWidget(fRemoteButton);    
-    connect(fRemoteButton, SIGNAL(released()), this, SLOT(openRemoteBox()));
+    connect(fRemoteButton, SIGNAL(clicked()), this, SLOT(openRemoteBox()));
 #endif
     
     fWidget1->setLayout(fLayout1);
@@ -90,35 +95,30 @@ void FLToolBar::expansionAction(QTreeWidgetItem * /*item*/){
     emit sizeGrowth();
 }
 
+//Reaction to a click on the remote enabling button
 void FLToolBar::openRemoteBox(){
     
-    if(!fRemoteButton->isDown()){
-        
-        printf("Enable remote\n");
-        
-        fRemoteButton->setDown(true);
-        emit remoteStateChanged(true);
-        fRemoteEnabled = true;
-    }
-    else{
-        fRemoteButton->setDown(false);
-        emit remoteStateChanged(false); 
-        fRemoteEnabled = false;
-    }
+    if(!fRemoteEnabled)
+        fRemoteButton->setText(tr("Disable remote Processing"));
+    else
+        fRemoteButton->setText(tr("Enable remote Processing"));
+
+    fRemoteButton->setDown(!fRemoteEnabled);
+    fRemoteEnabled = !fRemoteEnabled;
+    emit remoteStateChanged(fRemoteEnabled);
 
 }
 
+//Reaction to a click cancellation
 void FLToolBar::remoteFailed(bool fromNotToRemote){
     
-    if(fromNotToRemote){
-        
-        fRemoteButton->setDown(false);
-        fRemoteEnabled = false;
-    }
-    else{
-        fRemoteButton->setDown(true);
-        fRemoteEnabled = true;
-    }
+    fRemoteButton->setDown(!fromNotToRemote);
+    fRemoteEnabled = !fromNotToRemote;
+    
+    if(fromNotToRemote)
+        fRemoteButton->setText(tr("Enable remote Processing"));
+    else
+        fRemoteButton->setText(tr("Disable remote Processing"));
 }
 
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
@@ -148,9 +148,15 @@ void FLToolBar::modifiedOptions(){
     if(isStringInt(portText.c_str()))
         port = atoi(portText.c_str());
     
+    int portOsc = 5510;
+    
+    string portOscText = fPortOscLine->text().toStdString();
+    if(isStringInt(portOscText.c_str()))
+        portOsc = atoi(portOscText.c_str());
+    
 //    printf("value = %i// text = %s\n", value, text.c_str());
     
-    emit modified(text, value, port);
+    emit modified(text, value, port, portOsc);
 }
 
 //Accessors to FLToolBar values
@@ -194,6 +200,23 @@ void FLToolBar::setPort(int port){
     ss<<port;
     
     fPortLine->setText(ss.str().c_str());
+}
+
+int FLToolBar::getPortOsc(){
+    
+    string val = fPortOscLine->text().toStdString();
+    if(isStringInt(val.c_str()))
+        return atoi(val.c_str());
+    else
+        return 0;
+}
+
+void FLToolBar::setPortOsc(int port){
+    
+    stringstream ss;
+    ss<<port;
+    
+    fPortOscLine->setText(ss.str().c_str());
 }
 
 void FLToolBar::sendRemoteProcessing(int state){

@@ -12,6 +12,9 @@
 #define _NJ_audioFader_h
 
 #include <QObject>
+#include <string>
+#include <iostream>
+#include <sstream>
 #include "faust/audio/netjack-dsp.h"
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
@@ -31,6 +34,15 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         printf("New sample rate = %u\n", nframes);
         fDsp->init(nframes);
         return 0;
+    }
+    
+    virtual void error_cb(int error_code)
+    {
+        std::stringstream err;
+        err<<error_code;
+        
+        emit error(err.str().c_str());
+    
     }
     
     void process(int count, float** inputs, float** outputs);

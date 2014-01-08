@@ -31,11 +31,10 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
-#include <dns_sd.h>
-
 class QTGUI;
 class FLToolBar;
 class OSCUI;
+class FLWindow;
 class remote_dsp_factory;
 
 using namespace std;
@@ -46,6 +45,15 @@ enum updateType{
     kGetRemote
 };
 
+//struct remoteMachineInfos{
+//  
+//    FLWindow*       fWin;
+//    string          fCpuLoad;
+//    string          fIPaddress;
+//    
+//    remoteMachineInfos(FLWindow* initWin):fWin(initWin), fCpuLoad(""), fIPaddress(""){}
+//    
+//};
 
 class FLWindow : public QMainWindow
 {
@@ -74,10 +82,11 @@ class FLWindow : public QMainWindow
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
         OSCUI*          fOscInterface;      //OSC interface 
+        void            allocateOscInterface();
     
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         int             fPortHttp;
-        int             fGeneralPort;   //FaustLive specific port for droppable httpInterface
+        int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
@@ -85,10 +94,9 @@ class FLWindow : public QMainWindow
         remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
         bool            fIsLocal;      //True = llvm | False = remote
-    
-        string          fIpRemoteServer;
-        QListWidget*        fMachineList; // List of available machines for remote processing
-        map<string, string> fHostNameToIP;  //Correspondance of name to IP of remote server
+
+        map<string, string> fIPtoHostName;  //Correspondance of remote machine IP to its name
+        string          fIpRemoteServer; //Remote machine chosen
     
     //Position on screen
         int             fXPos;
@@ -110,26 +118,8 @@ class FLWindow : public QMainWindow
         list<pair<string, string> > fRecentFiles;
         QStringList                 fRecentSessions;
     
-    
-    static void     browsingCallback(DNSServiceRef sdRef,
-                                    DNSServiceFlags flags,
-                                    uint32_t interfaceIndex,
-                                    DNSServiceErrorType errorCode,
-                                    const char *serviceName,
-                                    const char *regtype,
-                                    const char *replyDomain,
-                                    void *context );
-    
-    static void     resolvingCallback(DNSServiceRef sdRef,
-                                DNSServiceFlags flags,
-                                uint32_t interfaceIndex,
-                                DNSServiceErrorType errorCode,
-                                const char *fullname,
-                                const char *hosttarget,
-                                uint16_t port, /* In network byte order */
-                                uint16_t txtLen,
-                                const unsigned char *txtRecord,
-                                void *context );
+//    Set fMenu with current windows options
+        void            setWindowsOptions();
     
     signals :
     //Informing of a drop, a close event, ...
@@ -195,7 +185,7 @@ class FLWindow : public QMainWindow
     //GeneralPort = what 
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int generalPort = 5510, int port = 5510, string ipRemoteServer = "127.0.0.1");
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int oscPort = 5510, int httpdport = 5510);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -244,7 +234,7 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(string& error);
+        bool            init_Httpd(string& error, int generalPortHttp);
     
     //Accessors to parameters
         string          get_nameWindow();
@@ -253,14 +243,13 @@ class FLWindow : public QMainWindow
         int             get_x();
         int             get_y();
         int             get_Port();
-        string             get_RemoteServerIP();
+        int             get_oscPort();
         bool            is_Default();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
         string          get_HttpUrl();
-        void            set_generalPort(int port);
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -278,7 +267,7 @@ class FLWindow : public QMainWindow
     
     public slots :
     //Modification of the compilation options
-        void            modifiedOptions(string text, int value, int port);
+        void            modifiedOptions(string text, int value, int port, int portOsc);
         void            resizingBig();
         void            resizingSmall();
         void            changeRemoteState(int state);

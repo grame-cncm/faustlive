@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.4"
+#define FLVERSION   "1.5"
 #define DEFAULTNAME "DefaultName"
 
 #define kExportUrlFile "/ServerURL.txt"
@@ -47,7 +47,7 @@ struct WinInSession{
     string compilationOptions; //Compilation options tied to the effect contained in the window
     int opt_level;  //Optimization level for llvm compiler
     int portHttpd;
-    string remoteServer;
+    int oscPort;
 
 };
 

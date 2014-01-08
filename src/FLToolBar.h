@@ -26,14 +26,13 @@ class FLToolBar : public QToolBar{
     private:
     
         QTreeWidget*        fTreeWidget;
-        QTreeWidget*        fTreeWidget2;
         QTreeWidgetItem *   fItem;
         QTreeWidgetItem *   fItem2;
-        QTreeWidgetItem *   fItem3;
-        QTreeWidgetItem *   fItem4;
+
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
-        QLineEdit*          fPortLine;
+        QLineEdit*          fPortLine;      //Edit port http
+        QLineEdit*          fPortOscLine;   //Edit osc port
     
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
@@ -50,10 +49,12 @@ class FLToolBar : public QToolBar{
     void setOptions(string options);
     void setVal(int value);
     void setPort(int port);
+    void setPortOsc(int port);
     
     string getOptions();
     int getVal();
     int getPort();
+    int getPortOsc();
     
     void    remoteFailed(bool fromNotToRemote);
     
@@ -66,7 +67,7 @@ public slots:
     
     signals :
     
-       void  modified(const string& option, int val, int port);
+       void  modified(const string& option, int val, int port, int portOsc);
         void sizeGrowth();
         void sizeReduction();
     
