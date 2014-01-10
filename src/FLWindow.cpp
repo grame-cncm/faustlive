@@ -34,6 +34,8 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     
     fIsLocal = true;
     fIpRemoteServer = "127.0.0.1";
+    fPortRemoteServer = 7777;
+    fIPToHostName = new map<string, pair<string, int> >;
     
     setAcceptDrops(true);
     
@@ -79,11 +81,78 @@ void FLWindow::setMenu(){
     addToolBar(fMenu);
      
     connect(fMenu, SIGNAL(modified(string, int, int, int)), this, SLOT(modifiedOptions(const string&, int, int, int)));
-    connect(fMenu, SIGNAL(remoteStateChanged(int)), this, SLOT(changeRemoteState(int)));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
+    connect(fMenu, SIGNAL(update_Menu(QMenu*)), this, SLOT(updateRemoteMenu(QMenu*)));
 }
 
+//--- Shows the list of remote machines activated
+void FLWindow::updateRemoteMenu(QMenu* remoteMenu){
+
+#ifdef NETJACK    
+    remoteMenu->clear();
+    fIPToHostName->clear();
+    
+// Browse the remote machines available
+    if(getRemoteMachinesAvailable(fIPToHostName)){
+        
+// Add localhost to the machine list
+        (*fIPToHostName)[string("localhost")] = make_pair("127.0.0.1", 80);
+        
+        map<string, pair <string, int> >::iterator it = fIPToHostName->begin();
+        
+        while(it!= fIPToHostName->end()){
+            
+            printf("IPOFHOSTNAME = %s\n", it->second.first.c_str());
+            
+// Add the machines to the menu passed in parameter 
+            QAction* machineAction = new QAction(it->first.c_str(), remoteMenu);
+            connect(machineAction, SIGNAL(triggered()), this, SLOT(update_remoteMachine()));
+            
+            remoteMenu->addAction(machineAction); 
+
+            it++;
+        }
+    }
+    
+#endif
+}
+
+//--- Update when new processing machine is chosen
+void FLWindow::update_remoteMachine(){
+ 
+#ifdef NETJACK
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->text().toStdString());
+    
+//    If the server is the same, there is no update
+    if(fIpRemoteServer.compare(((*fIPToHostName)[toto]).first) == 0)
+        return;
+    else{
+        
+        fIpRemoteServer = (*fIPToHostName)[toto].first;
+        fPortRemoteServer = (*fIPToHostName)[toto].second;
+        
+        printf("IP clicked = %s || %i\n", fIpRemoteServer.c_str(), fPortRemoteServer);
+        
+        string error("");
+        bool sucess;
+        
+        if(toto.compare("localhost") == 0)
+            sucess = update_Window(kGetLocal, fEffect, error);
+        else
+            sucess = update_Window(kGetRemote, NULL, error);
+        
+        if(!sucess)
+            emit errorPrint(error.c_str());
+        else{
+            fMenu->setRemoteButtonName(toto);
+            printf("BUTTON NAME = %s\n", toto.c_str());
+        }
+    }
+    
+#endif
+}
 //Redirection of a received error
 void FLWindow::errorPrint(const char* msg){
     emit error(msg);
@@ -149,41 +218,6 @@ void FLWindow::resizingBig(){
     adjustSize();
 }
 
-//If CheckBox of ToolBar is checked or uncheck, the calculation has to be restored in or send out
-void FLWindow::changeRemoteState(int state){
-    
-    string error("");
-    
-//Checked = send dsp away
-    if(state){
-        
-        if(openRemoteBox()){
-            
-            printf("STATE CHANGED\n");
-                
-            if(update_Window(kGetRemote, NULL, error))
-                error = "Remote Processing Activated";
-            else
-                fMenu->remoteFailed(true);
-            
-            emit errorPrint(error.c_str());
-        }
-        else
-            fMenu->remoteFailed(true);
-    }
-    else{
-
-        if(update_Window(kGetLocal, fEffect, error))
-            error = "Remote Processing Desactivated";
-
-        else
-            fMenu->remoteFailed(false);
-
-        emit errorPrint(error.c_str());
-        
-    }
-}
-
 //Does window contain a default Faust process?
 bool FLWindow::is_Default(){
     
@@ -194,58 +228,6 @@ bool FLWindow::is_Default(){
     else 
         return false;
 }
-
-//Shows the list of remote machine activated
-bool FLWindow::openRemoteBox(){
-    
-    QDialog* box = new QDialog;
-    QVBoxLayout* boxLayout = new QVBoxLayout;
-    
-    QListWidget* machineList = new QListWidget(box);
-
-    map<string, string>* iptohostname = new map<string, string>;
-
-    if(getRemoteMachineAvailable(iptohostname)){
-        map<string, string>::iterator it = iptohostname->begin();
-        
-        while(it!= iptohostname->end()){
-            
-            QListWidgetItem* machine = new QListWidgetItem(it->first.c_str());
-            machineList->addItem(machine);
-            it++;
-        }
-    }
-    
-    QDialogButtonBox*        buttonBox = new QDialogButtonBox(Qt::Horizontal, box);
-    
-    QPushButton* cancelBox = buttonBox->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
-    connect(cancelBox, SIGNAL(clicked()), box, SLOT(reject()));
-    QPushButton* okBox = buttonBox->addButton(tr("Ok"), QDialogButtonBox::AcceptRole);
-    connect(okBox, SIGNAL(clicked()), box, SLOT(accept()));
-    
-    boxLayout->addWidget(new QLabel(tr("<h2>Choose your remote machine</h2>")));
-    boxLayout->addWidget(machineList);
-    boxLayout->addWidget(buttonBox);
-    
-    box->setLayout(boxLayout);
-    box->adjustSize();
-    
-    int res = box->exec();
-    
-    if(res && machineList->currentItem() != NULL ){
-        fIpRemoteServer = (*iptohostname)[machineList->currentItem()->text().toStdString()];
-        delete machineList;
-        delete boxLayout;
-        delete box;
-        return true;
-    }
-    else{
-        delete machineList;
-        delete boxLayout;
-        delete box;
-        return false;
-    }
-} 
 
 //------------------------CLOSING ACTIONS
 
@@ -494,7 +476,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
 //CASE 1 = Update of Effect in local processing
 //CASE 2 = Update from remote processing to local processing
 //CASE 3 = Update from local processing to remote processing
-//CASE 4 = Update of Effect in remote processing
+//CASE 4 = Update of Effect in remote processing OR Update from a remote machine to another remote machine
 bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& error){
     
     printf("FLWindow::update_Win\n");
@@ -538,29 +520,24 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, string& erro
     remote_dsp_factory* charging_Factory = NULL;
     
     if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
-        
-        int pos = fIpRemoteServer.find(":");
-        
-        string ipAddr = fIpRemoteServer.substr(0, pos);
-        string port = fIpRemoteServer.substr(pos+1, string::npos);
-        
-        charging_Factory = createRemoteDSPFactory(0, NULL, ipAddr, atoi(port.c_str()),  pathToContent(fEffect->getSource()).c_str(), error, fEffect->getOptValue());
+     
+        charging_Factory = createRemoteDSPFactory(0, NULL, fIpRemoteServer, fPortRemoteServer,  pathToContent(fEffect->getSource()).c_str(), error, fEffect->getOptValue());
         
         if(charging_Factory == NULL){
             remoteSucess = false;
         }
         else{
             int nArg = 2;
-            const char* argu[2];
+            const char** argu = new const char*[2];
             
             
             //        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
             argu[0] = "--NJ_ip";
             argu[1] = (searchLocalIP().toStdString().c_str());
             
-            printf("ARGV 1 = %s\n", argu[1]);
+            printf("ARGV 0 = %s\n", argu[0]);
             
-            charging_DSP = createRemoteDSPInstance(charging_Factory, 0, NULL, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
+            charging_DSP = createRemoteDSPInstance(charging_Factory, nArg, argu, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
             
             if (charging_DSP == NULL){
                 deleteRemoteDSPFactory(charging_Factory);
