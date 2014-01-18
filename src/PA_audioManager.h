@@ -38,6 +38,9 @@ class PA_audioManager : public AudioManager{
     virtual bool init_FadeAudio(string& error, const char* name, dsp* DSP);
     virtual void start_Fade();
     virtual void wait_EndFade();
+    
+    virtual int get_buffer_size();
+    virtual int get_sample_rate();
 };
 
 #endif
