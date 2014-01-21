@@ -20,7 +20,11 @@ Other Packages
 - faust		https://sourceforge.net/projects/faudiostream/files/
 	cd FAUSTDIRECTORY
 	make
+	make httpd
 	sudo make install
+	(  if you want to use remote function
+	make remote
+	sudo make install  )
 
 Make sure to download the current development trunk of these libraries.
 
