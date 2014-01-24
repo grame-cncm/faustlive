@@ -68,10 +68,10 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 
-#ifdef NETJACK
+#ifdef REMOTE
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
-    fRemoteButton->setText(tr("localhost"));
+    fRemoteButton->setText(tr("local processing"));
     
     fRemoteMenu = new QMenu();
     fRemoteButton->setMenu(fRemoteMenu);

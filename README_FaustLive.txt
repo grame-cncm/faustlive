@@ -41,6 +41,8 @@ Linux default audio = JackAudio
 To add Jack/NetJack or PortAudio to compilation
 make JACK=1 NETJACK=1 PORTAUDIO=1
 
+To enable remote processing option
+make REMOTE=1
 
 -----------------WARNINGS
 

@@ -253,8 +253,8 @@ void FLEffect::effectModified(){
 }
 
 void FLEffect::stop_Watcher(){
-    printf("PATH STOP WATCHING = %s\n", fSource.c_str());
     fWatcher->removePath(fSource.c_str());
+    printf("PATH STOP WATCHING = %s\n", fSource.c_str());
 }
 
 void FLEffect::launch_Watcher(){

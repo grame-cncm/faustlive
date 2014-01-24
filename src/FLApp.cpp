@@ -536,7 +536,15 @@ FLWindow* FLApp::getWinFromHttp(int port){
 //--------------------------CREATE EFFECT-------------------------------------
 
 //--Creates/Recycles an Effect depending on it's source
+//@param source = faust code as string, file or url
+//@param nameEffect = name of faust application
+//@param sourceFolder = session folder to save the source
+//@param compilataion options
+//@param error = filled if an error occures
+//@param init = true when recalling a session
 FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int opt_Val, string& error, bool init){
+    
+    printf("PROBLEME2\n");
     
     bool fileSourceMark = false;
     string content = "";
@@ -753,6 +761,8 @@ string FLApp::ifUrlToText(const string& source){
 //--Find name of an Effect in CurrentSession, depending on its source file
 string FLApp::getNameEffectFromSource(const string& sourceToCompare){
     
+//    PAS DE PROBLEME AVEC REMOTE JUSTE AJOUTER SI EFFECT = LOCAL
+    
     list<WinInSession*>::iterator it;
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
@@ -922,7 +932,7 @@ void FLApp::synchronize_Window(){
         modifiedEffect->launch_Watcher();
     }
     
-}
+    ^}
 
 //Modify the content of a specific window with a new source
 void FLApp::update_SourceInWin(FLWindow* win, const string& source){
@@ -941,14 +951,12 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
     
     win->deleteWinInMenu(name);
     
-    
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false);
     
     bool optionChanged;
     
     if(newEffect != NULL)
         optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
-    
     
     if(newEffect == NULL || (!(win)->update_Window(kCrossFade, newEffect, error))){
         //If the change fails, the leaving effect has to be reimplanted
@@ -958,7 +966,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         return;
     }
     else{
-        
+    
         //ICI ON VA FAIRE LA COPIE DU FICHIER SOURCE
         string copySource = fSourcesFolder +"/" + newEffect->getName() + ".dsp";
         string toCopy = newEffect->getSource();
@@ -2131,7 +2139,7 @@ list<std::pair<string,string> > FLApp::establish_nameChanges(list<WinInSession*>
         
         string newName = (*it)->name;
         
-        //1- If the source is already is current Session (& not pointing in Sources Folder) ==> getName already given
+        //1- If the source is already in current Session (& not pointing in Sources Folder) ==> getName already given
         if(isEffectInCurrentSession((*it)->source) && QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) != 0){
             
             newName = getNameEffectFromSource((*it)->source);
@@ -2425,9 +2433,9 @@ void FLApp::closeAllWindows(){
     
     fExecutedEffects.clear();
     
-#ifdef __linux__
-    exit();
-#endif
+//#ifdef __linux__
+//    exit();
+//#endif
 }
 
 //Shut all Windows from Menu

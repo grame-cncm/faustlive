@@ -59,7 +59,7 @@ class FLEffect : public QObject
     
     
     //The compilation options are decomposed in a table
-        int         get_numberParameters(const string& compilOptions);
+        int        get_numberParameters(const string& compilOptions);
         //Extract the first sub-string in the compilOptions
         string     parse_compilationParams(string& compilOptions);
     

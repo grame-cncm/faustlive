@@ -61,6 +61,10 @@ LIBS+=-lfaustremote
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
 
+equals(REMVAR, 1){
+	DEFINES += REMOTE
+}
+
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices

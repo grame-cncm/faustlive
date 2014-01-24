@@ -94,6 +94,7 @@ class FLWindow : public QMainWindow
         remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
         bool            fIsLocal;      //True = llvm | False = remote
+        string          fFileRemoted;
 
         map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
         string          fIpRemoteServer;    //Address Remote machine chosen
@@ -208,6 +209,8 @@ class FLWindow : public QMainWindow
     //Recalled = 1 --> the window is recalled from a session and needs its parameter
     //Recalled = 0 --> the window is a new one without parameters
 
+        void            buildInterfaces(dsp* dsp, const string& nameEffect);
+    
     //Returning false if it fails and fills the errorMsg buffer
         bool            init_Window(bool init, bool recall, string& errorMsg);
     
