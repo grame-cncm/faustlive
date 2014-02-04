@@ -40,7 +40,7 @@ CONFIG -= x86_64
 LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
 
-QT+=network
+QT+=network widgets
 
 LIBS+=-L/usr/local/lib/faust
 
