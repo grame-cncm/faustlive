@@ -145,7 +145,6 @@ Init();\n\
 #include <stdlib.h>
 
 #include <microhttpd.h>
-#include <boost/wave/util/cpp_include_paths.hpp>
 
 #include <map>
 #include <vector>
@@ -162,8 +161,6 @@ using namespace std;
 
 #define GET 0
 #define POST 1
-
-namespace fs = boost::filesystem;
 
 struct connection_info_struct {
     int connectiontype; // GET or POST

@@ -34,6 +34,7 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fPortLine;      //Edit port http
         QLineEdit*          fPortOscLine;   //Edit osc port
     
+        QMenu*              fRemoteMenu;
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
     
@@ -58,11 +59,11 @@ class FLToolBar : public QToolBar{
     
     void    remoteFailed(bool fromNotToRemote);
     
+    void    setRemoteButtonName(const string& name);
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);
     void    collapseAction(QTreeWidgetItem* item);
-    void    sendRemoteProcessing(int state);
     void    openRemoteBox();
     
     signals :
@@ -70,7 +71,7 @@ public slots:
        void  modified(const string& option, int val, int port, int portOsc);
         void sizeGrowth();
         void sizeReduction();
-    
+        void update_Menu(QMenu*);
         void remoteStateChanged(int state);
 };
 

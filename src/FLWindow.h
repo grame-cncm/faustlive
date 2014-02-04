@@ -95,8 +95,9 @@ class FLWindow : public QMainWindow
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
         bool            fIsLocal;      //True = llvm | False = remote
 
-        map<string, string> fIPtoHostName;  //Correspondance of remote machine IP to its name
-        string          fIpRemoteServer; //Remote machine chosen
+        map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
+        string          fIpRemoteServer;    //Address Remote machine chosen
+        int             fPortRemoteServer;  //Port Remote machine chosen
     
     //Position on screen
         int             fXPos;
@@ -173,6 +174,8 @@ class FLWindow : public QMainWindow
         void            recall_Recent_Session();
         void            import_Recent_Session();
         void            frontShowFromMenu();
+        void            updateRemoteMenu(QMenu* remoteMenu);
+        void            update_remoteMachine();
         
     public :
     
@@ -270,8 +273,6 @@ class FLWindow : public QMainWindow
         void            modifiedOptions(string text, int value, int port, int portOsc);
         void            resizingBig();
         void            resizingSmall();
-        void            changeRemoteState(int state);
-        bool            openRemoteBox();
     
     //Raises and shows the window
         void            frontShow();
