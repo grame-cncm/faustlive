@@ -39,21 +39,6 @@ class remote_dsp_factory;
 
 using namespace std;
 
-enum updateType{
-    kCrossFade,
-    kGetLocal,
-    kGetRemote
-};
-
-//struct remoteMachineInfos{
-//  
-//    FLWindow*       fWin;
-//    string          fCpuLoad;
-//    string          fIPaddress;
-//    
-//    remoteMachineInfos(FLWindow* initWin):fWin(initWin), fCpuLoad(""), fIPaddress(""){}
-//    
-//};
 
 class FLWindow : public QMainWindow
 {
@@ -93,8 +78,6 @@ class FLWindow : public QMainWindow
     
         remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
-        bool            fIsLocal;      //True = llvm | False = remote
-        string          fFileRemoted;
 
         map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
         string          fIpRemoteServer;    //Address Remote machine chosen
@@ -150,6 +133,7 @@ class FLWindow : public QMainWindow
         void            recall_Snapshot(string, bool);
         void            front(QString);
         void            open_Ex(QString);
+        void            migrate(const string& ip, int port);
     
     private slots :
         void            create_Empty();
@@ -175,8 +159,8 @@ class FLWindow : public QMainWindow
         void            recall_Recent_Session();
         void            import_Recent_Session();
         void            frontShowFromMenu();
-        void            updateRemoteMenu(QMenu* remoteMenu);
-        void            update_remoteMachine();
+        void            update_remoteMachine();    
+        void            redirectSwitch(const string& ip, int port);
         
     public :
     
@@ -216,7 +200,7 @@ class FLWindow : public QMainWindow
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(int becomeRemote, FLEffect* newEffect, string& error);
+        bool            update_Window(FLEffect* newEffect, string& error);
     
         bool            update_AudioArchitecture(string& error);
     
@@ -251,6 +235,8 @@ class FLWindow : public QMainWindow
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
+        string          get_remoteIP();
+        int             get_remotePort();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();

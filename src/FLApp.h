@@ -89,6 +89,7 @@ class FLApp : public QApplication
     //List of windows currently running in the application
         list<FLWindow*>     FLW_List;           //Container of the opened windows
         list<FLEffect*>     fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+        list<FLEffect*>     fRemoteEffects;     //List of effects used in remote processing
     
     //Screen parameters
         int                 fScreenWidth;
@@ -217,7 +218,7 @@ class FLApp : public QApplication
     
     string                  renameEffect(const string& source, const string& nomEffet);
     
-    FLEffect*               getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int optVal, string& error, bool init);
+    FLEffect*               getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int optVal, string& error, bool init, bool isLocal, const string& ip = "localhost", int port= 0);
     
     //-----------------Questions about the current State
     
@@ -240,6 +241,10 @@ class FLApp : public QApplication
     
         void                update_SourceInWin(FLWindow* win, const string& source);
         void                drop_Action(list<string>);
+    
+    
+    //--------Switch to remote processing
+        bool    migrate_ProcessingInWin(string ip, int port);
     
     //---------Presentation Window Slots
     
