@@ -47,7 +47,7 @@ void NJ_audioFader::process(int count,  float** inputs, float** outputs)
 
 bool NJ_audioFader::init(const char* name, dsp* DSP) {
     
-    return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs());
+    return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
 }
 
 bool NJ_audioFader::start() 

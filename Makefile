@@ -18,6 +18,7 @@ ifeq ($(JACK), 1)
     QM-DEFS += "JVAR=1" 
 endif
 ifeq ($(REMOTE), 1)
+     QM-DEFS += "JVAR=1"
      QM-DEFS += "NJVAR=1" 
      QM-DEFS += "REMVAR=1" 
 endif 

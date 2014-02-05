@@ -87,37 +87,42 @@ bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolde
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
 bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
     
-    //+2 = Path to DSP + -svg to build the svg Diagram
-    int argc = 1 + get_numberParameters(fCompilationOptions);
+    //+4 = -i libraryPath -O drawPath
+    int argc = 0/* + get_numberParameters(fCompilationOptions)*/;
     
-    char ** argv;
-    argv = new char*[argc];
+    const char* argv[argc];
     
-    //Parsing the compilationOptions from a string to a char**
-    string copy = fCompilationOptions;
-    for(int i=1; i<argc; i++){
-        
-        string parseResult = parse_compilationParams(copy);
-        argv[i] = new char[parseResult.length()+1];
-        
-//        if(parseResult.compare("-double") != 0)  
-            strcpy(argv[i], parseResult.c_str());
-    }
-
-    argv[0] = new char[5];
-    strcpy(argv[0], "-svg");
+//    argv[0] = "-i";
+//    
+//    //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
+//#ifdef __APPLE__    
+//    
+//    string libPath = QFileInfo(QFileInfo(QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
+//    
+//    argv[1] = libPath.c_str();
+//#endif
+//#ifdef __linux__
+//    
+//    string libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath().toStdString() + LIBRARY_PATH;
+//    
+//    argv[1] = libPath.c_str();
+//#endif
+//    
+//    argv[0] = "-O";
+//    argv[1] = currentSVGFolder.c_str();
+//    
+//    printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
+//    
+//    
+//    //Parsing the compilationOptions from a string to a char**
+//    string copy = fCompilationOptions;
+//    for(int i=2; i<argc; i++){
+//        
+//        string parseResult = parse_compilationParams(copy);
+//        argv[i] = parseResult.c_str();
+//    }
     
-    const char** argument = (const char**) argv;
-    
-    //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
-    char libraryPath[256];
-    
-#ifdef __APPLE__
-    snprintf(libraryPath, 255, "%s%s", QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
-#endif
-#ifdef __linux__
-    snprintf(libraryPath, 255, "%s%s", QFileInfo( QCoreApplication::applicationFilePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
-#endif
+//    const char** argument = (const char**) argv;
     
     string path = currentIRFolder + "/" + fName;
 
@@ -138,13 +143,15 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         
         std::string getError("");
         
-        if(fIsLocal)        
-            buildingFactory = createDSPFactoryFromFile(fSource, argc , argument, libraryPath, currentSVGFolder, "", getError, fOpt_level);
+        if(fIsLocal){      
+            printf("building local factory\n");
+            buildingFactory = createDSPFactoryFromFile(fSource, argc, argv, "", getError, fOpt_level);
+        }
         else{
          
             printf("IP = %s\n", fIpMachineRemote.c_str());
             
-            buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource, argc, argument, fIpMachineRemote, fPortMachineRemote, getError, fOpt_level);
+            buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource, argc, argv, fIpMachineRemote, fPortMachineRemote, getError, fOpt_level);
         }
         
         error = getError;
@@ -153,7 +160,7 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         
         printf("FACTORY = %p\n", buildingRemoteFactory);
         
-        delete [] argv;
+//        delete [] argv;
         
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
         fCreationDate = fCreationDate.currentDateTime();
@@ -193,7 +200,7 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         //    printf("NEW FACTORY = %p\n", factory);
     }
     else{
-        delete [] argv;
+//        delete [] argv;
         fCreationDate = fCreationDate.currentDateTime();
         return true;
     }
