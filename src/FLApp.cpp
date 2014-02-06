@@ -925,12 +925,12 @@ void FLApp::synchronize_Window(){
         
         modifiedEffect->stop_Watcher();
         
-        //        display_CompilingProgress("Updating your DSP...");
+        display_CompilingProgress("Updating your DSP...");
         
         bool update = modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder);
         
         if(!update){
-            //            StopProgressSlot();
+            StopProgressSlot();
             fErrorWindow->print_Error(error.c_str());
             modifiedEffect->launch_Watcher();
             return;
@@ -939,11 +939,9 @@ void FLApp::synchronize_Window(){
             fErrorWindow->print_Error(error.c_str());
         }
         
-        //        StopProgressSlot();
+        StopProgressSlot();
         
         list<int> indexes = WindowCorrespondingToEffect(modifiedEffect);
-        
-//        ATTENTION PRENDRE EN COMPTE LE REMOTE!!!!
         
         list<int>::iterator it;
         for(it=indexes.begin(); it!=indexes.end(); it++){
@@ -1109,6 +1107,7 @@ bool FLApp::migrate_ProcessingInWin(string ip, int port){
         else{
             fRemoteEffects.remove(newEffect);
             fErrorWindow->print_Error(error.c_str());
+            migratingWin->migrationFailed();
         }
     }
 //    REMOTE TO LOCAL
@@ -1126,8 +1125,10 @@ bool FLApp::migrate_ProcessingInWin(string ip, int port){
             fRemoteEffects.remove(formerEffect);
             delete formerEffect;
         }
-        else
+        else{
             fErrorWindow->print_Error(error.c_str());
+            migratingWin->migrationFailed();
+        }
     }
     
 }

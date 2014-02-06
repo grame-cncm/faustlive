@@ -1187,5 +1187,8 @@ string FLWindow::get_machineName(){
     return fMenu->machineName();
 }
 
+void FLWindow::migrationFailed(){
+    fMenu->remoteFailed();
+}
 
 

@@ -89,7 +89,7 @@ bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolde
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
 bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
     
-    int numberFixedParams = 5;
+    int numberFixedParams = 7;
     
     //+5 = -i libraryPath -O drawPath -svg
     int argc = numberFixedParams + get_numberParameters(fCompilationOptions);
@@ -111,11 +111,15 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
     
     argv[1] = libPath.c_str();
 #endif
+    argv[2] = "-I";
     
-    argv[2] = "-O";
+    string sourcePath = QFileInfo(fSource.c_str()).absolutePath().toStdString();
     
-    argv[3] = currentSVGFolder.c_str();
-    argv[4] = "-svg";
+    argv[3] = sourcePath.c_str();
+    argv[4] = "-O";
+    
+    argv[5] = currentSVGFolder.c_str();
+    argv[6] = "-svg";
     
     printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
     
