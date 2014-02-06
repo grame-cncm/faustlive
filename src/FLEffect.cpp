@@ -45,8 +45,10 @@ FLEffect::~FLEffect(){
     
     if(fIsLocal)
         deleteDSPFactory(fFactory);
+#ifdef REMOTE
     else
         deleteRemoteDSPFactory(fRemoteFactory);
+#endif
         
 }
 
@@ -147,13 +149,14 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
             printf("building local factory\n");
             buildingFactory = createDSPFactoryFromFile(fSource, argc, argv, "", getError, fOpt_level);
         }
+#ifdef REMOTE
         else{
          
             printf("IP = %s\n", fIpMachineRemote.c_str());
             
             buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource, argc, argv, fIpMachineRemote, fPortMachineRemote, getError, fOpt_level);
         }
-        
+#endif
         error = getError;
         
         printf("ERROR OF FACTORY BUILD = %s\n", error.c_str());

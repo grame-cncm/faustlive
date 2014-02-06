@@ -92,10 +92,13 @@ void CA_audioManager::wait_EndFade(){
     while(fCurrentAudio->get_FadeOut() == 1){ 
         
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
-        if(i > 300) 
-            break; 
-        else 
-            i++;
+//   Actually causes glitches problems... see if the CoreAudio bug was fixed...
+//        if(i > 300){
+//            printf("BREAK\n");
+//            break; 
+//        } 
+//        else 
+//            i++;
     }
     
     fCurrentAudio->stop();
