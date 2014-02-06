@@ -68,6 +68,7 @@ class FLToolBar : public QToolBar{
     void    remoteFailed();
     
     void    setRemoteButtonName(const string& name);
+    string  machineName();
     
 public slots: 
     void    modifiedOptions();

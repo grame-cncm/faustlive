@@ -52,7 +52,7 @@ class FLWindow : public QMainWindow
         string          fSettingsFolder;
     
         FLToolBar*      fMenu;  
-        void            setMenu();
+        void            setMenu(const string& machineName);
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -78,10 +78,6 @@ class FLWindow : public QMainWindow
     
         remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
-
-        map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-        string          fIpRemoteServer;    //Address Remote machine chosen
-        int             fPortRemoteServer;  //Port Remote machine chosen
     
     //Position on screen
         int             fXPos;
@@ -158,8 +154,7 @@ class FLWindow : public QMainWindow
         void            open_Recent_File();
         void            recall_Recent_Session();
         void            import_Recent_Session();
-        void            frontShowFromMenu();
-        void            update_remoteMachine();    
+        void            frontShowFromMenu(); 
         void            redirectSwitch(const string& ip, int port);
         
     public :
@@ -173,7 +168,7 @@ class FLWindow : public QMainWindow
     //GeneralPort = what 
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int oscPort = 5510, int httpdport = 5510);
+        FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& appHome, int oscPort = 5510, int httpdport = 5510, const string& machineName = "local processing");
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -196,7 +191,7 @@ class FLWindow : public QMainWindow
         void            buildInterfaces(dsp* dsp, const string& nameEffect);
     
     //Returning false if it fails and fills the errorMsg buffer
-        bool            init_Window(bool init, bool recall, string& errorMsg);
+        bool            init_Window(bool init, string& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
@@ -237,6 +232,7 @@ class FLWindow : public QMainWindow
         bool            is_Default();
         string          get_remoteIP();
         int             get_remotePort();
+        string          get_machineName();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();

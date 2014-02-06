@@ -24,16 +24,13 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int oscPort, int httpdport){
+FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, string& home, int oscPort, int httpdport, const string& machineName){
     
     fShortcut = false;
     fEffect = eff;
     fHttpdWindow = NULL;
     fPortHttp = httpdport;
     fPortOsc = oscPort;
-    
-    fIpRemoteServer = "localhost";
-    fPortRemoteServer = 0;
     
     setAcceptDrops(true);
     
@@ -63,7 +60,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
     fXPos = x;
     fYPos = y;
     
-    setMenu();
+    setMenu(machineName);
     
     setMinimumHeight(QApplication::desktop()->geometry().size().height()/4); 
     set_MenuBar();
@@ -72,7 +69,7 @@ FLWindow::FLWindow(string& baseName, int index, FLEffect* eff, int x, int y, str
 FLWindow::~FLWindow(){}
 
 //Set up of the Window ToolBar
-void FLWindow::setMenu(){
+void FLWindow::setMenu(const string& machineName){
     
     fMenu = new FLToolBar(this);
     
@@ -82,13 +79,14 @@ void FLWindow::setMenu(){
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fMenu, SIGNAL(switchMachine(const string&, int)), this, SLOT(redirectSwitch(const string&, int)));
+    
+#ifdef REMOTE
+    fMenu->setRemoteButtonName(machineName);
+#endif
 //    connect(fMenu, SIGNAL(update_Menu(QMenu*)), this, SLOT(updateRemoteMenu(QMenu*)));
 }
 
 void FLWindow::redirectSwitch(const string& ip, int port){
-    
-    fIpRemoteServer = ip;
-    fPortRemoteServer = port;
     
 //    If the effect is getting remoted or getting relocated, a migration is needed 
     if(!fEffect->isLocal() && ip.compare("127.0.0.1")==0 || fEffect->isLocal()){
@@ -101,45 +99,6 @@ void FLWindow::redirectSwitch(const string& ip, int port){
         fEffect->update_remoteMachine(ip, port);
 }
 
-//--- Update when new processing machine is chosen
-void FLWindow::update_remoteMachine(){
-// 
-//#ifdef REMOTE
-//    QAction* action = qobject_cast<QAction*>(sender());
-//    string toto(action->text().toStdString());
-//    
-////    If the server is the same, there is no update
-//    if(fIpRemoteServer.compare(((*fIPToHostName)[toto]).first) == 0)
-//        return;
-//    else{
-//        
-//        string formerIP = fIpRemoteServer;
-//        
-//        fIpRemoteServer = (*fIPToHostName)[toto].first;
-//        fPortRemoteServer = (*fIPToHostName)[toto].second;
-//        
-//        printf("IP clicked = %s || %i\n", fIpRemoteServer.c_str(), fPortRemoteServer);
-//        
-//        string error("");
-//        bool sucess;
-//        
-//        if(toto.compare("local processing") == 0)
-//            sucess = update_Window(kGetLocal, NULL, error);
-//        else
-//            sucess = update_Window(kGetRemote, NULL, error);
-//        
-//        if(!sucess){
-//            fIpRemoteServer = formerIP;
-//            emit errorPrint(error.c_str());
-//        }
-//        else{
-//            fMenu->setRemoteButtonName(toto);
-//            printf("BUTTON NAME = %s\n", toto.c_str());
-//        }
-//    }
-//    
-//#endif
-}
 //Redirection of a received error
 void FLWindow::errorPrint(const char* msg){
     emit error(msg);
@@ -412,10 +371,23 @@ void FLWindow::buildInterfaces(dsp* dsp, const string& nameEffect){
 }
 
 //Initialization of User Interface + StartUp of Audio Client
-bool FLWindow::init_Window(bool init, bool /*recall*/, string& errorMsg){
+bool FLWindow::init_Window(bool init, string& errorMsg){
     
-    fCurrent_DSP = createDSPInstance(fEffect->getFactory());
-    
+    if(fEffect->isLocal())
+        fCurrent_DSP = createDSPInstance(fEffect->getFactory());
+#ifdef REMOTE
+    else{
+        int argc = 2;
+        const char* argv[2];
+        
+//        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
+        argv[0] = "--NJ_ip";
+        argv[1] = (searchLocalIP().toStdString().c_str());
+        
+        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), errorMsg);
+    }
+#endif
+        
     setWindowsOptions();
     
     if (fCurrent_DSP == NULL){
@@ -717,11 +689,11 @@ int FLWindow::get_oscPort(){
 }
 
 string FLWindow::get_remoteIP(){
-    return fIpRemoteServer;
+    return fEffect->getRemoteIP();
 }
 
 int FLWindow::get_remotePort(){
-    return fPortRemoteServer;
+    return fEffect->getRemotePort();
 }
 
 //------------------------HTTPD
@@ -1210,4 +1182,10 @@ void FLWindow::frontShowFromMenu(){
 
     emit front(action->data().toString());
 }
+
+string FLWindow::get_machineName(){
+    return fMenu->machineName();
+}
+
+
 

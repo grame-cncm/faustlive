@@ -89,8 +89,10 @@ bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolde
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
 bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
     
-    //+4 = -i libraryPath -O drawPath
-    int argc = 4 + get_numberParameters(fCompilationOptions);
+    int numberFixedParams = 5;
+    
+    //+5 = -i libraryPath -O drawPath -svg
+    int argc = numberFixedParams + get_numberParameters(fCompilationOptions);
     
     const char* argv[argc];
     
@@ -111,14 +113,16 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
 #endif
     
     argv[2] = "-O";
+    
     argv[3] = currentSVGFolder.c_str();
+    argv[4] = "-svg";
     
     printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
     
     
     //Parsing the compilationOptions from a string to a char**
     string copy = fCompilationOptions;
-    for(int i=4; i<argc; i++){
+    for(int i=numberFixedParams; i<argc; i++){
         
         string parseResult = parse_compilationParams(copy);
         argv[i] = parseResult.c_str();
@@ -133,11 +137,22 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         llvm_dsp_factory* buildingFactory = NULL;
         remote_dsp_factory* buildingRemoteFactory = NULL;
     
-//    if(fRecalled && QFileInfo(path.c_str()).exists() && fIsLocal){        
-//        buildingFactory = readDSPFactoryFromBitcodeFile(path, "");
-//        
-//        printf("factory from IR = %p\n", factoryToBuild);
-//    }
+    if(fRecalled && QFileInfo(path.c_str()).exists() && fIsLocal){        
+        buildingFactory = readDSPFactoryFromBitcodeFile(path, "");
+        
+        printf("factory from IR = %p\n", buildingFactory);
+        
+        if(buildingFactory != NULL){
+            if(factoryToBuild == kCurrentFactory){
+                fFactory = buildingFactory;
+                printf("FFACTORY = %p\n", fFactory);
+            }
+            else
+                fOldFactory = buildingFactory;
+            
+            return true;
+        }
+    }
     
     fRecalled = false;
     

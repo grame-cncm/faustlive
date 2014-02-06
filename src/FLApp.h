@@ -234,7 +234,7 @@ class FLApp : public QApplication
         string              getNameEffectFromSource(const string& sourceToCompare);
         bool                isEffectNameInCurrentSession(const string& sourceToCompare, const string& name, bool isRecalledEffect);
         list<string>        getNameRunningEffects();
-        list<int>           WindowCorrespondingToSource(const string& source);
+        list<int>           WindowCorrespondingToEffect(FLEffect* effect);
         void                removeFilesOfWin(const string& sourceName, const string& effName);
 
         FLWindow*           getActiveWin();

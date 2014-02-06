@@ -880,7 +880,7 @@ bool FLApp::isEffectNameInCurrentSession(const string& sourceToCompare , const s
 }
 
 //Lists all the windows (through their indexes) that contain the same source
-list<int> FLApp::WindowCorrespondingToSource(const string& source){
+list<int> FLApp::WindowCorrespondingToEffect(FLEffect* effect){
     
     list<int> returning;
     
@@ -888,7 +888,7 @@ list<int> FLApp::WindowCorrespondingToSource(const string& source){
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
-        if((*it)->source.compare(source) == 0)
+        if((*it)->source.compare(effect->getSource()) == 0 && effect->isLocal() == (*it)->isLocal)
             returning.push_back((*it)->ID);
     }
     return returning;
@@ -941,7 +941,7 @@ void FLApp::synchronize_Window(){
         
         //        StopProgressSlot();
         
-        list<int> indexes = WindowCorrespondingToSource(modifiedEffect->getSource());
+        list<int> indexes = WindowCorrespondingToEffect(modifiedEffect);
         
 //        ATTENTION PRENDRE EN COMPTE LE REMOTE!!!!
         
@@ -1227,7 +1227,7 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
         
         redirectMenuToWindow(win);
         
-        if(win->init_Window(init, false, error)){
+        if(win->init_Window(init, error)){
             
             printf("INIT\n");
             
@@ -1659,7 +1659,7 @@ void FLApp::recall_Session(const string& filename){
             win->update_ConnectionFile(windowNameChanges);
             win->update_ConnectionFile(nameChanges);
             
-            if(win->init_Window(false, true, error)){
+            if(win->init_Window(false, error)){
                 
                 FLW_List.push_back(win);
                 newEffect->launch_Watcher();
@@ -2727,7 +2727,7 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName());
     
     redirectMenuToWindow(win);
     
@@ -2754,7 +2754,7 @@ void FLApp::duplicate(FLWindow* window){
     
     string error;
     
-    if(win->init_Window(false, true, error)){
+    if(win->init_Window(false, error)){
         FLW_List.push_back(win);
         addWinToSessionFile(win);
     }

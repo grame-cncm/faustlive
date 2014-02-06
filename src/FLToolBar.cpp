@@ -263,6 +263,10 @@ void FLToolBar::setPortOsc(int port){
     fPortOscLine->setText(ss.str().c_str());
 }
 
+string FLToolBar::machineName(){
+    return fRemoteButton->text().toStdString();
+}
+
 //--- Update when new processing machine is chosen
 void FLToolBar::update_remoteMachine(){
     
@@ -291,4 +295,7 @@ void FLToolBar::update_remoteMachine(){
     
 #endif
 }
+
+
+
 
