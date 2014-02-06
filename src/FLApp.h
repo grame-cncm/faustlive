@@ -48,7 +48,11 @@ struct WinInSession{
     int opt_level;  //Optimization level for llvm compiler
     int portHttpd;
     int oscPort;
-
+    
+    bool isLocal;
+    const string ipServer;
+    int portServer;
+    
 };
 
 class FLApp : public QApplication
@@ -216,18 +220,21 @@ class FLApp : public QApplication
     
     string                  getDeclareName(string text);
     
-    string                  renameEffect(const string& source, const string& nomEffet);
+    string                  renameEffect(const string& source, const string& nomEffet, bool isRecalledEffect);
     
     FLEffect*               getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int optVal, string& error, bool init, bool isLocal, const string& ip = "localhost", int port= 0);
     
     //-----------------Questions about the current State
     
         bool                isIndexUsed(int index, list<int> currentIndexes);
-        bool                isEffectInCurrentSession(const string& sourceToCompare);
+        bool                isLocalEffectInCurrentSession(const string& sourceToCompare);
+        bool                isRemoteEffectInCurrentSession(const string& sourceToCompare, const string& ip, int port);
+        bool                isSourceInCurrentSession(const string& sourceToCompare);
+
         string              getNameEffectFromSource(const string& sourceToCompare);
-        bool                isEffectNameInCurrentSession(const string& sourceToCompare, const string& name);
+        bool                isEffectNameInCurrentSession(const string& sourceToCompare, const string& name, bool isRecalledEffect);
         list<string>        getNameRunningEffects();
-        list<int>           WindowCorrespondingToEffect(FLEffect* eff);
+        list<int>           WindowCorrespondingToSource(const string& source);
         void                removeFilesOfWin(const string& sourceName, const string& effName);
 
         FLWindow*           getActiveWin();

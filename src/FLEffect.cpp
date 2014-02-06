@@ -88,39 +88,39 @@ bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolde
 bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
     
     //+4 = -i libraryPath -O drawPath
-    int argc = 0/* + get_numberParameters(fCompilationOptions)*/;
+    int argc = 4 + get_numberParameters(fCompilationOptions);
     
     const char* argv[argc];
     
-//    argv[0] = "-i";
-//    
-//    //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
-//#ifdef __APPLE__    
-//    
-//    string libPath = QFileInfo(QFileInfo(QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
-//    
-//    argv[1] = libPath.c_str();
-//#endif
-//#ifdef __linux__
-//    
-//    string libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath().toStdString() + LIBRARY_PATH;
-//    
-//    argv[1] = libPath.c_str();
-//#endif
-//    
-//    argv[0] = "-O";
-//    argv[1] = currentSVGFolder.c_str();
-//    
-//    printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
-//    
-//    
-//    //Parsing the compilationOptions from a string to a char**
-//    string copy = fCompilationOptions;
-//    for(int i=2; i<argc; i++){
-//        
-//        string parseResult = parse_compilationParams(copy);
-//        argv[i] = parseResult.c_str();
-//    }
+    argv[0] = "-I";
+    
+    //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
+#ifdef __APPLE__    
+    
+    string libPath = QFileInfo(QFileInfo(QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
+    
+    argv[1] = libPath.c_str();
+#endif
+#ifdef __linux__
+    
+    string libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath().toStdString() + LIBRARY_PATH;
+    
+    argv[1] = libPath.c_str();
+#endif
+    
+    argv[2] = "-O";
+    argv[3] = currentSVGFolder.c_str();
+    
+    printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
+    
+    
+    //Parsing the compilationOptions from a string to a char**
+    string copy = fCompilationOptions;
+    for(int i=4; i<argc; i++){
+        
+        string parseResult = parse_compilationParams(copy);
+        argv[i] = parseResult.c_str();
+    }
     
 //    const char** argument = (const char**) argv;
     
@@ -160,8 +160,6 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         
         printf("FACTORY = %p\n", buildingRemoteFactory);
         
-//        delete [] argv;
-        
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
         fCreationDate = fCreationDate.currentDateTime();
         
@@ -200,7 +198,6 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         //    printf("NEW FACTORY = %p\n", factory);
     }
     else{
-//        delete [] argv;
         fCreationDate = fCreationDate.currentDateTime();
         return true;
     }
@@ -398,3 +395,10 @@ bool FLEffect::isLocal(){
     return fIsLocal;
 }
 
+string FLEffect::getRemoteIP(){
+    return fIpMachineRemote;
+}
+
+int FLEffect::getRemotePort(){
+    return fPortMachineRemote;
+}

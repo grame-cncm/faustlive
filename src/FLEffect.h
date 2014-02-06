@@ -124,6 +124,9 @@ class FLEffect : public QObject
     
         int         getOptValue();
     
+        string      getRemoteIP();
+        int         getRemotePort();
+    
         bool        isSynchroForced();
         void        setForceSynchro(bool val);
         
