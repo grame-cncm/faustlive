@@ -437,10 +437,6 @@ bool FLWindow::init_Window(bool init, string& errorMsg){
 }
 
 //Modification of the process in the window
-//CASE 1 = Update of Effect in local processing
-//CASE 2 = Update from remote processing to local processing
-//CASE 3 = Update from local processing to remote processing
-//CASE 4 = Update of Effect in remote processing OR Update from a remote machine to another remote machine
 bool FLWindow::update_Window(FLEffect* newEffect, string& error){
     
     printf("FLWindow::update_Win\n");
@@ -464,7 +460,6 @@ bool FLWindow::update_Window(FLEffect* newEffect, string& error){
     
     //Step 4 : creating the new DSP instance
     
-//CASE 1 & 2
     dsp* charging_DSP = NULL;
     bool remoteSucess = true;
     
@@ -478,7 +473,6 @@ bool FLWindow::update_Window(FLEffect* newEffect, string& error){
     }
 #ifdef REMOTE
     
-//CASE 3 & 4 
     else{
         int nArg = 2;
         const char** argu = new const char*[2];

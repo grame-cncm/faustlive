@@ -64,6 +64,7 @@ SOURCES += src/utilities.cpp
 
 equals(REMVAR, 1){
 	DEFINES += REMOTE
+	LIBS+=-lfaustremote
 }
 
 equals(CAVAR, 1){
