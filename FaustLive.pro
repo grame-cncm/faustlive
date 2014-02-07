@@ -56,13 +56,13 @@ LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
-LIBS+=-lfaustremote
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
 
 equals(REMVAR, 1){
 	DEFINES += REMOTE
+	LIBS+=-lfaustremote
 }
 
 equals(CAVAR, 1){
