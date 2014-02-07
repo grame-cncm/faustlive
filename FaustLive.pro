@@ -13,7 +13,7 @@ TEMPLATE = app
 TARGET = FaustLive
 DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include	
+INCLUDEPATH += /usr/local/include	
 
 ICON = Resources/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
@@ -37,8 +37,8 @@ QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
 
-LLVMLIBS = $$system(llvm-config --libs)
-LLVMDIR = $$system(llvm-config --ldflags)
+LLVMLIBS = $$system(/usr/local/Cellar/llvm/3.3/bin/llvm-config --libs)
+LLVMDIR = $$system(/usr/local/Cellar/llvm/3.3/bin/llvm-config --ldflags)
 
 QT+=network widgets
 
@@ -50,13 +50,14 @@ LIBS+= $$LLVMDIR $$LLVMLIBS
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
 
-LIBS+=-L/opt/local/lib
+LIBS+=-L/usr/local/Cellar/llvm/3.3/lib/
+LIBS+=-L/usr/local/lib
 LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
-LIBS+=-lfaustremote
+LIBS+=-lc++
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -67,7 +68,7 @@ equals(REMVAR, 1){
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
-	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
+	LIBS+= -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
 	HEADERS += 	src/CA_audioFactory.h\
 				src/CA_audioSettings.h\
