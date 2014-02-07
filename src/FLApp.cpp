@@ -536,7 +536,13 @@ FLWindow* FLApp::getWinFromHttp(int port){
 //--------------------------CREATE EFFECT-------------------------------------
 
 //--Creates/Recycles an Effect depending on it's source
-FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int opt_Val, string& error, bool init){
+//@param source = faust code as string, file or url
+//@param nameEffect = name of faust application
+//@param sourceFolder = session folder to save the source
+//@param compilataion options
+//@param error = filled if an error occures
+//@param recall = true when recalling a session
+FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const string& sourceFolder, string& compilationOptions, int opt_Val, string& error, bool recall, bool isLocal, const string& ip, int port){
     
     bool fileSourceMark = false;
     string content = "";
@@ -548,23 +554,53 @@ FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const str
     //SOURCE = FILE.DSP    
     if(source.find(".dsp") != string::npos){
         
-        list<FLEffect*>::iterator it;
-        for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
+//        LOCAL EFFECT CASE 
+        if(isLocal){
             
-            //Effect already compiled
-            if(source.compare((*it)->getSource()) == 0){
+            list<FLEffect*>::iterator it;
+            for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
                 
-                //Effect in current session = direct
-                if(isEffectInCurrentSession((*it)->getSource())){
-                    return *it;                       
-                }
-                //Effect gardé en memoire mais potentiellement son nom est utilisé par un autre effet dans la session courante
-                else{
-                    string effetName = (*it)->getName();
-                    (*it)->setName(renameEffect(source, (*it)->getName()));
-                    printf("RENAME 1\n");
+                //Effect already compiled
+                if(source.compare((*it)->getSource()) == 0){
                     
-                    return *it;
+                    //Effect in current session = direct
+                    if(isLocalEffectInCurrentSession((*it)->getSource())){
+                        return *it;                       
+                    }
+                    //Effect gardé en memoire mais potentiellement son nom est utilisé par un autre effet dans la session courante
+                    else{
+                        string effetName = (*it)->getName();
+                        (*it)->setName(renameEffect(source, (*it)->getName(), false));
+                        
+                        return *it;
+                    }
+                }
+            }
+        }
+//        REMOTE EFFECT CASE
+        else{
+            
+            list<FLEffect*>::iterator it;
+            for(it = fRemoteEffects.begin(); it!= fRemoteEffects.end(); it++){
+                
+                const string remoteEffectSource = (*it)->getSource();
+                const string remoteEffectIP = (*it)->getRemoteIP();
+                int remoteEffectPort = (*it)->getRemotePort();
+                
+                //Effect already compiled
+                if(source.compare(remoteEffectSource) == 0 && ip.compare(remoteEffectIP) == 0 && port == remoteEffectPort){
+                    
+                    //Effect in current session = direct
+                    if(isRemoteEffectInCurrentSession(remoteEffectSource, remoteEffectIP, remoteEffectPort)){
+                        return *it;                       
+                    }
+                    //Effect kept but potentially its name is used by another effect in the current session
+                    else{
+                        string effetName = (*it)->getName();
+                        (*it)->setName(renameEffect(source, (*it)->getName(), false));
+                        
+                        return *it;
+                    }
                 }
             }
         }
@@ -575,10 +611,11 @@ FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const str
         fileSourceMark = true;
         fichierSource = source;
         
-        if(!init){
+//        NOT RECALLING && NOT MIGRATING
+        if(!recall && nameEffect.compare("") == 0){
             //            if(nameEffect.compare("") == 0){
             nameEffect = (QFileInfo(fichierSource.c_str()).baseName()).toStdString();
-            nameEffect = renameEffect(fichierSource, nameEffect);
+            nameEffect = renameEffect(fichierSource, nameEffect, false);
             printf("RENAME 2\n");
             //            }
             
@@ -591,7 +628,7 @@ FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const str
     
     //SOURCE = TEXT
     else{
-        
+
         string name = getDeclareName(source);
         
         printf("NAME OF EFFECT = %s\n", name.c_str());
@@ -601,7 +638,7 @@ FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const str
             string defaultName = find_smallest_defaultName(get_currentDefault());
             name = defaultName;
         }
-        
+            
         //Erase the spaces because it brings problems ^^
         while(name.find(' ') != string::npos)
             name.erase(name.find(' '), 1);
@@ -618,15 +655,18 @@ FLEffect* FLApp::getEffectFromSource(string source, string nameEffect, const str
     
     display_CompilingProgress("Compiling your DSP...");
     
-    FLEffect* myNewEffect = new FLEffect(init, fichierSource, nameEffect);
-    
-    if(myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error)){
+    FLEffect* myNewEffect = new FLEffect(recall, fichierSource, nameEffect, isLocal);
+        
+    if(myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error, ip, port)){
         
         StopProgressSlot();
         
         connect(myNewEffect, SIGNAL(effectChanged()), this, SLOT(synchronize_Window()));
         
-        fExecutedEffects.push_back(myNewEffect);
+        if(isLocal)
+            fExecutedEffects.push_back(myNewEffect);
+        else
+            fRemoteEffects.push_back(myNewEffect);
         
         return myNewEffect;
     }
@@ -704,7 +744,7 @@ string FLApp::getDeclareName(string text){
         pos = text.find("\"");
         text.erase(pos, text.length()-pos);
         
-        text = renameEffect("", text);
+        text = renameEffect("", text, false);
         
         returning = text;
     }
@@ -713,11 +753,11 @@ string FLApp::getDeclareName(string text){
 }
 
 //--Dialog with the user to modify the name of a faust application
-string FLApp::renameEffect(const string& source, const string& nomEffet){
+string FLApp::renameEffect(const string& source, const string& nomEffet, bool isRecalledEffect){
     
     string newName(nomEffet);
     
-    while(isEffectNameInCurrentSession(source , newName)){
+    while(isEffectNameInCurrentSession(source , newName, isRecalledEffect)){
     
         FLrenameDialog* Msg = new FLrenameDialog(newName, 0);
         Msg->raise();
@@ -753,6 +793,8 @@ string FLApp::ifUrlToText(const string& source){
 //--Find name of an Effect in CurrentSession, depending on its source file
 string FLApp::getNameEffectFromSource(const string& sourceToCompare){
     
+//    PAS DE PROBLEME AVEC REMOTE JUSTE AJOUTER SI EFFECT = LOCAL
+    
     list<WinInSession*>::iterator it;
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
@@ -763,8 +805,35 @@ string FLApp::getNameEffectFromSource(const string& sourceToCompare){
     return "";
 }
 
-//--Finds out if an Effect exist in CurrentSession, depending on its source file
-bool FLApp::isEffectInCurrentSession(const string& sourceToCompare){
+//--Finds out if a Local Effect exist in CurrentSession, depending on its source file
+bool FLApp::isLocalEffectInCurrentSession(const string& sourceToCompare){
+    
+    list<WinInSession*>::iterator it;
+    
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
+        
+        if((*it)->isLocal && (*it)->source.compare(sourceToCompare) == 0)
+            return true;
+    }
+    return false;
+    
+}
+//--Finds out if a Remote Effect exist in CurrentSession, depending on its source file
+bool FLApp::isRemoteEffectInCurrentSession(const string& sourceToCompare, const string& ip, int port){
+    
+    list<WinInSession*>::iterator it;
+        
+    for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
+        if(!(*it)->isLocal && (*it)->source.compare(sourceToCompare) == 0 && (*it)->ipServer.compare(ip) == 0 && (*it)->portServer == port)
+            return true;
+    }
+    
+    return false;
+    
+}
+
+//--Finds out if a source is used in any kind of effect
+bool FLApp::isSourceInCurrentSession(const string& sourceToCompare){
     
     list<WinInSession*>::iterator it;
     
@@ -792,8 +861,7 @@ list<string> FLApp::getNameRunningEffects(){
 
 //Finds out if an Effect Name exist in CurrentSession
 //DefaultName are not taken into account
-//If the sources of the 2 effects are the same, then the effects are the same and not only their names.
-bool FLApp::isEffectNameInCurrentSession(const string& sourceToCompare , const string& nom){
+bool FLApp::isEffectNameInCurrentSession(const string& sourceToCompare , const string& nom, bool isRecalledEffect){
     
     list<int> returning;
     
@@ -801,15 +869,18 @@ bool FLApp::isEffectNameInCurrentSession(const string& sourceToCompare , const s
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
-        if((*it)->name.compare(nom)==0 && ((*it)->source.compare(sourceToCompare) != 0 || (*it)->name.find(DEFAULTNAME) != string::npos))
+        if((*it)->name.compare(nom)==0 && 
+           ((*it)->source.compare(sourceToCompare) != 0 || 
+            (*it)->name.find(DEFAULTNAME) != string::npos && isRecalledEffect)
+           )
             
             return true;
     }
     return false;
 }
 
-//Lists all the windows (through their indexes) that contain the same Effect
-list<int> FLApp::WindowCorrespondingToEffect(FLEffect* eff){
+//Lists all the windows (through their indexes) that contain the same source
+list<int> FLApp::WindowCorrespondingToEffect(FLEffect* effect){
     
     list<int> returning;
     
@@ -817,7 +888,7 @@ list<int> FLApp::WindowCorrespondingToEffect(FLEffect* eff){
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
-        if((*it)->source.compare(eff->getSource()) == 0)
+        if((*it)->source.compare(effect->getSource()) == 0 && effect->isLocal() == (*it)->isLocal)
             returning.push_back((*it)->ID);
     }
     return returning;
@@ -854,12 +925,12 @@ void FLApp::synchronize_Window(){
         
         modifiedEffect->stop_Watcher();
         
-        //        display_CompilingProgress("Updating your DSP...");
+        display_CompilingProgress("Updating your DSP...");
         
         bool update = modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder);
         
         if(!update){
-            //            StopProgressSlot();
+            StopProgressSlot();
             fErrorWindow->print_Error(error.c_str());
             modifiedEffect->launch_Watcher();
             return;
@@ -868,7 +939,7 @@ void FLApp::synchronize_Window(){
             fErrorWindow->print_Error(error.c_str());
         }
         
-        //        StopProgressSlot();
+        StopProgressSlot();
         
         list<int> indexes = WindowCorrespondingToEffect(modifiedEffect);
         
@@ -878,7 +949,7 @@ void FLApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-                    if(!(*it2)->update_Window(kCrossFade, modifiedEffect, error)){
+                    if(!(*it2)->update_Window(modifiedEffect, error)){
                         fErrorWindow->print_Error(error.c_str());
                         break;
                     }
@@ -941,25 +1012,29 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
     
     win->deleteWinInMenu(name);
     
+    FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_remoteIP(), win->get_remotePort());
     
-    FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false);
     
     bool optionChanged;
     
-    if(newEffect != NULL)
-        optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isEffectInCurrentSession(newEffect->getSource());
+//  In case the general options change...
+//  NOT SURE OF THIS FUNCTION
+//    if(newEffect != NULL)
+//        optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 
+//                         || fOpt_level != (newEffect->getOptValue())) 
+//                        && !isEffectInCurrentSession(newEffect->getSource());
     
-    
-    if(newEffect == NULL || (!(win)->update_Window(kCrossFade, newEffect, error))){
-        //If the change fails, the leaving effect has to be reimplanted
+
+//  If the change fails, the leaving effect has to be reimplanted
+    if(newEffect == NULL || (!(win)->update_Window(newEffect, error))){
         leavingEffect->launch_Watcher();
         addWinToSessionFile(win);
         fErrorWindow->print_Error(error.c_str());
         return;
     }
     else{
-        
-        //ICI ON VA FAIRE LA COPIE DU FICHIER SOURCE
+    
+//ICI ON VA FAIRE LA COPIE DU FICHIER SOURCE DANS LE DOSSIER DE COPIE
         string copySource = fSourcesFolder +"/" + newEffect->getName() + ".dsp";
         string toCopy = newEffect->getSource();
         
@@ -971,23 +1046,26 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         
         //If the change is successfull : 
         QFileInfo ff(leavingEffect->getSource().c_str());
-        string toCompare = ff.absolutePath().toStdString();
-        
-        string inter = leavingEffect->getSource();
+        string folderOfSource = ff.absolutePath().toStdString(); //Getting root folder of source
         
         //If leaving effect is not used elsewhere : 
-        if(!isEffectInCurrentSession(inter)){                        
-            if(toCompare.compare(fSourcesFolder) == 0){
+        if(!isSourceInCurrentSession(leavingEffect->getSource())){    
+            
+            //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
+            if(folderOfSource.compare(fSourcesFolder) == 0){
                 
-                //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
                 //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
                 if(newEffect->getSource().compare(leavingEffect->getSource())!=0)
                     removeFilesOfWin(leavingEffect->getSource(), leavingEffect->getName().c_str());
                 //                        QFile::remove(leavingEffect->getSource().c_str());
                 
-                fExecutedEffects.remove(leavingEffect);
+                if(leavingEffect->isLocal())
+                    fExecutedEffects.remove(leavingEffect);
+                else
+                    fRemoteEffects.remove(leavingEffect);
+                
                 delete leavingEffect;
-            }
+            } 
             else{
                 //The copy made of the source is erased
                 string toErase = fSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
@@ -1004,11 +1082,59 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         newEffect->launch_Watcher();
         
         //In case the compilation options have changed...
-        if(optionChanged)
-            newEffect->update_compilationOptions(fCompilationMode, fOpt_level);
+//        if(optionChanged)
+//            newEffect->update_compilationOptions(fCompilationMode, fOpt_level);
     }
     
 }
+
+//Migrate from local processing to remote or the other way around
+bool FLApp::migrate_ProcessingInWin(string ip, int port){
+    
+    FLWindow* migratingWin = (FLWindow*)QObject::sender();
+    
+    string error("");
+    
+//    LOCAL TO REMOTE
+    if(migratingWin->get_Effect()->isLocal()){
+        
+        FLEffect* newEffect = getEffectFromSource(migratingWin->get_Effect()->getSource(), migratingWin->get_Effect()->getName(), fSourcesFolder, fCompilationMode, fOpt_level, error, false, false, ip, port);
+        
+        if(newEffect == NULL)
+            return false;
+        
+        if(migratingWin->update_Window(newEffect, error));
+        else{
+            fRemoteEffects.remove(newEffect);
+            fErrorWindow->print_Error(error.c_str());
+            migratingWin->migrationFailed();
+        }
+    }
+//    REMOTE TO LOCAL
+    else{
+        
+        FLEffect* newEffect = getEffectFromSource(migratingWin->get_Effect()->getSource(), migratingWin->get_Effect()->getName(), fSourcesFolder, fCompilationMode, fOpt_level, error, false, true, ip, port);
+        
+        if(newEffect == NULL)
+            return false;
+        
+        FLEffect* formerEffect = migratingWin->get_Effect();
+        
+        if(migratingWin->update_Window(newEffect, error)){
+            
+            fRemoteEffects.remove(formerEffect);
+            delete formerEffect;
+        }
+        else{
+            fErrorWindow->print_Error(error.c_str());
+            migratingWin->migrationFailed();
+        }
+    }
+    
+}
+
+//FAIRE UNE FONCTION DE SUPPRESSION D'EFFET LOCAL ET D'EFFET REMOTE
+
 
 //--------------------------------FILE----------------------------------------
 
@@ -1024,6 +1150,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     win->initNavigateMenu(fFrontWindow);
     
     connect(win, SIGNAL(drop(list<string>)), this, SLOT(drop_Action(list<string>)));
+    connect(win, SIGNAL(migrate(const string&, int)), this, SLOT(migrate_ProcessingInWin(const string&, int)));
     
     connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
@@ -1073,11 +1200,12 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
     
     //Creation of new effect from the source    
     string empty("");
-    FLEffect* first = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level ,error, false); 
+    FLEffect* first = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level ,error, false, true); 
     
     if(first != NULL){
         
-        bool optionChanged = (fCompilationMode.compare(first->getCompilationOptions()) != 0 || fOpt_level != (first->getOptValue())) && !isEffectInCurrentSession(first->getSource());
+//        NOT SURE EITHER OF THIS FUNCTION
+//        bool optionChanged = (fCompilationMode.compare(first->getCompilationOptions()) != 0 || fOpt_level != (first->getOptValue())) && !isEffectInCurrentSession(first->getSource());
         
         //Copy of the source File in the CurrentSession Source Folder
         string copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
@@ -1100,7 +1228,7 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
         
         redirectMenuToWindow(win);
         
-        if(win->init_Window(init, false, error)){
+        if(win->init_Window(init, error)){
             
             printf("INIT\n");
             
@@ -1110,8 +1238,8 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
             first->launch_Watcher();
             
             //In case the compilation options have changed...
-            if(optionChanged)
-                first->update_compilationOptions(fCompilationMode, fOpt_level);
+//            if(optionChanged)
+//                first->update_compilationOptions(fCompilationMode, fOpt_level);
             
             return win;
         }
@@ -1513,7 +1641,7 @@ void FLApp::recall_Session(const string& filename){
         
         (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
         
-        FLEffect* newEffect = getEffectFromSource((*it)->source, (*it)->name, fSourcesFolder, (*it)->compilationOptions, (*it)->opt_level, error, true);
+        FLEffect* newEffect = getEffectFromSource((*it)->source, (*it)->name, fSourcesFolder, (*it)->compilationOptions, (*it)->opt_level, error, true, true);
         
         //ICI ON NE VA PAS FAIRE LA COPIE DU FICHIER SOURCE!!!
         
@@ -1532,7 +1660,7 @@ void FLApp::recall_Session(const string& filename){
             win->update_ConnectionFile(windowNameChanges);
             win->update_ConnectionFile(nameChanges);
             
-            if(win->init_Window(false, true, error)){
+            if(win->init_Window(false, error)){
                 
                 FLW_List.push_back(win);
                 newEffect->launch_Watcher();
@@ -1683,6 +1811,7 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->opt_level = win->get_Effect()->getOptValue();
     intermediate->oscPort= win->get_oscPort();
     intermediate->portHttpd = win->get_Port();
+    intermediate->isLocal = win->get_Effect()->isLocal();
     
     QString name = win->get_nameWindow().c_str();
     name+=" : ";
@@ -2050,6 +2179,7 @@ void FLApp::recall_Snapshot(const string& filename, bool importOption){
         shut_AllWindows(); 
         reset_CurrentSession();
         fExecutedEffects.clear();
+        fRemoteEffects.clear();
     }
     
     string finalFile = QFileInfo(filename.c_str()).canonicalPath().toStdString() + "/" + QFileInfo(filename.c_str()).baseName().toStdString();
@@ -2131,8 +2261,8 @@ list<std::pair<string,string> > FLApp::establish_nameChanges(list<WinInSession*>
         
         string newName = (*it)->name;
         
-        //1- If the source is already is current Session (& not pointing in Sources Folder) ==> getName already given
-        if(isEffectInCurrentSession((*it)->source) && QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) != 0){
+        //1- If the source is already in current Session (& not pointing in Sources Folder) ==> getName already given
+        if(isSourceInCurrentSession((*it)->source) && QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) != 0){
             
             newName = getNameEffectFromSource((*it)->source);
             nameChanges.push_front(make_pair((*it)->name, newName));
@@ -2187,7 +2317,7 @@ list<std::pair<string,string> > FLApp::establish_nameChanges(list<WinInSession*>
         //4- If the source is in current Folder and its name is already used, it has to be renamed
         else if(QFileInfo((*it)->source.c_str()).absolutePath().toStdString().compare(fSourcesFolder) == 0){
             
-            newName = renameEffect("", newName);
+            newName = renameEffect("", newName, true);
             
             nameChanges.push_front(make_pair((*it)->name, newName));
             updated[(*it)->name] = true;
@@ -2196,7 +2326,7 @@ list<std::pair<string,string> > FLApp::establish_nameChanges(list<WinInSession*>
         //5- If the Name is in current session, is has to be renamed
         else{
             
-            newName = renameEffect((*it)->source, newName);
+            newName = renameEffect((*it)->source, newName, true);
             
             nameChanges.push_front(make_pair((*it)->name, newName));
             updated[(*it)->name] = true;
@@ -2422,12 +2552,15 @@ void FLApp::closeAllWindows(){
     list<FLEffect*>::iterator it2;
     for(it2 = fExecutedEffects.begin() ;it2 != fExecutedEffects.end(); it2++)
         delete (*it2);
+    for(it2 = fRemoteEffects.begin() ;it2 != fRemoteEffects.end(); it2++)
+        delete (*it2);
     
     fExecutedEffects.clear();
+    fRemoteEffects.clear();
     
-#ifdef __linux__
-    exit();
-#endif
+//#ifdef __linux__
+//    exit();
+//#endif
 }
 
 //Shut all Windows from Menu
@@ -2492,19 +2625,23 @@ void FLApp::common_shutAction(FLWindow* win){
     
     win->shut_Window();
     
-    QFileInfo ff((win)->get_Effect()->getSource().c_str());
+    QFileInfo ff(win->get_Effect()->getSource().c_str());
     string toCompare = ff.absolutePath().toStdString();
     
-    if(toCompare.compare(fSourcesFolder) == 0 && !isEffectInCurrentSession((win)->get_Effect()->getSource())){
-        fExecutedEffects.remove((win)->get_Effect());
-        //        QFile::remove((win)->get_Effect()->getSource().c_str());
+    if(toCompare.compare(fSourcesFolder) == 0 && !isSourceInCurrentSession(win->get_Effect()->getSource())){
+        
+        if((win)->get_Effect()->isLocal())
+            fExecutedEffects.remove(win->get_Effect());
+        else
+            fRemoteEffects.remove(win->get_Effect());
+        
         removeFilesOfWin((win)->get_Effect()->getSource().c_str(), (win)->get_Effect()->getName().c_str());
-        toDelete = (win)->get_Effect();
+        toDelete = win->get_Effect();
     }
-    else if(!isEffectInCurrentSession((win)->get_Effect()->getSource())){
-        (win)->get_Effect()->stop_Watcher();
+    else if(!isSourceInCurrentSession((win)->get_Effect()->getSource())){
+        win->get_Effect()->stop_Watcher();
+        
         string toErase = fSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
-        //        QFile::remove(toErase.c_str());
         removeFilesOfWin(toErase, (win)->get_Effect()->getName());
     }
     
@@ -2591,7 +2728,7 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder);
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName());
     
     redirectMenuToWindow(win);
     
@@ -2618,7 +2755,7 @@ void FLApp::duplicate(FLWindow* window){
     
     string error;
     
-    if(win->init_Window(false, true, error)){
+    if(win->init_Window(false, error)){
         FLW_List.push_back(win);
         addWinToSessionFile(win);
     }

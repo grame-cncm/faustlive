@@ -18,9 +18,14 @@
 #endif
 
 class llvm_dsp_factory;
-class llvm_dsp;
+class remote_dsp_factory;
 
 using namespace std;
+
+enum{
+    kCurrentFactory,
+    kChargingFactory
+};
 
 class FLEffect : public QObject
 {
@@ -39,11 +44,20 @@ class FLEffect : public QObject
         string              fCompilationOptions; 
     //Optimization value for the llvm compilation
         int                 fOpt_level;      
+    
+    // IP + Port of remote server for remote Effects
+        string              fIPaddress;
+        int                 fPort;
        
     //Llvm Factory corresponding to file
         llvm_dsp_factory*   fFactory;        
     //When an effect factory is updated, the old one has to be kept, so that it can be desallocated    
         llvm_dsp_factory*   fOldFactory;     
+    
+    //Llvm Factory corresponding to file
+        remote_dsp_factory*   fRemoteFactory;        
+    //When an effect factory is updated, the old one has to be kept, so that it can be desallocated    
+        remote_dsp_factory*   fOldRemoteFactory;     
     
     //Watching the modifications made on the file (so that the factory can be automatically rebuild)
         QFileSystemWatcher* fWatcher;        
@@ -57,17 +71,25 @@ class FLEffect : public QObject
     //The creationDate allows us to ensure that the signal of modification we receive from the watcher is really due to a change and not only the opening of the editor
         QDateTime           fCreationDate;
     
+    //Indicates if the effect holds a local or remote factory
+        bool                fIsLocal;
+    //Attributes of Processing Machine
+        string              fIpMachineRemote;
+        int                 fPortMachineRemote;
+    
     
     //The compilation options are decomposed in a table
-        int         get_numberParameters(const string& compilOptions);
+        int        get_numberParameters(const string& compilOptions);
         //Extract the first sub-string in the compilOptions
         string     parse_compilationParams(string& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-        bool        buildFactory(llvm_dsp_factory** factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder); 
+    //@param factoryToBuild = is it the transition factory or the current factory ? 
+    //@param        
+        bool        buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder); 
     
     public:
-        FLEffect(bool recallVal, string sourceFile, string name = "");
+        FLEffect(bool recallVal, string sourceFile, string name = "", bool isLocal = true);
         ~FLEffect();
     
     //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
@@ -75,10 +97,12 @@ class FLEffect : public QObject
     //currentIRFolder = where to save the bitcode tied to the factory
     //Compilation Options = needed to build the llvm factory
     //Error = if the initialisation fails, the function returns false + the buffer is filled
-        bool        init(string currentSVGFolder, string currentIRFolder , string compilationMode, int optVal, string& error);
+        bool        init(const string& currentSVGFolder, const string& currentIRFolder ,string compilationMode, int optVal, string& error, const string& IPremote = "localhost", int portremote = 0); 
     
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
+        remote_dsp_factory*   getRemoteFactory();
+    
     //Re-Build of the factory from the source file
         bool        update_Factory(string& error, string currentSVGFolder, string currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted
@@ -96,10 +120,17 @@ class FLEffect : public QObject
         string      getCompilationOptions();
         void        update_compilationOptions(string& compilOptions, int newOptValue);
     
+        void        update_remoteMachine(const string& ip, int port);
+    
         int         getOptValue();
+    
+        string      getRemoteIP();
+        int         getRemotePort();
     
         bool        isSynchroForced();
         void        setForceSynchro(bool val);
+        
+        bool        isLocal();
     //When any action on the effect is performed, the watcher has to be stopped (and then re-launched) otherwise the synchronisation is called without good reason
         void        stop_Watcher();
         void        launch_Watcher();

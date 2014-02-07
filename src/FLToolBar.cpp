@@ -11,9 +11,15 @@
 #include <sstream>
 #include "utilities.h"
 
+#ifdef REMOTE
+#include "faust/remote-dsp.h"
+#endif
+
 //--------------------------FLToolBar
 
 FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
+    
+    fIPToHostName = new map<string, pair<string, int> >;
     
     QLineEdit* myLine = new QLineEdit(this);
     myLine->setReadOnly(true);
@@ -68,10 +74,10 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 
-#ifdef NETJACK
+#ifdef REMOTE
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
-    fRemoteButton->setText(tr("localhost"));
+    fRemoteButton->setText(tr("local processing"));
     
     fRemoteMenu = new QMenu();
     fRemoteButton->setMenu(fRemoteMenu);
@@ -102,8 +108,34 @@ void FLToolBar::expansionAction(QTreeWidgetItem * /*item*/){
 //Reaction to a click on the remote enabling button
 void FLToolBar::openRemoteBox(){
     
-    emit update_Menu(fRemoteMenu);
+//    emit update_Menu(fRemoteMenu);
+#ifdef REMOTE    
+    fRemoteButton->menu()->clear();
+    fIPToHostName->clear();
     
+    // Browse the remote machines available
+    if(getRemoteMachinesAvailable(fIPToHostName)){
+        
+        // Add localhost to the machine list
+        (*fIPToHostName)[string("local processing")] = make_pair("127.0.0.1", 80);
+        
+        map<string, pair <string, int> >::iterator it = fIPToHostName->begin();
+        
+        while(it!= fIPToHostName->end()){
+            
+            printf("IPOFHOSTNAME = %s\n", it->second.first.c_str());
+            
+            // Add the machines to the menu passed in parameter 
+            QAction* machineAction = new QAction(it->first.c_str(), fRemoteButton->menu());
+            connect(machineAction, SIGNAL(triggered()), this, SLOT(update_remoteMachine()));
+            
+            fRemoteButton->menu()->addAction(machineAction); 
+            
+            it++;
+        }
+    }
+    
+#endif
     
 //    if(!fRemoteEnabled)
 //        fRemoteButton->setText(tr("Disable remote Processing"));
@@ -122,15 +154,13 @@ void FLToolBar::setRemoteButtonName(const string& name){
 }
 
 //Reaction to a click cancellation
-void FLToolBar::remoteFailed(bool fromNotToRemote){
-//    
-//    fRemoteButton->setDown(!fromNotToRemote);
-//    fRemoteEnabled = !fromNotToRemote;
-//    
-//    if(fromNotToRemote)
-//        fRemoteButton->setText(tr("Enable remote Processing"));
-//    else
-//        fRemoteButton->setText(tr("Disable remote Processing"));
+void FLToolBar::remoteFailed(){
+
+    fIpRemoteServer = fFormerIp;
+    fPortRemoteServer = fFormerPort;
+    
+    setRemoteButtonName(fFormerName);
+
 }
 
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
@@ -232,4 +262,40 @@ void FLToolBar::setPortOsc(int port){
     
     fPortOscLine->setText(ss.str().c_str());
 }
+
+string FLToolBar::machineName(){
+    return fRemoteButton->text().toStdString();
+}
+
+//--- Update when new processing machine is chosen
+void FLToolBar::update_remoteMachine(){
+    
+#ifdef REMOTE
+    QAction* action = qobject_cast<QAction*>(sender());
+    string toto(action->text().toStdString());
+    
+    //    If the server is the same, there is no update
+    if(fIpRemoteServer.compare(((*fIPToHostName)[toto]).first) == 0)
+        return;
+    else{
+        
+        fFormerIp = fIpRemoteServer;
+        fFormerPort = fPortRemoteServer;
+        fFormerName = fRemoteButton->text().toStdString();
+        
+        fIpRemoteServer = (*fIPToHostName)[toto].first;
+        fPortRemoteServer = (*fIPToHostName)[toto].second;
+        
+        printf("IP clicked = %s || %i\n", fIpRemoteServer.c_str(), fPortRemoteServer);
+        
+        emit switchMachine(fIpRemoteServer, fPortRemoteServer);
+        
+        setRemoteButtonName(toto);
+    }
+    
+#endif
+}
+
+
+
 
