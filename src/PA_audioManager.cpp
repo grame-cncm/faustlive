@@ -88,10 +88,15 @@ void PA_audioManager::wait_EndFade(){
     delete fFadeInAudio;
 }
 
-int PA_audioManager::get_buffer_size(){
-	return 512;
+
+int PA_audioManager::get_buffer_size()
+{
+    // TODO
+    return 512;
 }
- 
-int PA_audioManager::get_sample_rate(){
-	return 44100;
+
+int PA_audioManager::get_sample_rate()
+{
+    // TODO
+    return 44100;
 }

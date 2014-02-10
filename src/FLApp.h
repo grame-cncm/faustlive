@@ -48,7 +48,12 @@ struct WinInSession{
     int opt_level;  //Optimization level for llvm compiler
     int portHttpd;
     int oscPort;
-
+    
+    bool isLocal;
+    
+	QString ipServer;
+    int portServer;
+    
 };
 
 class FLApp : public QApplication
@@ -89,6 +94,7 @@ class FLApp : public QApplication
     //List of windows currently running in the application
         QList<FLWindow*>     FLW_List;           //Container of the opened windows
         QList<FLEffect*>     fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
+        QList<FLEffect*>     fRemoteEffects;     //List of effects used in remote processing
     
     //Screen parameters
         int                 fScreenWidth;
@@ -214,19 +220,21 @@ class FLApp : public QApplication
     void                    update_Source(const QString& oldSource, const QString& newSource);
     
     QString                  getDeclareName(QString text);
+    QString                  renameEffect(const QString& source, const QString& nomEffet, bool isRecalledEffect);
     
-    QString                  renameEffect(const QString& source, const QString& nomEffet);
-    
-    FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init);
+    FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init, bool isLocal, const QString& ip = "localhost", int port= 0);
     
     //-----------------Questions about the current State
     
         bool                isIndexUsed(int index, QList<int> currentIndexes);
-        bool                isEffectInCurrentSession(const QString& sourceToCompare);
+        bool                isLocalEffectInCurrentSession(const QString& sourceToCompare);
+        bool                isRemoteEffectInCurrentSession(const QString& sourceToCompare, const QString& ip, int port);
+        bool                isSourceInCurrentSession(const QString& sourceToCompare);
+
         QString              getNameEffectFromSource(const QString& sourceToCompare);
-        bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name);
+        bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name, bool isRecalledEffect);
         QList<QString>        getNameRunningEffects();
-        QList<int>           WindowCorrespondingToEffect(FLEffect* eff);
+        QList<int>           WindowCorrespondingToEffect(FLEffect* effect);
         void                removeFilesOfWin(const QString& sourceName, const QString& effName);
 
         FLWindow*           getActiveWin();
@@ -240,6 +248,10 @@ class FLApp : public QApplication
     
         void                update_SourceInWin(FLWindow* win, const QString& source);
         void                drop_Action(QList<QString>);
+    
+    
+    //--------Switch to remote processing
+        bool    migrate_ProcessingInWin(QString ip, int port);
     
     //---------Presentation Window Slots
     

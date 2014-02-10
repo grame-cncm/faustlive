@@ -37,6 +37,14 @@ class FLToolBar : public QToolBar{
         QMenu*              fRemoteMenu;
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
+        map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
+        QString              fIpRemoteServer;    //IP of the processing machine
+        int                 fPortRemoteServer;  //Port used for processing
+    
+        QString              fFormerIp;
+        int                 fFormerPort;
+        QString              fFormerName;
+    
     
         QWidget*            fWidget1;;  
         QVBoxLayout*        fLayout1;
@@ -57,22 +65,24 @@ class FLToolBar : public QToolBar{
     int getPort();
     int getPortOsc();
     
-    void    remoteFailed(bool fromNotToRemote);
-    
+    void    remoteFailed();
     void    setRemoteButtonName(const QString& name);
+    QString  machineName();
+
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);
     void    collapseAction(QTreeWidgetItem* item);
     void    openRemoteBox();
+    void    update_remoteMachine();
     
     signals :
     
        void  modified(const QString& option, int val, int port, int portOsc);
         void sizeGrowth();
         void sizeReduction();
-        void update_Menu(QMenu*);
         void remoteStateChanged(int state);
+        void switchMachine(const string& ip, int port);
 };
 
 #endif

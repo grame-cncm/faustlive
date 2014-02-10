@@ -16,7 +16,7 @@ list<GUI*>               GUI::fGuiList;
 #include "FLToolBar.h"
 #include "utilities.h"
 
-#ifdef NETJACK
+#ifdef REMOTE
 #include "faust/remote-dsp.h"
 #endif
 
@@ -24,7 +24,7 @@ list<GUI*>               GUI::fGuiList;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
-FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport){
+FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport, const QString& machineName){
     
     fShortcut = false;
     fEffect = eff;
@@ -62,7 +62,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fXPos = x;
     fYPos = y;
     
-    setMenu();
+    setMenu(machineName);
     
     setMinimumHeight(QApplication::desktop()->geometry().size().height()/4); 
     set_MenuBar();
@@ -71,7 +71,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 FLWindow::~FLWindow(){}
 
 //Set up of the Window ToolBar
-void FLWindow::setMenu(){
+void FLWindow::setMenu(const QString& machineName){
     
     fMenu = new FLToolBar(this);
     
@@ -80,76 +80,27 @@ void FLWindow::setMenu(){
     connect(fMenu, SIGNAL(modified(QString, int, int, int)), this, SLOT(modifiedOptions(const QString&, int, int, int)));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-    connect(fMenu, SIGNAL(update_Menu(QMenu*)), this, SLOT(updateRemoteMenu(QMenu*)));
-}
-
-//--- Shows the list of remote machines activated
-void FLWindow::updateRemoteMenu(QMenu* remoteMenu){
-
-#ifdef NETJACK    
-    remoteMenu->clear();
-    fIPToHostName->clear();
+    connect(fMenu, SIGNAL(switchMachine(const QString&, int)), this, SLOT(redirectSwitch(const QString&, int)));
     
-// Browse the remote machines available
-    if(getRemoteMachinesAvailable(fIPToHostName)){
-        
-// Add localhost to the machine list
-        (*fIPToHostName)[QString("localhost")] = qMakePair("127.0.0.1", 80);
-        
-        map<QString, pair <QString, int> >::iterator it = fIPToHostName->begin();
-        
-        while(it!= fIPToHostName->end()){
-            
-            printf("IPOFHOSTNAME = %s\n", it->second.first);
-            
-// Add the machines to the menu passed in parameter 
-            QAction* machineAction = new QAction(it->first, remoteMenu);
-            connect(machineAction, SIGNAL(triggered()), this, SLOT(update_remoteMachine()));
-            
-            remoteMenu->addAction(machineAction); 
-
-            it++;
-        }
-    }
-    
+#ifdef REMOTE
+    fMenu->setRemoteButtonName(machineName);
 #endif
+//    connect(fMenu, SIGNAL(update_Menu(QMenu*)), this, SLOT(updateRemoteMenu(QMenu*)));
 }
 
-//--- Update when new processing machine is chosen
-void FLWindow::update_remoteMachine(){
- 
-#ifdef NETJACK
-    QAction* action = qobject_cast<QAction*>(sender());
-    QString toto(action->text());
+void FLWindow::redirectSwitch(const QString& ip, int port){
     
-//    If the server is the same, there is no update
-    if(fIpRemoteServer.compare(((*fIPToHostName)[toto]).first) == 0)
-        return;
-    else{
+//    If the effect is getting remoted or getting relocated, a migration is needed 
+    if(!fEffect->isLocal() && ip.compare("127.0.0.1")==0 || fEffect->isLocal()){
         
-        fIpRemoteServer = (*fIPToHostName)[toto].first;
-        fPortRemoteServer = (*fIPToHostName)[toto].second;
-        
-        printf("IP clicked = %s || %i\n", fIpRemoteServer, fPortRemoteServer);
-        
-        string error("");
-        bool sucess;
-        
-        if(toto.compare("localhost") == 0)
-            sucess = update_Window(kGetLocal, fEffect, error);
-        else
-            sucess = update_Window(kGetRemote, NULL, error);
-        
-        if(!sucess)
-            emit errorPrint(error);
-        else{
-            fMenu->setRemoteButtonName(toto);
-            printf("BUTTON NAME = %s\n", toto);
-        }
+        printf("MIGRATE\n");
+        emit migrate(ip, port);
     }
-    
-#endif
+    //    Otherwise, the effect only has to be updated
+    else
+        fEffect->update_remoteMachine(ip, port);
 }
+
 //Redirection of a received error
 void FLWindow::errorPrint(const char* msg){
     emit error(msg);
@@ -182,7 +133,7 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
 //        fCurrent_DSP->buildUserInterface(fOscInterface);
 //        fOscInterface->run();
     }
-    
+
     printf("PORT HTTP = %i || PORT OSC =%i\n", fPortHttp, fPortOsc);
     
     fEffect->update_compilationOptions(text, value);
@@ -406,11 +357,37 @@ void FLWindow::setWindowsOptions(){
     fMenu->setPortOsc(fPortOsc);
 }
 
+
+void FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
+    
+    //Window tittle is build with the window Name + effect Name
+    QString intermediate = fWindowName + " : " + nameEffect;
+    
+    fInterface = new QTGUI(this, intermediate.toLatin1());
+    
+    dsp->buildUserInterface(fRCInterface);
+    dsp->buildUserInterface(fInterface);
+//    dsp->buildUserInterface(fOscInterface);
+}
+
 //Initialization of User Interface + StartUp of Audio Client
-bool FLWindow::init_Window(bool init, bool /*recall*/, QString& errorMsg){
+bool FLWindow::init_Window(bool init, QString& errorMsg){
     
-    fCurrent_DSP = createDSPInstance(fEffect->getFactory());
-    
+    if(fEffect->isLocal())
+        fCurrent_DSP = createDSPInstance(fEffect->getFactory());
+#ifdef REMOTE
+    else{
+        int argc = 2;
+        const char* argv[2];
+        
+//        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
+        argv[0] = "--NJ_ip";
+        argv[1] = (searchLocalIP().toStdString().c_str());
+        
+        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), errorMsg);
+    }
+#endif
+        
     setWindowsOptions();
     
     if (fCurrent_DSP == NULL){
@@ -418,22 +395,15 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, QString& errorMsg){
         return false;
     }
     
-    //Window tittle is build with the window Name + effect Name
-    QString inter = fWindowName + " : " + fEffect->getName();
-    
-	fInterface = new QTGUI(this, inter.toLatin1().data());
     fRCInterface = new FUI;
     
     allocateOscInterface();
     
 //    printf("OSCINTERFACE = %p\n", fOscInterface);
     
-    if(fRCInterface && fInterface /*&& fOscInterface*/){
+    if(fRCInterface /*&& fOscInterface*/){
         
-        //Building interface and Audio parameters
-        fCurrent_DSP->buildUserInterface(fRCInterface);
-        fCurrent_DSP->buildUserInterface(fInterface);
-//        fCurrent_DSP->buildUserInterface(fOscInterface);
+        buildInterfaces(fCurrent_DSP, fEffect->getName());
         
         if(init)
             print_initWindow();        
@@ -467,11 +437,7 @@ bool FLWindow::init_Window(bool init, bool /*recall*/, QString& errorMsg){
 }
 
 //Modification of the process in the window
-//CASE 1 = Update of Effect in local processing
-//CASE 2 = Update from remote processing to local processing
-//CASE 3 = Update from local processing to remote processing
-//CASE 4 = Update of Effect in remote processing OR Update from a remote machine to another remote machine
-bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& error){
+bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     
     printf("FLWindow::update_Win\n");
     
@@ -490,14 +456,14 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& err
     
     allocateOscInterface();
     
-    QString newName = fEffect->getName();
-    
+    QString newName = newEffect->getName();
+
     //Step 4 : creating the new DSP instance
     
-//CASE 1 & 2
     dsp* charging_DSP = NULL;
+    bool remoteSucess = true;
     
-    if(becomeRemote == kGetLocal || (becomeRemote == kCrossFade && fIsLocal)){
+    if(newEffect->isLocal()){
 
         charging_DSP = createDSPInstance(newEffect->getFactory());
         newName = newEffect->getName();
@@ -505,40 +471,22 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& err
         if (charging_DSP == NULL)
             return false;
     }
-    
-    bool remoteSucess = true;
-    
-#ifdef NETJACK
-    
-//CASE 3 & 4 
-    remote_dsp_factory* charging_Factory = NULL;
-    
-    if(becomeRemote == kGetRemote || (becomeRemote == kCrossFade && !fIsLocal)){
-     
-        charging_Factory = createRemoteDSPFactory(0, NULL, fIpRemoteServer, fPortRemoteServer,  pathToContent(fEffect->getSource()), error, fEffect->getOptValue());
+#ifdef REMOTE
+    else{
+        int argc = 2;
+        const char* argv[2];
         
-        if(charging_Factory == NULL){
+        //        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
+        argv[0] = "--NJ_ip";
+        argv[1] = (searchLocalIP().toStdString().c_str());
+        
+        printf("ARGUMENT = %s\n", argu[1]);
+        
+        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
+        
+        if (charging_DSP == NULL)
             remoteSucess = false;
         }
-        else{
-            int nArg = 2;
-            const char** argu = new const char*[2];
-            
-            
-            //        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
-            argu[0] = "--NJ_ip";
-            argu[1] = (searchLocalIP().toStdQString());
-            
-            printf("ARGV 0 = %s\n", argu[0]);
-            
-            charging_DSP = createRemoteDSPInstance(charging_Factory, nArg, argu, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
-            
-            if (charging_DSP == NULL){
-                deleteRemoteDSPFactory(charging_Factory);
-                remoteSucess = false;
-            }
-        }
-    }
 #endif
     
     //Step 5 : get the new compilation parameters
@@ -550,13 +498,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& err
 		if(!remoteSucess || !fAudioManager->init_FadeAudio(error, newName.toLatin1().data(), charging_DSP)){
             
             //Step 7 : Restart previous interface
-            QString intermediate = fWindowName + " : " + fEffect->getName();
-            
-            fInterface = new QTGUI(this, intermediate.toLatin1().data());
-            
-            fCurrent_DSP->buildUserInterface(fRCInterface);
-            fCurrent_DSP->buildUserInterface(fInterface);
-//            fCurrent_DSP->buildUserInterface(fOscInterface);
+          buildInterfaces(fCurrent_DSP, fEffect->getName());
             
             recall_Window();
             setGeometry(fXPos, fYPos, 0, 0);
@@ -570,13 +512,7 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& err
         }
         
         //Step 7 : Set the new interface & Recall the parameters of the window
-        QString inter = fWindowName + " : " + newName;
-        
-        fInterface = new QTGUI(this, inter.toLatin1().data());
-        
-        charging_DSP->buildUserInterface(fRCInterface);
-        charging_DSP->buildUserInterface(fInterface);
-//        charging_DSP->buildUserInterface(fOscInterface);
+        buildInterfaces(charging_DSP, newName);
         
         recall_Window();
         
@@ -598,40 +534,15 @@ bool FLWindow::update_Window(int becomeRemote, FLEffect* newEffect, QString& err
         
         //Step 11 : Delete old resources
         
-//    CASE 1
-        if(becomeRemote == kCrossFade && fIsLocal){
+        if(fEffect->isLocal())
             deleteDSPInstance((llvm_dsp*)charging_DSP);
-            fEffect = newEffect;
-        }
-#ifdef NETJACK
-//     CASE 2   
-        else if(becomeRemote == kGetLocal){
+#ifdef REMOTE  
+        else
             deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
-            
-            printf("REMOTE FACTORY = %p\n", fRemoteFactory);
-            
-            deleteRemoteDSPFactory(fRemoteFactory);
-            fIsLocal = false;
-        } 
-//    CASE 3    
-        else if(becomeRemote == kGetRemote){
-            deleteDSPInstance((llvm_dsp*)charging_DSP);
-            fIsLocal = true;
-            fRemoteFactory = charging_Factory;
-        }  
-//     CASE 4   
-        else{
-            remote_dsp_factory* factoryInt;
-            
-            factoryInt = fRemoteFactory;
-            fRemoteFactory = charging_Factory; 
-            charging_Factory = factoryInt;
-            
-            deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
-            deleteRemoteDSPFactory(charging_Factory);
-        }
 #endif
-        
+            
+        fEffect = newEffect;
+            
         //Step 12 : Launch User Interface
         fInterface->run();
 //        fOscInterface->run();
@@ -767,6 +678,14 @@ int FLWindow::get_Port(){
 int FLWindow::get_oscPort(){
 
     return fPortOsc;
+}
+
+QString FLWindow::get_remoteIP(){
+    return fEffect->getRemoteIP();
+}
+
+int FLWindow::get_remotePort(){
+    return fEffect->getRemotePort();
 }
 
 //------------------------HTTPD
@@ -1258,4 +1177,13 @@ void FLWindow::frontShowFromMenu(){
 
     emit front(action->data().toString());
 }
+
+QString FLWindow::get_machineName(){
+    return fMenu->machineName();
+}
+
+void FLWindow::migrationFailed(){
+    fMenu->remoteFailed();
+}
+
 

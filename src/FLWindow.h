@@ -39,21 +39,6 @@ class remote_dsp_factory;
 
 using namespace std;
 
-enum updateType{
-    kCrossFade,
-    kGetLocal,
-    kGetRemote
-};
-
-//struct remoteMachineInfos{
-//  
-//    FLWindow*       fWin;
-//    string          fCpuLoad;
-//    string          fIPaddress;
-//    
-//    remoteMachineInfos(FLWindow* initWin):fWin(initWin), fCpuLoad(""), fIPaddress(""){}
-//    
-//};
 
 class FLWindow : public QMainWindow
 {
@@ -67,7 +52,7 @@ class FLWindow : public QMainWindow
         QString          fSettingsFolder;
     
         FLToolBar*      fMenu;  
-        void            setMenu();
+        void            setMenu(const QString& machineName);
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -149,6 +134,7 @@ class FLWindow : public QMainWindow
         void            recall_Snapshot(QString, bool);
         void            front(QString);
         void            open_Ex(QString);
+        void            migrate(const QString& ip, int port);
     
     private slots :
         void            create_Empty();
@@ -173,9 +159,8 @@ class FLWindow : public QMainWindow
         void            open_Recent_File();
         void            recall_Recent_Session();
         void            import_Recent_Session();
-        void            frontShowFromMenu();
-        void            updateRemoteMenu(QMenu* remoteMenu);
-        void            update_remoteMachine();
+        void            frontShowFromMenu(); 
+        void            redirectSwitch(const QString& ip, int port);
         
     public :
     
@@ -188,7 +173,8 @@ class FLWindow : public QMainWindow
     //GeneralPort = what 
     //bufferSize, cprValue, ... = audio parameters
     
-        FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510);
+
+        FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing");
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -208,12 +194,15 @@ class FLWindow : public QMainWindow
     //Recalled = 1 --> the window is recalled from a session and needs its parameter
     //Recalled = 0 --> the window is a new one without parameters
 
+        void            buildInterfaces(dsp* dsp, const QString& nameEffect);
+    
     //Returning false if it fails and fills the errorMsg buffer
-        bool            init_Window(bool init, bool recall, QString& errorMsg);
+
+        bool            init_Window(bool init, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
-        bool            update_Window(int becomeRemote, FLEffect* newEffect, QString& error);
+        bool            update_Window(FLEffect* newEffect, QString& error);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -248,6 +237,10 @@ class FLWindow : public QMainWindow
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
+        QString          get_remoteIP();
+        int             get_remotePort();
+        QString          get_machineName();
+        void            migrationFailed();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();
