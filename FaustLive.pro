@@ -8,16 +8,29 @@
 # APPLICATION SETTINGS
 
 FAUSTDIR = /usr/local/lib/faust
-
-TEMPLATE = vcapp
 TARGET = FaustLive
-INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include
-INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
-INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include\QtWidgets
-INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
-
 ICON = Resources/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
+
+#ifdef _WIN32
+	TEMPLATE = vcapp
+	INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include
+	INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
+	INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include\QtWidgets
+	INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
+#else
+	TEMPLATE = app
+	DEPENDPATH += /usr/local/include/faust/gui
+	INCLUDEPATH += .
+	INCLUDEPATH += /opt/local/include
+	all.commands += $(shell mkdir Resources/Libs)
+	MYFILES = $$system(ls $$FAUSTDIR/*.lib)
+	for(FILE, MYFILES){
+		all.commands += $(shell cp $$FILE Resources/libs)
+	}
+	all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources.Libs)
+#endif
+
 
 OBJECTS_DIR += src
 MOC_DIR += src
@@ -33,8 +46,12 @@ QT-=core
 QT+=network
 QT+=widgets
 
-LIBS+= -LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
-LIBS+= -LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+#ifdef _WIN32
+	LIBS+= -LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
+	LIBS+= -LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+#else
+	LIBS+= -L/usr/local/lib/faust
+#endif
 
 LIBS+=-lfaust
 LIBS+= $$LLVMDIR $$LLVMLIBS
