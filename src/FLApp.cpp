@@ -1013,17 +1013,6 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
     win->deleteWinInMenu(name);
     
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_remoteIP(), win->get_remotePort());
-    
-    
-    bool optionChanged;
-    
-//  In case the general options change...
-//  NOT SURE OF THIS FUNCTION
-//    if(newEffect != NULL)
-//        optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 
-//                         || fOpt_level != (newEffect->getOptValue())) 
-//                        && !isEffectInCurrentSession(newEffect->getSource());
-    
 
 //  If the change fails, the leaving effect has to be reimplanted
     if(newEffect == NULL || (!(win)->update_Window(newEffect, error))){
@@ -1080,10 +1069,6 @@ void FLApp::update_SourceInWin(FLWindow* win, const string& source){
         //The new effect is added in the session and watched
         addWinToSessionFile(win);
         newEffect->launch_Watcher();
-        
-        //In case the compilation options have changed...
-//        if(optionChanged)
-//            newEffect->update_compilationOptions(fCompilationMode, fOpt_level);
     }
     
 }
@@ -1204,9 +1189,6 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
     
     if(first != NULL){
         
-//        NOT SURE EITHER OF THIS FUNCTION
-//        bool optionChanged = (fCompilationMode.compare(first->getCompilationOptions()) != 0 || fOpt_level != (first->getOptValue())) && !isEffectInCurrentSession(first->getSource());
-        
         //Copy of the source File in the CurrentSession Source Folder
         string copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
         string toCopy = first->getSource();
@@ -1236,10 +1218,6 @@ FLWindow* FLApp::new_Window(const string& mySource, string& error){
             addWinToSessionFile(win);
             
             first->launch_Watcher();
-            
-            //In case the compilation options have changed...
-//            if(optionChanged)
-//                first->update_compilationOptions(fCompilationMode, fOpt_level);
             
             return win;
         }

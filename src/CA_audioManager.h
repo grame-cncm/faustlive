@@ -32,6 +32,7 @@ class CA_audioManager : public AudioManager{
     
         virtual bool init(const char*, dsp* DSP);
         virtual bool initAudio(string& error, const char* name, dsp* DSP, const char* port_name);
+//        virtual void set_dsp(dsp* DSP);
         virtual bool start();
         virtual void stop();
     

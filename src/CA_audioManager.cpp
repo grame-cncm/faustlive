@@ -89,16 +89,16 @@ void CA_audioManager::wait_EndFade(){
 
     int i=0;
     
+//   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
+    QTimer* timer = new QTimer(this);
+    timer->start(2);
+    
     while(fCurrentAudio->get_FadeOut() == 1){ 
         
-//   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
-//   Actually causes glitches problems... see if the CoreAudio bug was fixed...
-//        if(i > 300){
-//            printf("BREAK\n");
-//            break; 
-//        } 
-//        else 
-//            i++;
+        if(!timer->isActive()){
+            printf("COREAUDIO IS IN ITS STRANGE STATE\n");
+            break;
+        }
     }
     
     fCurrentAudio->stop();

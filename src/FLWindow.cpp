@@ -382,7 +382,12 @@ bool FLWindow::init_Window(bool init, string& errorMsg){
         
 //        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
         argv[0] = "--NJ_ip";
-        argv[1] = (searchLocalIP().toStdString().c_str());
+        
+        string localString = searchLocalIP().toStdString();
+        
+        argv[1] = localString.c_str();
+        
+        printf("SAMPLE RATE = %i || BUFFER SIZE = %i\n", fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size());
         
         fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), errorMsg);
     }
@@ -474,16 +479,17 @@ bool FLWindow::update_Window(FLEffect* newEffect, string& error){
 #ifdef REMOTE
     
     else{
-        int nArg = 2;
-        const char** argu = new const char*[2];
+        int argc = 2;
+        const char** argv = new const char*[2];
         
         //        PROBLEME AVEC ARGV IL EST MODIFIE DANS REMOTEDSPINSTANCE.... 
-        argu[0] = "--NJ_ip";
-        argu[1] = (searchLocalIP().toStdString().c_str());
+        argv[0] = "--NJ_ip";
         
-        printf("ARGUMENT = %s\n", argu[1]);
+        string localString = searchLocalIP().toStdString();
+        argv[1] = localString.c_str();
+
         
-        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), nArg, argu, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
+        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
         
         if (charging_DSP == NULL)
             remoteSucess = false;
