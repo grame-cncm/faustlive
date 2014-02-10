@@ -37,16 +37,16 @@ class FLEffect : public QObject
         bool                fRecalled;
     
     //File holding the Faust Code
-        string              fSource;  
+        QString              fSource;  
     //Name of the effect 
-        string              fName;       
+        QString              fName;       
     //Compilation Options of the Faust compiler
-        string              fCompilationOptions; 
+        QString              fCompilationOptions; 
     //Optimization value for the llvm compilation
         int                 fOpt_level;      
     
     // IP + Port of remote server for remote Effects
-        string              fIPaddress;
+        QString              fIPaddress;
         int                 fPort;
        
     //Llvm Factory corresponding to file
@@ -74,22 +74,22 @@ class FLEffect : public QObject
     //Indicates if the effect holds a local or remote factory
         bool                fIsLocal;
     //Attributes of Processing Machine
-        string              fIpMachineRemote;
+        QString              fIpMachineRemote;
         int                 fPortMachineRemote;
     
     
     //The compilation options are decomposed in a table
-        int        get_numberParameters(const string& compilOptions);
+        int        get_numberParameters(const QString& compilOptions);
         //Extract the first sub-string in the compilOptions
-        string     parse_compilationParams(string& compilOptions);
+        QString     parse_compilationParams(QString& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
     //@param factoryToBuild = is it the transition factory or the current factory ? 
     //@param        
-        bool        buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder); 
+        bool        buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder); 
     
     public:
-        FLEffect(bool recallVal, string sourceFile, string name = "", bool isLocal = true);
+        FLEffect(bool recallVal, QString sourceFile, QString name = "", bool isLocal = true);
         ~FLEffect();
     
     //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
@@ -97,34 +97,34 @@ class FLEffect : public QObject
     //currentIRFolder = where to save the bitcode tied to the factory
     //Compilation Options = needed to build the llvm factory
     //Error = if the initialisation fails, the function returns false + the buffer is filled
-        bool        init(const string& currentSVGFolder, const string& currentIRFolder ,string compilationMode, int optVal, string& error, const string& IPremote = "localhost", int portremote = 0); 
-    
+        bool        init(const QString& currentSVGFolder, const QString& currentIRFolder , QString compilationMode, int optVal, QString& error, const QString& IPremote = "localhost", int portremote = 0);
+
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
         remote_dsp_factory*   getRemoteFactory();
     
     //Re-Build of the factory from the source file
-        bool        update_Factory(string& error, string currentSVGFolder, string currentIRFolder);
+        bool        update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted
         void        erase_OldFactory();
     
     //Accessors to source, name, watcher, ...
-        string      getSource();
-        void        setSource(string file);
+        QString      getSource();
+        void        setSource(QString file);
     
         QDateTime   get_creationDate();
         
-        string      getName();
-        void        setName(string name);
+        QString      getName();
+        void        setName(QString name);
     
-        string      getCompilationOptions();
-        void        update_compilationOptions(string& compilOptions, int newOptValue);
+        QString      getCompilationOptions();
+        void        update_compilationOptions(QString& compilOptions, int newOptValue);
     
-        void        update_remoteMachine(const string& ip, int port);
+        void        update_remoteMachine(const QString& ip, int port);
     
         int         getOptValue();
     
-        string      getRemoteIP();
+        QString      getRemoteIP();
         int         getRemotePort();
     
         bool        isSynchroForced();
@@ -136,7 +136,7 @@ class FLEffect : public QObject
         void        launch_Watcher();
     
     //The source file is copied in the sourceFolder in case of a source loss
-//        void        copySourceFile(string& sourceFolder);
+//        void        copySourceFile(QString& sourceFolder);
             
     signals :     
     //When the watcher locates a modification on the file, the signal is emited

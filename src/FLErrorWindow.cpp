@@ -56,12 +56,12 @@ void FLErrorWindow::hideWin(){
     hide();
 }
 
-void FLErrorWindow::print_Error(const char* text){
+void FLErrorWindow::print_Error(const QString& text){
     
     QString inter = fErrorText->toPlainText(); 
-    string wholeText = inter.toStdString() +"\n" +text;
+    QString wholeText = inter +"\n" +text;
     
-    fErrorText->setPlainText(wholeText.c_str());
+    fErrorText->setPlainText(wholeText);
     this->adjustSize();
     show();
     raise(); 

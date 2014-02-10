@@ -2,20 +2,20 @@
 
 #include "utilities.h"
 
-#include <unistd.h>
+//#include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <netdb.h>
-#include <arpa/inet.h>
+//#include <netdb.h>
+//#include <arpa/inet.h>
 
 #include <QtNetwork>
 
 //Returns the content of a file passed in path
-string pathToContent(string path){
+QString pathToContent(QString path){
     
-    QFile file(path.c_str());
-    string Content;
+    QFile file(path);
+    QString Content;
     
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
         //        printf("impossible to open content\n");
@@ -33,26 +33,26 @@ string pathToContent(string path){
 }
 
 //Delete recursively the content of a folder
-bool deleteDirectoryAndContent(string& directory){
+bool deleteDirectoryAndContent(QString& directory){
     
-    QDir srcDir(directory.c_str());
+    QDir srcDir(directory);
     
     QFileInfoList children = srcDir.entryInfoList(QDir::Dirs | QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
     
     if(children.size() == 0){
-        QString toRemove(directory.c_str());
+        QString toRemove(directory);
         srcDir.rmdir(srcDir.absolutePath());
         return true;
     }
     else{
         foreach(const QFileInfo &info, children) {
             
-            QString path(directory.c_str());
+            QString path(directory);
             
             QString item = path + "/" + info.fileName();
             
             if (info.isDir()) {
-                string file = item.toStdString();
+                QString file = item;
                 if (!deleteDirectoryAndContent(file)) {
                     return false;
                 }

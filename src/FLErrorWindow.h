@@ -36,7 +36,7 @@ class FLErrorWindow : public QMainWindow{
         virtual ~FLErrorWindow();
     
         void            init_Window();
-        void            print_Error(const char* text);
+        void            print_Error(const QString& text);
         virtual void    closeEvent(QCloseEvent* event);
     
         virtual void    keyPressEvent(QKeyEvent* event);

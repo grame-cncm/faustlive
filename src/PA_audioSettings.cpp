@@ -10,7 +10,7 @@
 #include <sstream>
 #include "utilities.h"
 
-PA_audioSettings::PA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){
+PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){
     
     fSavingFile = home + "/" + PA_SAVINGFILE;
     
@@ -62,9 +62,9 @@ void PA_audioSettings::setVisualSettings(){
 //Visual to Real
 void PA_audioSettings::storeVisualSettings(){
     
-    if(isStringInt(fBufSize->text().toStdString().c_str())){
+    if(isStringInt(fBufSize->text().toLatin1().data())){
         
-        fBufferSize = atoi(fBufSize->text().toStdString().c_str());
+        fBufferSize = atoi(fBufSize->text().toLatin1().data());
         
         if(fBufferSize == 0)
             fBufferSize = 512;
@@ -72,9 +72,9 @@ void PA_audioSettings::storeVisualSettings(){
     else
         fBufferSize = 512;
     
-    if(isStringInt(fsplRate->text().toStdString().c_str())){
+    if(isStringInt(fsplRate->text().toLatin1().data())){
         
-        fSampleRate = atoi(fsplRate->text().toStdString().c_str());
+        fSampleRate = atoi(fsplRate->text().toLatin1().data());
         
         if(fSampleRate == 0)
             fSampleRate = 44100;
@@ -86,7 +86,7 @@ void PA_audioSettings::storeVisualSettings(){
 //Write or Read Settings in a File
 void PA_audioSettings::writeSettings(){
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
@@ -100,9 +100,9 @@ void PA_audioSettings::writeSettings(){
 
 void PA_audioSettings::readSettings(){
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
-    if(QFileInfo(fSavingFile.c_str()).exists() && f.open(QFile::ReadOnly)){
+    if(QFileInfo(fSavingFile).exists() && f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
         textReading>>fSampleRate>>fBufferSize;
@@ -130,7 +130,7 @@ bool PA_audioSettings::isEqual(AudioSettings* as){
 }
 
 //Accessor to ArchitectureName
-string PA_audioSettings::get_ArchiName(){
+QString PA_audioSettings::get_ArchiName(){
     return "PortAudio";
 }
 

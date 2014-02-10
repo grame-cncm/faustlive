@@ -20,7 +20,8 @@
 
 /***********************************EFFECT IMPLEMENTATION*********************************/
 
-FLEffect::FLEffect(bool recallVal, string sourceFile, string name, bool isLocal){
+
+FLEffect::FLEffect(bool recallVal, QString sourceFile, QString name, bool isLocal){
     
     fFactory = NULL;
     fOldFactory = NULL;
@@ -59,9 +60,9 @@ FLEffect::~FLEffect(){
 //Compilation Options = needed to build the llvm factory
 //Error = if the initialisation fails, the function returns false + the buffer is filled
 
-bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolder ,string compilationMode, int optValue, string& error, const string& IPremote, int portremote){
+bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFolder ,QString compilationMode, int optValue, QString& error, const QString& IPremote, int portremote){
     
-    printf("FICHIER SOURCE = %s\n", fSource.c_str());
+    printf("FICHIER SOURCE = %s\n", fSource.toLatin1().data());
     
     fCompilationOptions = compilationMode;
     fOpt_level = optValue;
@@ -87,65 +88,62 @@ bool FLEffect::init(const string& currentSVGFolder, const string& currentIRFolde
 //---------------FACTORY ACTIONS
 
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder){
     
     int numberFixedParams = 7;
     
     //+5 = -i libraryPath -O drawPath -svg
-    int argc = numberFixedParams + get_numberParameters(fCompilationOptions);
+    int argc = 7 + get_numberParameters(fCompilationOptions);
     
-    const char* argv[argc];
+    const char** argv = new const char*[argc];
     
     argv[0] = "-I";
-    
+
     //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
-#ifdef __APPLE__    
+#ifdef __APPLE__
+    QString libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + LIBRARY_PATH;
+	argv[1] = libPath.toLatin1();
+#elseif __linux__
     
-    string libPath = QFileInfo(QFileInfo(QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
-    
-    argv[1] = libPath.c_str();
+    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
+    argv[1] = libPath.toLatin1();
+#else    
+	QString libPath = "C:\Users\Sarah\faudiostream-faustlive\Resources\Libs";
+	argv[1] = libPath.toLatin1();
 #endif
-#ifdef __linux__
+
+    argv[2] = "-I";    
+    QString sourcePath = QFileInfo(fSource).absolutePath();
     
-    string libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath().toStdString() + LIBRARY_PATH;
-    
-    argv[1] = libPath.c_str();
-#endif
-    argv[2] = "-I";
-    
-    string sourcePath = QFileInfo(fSource.c_str()).absolutePath().toStdString();
-    
-    argv[3] = sourcePath.c_str();
+	argv[3] = sourcePath.toLatin1();
     argv[4] = "-O";
-    
-    argv[5] = currentSVGFolder.c_str();
+    argv[5] = currentSVGFolder.toLatin1();
     argv[6] = "-svg";
     
     printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
     
-    
     //Parsing the compilationOptions from a string to a char**
-    string copy = fCompilationOptions;
+    QString copy = fCompilationOptions;
     for(int i=numberFixedParams; i<argc; i++){
         
-        string parseResult = parse_compilationParams(copy);
-        argv[i] = parseResult.c_str();
+        QString parseResult = parse_compilationParams(copy);
+        argv[i] = parseResult.toLatin1();
     }
     
 //    const char** argument = (const char**) argv;
     
-    string path = currentIRFolder + "/" + fName;
+    QString path = currentIRFolder + "/" + fName;
 
     //To speed up the process of compilation, when a session is recalled, the DSP are re-compiled from Bitcode 
     
         llvm_dsp_factory* buildingFactory = NULL;
         remote_dsp_factory* buildingRemoteFactory = NULL;
     
-    if(fRecalled && QFileInfo(path.c_str()).exists() && fIsLocal){        
-        buildingFactory = readDSPFactoryFromBitcodeFile(path, "");
+    if(fRecalled && QFileInfo(path).exists() && fIsLocal){        
+        buildingFactory = readDSPFactoryFromBitcodeFile(path.toStdString(), "");
         
         printf("factory from IR = %p\n", buildingFactory);
-        
+
         if(buildingFactory != NULL){
             if(factoryToBuild == kCurrentFactory){
                 fFactory = buildingFactory;
@@ -166,7 +164,7 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         
         if(fIsLocal){      
             printf("building local factory\n");
-            buildingFactory = createDSPFactoryFromFile(fSource, argc, argv, "", getError, fOpt_level);
+            buildingFactory = createDSPFactoryFromFile(fSource.toStdString(), argc, argv, "", getError, fOpt_level);
         }
 #ifdef REMOTE
         else{
@@ -176,9 +174,9 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
             buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource, argc, argv, fIpMachineRemote, fPortMachineRemote, getError, fOpt_level);
         }
 #endif
-        error = getError;
+        error = getError.c_str();
         
-        printf("ERROR OF FACTORY BUILD = %s\n", error.c_str());
+        printf("ERROR OF FACTORY BUILD = %s\n", error.toLatin1().data());
         
         printf("FACTORY = %p\n", buildingRemoteFactory);
         
@@ -187,14 +185,14 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
         
         if(buildingFactory != NULL || buildingRemoteFactory != NULL){
             
-            if(!QFileInfo(currentIRFolder.c_str()).exists()){
-                QDir direct(currentIRFolder.c_str());
-                direct.mkdir(currentIRFolder.c_str());
+            if(!QFileInfo(currentIRFolder).exists()){
+                QDir direct(currentIRFolder);
+                direct.mkdir(currentIRFolder);
             }
             
             if(fIsLocal){
                 //The Bitcode files are written at each compilation 
-                writeDSPFactoryToBitcodeFile(buildingFactory, path);
+                writeDSPFactoryToBitcodeFile(buildingFactory, path.toStdString());
                 
                 if(factoryToBuild == kCurrentFactory){
                     fFactory = buildingFactory;
@@ -228,7 +226,7 @@ bool FLEffect::buildFactory(int factoryToBuild, string& error, string currentSVG
 
 
 //Re-Build of the factory from the source file
-bool FLEffect::update_Factory(string& error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder){
     
     if(fIsLocal){
         
@@ -274,20 +272,20 @@ void FLEffect::erase_OldFactory(){
 }
 
 //Get number of compilation options
-int FLEffect::get_numberParameters(const string& compilOptions){
+int FLEffect::get_numberParameters(const QString& compilOptions){
     
-    string copy = compilOptions;
+    QString copy = compilOptions;
     
     int argc = 0;
     int pos = 0;
     
-    if(copy.find("-") == string::npos){
+	if(copy.indexOf("-") == -1){
         return 0;
     }
     
-    while(copy.find(" ", pos+1) != string::npos){
+    while(copy.indexOf(" ", pos+1) != -1){
         argc++;
-        pos = copy.find(" ", pos+1);
+        pos = copy.indexOf(" ", pos+1);
     }
     
     return argc+1;
@@ -297,21 +295,68 @@ int FLEffect::get_numberParameters(const string& compilOptions){
 //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway.
 //Returns : the first option found
 //CompilOptions : the rest of the options are kept in
-string FLEffect::parse_compilationParams(string& compilOptions){
+QString FLEffect::parse_compilationParams(QString& compilOptions){
     
-    string returning = "";
+    QString returning = "";
     
-    size_t pos = compilOptions.find(" ");
+    size_t pos = compilOptions.indexOf(" ");
     
-    if(pos != string::npos){
-        returning = compilOptions.substr(0, pos);
-        compilOptions.erase(0, pos+1);
+    if(pos != -1){
+        returning = compilOptions.mid(0, pos);
+        compilOptions.remove(0, pos+1);
     }
     else if(compilOptions.compare("") != 0)
-        returning = compilOptions.substr(0, compilOptions.length());
+        returning = compilOptions.mid(0, compilOptions.length());
     
     return returning;
 }
+
+//Re-Build of the factory from the source file
+bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder){
+    
+	if(fIsLocal){
+		
+		 fOldFactory = fFactory;
+    
+		llvm_dsp_factory* factory_update = NULL;
+    
+		if(buildFactory(kChargingFactory, error, currentSVGFolder, currentIRFolder)){
+			factory_update = fFactory;
+			fFactory = fOldFactory;
+			fOldFactory = factory_update;
+			return true;
+		}
+		else
+			return false;
+	}
+	else{
+
+		fOldRemoteFactory = fRemoteFactory;
+    
+		remote_dsp_factory* factory_update = NULL;
+    
+		if(buildFactory(kChargingFactory, error, currentSVGFolder, currentIRFolder)){
+			factory_update = fRemoteFactory;
+			fRemoteFactory = fOldRemoteFactory;
+			fOldRemoteFactory = factory_update;
+				return true;
+		 }
+		else
+			return false;
+	}
+}
+
+//Once the rebuild is complete, the former factory has to be deleted
+void FLEffect::erase_OldFactory(){
+    
+	if(fIsLocal)
+	    deleteDSPFactory(fOldFactory);
+#ifdef REMOTE
+	else
+	    deleteRemoteDSPFactory(fOldRemoteFactory);
+#endif
+}
+
 
 //---------------WATCHER & FILE MODIFICATIONS ACTIONS
 
@@ -337,24 +382,24 @@ void FLEffect::effectModified(){
 }
 
 void FLEffect::stop_Watcher(){
-    fWatcher->removePath(fSource.c_str());
-    printf("PATH STOP WATCHING = %s\n", fSource.c_str());
+    printf("PATH STOP WATCHING = %s\n", fSource.toLatin1().data());
+    fWatcher->removePath(fSource);
 }
 
 void FLEffect::launch_Watcher(){
     
-    printf("PATH WATCHED= %s\n", fSource.c_str());
+    printf("PATH WATCHED= %s\n", fSource.toLatin1().data());
     
-    fWatcher->addPath(fSource.c_str());
+    fWatcher->addPath(fSource);
 }
 
 //--------------ACCESSORS
 
-string FLEffect::getSource(){
+QString FLEffect::getSource(){
     return fSource;
 }
 
-void FLEffect::setSource(string file){
+void FLEffect::setSource(QString file){
     fSource = file;
 }
 
@@ -362,12 +407,12 @@ QDateTime FLEffect::get_creationDate(){
     return fCreationDate;
 }
 
-string FLEffect::getName(){
+QString FLEffect::getName(){
     
     return fName; 
 }
 
-void FLEffect::setName(string name){
+void FLEffect::setName(QString name){
     fName = name;
 }
 
@@ -379,11 +424,11 @@ remote_dsp_factory* FLEffect::getRemoteFactory(){
     return fRemoteFactory;
 }
 
-string FLEffect::getCompilationOptions(){
+QString FLEffect::getCompilationOptions(){
     return fCompilationOptions;
 }
 
-void FLEffect::update_compilationOptions(string& compilOptions, int newOptValue){
+void FLEffect::update_compilationOptions(QString& compilOptions, int newOptValue){
     if(fCompilationOptions.compare(compilOptions) !=0 || fOpt_level != newOptValue){
         fCompilationOptions = compilOptions;
         fOpt_level = newOptValue;   
@@ -393,7 +438,7 @@ void FLEffect::update_compilationOptions(string& compilOptions, int newOptValue)
     }
 }
 
-void FLEffect::update_remoteMachine(const string& ip, int port){
+void FLEffect::update_remoteMachine(const QString& ip, int port){
     
     fIpMachineRemote = ip;
     fPortMachineRemote = port;
@@ -417,7 +462,7 @@ bool FLEffect::isLocal(){
     return fIsLocal;
 }
 
-string FLEffect::getRemoteIP(){
+QString FLEffect::getRemoteIP(){
     return fIpMachineRemote;
 }
 

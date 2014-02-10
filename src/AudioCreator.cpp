@@ -62,7 +62,7 @@ enum audioArchi{
 
 AudioCreator* AudioCreator::_instance = 0;
 
-AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL){
+AudioCreator::AudioCreator(QString homeFolder, QGroupBox* parent) : QObject(NULL){
 
     fHome = homeFolder;
     fSavingFile = fHome + "/" + SAVINGFILE;
@@ -119,7 +119,7 @@ AudioCreator::AudioCreator(string homeFolder, QGroupBox* parent) : QObject(NULL)
 }
 
 //Returns the instance of the audioCreator
-AudioCreator* AudioCreator::_Instance(string homeFolder, QGroupBox* box){
+AudioCreator* AudioCreator::_Instance(QString homeFolder, QGroupBox* box){
     if(_instance == 0)
         _instance = new AudioCreator(homeFolder, box);
     
@@ -227,7 +227,7 @@ AudioFactory* AudioCreator::createFactory(int index){
     }
 }
 
-AudioSettings* AudioCreator::createAudioSettings(string homeFolder, QGroupBox* parent){
+AudioSettings* AudioCreator::createAudioSettings(QString homeFolder, QGroupBox* parent){
 
 //        printf("AudioCreator::createAudioSettings");
     
@@ -249,7 +249,7 @@ void AudioCreator::readSettings(){
     
     QString boxText;
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
     if(f.open(QFile::ReadOnly)){
         
@@ -278,7 +278,7 @@ void AudioCreator::writeSettings(){
     
     //fSavedSettings = fSettings + Modifier le fichier
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
     QString boxText = fAudioArchi->itemText(fAudioIndex);
     
@@ -293,7 +293,7 @@ void AudioCreator::writeSettings(){
 }
 
 //Accessors to the Settings
-string AudioCreator::get_ArchiName(){
+QString AudioCreator::get_ArchiName(){
     return fCurrentSettings->get_ArchiName();
 }
 

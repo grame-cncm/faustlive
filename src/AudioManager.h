@@ -29,16 +29,16 @@ class AudioManager : public QObject, public audio{
     AudioManager(AudioSettings* as){Q_UNUSED(as);}
     virtual ~AudioManager(){}
     
-    virtual bool initAudio(string& error, const char* name, dsp* DSP, const char* port_name) = 0;
+    virtual bool initAudio(QString& error, const char* name, dsp* DSP, const char* port_name) = 0;
 
-    virtual bool init_FadeAudio(string& error, const char* name, dsp* DSP) = 0;
+    virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP) = 0;
     virtual void start_Fade() = 0;
     virtual void wait_EndFade() = 0;
     
-    virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
-    virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
+    virtual void connect_Audio(QString homeFolder){Q_UNUSED(homeFolder);}
+    virtual void save_Connections(QString homeFolder){Q_UNUSED(homeFolder);}
     
-    virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
+    virtual void change_Connections(QString homeFolder, QList<std::pair<QString, QString> > changeTable){Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
     
     virtual int get_buffer_size() = 0;
     virtual int get_sample_rate() = 0;

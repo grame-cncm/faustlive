@@ -8,7 +8,8 @@
 
 // MAIN OF FAUSTLIVE = Starts the FaustLive Qt Application
 
-#include <libgen.h>
+//#include <libgen.h>
+
 #include <stdlib.h>
 #include <iostream>
 #include <fcntl.h>
@@ -25,27 +26,30 @@ using namespace std;
 
 #include <QFileInfo>
 
+#include <windows.h>
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 
 int main(int argc, char *argv[])
 {   
-    
+   
+	cout<<"I'm doing something"<<endl;
+
     FLApp* app = new FLApp(argc, argv);
     
-    //If app was executed with DSP as arguments
-    for(int i=1; i < argc; i++){
-            string dsp(argv[i]);
+//    If app was executed with DSP as arguments
+    //for(int i=1; i < argc; i++){
+      //      string dsp(argv[i]);
             
-            if(QFileInfo(argv[i]).exists())
-                app->create_New_Window(dsp);
-    }
+        //    if(QFileInfo(argv[i]).exists())
+          //      app->create_New_Window(dsp);
+    //}
     
-    app->exec();
+	app->exec();
     
     delete app;
     
-    return 1;
+    return 0;
 }
 

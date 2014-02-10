@@ -8,7 +8,7 @@
 
 #include "FLExportManager.h"
 
-#include <unistd.h>
+//#include <unistd.h>
 #include <fstream>
 #include <map>
 #include <vector>
@@ -20,7 +20,7 @@
 
 using namespace std;
 
-FLExportManager::FLExportManager(string url, string sessionHome, string file, string filename)
+FLExportManager::FLExportManager(QString url, QString sessionHome, QString file, QString filename)
 {
     std::cerr << "FLExportManager::FLExportManager(...)" << std::endl;
 
@@ -32,7 +32,7 @@ FLExportManager::FLExportManager(string url, string sessionHome, string file, st
     fMessageWindow = new QDialog();
     fMessageWindow ->setWindowFlags(Qt::FramelessWindowHint);
     
-    fServerUrl = QUrl(url.c_str());
+    fServerUrl = QUrl(url);
     fFileToExport = file;
     fFilenameToExport = filename;
     fFilenameToSave = fFilenameToExport + "_";
@@ -184,12 +184,12 @@ void FLExportManager::postExport(){
     QByteArray data;
     
     // Open the file to send
-    QFile file(fFileToExport.c_str());
+    QFile file(fFileToExport);
     if(file.open( QIODevice::ReadOnly)){
         
         data = "--" + boundary + "\r\n";
         data += "Content-Disposition: form-data; name=\"file\"; filename=\"";
-        data += fFilenameToExport.c_str();
+        data += fFilenameToExport;
         data += ".dsp\";\r\nContent-Type: text/plain\r\n\r\n";
         data += file.readAll();
         data += "\r\n--" + boundary + "--\r\n";
@@ -197,7 +197,7 @@ void FLExportManager::postExport(){
 //    printf("DATA TO SEND = %s\n", data.data());
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-    requete.setRawHeader("Content-Length", QString::number(data.size()).toAscii());
+    requete.setRawHeader("Content-Length", QString::number(data.size()).toLatin1());
     
     QNetworkReply *r = m->post(requete, data);
     
@@ -214,12 +214,12 @@ void FLExportManager::readKey(){
         
         fStep++;
         
-        string ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Images/";
-        string pathCheck = ImagesPath + "Check.png";
+        QString ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + "/Resources/Images/";
+        QString pathCheck = ImagesPath + "Check.png";
         
-        if(QFileInfo(pathCheck.c_str()).exists()){
+        if(QFileInfo(pathCheck).exists()){
             
-            QPixmap checkImg(pathCheck.c_str());    
+            QPixmap checkImg(pathCheck);    
             fCheck1->setPixmap(checkImg);
         }
         
@@ -240,12 +240,12 @@ void FLExportManager::networkError(QNetworkReply::NetworkError /*msg*/){
     
 //    printf("NETWORK ERROR CODE = %i\n", msg);
     
-    string ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Images/";
+    QString ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + "/Resources/Images/";
     
-    string pathNotCheck = ImagesPath + "NotCheck.png";
-    QPixmap notCheckImg(pathNotCheck.c_str());
+    QString pathNotCheck = ImagesPath + "NotCheck.png";
+    QPixmap notCheckImg(pathNotCheck);
     
-    if(QFileInfo(pathNotCheck.c_str()).exists()){
+    if(QFileInfo(pathNotCheck).exists()){
         
         printf("Path existed\n");
         
@@ -276,15 +276,15 @@ void FLExportManager::getFileFromKey(const char* key){
     urlString += "/";
     
     urlString += fExportPlatform->currentText();
-    fFilenameToSave += fExportPlatform->currentText().toStdString();
+    fFilenameToSave += fExportPlatform->currentText();
     urlString += "/";
     fFilenameToSave += "_";
     urlString += fExportArchi->currentText();
-    fFilenameToSave += fExportArchi->currentText().toStdString();
+    fFilenameToSave += fExportArchi->currentText();
     urlString += "/";
     fFilenameToSave += "_";
     urlString += fExportChoice->currentText();
-    fFilenameToSave += fExportChoice->currentText().toStdString();
+    fFilenameToSave += fExportChoice->currentText();
     
     printf("urlRequest = %s\n", urlString.toStdString().c_str());
     const QUrl url = QUrl(urlString);
@@ -302,15 +302,15 @@ void FLExportManager::getFileFromKey(const char* key){
 void FLExportManager::saveFileOnDisk(){
     
     QFileDialog* fileDialog = new QFileDialog;
-    string toSaveDirectory = fileDialog->getExistingDirectory().toStdString();
+    QString toSaveDirectory = fileDialog->getExistingDirectory();
     
-    string toSaveFile = toSaveDirectory + "/" + fFilenameToSave;
+    QString toSaveFile = toSaveDirectory + "/" + fFilenameToSave;
     
 //        printf("toSaveFile = %s\n", toSaveFile.c_str());
     
     if(toSaveDirectory != ""){
         
-        QFile f(toSaveFile.c_str()); //On ouvre le fichier
+        QFile f(toSaveFile); //On ouvre le fichier
         
         if ( f.open(QIODevice::WriteOnly) )
         {
@@ -324,16 +324,16 @@ void FLExportManager::saveFileOnDisk(){
 //Dynamic changes of the available architectures depending on platform
 void FLExportManager::platformChanged(const QString& index)
 {
-    printf("INDEX = %s\n", index.toStdString().c_str());
+    printf("INDEX = %s\n", index.toLatin1().data());
     
     fExportArchi->hide();
     fExportArchi->clear();
 
-    vector<string> architectures = fTargets[index.toStdString()];
+	vector<string> architectures = fTargets[index.toStdString()];
     vector<string>::iterator it;
     
     for (it = architectures.begin(); it!=architectures.end(); it++) {
-        fExportArchi->addItem((*it).c_str());
+		fExportArchi->addItem((*it).c_str());
     }
     fExportArchi->show();
 }
@@ -395,18 +395,18 @@ void FLExportManager::showSaveB(){
     
         fDataReceived = response->readAll();
     
-        string ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + "/Resources/Images/";
+        QString ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + "/Resources/Images/";
         
-        string pathCheck = ImagesPath + "Check.png";
-        QPixmap checkImg(pathCheck.c_str());
+        QString pathCheck = ImagesPath + "Check.png";
+        QPixmap checkImg(pathCheck);
         
-        if(QFileInfo(pathCheck.c_str()).exists()){
+        if(QFileInfo(pathCheck).exists()){
             fCheck2->setPixmap(checkImg);
             fCheck2->show();
         }
         delete fPrgBar;
         
-        QString sucessMsg = fFilenameToSave.c_str();
+        QString sucessMsg = fFilenameToSave;
         sucessMsg += " was successfully exported";
         
         QTextEdit* textZone = new QTextEdit;
