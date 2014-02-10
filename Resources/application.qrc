@@ -27,5 +27,13 @@
 	<file>Examples/stereoecho.dsp</file>
 <file>Examples/wahwah.dsp</file>
 	<file>Examples/zita_rev1.dsp</file>
+	<file>Libs/effect.lib</file>
+<file>Libs/filter.lib</file>
+<file>Libs/hoa.lib</file>
+<file>Libs/math.lib</file>
+<file>Libs/maxmsp.lib</file>
+<file>Libs/music.lib</file>
+<file>Libs/oscillator.lib</file>
+<file>Libs/reduce.lib</file>
 </qresource>
 </RCC>

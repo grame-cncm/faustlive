@@ -36,8 +36,8 @@ class AudioCreator : public QObject{
     
         int             fAudioIndex;        //Audio architecture currently used
     
-        string          fHome;              //HomeFolder where to save the settings
-        string          fSavingFile;        //File saving the audio architecture used
+        QString          fHome;              //HomeFolder where to save the settings
+        QString          fSavingFile;        //File saving the audio architecture used
     
         static AudioCreator*    _instance;
     
@@ -63,19 +63,19 @@ class AudioCreator : public QObject{
         void            setCurrentSettings(int index);
     
     public :
-                        AudioCreator(string homeFolder, QGroupBox* parent);
+                        AudioCreator(QString homeFolder, QGroupBox* parent);
         virtual         ~AudioCreator();
     
     //Returns the instance of the audioCreator
-        static AudioCreator*   _Instance(string homeFolder, QGroupBox* box);
+        static AudioCreator*   _Instance(QString homeFolder, QGroupBox* box);
     
     //Creates an audioManager depending on the current Audio Architecture
         AudioFactory*   createFactory(int index);
         AudioManager*   createAudioManager(AudioSettings* audioParameters);
-        AudioSettings*  createAudioSettings(string homeFolder, QGroupBox* parent);
+        AudioSettings*  createAudioSettings(QString homeFolder, QGroupBox* parent);
     
     //Accessors to the settings
-        string          get_ArchiName();
+        QString          get_ArchiName();
         AudioSettings*  getCurrentSettings();
         AudioSettings*  getNewSettings();
         bool            didSettingChanged();

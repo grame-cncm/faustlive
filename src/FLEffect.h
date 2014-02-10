@@ -32,11 +32,11 @@ class FLEffect : public QObject
         bool                fRecalled;
     
     //File holding the Faust Code
-        string              fSource;  
+        QString              fSource;  
     //Name of the effect 
-        string              fName;       
+        QString              fName;       
     //Compilation Options of the Faust compiler
-        string              fCompilationOptions; 
+        QString              fCompilationOptions; 
     //Optimization value for the llvm compilation
         int                 fOpt_level;      
        
@@ -59,15 +59,15 @@ class FLEffect : public QObject
     
     
     //The compilation options are decomposed in a table
-        int         get_numberParameters(const string& compilOptions);
-        //Extract the first sub-string in the compilOptions
-        string     parse_compilationParams(string& compilOptions);
+        int         get_numberParameters(const QString& compilOptions);
+        //Extract the first sub-QString in the compilOptions
+        QString     parse_compilationParams(QString& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-        bool        buildFactory(llvm_dsp_factory** factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder); 
+        bool        buildFactory(llvm_dsp_factory** factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder); 
     
     public:
-        FLEffect(bool recallVal, string sourceFile, string name = "");
+        FLEffect(bool recallVal, QString sourceFile, QString name = "");
         ~FLEffect();
     
     //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
@@ -75,26 +75,26 @@ class FLEffect : public QObject
     //currentIRFolder = where to save the bitcode tied to the factory
     //Compilation Options = needed to build the llvm factory
     //Error = if the initialisation fails, the function returns false + the buffer is filled
-        bool        init(string currentSVGFolder, string currentIRFolder , string compilationMode, int optVal, string& error);
+        bool        init(QString currentSVGFolder, QString currentIRFolder , QString compilationMode, int optVal, QString& error);
     
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
     //Re-Build of the factory from the source file
-        bool        update_Factory(string& error, string currentSVGFolder, string currentIRFolder);
+        bool        update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted
         void        erase_OldFactory();
     
     //Accessors to source, name, watcher, ...
-        string      getSource();
-        void        setSource(string file);
+        QString      getSource();
+        void        setSource(QString file);
     
         QDateTime   get_creationDate();
         
-        string      getName();
-        void        setName(string name);
+        QString      getName();
+        void        setName(QString name);
     
-        string      getCompilationOptions();
-        void        update_compilationOptions(string& compilOptions, int newOptValue);
+        QString      getCompilationOptions();
+        void        update_compilationOptions(QString& compilOptions, int newOptValue);
     
         int         getOptValue();
     
@@ -105,7 +105,7 @@ class FLEffect : public QObject
         void        launch_Watcher();
     
     //The source file is copied in the sourceFolder in case of a source loss
-//        void        copySourceFile(string& sourceFolder);
+//        void        copySourceFile(QString& sourceFolder);
             
     signals :     
     //When the watcher locates a modification on the file, the signal is emited

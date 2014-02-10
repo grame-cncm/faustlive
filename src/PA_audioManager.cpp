@@ -30,7 +30,7 @@ PA_audioManager::~PA_audioManager(){
 }
 
 //INIT/START/STOP on Current PortAudio
-bool PA_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool PA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
     if(fCurrentAudio->init(name, DSP))
         return true;
@@ -53,7 +53,7 @@ void PA_audioManager::stop(){
 }
 
 //Init new dsp, that will fade in current audio
-bool PA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
+bool PA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
 
     printf("PA_audioManager::init_FadeAudio\n");
     
@@ -88,4 +88,10 @@ void PA_audioManager::wait_EndFade(){
     delete fFadeInAudio;
 }
 
-
+int PA_audioManager::get_buffer_size(){
+	return 512;
+}
+ 
+int PA_audioManager::get_sample_rate(){
+	return 44100;
+}

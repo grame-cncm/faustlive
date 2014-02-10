@@ -30,13 +30,13 @@ class FLExportManager : public QObject{
         
         QUrl                fServerUrl;         //Web Service URL        
     
-        vector<string>                  fPlatforms;     // list of available export platforms
-        map<string, vector<string> >    fTargets;       // plateform -> available targets
+        vector<std::string>                  fPlatforms;     // list of available export platforms
+        map<std::string, vector<std::string> >    fTargets;       // plateform -> available targets
 
-        string              fHome;
-        string              fFileToExport;
-        string              fFilenameToExport;
-        string              fFilenameToSave;
+        QString              fHome;
+        QString              fFileToExport;
+        QString              fFilenameToExport;
+        QString              fFilenameToSave;
     
     //Export graphical parameters 
     
@@ -67,11 +67,11 @@ class FLExportManager : public QObject{
         int                 fStep;  // To know what step has crashed the export
     
         void                display_progress();
-        void                continueProgress(QCheckBox* toCheckBox , string followingMsg);
+        void                continueProgress(QCheckBox* toCheckBox , QString followingMsg);
     
     public :
     
-        FLExportManager(string url, string sessionHome, string file, string filename);
+        FLExportManager(QString url, QString sessionHome, QString file, QString filename);
         virtual ~FLExportManager();
     
         void init();

@@ -35,7 +35,7 @@ class PA_audioSettings : public AudioSettings{
     QLineEdit*       fBufSize;
     
     public :
-        PA_audioSettings(std::string home, QGroupBox* parent);
+        PA_audioSettings(QString home, QGroupBox* parent);
     
         virtual ~PA_audioSettings();
     
@@ -47,7 +47,7 @@ class PA_audioSettings : public AudioSettings{
         virtual bool isEqual(AudioSettings* as);
         long    get_BufferSize();
         long    get_SampleRate();
-        virtual std::string get_ArchiName();
+        virtual QString get_ArchiName();
 };
 
 #endif

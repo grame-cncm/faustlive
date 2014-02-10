@@ -18,7 +18,7 @@ PA_audioFactory::PA_audioFactory(){}
 PA_audioFactory::~PA_audioFactory(){}
 
 //Creates Settings, corresponding to a JackAudio object
-AudioSettings* PA_audioFactory::createAudioSettings(string homeFolder, QGroupBox* parent){
+AudioSettings* PA_audioFactory::createAudioSettings(QString homeFolder, QGroupBox* parent){
     
     return new PA_audioSettings(homeFolder, parent);
     

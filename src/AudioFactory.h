@@ -26,7 +26,7 @@ class AudioFactory{
         AudioFactory(){}
         virtual ~AudioFactory(){}
 
-    virtual AudioSettings* createAudioSettings(std::string homeFolder, QGroupBox* parent) = 0;
+    virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent) = 0;
         virtual AudioManager* createAudioManager(AudioSettings* audioParameters) = 0;
     
 };

@@ -47,19 +47,19 @@ class FLToolBar : public QToolBar{
     FLToolBar(QWidget* parent = NULL);
     ~FLToolBar();
     
-    void setOptions(string options);
+    void setOptions(QString options);
     void setVal(int value);
     void setPort(int port);
     void setPortOsc(int port);
     
-    string getOptions();
+    QString getOptions();
     int getVal();
     int getPort();
     int getPortOsc();
     
     void    remoteFailed(bool fromNotToRemote);
     
-    void    setRemoteButtonName(const string& name);
+    void    setRemoteButtonName(const QString& name);
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);
@@ -68,7 +68,7 @@ public slots:
     
     signals :
     
-       void  modified(const string& option, int val, int port, int portOsc);
+       void  modified(const QString& option, int val, int port, int portOsc);
         void sizeGrowth();
         void sizeReduction();
         void update_Menu(QMenu*);

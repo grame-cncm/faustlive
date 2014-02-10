@@ -116,9 +116,9 @@ void FLToolBar::openRemoteBox(){
 
 }
 
-void FLToolBar::setRemoteButtonName(const string& name){
+void FLToolBar::setRemoteButtonName(const QString& name){
     
-    fRemoteButton->setText(name.c_str());
+    fRemoteButton->setText(name);
 }
 
 //Reaction to a click cancellation
@@ -148,25 +148,25 @@ FLToolBar::~FLToolBar(){}
 //Reaction to enter one of the QlineEdit
 void FLToolBar::modifiedOptions(){
     
-    string text = fOptionLine->text().toStdString();
+    QString text = fOptionLine->text();
     
     int value = 3;
     
-    string val = fOptValLine->text().toStdString();
-    if(isStringInt(val.c_str()))
-        value = atoi(val.c_str());
+    QString val = fOptValLine->text();
+	if(isStringInt(val.toLatin1().data()))
+        value = atoi(val.toStdString().c_str());
     
     int port = 5510;
     
-    string portText = fPortLine->text().toStdString();
-    if(isStringInt(portText.c_str()))
-        port = atoi(portText.c_str());
+    QString portText = fPortLine->text();
+	if(isStringInt(portText.toStdString().c_str()))
+		port = atoi(portText.toStdString().c_str());
     
     int portOsc = 5510;
     
-    string portOscText = fPortOscLine->text().toStdString();
-    if(isStringInt(portOscText.c_str()))
-        portOsc = atoi(portOscText.c_str());
+    QString portOscText = fPortOscLine->text();
+	if(isStringInt(portOscText.toStdString().c_str()))
+		portOsc = atoi(portOscText.toStdString().c_str());
     
 //    printf("value = %i// text = %s\n", value, text.c_str());
     
@@ -174,12 +174,12 @@ void FLToolBar::modifiedOptions(){
 }
 
 //Accessors to FLToolBar values
-void FLToolBar::setOptions(string options){
-    fOptionLine->setText(options.c_str());
+void FLToolBar::setOptions(QString options){
+    fOptionLine->setText(options);
 }
 
-string FLToolBar::getOptions(){
-    return fOptionLine->text().toStdString();
+QString FLToolBar::getOptions(){
+    return fOptionLine->text();
 }
 
 void FLToolBar::setVal(int value){
@@ -192,18 +192,18 @@ void FLToolBar::setVal(int value){
 
 int FLToolBar::getVal(){
     
-    string val = fOptValLine->text().toStdString();
-    if(isStringInt(val.c_str()))
-        return atoi(val.c_str());
+    QString val = fOptValLine->text();
+	if(isStringInt(val.toStdString().c_str()))
+		return atoi(val.toStdString().c_str());
     else
         return 0;
 }
 
 int FLToolBar::getPort(){
     
-    string val = fPortLine->text().toStdString();
-    if(isStringInt(val.c_str()))
-        return atoi(val.c_str());
+    QString val = fPortLine->text();
+	if(isStringInt(val.toStdString().c_str()))
+		return atoi(val.toStdString().c_str());
     else
         return 0;
 }
@@ -218,9 +218,9 @@ void FLToolBar::setPort(int port){
 
 int FLToolBar::getPortOsc(){
     
-    string val = fPortOscLine->text().toStdString();
-    if(isStringInt(val.c_str()))
-        return atoi(val.c_str());
+    QString val = fPortOscLine->text();
+	if(isStringInt(val.toStdString().c_str()))
+		return atoi(val.toStdString().c_str());
     else
         return 0;
 }

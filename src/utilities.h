@@ -10,9 +10,9 @@
 
 using namespace std;
 
-string pathToContent(string path);
+QString pathToContent(QString path);
 
-bool deleteDirectoryAndContent(string& directory);
+bool deleteDirectoryAndContent(QString& directory);
 
 bool rmDir(const QString &dirPath);
 

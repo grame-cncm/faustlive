@@ -16,7 +16,7 @@
 
 /***********************************EFFECT IMPLEMENTATION*********************************/
 
-FLEffect::FLEffect(bool recallVal, string sourceFile, string name){
+FLEffect::FLEffect(bool recallVal, QString sourceFile, QString name){
     
     fFactory = NULL;
     fOldFactory = NULL;
@@ -43,9 +43,9 @@ FLEffect::~FLEffect(){
 //Compilation Options = needed to build the llvm factory
 //Error = if the initialisation fails, the function returns false + the buffer is filled
 
-bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string compilationMode, int optValue, string& error){
+bool FLEffect::init(QString currentSVGFolder, QString currentIRFolder ,QString compilationMode, int optValue, QString& error){
     
-    printf("FICHIER SOURCE = %s\n", fSource.c_str());
+    printf("FICHIER SOURCE = %s\n", fSource.toLatin1().data());
     
     fCompilationOptions = compilationMode;
     fOpt_level = optValue;
@@ -71,39 +71,50 @@ bool FLEffect::init(string currentSVGFolder, string currentIRFolder ,string comp
 //---------------FACTORY ACTIONS
 
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
-bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder){
     
     //+2 = Path to DSP + -svg to build the svg Diagram
-    int argc = 2 + get_numberParameters(fCompilationOptions);
-    
+//    int argc = 2 + get_numberParameters(fCompilationOptions);
+//   
+//    char ** argv;
+//    argv = new char*[argc];
+//    
+//    //Parsing the compilationOptions from a string to a char**
+//    QString copy = fCompilationOptions;
+//    for(int i=2; i<argc; i++){
+//        
+//        QString parseResult = parse_compilationParams(copy);
+//        argv[i] = new char[parseResult.length()+1];
+//        strcpy(argv[i], parseResult.toLatin1().data());
+//    }
+//    
+//    argv[0] = new char[fSource.length() + 1];
+//    strcpy(argv[0], fSource.toLatin1().data());
+//    argv[1] = new char[5];
+//    strcpy(argv[1], "-svg");
+//    
+//    const char** argument = (const char**) argv;
+
+	int argc = 1;
     char ** argv;
     argv = new char*[argc];
-    
-    //Parsing the compilationOptions from a string to a char**
-    string copy = fCompilationOptions;
-    for(int i=2; i<argc; i++){
-        
-        string parseResult = parse_compilationParams(copy);
-        argv[i] = new char[parseResult.length()+1];
-        strcpy(argv[i], parseResult.c_str());
-    }
-    
-    argv[0] = new char[fSource.length() + 1];
-    strcpy(argv[0], fSource.c_str());
-    argv[1] = new char[5];
-    strcpy(argv[1], "-svg");
-    
-    
-    const char** argument = (const char**) argv;
-    
+
+	argv[0] = new char[fSource.length() + 1];
+    strcpy(argv[0], fSource.toLatin1().data());
+
+	const char** argument = (const char**) argv;
+
+
     //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
     char libraryPath[256];
     
 #ifdef __APPLE__
-    snprintf(libraryPath, 255, "%s%s", QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
+    snprintf(libraryPath, 255, "%s%s", QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString(), LIBRARY_PATH);
 #endif
 #ifdef __linux__
-    snprintf(libraryPath, 255, "%s%s", QFileInfo( QCoreApplication::applicationFilePath()).absolutePath().toStdString().c_str(), LIBRARY_PATH);
+    snprintf(libraryPath, 255, "%s%s", QFileInfo( QCoreApplication::applicationFilePath()).absolutePath().toStdString(), LIBRARY_PATH);
+#else
+	strcpy(libraryPath, ":\Libs");
 #endif
     
     QString testtest(libraryPath);
@@ -113,12 +124,12 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
         printf("LIBRARY EXISTS\n");
 //    printf("libraryPath = %s\n", libraryPath);
     
-    string path = currentIRFolder + "/" + fName;
-    printf("PATH TO IR = %s\n", path.c_str());
+    QString path = currentIRFolder + "/" + fName;
+	printf("PATH TO IR = %s\n", path.toLatin1().data());
     
     //To speed up the process of compilation, when a session is recalled, the DSP are re-compiled from Bitcode 
-    if(fRecalled && QFileInfo(path.c_str()).exists()){        
-        *factoryToBuild = readDSPFactoryFromBitcodeFile(path, "");
+    if(fRecalled && QFileInfo(path).exists()){        
+        *factoryToBuild = readDSPFactoryFromBitcodeFile(path.toLatin1().data(), "");
         
         printf("factory from IR = %p\n", *factoryToBuild);
     }
@@ -130,12 +141,13 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
         printf("ABOUT TO BUILD with = %s\n", libraryPath);
         
         std::string getError;
+		std::string pathLibs = "C:\Users\Sarah\faudiostream-faustlive\Resources\Libs";
+
+		*factoryToBuild = createDSPFactory(argc , argument, pathLibs, currentSVGFolder.toStdString(), "", "", "", getError, fOpt_level);
         
-        *factoryToBuild = createDSPFactory(argc , argument, libraryPath, currentSVGFolder, string(""), string(""), string(""), getError, fOpt_level);
+        error = getError.c_str();
         
-        error = getError;
-        
-        printf("ERROR OF FACTORY BUILD = %s\n", error.c_str());
+        printf("ERROR OF FACTORY BUILD = %s\n", error.toLatin1().data());
         
         delete [] argv;
         
@@ -144,12 +156,12 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
         
         if(*factoryToBuild != NULL){
             
-            if(!QFileInfo(currentIRFolder.c_str()).exists()){
-                QDir direct(currentIRFolder.c_str());
-                direct.mkdir(currentIRFolder.c_str());
+            if(!QFileInfo(currentIRFolder).exists()){
+                QDir direct(currentIRFolder);
+                direct.mkdir(currentIRFolder);
             }
             //The Bitcode files are written at each compilation 
-            writeDSPFactoryToBitcodeFile(*factoryToBuild, path);
+			writeDSPFactoryToBitcodeFile(*factoryToBuild, path.toStdString());
             
             return true;
         }
@@ -167,20 +179,20 @@ bool FLEffect::buildFactory(llvm_dsp_factory** factoryToBuild, string& error, st
 
 
 //Get number of compilation options
-int FLEffect::get_numberParameters(const string& compilOptions){
+int FLEffect::get_numberParameters(const QString& compilOptions){
     
-    string copy = compilOptions;
+    QString copy = compilOptions;
     
     int argc = 0;
     int pos = 0;
     
-    if(copy.find("-") == string::npos){
+	if(copy.indexOf("-") == -1){
         return 0;
     }
     
-    while(copy.find(" ", pos+1) != string::npos){
+    while(copy.indexOf(" ", pos+1) != -1){
         argc++;
-        pos = copy.find(" ", pos+1);
+        pos = copy.indexOf(" ", pos+1);
     }
     
     return argc+1;
@@ -190,25 +202,25 @@ int FLEffect::get_numberParameters(const string& compilOptions){
 //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway.
 //Returns : the first option found
 //CompilOptions : the rest of the options are kept in
-string FLEffect::parse_compilationParams(string& compilOptions){
+QString FLEffect::parse_compilationParams(QString& compilOptions){
     
-    string returning = "";
+    QString returning = "";
     
-    size_t pos = compilOptions.find(" ");
+    size_t pos = compilOptions.indexOf(" ");
     
-    if(pos != string::npos){
-        returning = compilOptions.substr(0, pos);
-        compilOptions.erase(0, pos+1);
+    if(pos != -1){
+        returning = compilOptions.mid(0, pos);
+        compilOptions.remove(0, pos+1);
     }
     else if(compilOptions.compare("") != 0)
-        returning = compilOptions.substr(0, compilOptions.length());
+        returning = compilOptions.mid(0, compilOptions.length());
     
     return returning;
 }
 
 
 //Re-Build of the factory from the source file
-bool FLEffect::update_Factory(string& error, string currentSVGFolder, string currentIRFolder){
+bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder){
     
     fOldFactory = fFactory;
     
@@ -253,24 +265,24 @@ void FLEffect::effectModified(){
 }
 
 void FLEffect::stop_Watcher(){
-    printf("PATH STOP WATCHING = %s\n", fSource.c_str());
-    fWatcher->removePath(fSource.c_str());
+    printf("PATH STOP WATCHING = %s\n", fSource.toLatin1().data());
+    fWatcher->removePath(fSource);
 }
 
 void FLEffect::launch_Watcher(){
     
-    printf("PATH WATCHED= %s\n", fSource.c_str());
+    printf("PATH WATCHED= %s\n", fSource.toLatin1().data());
     
-    fWatcher->addPath(fSource.c_str());
+    fWatcher->addPath(fSource);
 }
 
 //--------------ACCESSORS
 
-string FLEffect::getSource(){
+QString FLEffect::getSource(){
     return fSource;
 }
 
-void FLEffect::setSource(string file){
+void FLEffect::setSource(QString file){
     fSource = file;
 }
 
@@ -278,12 +290,12 @@ QDateTime FLEffect::get_creationDate(){
     return fCreationDate;
 }
 
-string FLEffect::getName(){
+QString FLEffect::getName(){
     
     return fName; 
 }
 
-void FLEffect::setName(string name){
+void FLEffect::setName(QString name){
     fName = name;
 }
 
@@ -291,11 +303,11 @@ llvm_dsp_factory* FLEffect::getFactory(){
     return fFactory;
 }
 
-string FLEffect::getCompilationOptions(){
+QString FLEffect::getCompilationOptions(){
     return fCompilationOptions;
 }
 
-void FLEffect::update_compilationOptions(string& compilOptions, int newOptValue){
+void FLEffect::update_compilationOptions(QString& compilOptions, int newOptValue){
     if(fCompilationOptions.compare(compilOptions) !=0 || fOpt_level != newOptValue){
         fCompilationOptions = compilOptions;
         fOpt_level = newOptValue;   
