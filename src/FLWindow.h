@@ -27,13 +27,13 @@
 #include "faust/gui/FUI.h"
 
 #include "FLEffect.h"
-//#include "HTTPWindow.h"
+#include "HTTPWindow.h"
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
 class QTGUI;
 class FLToolBar;
-//class OSCUI;
+class OSCUI;
 class FLWindow;
 class remote_dsp_factory;
 
@@ -66,10 +66,10 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
-//        OSCUI*          fOscInterface;      //OSC interface 
+        OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-        //HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 

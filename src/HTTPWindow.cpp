@@ -10,8 +10,8 @@
 
 #include "HTTPWindow.h"
 
-#include <string.h>
-#include <string>
+//#include <string.h>
+//#include <string>
 #include <iostream>
 #include <sstream>
 #include <qrencode.h>
@@ -41,9 +41,9 @@ HTTPWindow::~HTTPWindow(){
 }
 
 //Returns the httpdUI url
-string HTTPWindow::getUrl(){
+QString HTTPWindow::getUrl(){
     
-    string url = "http://" + fEntireAddress;
+    QString url = "http://" + fEntireAddress;
     
     return url;
 }
@@ -57,7 +57,7 @@ int HTTPWindow::get_Port(){
 }
 
 //Build QRCode Window from url
-void HTTPWindow::displayQRCode(string url){
+void HTTPWindow::displayQRCode(QString url){
     
     QWidget* centralWidget = new QWidget;
     setCentralWidget(centralWidget);
@@ -66,7 +66,7 @@ void HTTPWindow::displayQRCode(string url){
     
     //Construction of the flashcode
     const int padding = 5;
-    QRcode* qrc = QRcode_encodeString(url.c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+    QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
     
     //   qDebug() << "QRcode width = " << qrc->width;
     
@@ -102,12 +102,12 @@ void HTTPWindow::displayQRCode(string url){
     //    myBro->document()->setDefaultStyleSheet(sheet);
     //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
     
-    string text("<br>Connect You To");
+    QString text("<br>Connect You To");
     text += "<br><a href = http://" + url + ">"+ url+"</a>";
     text += "<br>Or Flash the code below";
     
     myBro->setOpenExternalLinks(true);
-    myBro->setHtml(text.c_str());
+    myBro->setHtml(text);
     myBro->setAlignment(Qt::AlignCenter);
     myBro->setFixedWidth(qrc->width*8);
     //    myBro->setFixedHeight(myBro->minimumHeight());
@@ -121,9 +121,9 @@ void HTTPWindow::displayQRCode(string url){
 }
 
 //Brings window on front end and titles the window
-void HTTPWindow::frontShow_Httpd(string windowTitle){
+void HTTPWindow::frontShow_Httpd(QString windowTitle){
     
-    setWindowTitle(windowTitle.c_str());
+    setWindowTitle(windowTitle);
     raise();
     show();
     adjustSize();
@@ -134,21 +134,21 @@ void HTTPWindow::display_HttpdWindow(int x, int y, int port){
    
     move(x, y);
     
-    stringstream s, p;
-    s<<fInterface->getTCPPort();
+//    stringstream s, p;
+//    s<<fInterface->getTCPPort();
+//    
+//    p<<port;
     
-    p<<port;
-    
-    string url;
+    QString url;
     url = fIPaddress;
     url+=":";
-    url += p.str();
+    url += port;
     url += "/";
-    url += s.str();
+    url += fInterface->getTCPPort();
     
     fEntireAddress = fIPaddress;
     fEntireAddress += ":";
-    fEntireAddress += s.str();
+    fEntireAddress += fInterface->getTCPPort();
     
     displayQRCode(url);
     frontShow_Httpd(fTitle);   
@@ -165,11 +165,11 @@ void HTTPWindow::hide_httpdWindow(){
 //Search for local IP adress and stores it in fIPaddress
 void HTTPWindow::search_IPadress(){
     
-    fIPaddress = searchLocalIP().toStdString();
+    fIPaddress = searchLocalIP();
 }
 
 //Build Remote control interface
-bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* current_DSP, int port){
+bool HTTPWindow::build_httpdInterface(QString& error, QString windowTitle, dsp* current_DSP, int port){
     
     //Allocation of HTTPD interface
     if(fInterface != NULL) delete fInterface;
@@ -179,12 +179,12 @@ bool HTTPWindow::build_httpdInterface(string& error, string windowTitle, dsp* cu
     stringstream s;
     s<<port;
     
-    string optionPort = "-port";
+    QString optionPort = "-port";
     
     char* argv[3];
 
-    argv[0] = (char*)(fTitle.c_str());
-    argv[1] = (char*)(optionPort.c_str());
+    argv[0] = (char*)(fTitle.toLatin1().data());
+    argv[1] = (char*)(optionPort.toLatin1().data());
     argv[2] = (char*)(s.str().c_str());
 
     fInterface = new httpdUI(argv[0], 3, argv);
@@ -209,12 +209,12 @@ void HTTPWindow::launch_httpdInterface(){
 //Exports QRCode to PNG
 void HTTPWindow::toPNG(){
     
-    string fileName = getenv("HOME");
+    QString fileName = getenv("HOME");
     fileName +="/Desktop/";
     fileName += fTitle;
     fileName += ".png";
     
-    QFile file(fileName.c_str());
+    QFile file(fileName);
     file.open(QIODevice::WriteOnly);
     fQrCode.save(&file, "PNG");
 }

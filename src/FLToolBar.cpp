@@ -275,22 +275,22 @@ void FLToolBar::update_remoteMachine(){
     string toto(action->text().toStdString());
     
     //    If the server is the same, there is no update
-    if(fIpRemoteServer.compare(((*fIPToHostName)[toto]).first) == 0)
+    if((fIpRemoteServer.toStdString()).compare(((*fIPToHostName)[toto]).first) == 0)
         return;
     else{
         
         fFormerIp = fIpRemoteServer;
         fFormerPort = fPortRemoteServer;
-        fFormerName = fRemoteButton->text().toStdString();
+        fFormerName = fRemoteButton->text();
         
-        fIpRemoteServer = (*fIPToHostName)[toto].first;
+        fIpRemoteServer = (*fIPToHostName)[toto].first.c_str();
         fPortRemoteServer = (*fIPToHostName)[toto].second;
         
-        printf("IP clicked = %s || %i\n", fIpRemoteServer.c_str(), fPortRemoteServer);
+        printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
         
         emit switchMachine(fIpRemoteServer, fPortRemoteServer);
         
-        setRemoteButtonName(toto);
+        setRemoteButtonName(toto.c_str());
     }
     
 #endif

@@ -20,7 +20,7 @@ class NJ_audioFactory : public AudioFactory{
     NJ_audioFactory();
     ~NJ_audioFactory();
     
-    virtual AudioSettings* createAudioSettings(std::string homeFolder, QGroupBox* parent);
+    virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent);
     virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
 };
 

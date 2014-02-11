@@ -20,7 +20,7 @@ class CA_audioFactory : public AudioFactory{
         CA_audioFactory();
         ~CA_audioFactory();
 
-    virtual AudioSettings* createAudioSettings(std::string homeFolder, QGroupBox* parent);
+    virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent);
         virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
 };
 

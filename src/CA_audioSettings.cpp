@@ -10,7 +10,7 @@
 #include <sstream>
 #include "utilities.h"
 
-CA_audioSettings::CA_audioSettings(string home, QGroupBox* parent) : AudioSettings(home, parent){
+CA_audioSettings::CA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){
     
     fSavingFile = home + "/" + CA_SAVINGFILE;
     
@@ -85,7 +85,7 @@ void CA_audioSettings::storeVisualSettings(){
 //Write or Read Settings in a File
 void CA_audioSettings::writeSettings(){
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
@@ -99,9 +99,9 @@ void CA_audioSettings::writeSettings(){
 
 void CA_audioSettings::readSettings(){
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
-    if(QFileInfo(fSavingFile.c_str()).exists() && f.open(QFile::ReadOnly)){
+    if(QFileInfo(fSavingFile).exists() && f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
         textReading>>fBufferSize;
@@ -150,7 +150,7 @@ bool CA_audioSettings::isEqual(AudioSettings* as){
 }
 
 //Accessor to ArchitectureName
-string CA_audioSettings::get_ArchiName(){
+QString CA_audioSettings::get_ArchiName(){
     return "CoreAudio";
 }
 

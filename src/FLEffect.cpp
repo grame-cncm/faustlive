@@ -92,42 +92,43 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     
     int numberFixedParams = 7;
     
-    //+5 = -i libraryPath -O drawPath -svg
+    //+5 = -I libraryPath -O drawPath -svg
     int argc = 7 + get_numberParameters(fCompilationOptions);
     
-    const char** argv = new const char*[argc];
+    const char* argv[argc];
     
     argv[0] = "-I";
 
     //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
 #ifdef __APPLE__
-    QString libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + LIBRARY_PATH;
-	argv[1] = libPath.toLatin1();
-#elseif __linux__
+    string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
+	argv[1] = libPath.c_str();
+    printf("ARGV 1 = %s\n", argv[1]);
+#elif __linux__
     
     QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-    argv[1] = libPath.toLatin1();
+    argv[1] = libPath.toLatin1().data();
 #else    
 	QString libPath = "C:\Users\Sarah\faudiostream-faustlive\Resources\Libs";
-	argv[1] = libPath.toLatin1();
+	argv[1] = libPath.toLatin1().data();
 #endif
 
     argv[2] = "-I";    
     QString sourcePath = QFileInfo(fSource).absolutePath();
     
-	argv[3] = sourcePath.toLatin1();
+	argv[3] = sourcePath.toLatin1().data();
     argv[4] = "-O";
-    argv[5] = currentSVGFolder.toLatin1();
+    argv[5] = currentSVGFolder.toLatin1().data();
     argv[6] = "-svg";
     
-    printf("ARGV 1 = %s || ARGV 3 = %s\n", argv[1], argv[3]);
+    printf("ARGV 1 = %s || %s || %s \n", argv[1], argv[3], argv[5]);
     
     //Parsing the compilationOptions from a string to a char**
     QString copy = fCompilationOptions;
     for(int i=numberFixedParams; i<argc; i++){
         
         QString parseResult = parse_compilationParams(copy);
-        argv[i] = parseResult.toLatin1();
+        argv[i] = parseResult.toLatin1().data();
     }
     
 //    const char** argument = (const char**) argv;
@@ -169,14 +170,14 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
 #ifdef REMOTE
         else{
          
-            printf("IP = %s\n", fIpMachineRemote.c_str());
+            printf("IP = %s\n", fIpMachineRemote.toLatin1().data());
             
-            buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource, argc, argv, fIpMachineRemote, fPortMachineRemote, getError, fOpt_level);
+            buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource.toStdString(), argc, argv, fIpMachineRemote.toStdString(), fPortMachineRemote, getError, fOpt_level);
         }
 #endif
-        error = getError.c_str();
+        printf("ERROR OF FACTORY BUILD = %s\n", getError.c_str());
         
-        printf("ERROR OF FACTORY BUILD = %s\n", error.toLatin1().data());
+        error = getError.c_str();
         
         printf("FACTORY = %p\n", buildingRemoteFactory);
         
@@ -222,53 +223,6 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         return true;
     }
     
-}
-
-
-//Re-Build of the factory from the source file
-bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder){
-    
-    if(fIsLocal){
-        
-        fOldFactory = fFactory;
-        
-        llvm_dsp_factory* factory_update = NULL;
-        
-        if(buildFactory(kChargingFactory, error, currentSVGFolder, currentIRFolder)){
-            factory_update = fFactory;
-            fFactory = fOldFactory;
-            fOldFactory = factory_update;
-            return true;
-        }
-        else
-            return false;
-    }
-    else{
-        
-        fOldRemoteFactory = fRemoteFactory;
-        
-        remote_dsp_factory* factory_update = NULL;
-        
-        if(buildFactory(kChargingFactory, error, currentSVGFolder, currentIRFolder)){
-            factory_update = fRemoteFactory;
-            fRemoteFactory = fOldRemoteFactory;
-            fOldRemoteFactory = factory_update;
-            return true;
-        }
-        else
-            return false;
-    }
-}
-
-//Once the rebuild is complete, the former factory has to be deleted
-void FLEffect::erase_OldFactory(){
-    
-    //    printf("delete Factory = %p\n", oldFactory);
-    
-    if(fIsLocal)
-        deleteDSPFactory(fOldFactory);
-//    else
-        
 }
 
 //Get number of compilation options

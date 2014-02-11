@@ -8,79 +8,54 @@
 # APPLICATION SETTINGS
 
 FAUSTDIR = /usr/local/lib/faust
+
+TEMPLATE = app
 TARGET = FaustLive
+DEPENDPATH += /usr/local/include/faust/gui
+INCLUDEPATH += .
+INCLUDEPATH += /opt/local/include	
+
 ICON = Resources/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
-
-
-equals(_WIN32, 1){
-	TEMPLATE = vcapp
-	INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include
-	INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
-	INCLUDEPATH += C:\Qt\Qt5.2.0\5.2.0\msvc2012\include\QtWidgets
-	INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
-
-	message("WIN32")
-}
-
-equals(OSX, 1){
-	TEMPLATE = app
-	DEPENDPATH += /usr/local/include/faust/gui
-	INCLUDEPATH += .
-	INCLUDEPATH += /opt/local/include
-	all.commands += $(shell mkdir Resources/Libs)
-	MYFILES = $$system(ls $$FAUSTDIR/*.lib)
-	for(FILE, MYFILES){
-		all.commands += $(shell cp $$FILE Resources/libs)
-	}
-	all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources.Libs)
-	message("OSX")
-}
-
 
 OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
 
+all.commands += $(shell mkdir Resources/Libs)
+
+MYFILES = $$system(ls $$FAUSTDIR/*.lib)
+
+for(FILE, MYFILES) {
+	all.commands += $(shell cp $$FILE Resources/Libs)
+}
+
+all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources/Libs)
+
+QMAKE_CXXFLAGS += -Wno-unused-variable -g
+QMAKE_EXTRA_TARGETS += all
+
 CONFIG -= x86_64
 
-LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release/llvm-config --libs)
-LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release/llvm-config --ldflags)
+LLVMLIBS = $$system(llvm-config --libs)
+LLVMDIR = $$system(llvm-config --ldflags)
 
-QT+=gui
-QT-=core
 QT+=network
-QT+=widgets
 
-equals(_WIN32, 1){
-	LIBS+= -LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
-	LIBS+= -LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+LIBS+=-L/usr/local/lib/faust
 
-	LIBS+=-lfaust
-	LIBS+= $$LLVMDIR $$LLVMLIBS
-message("WIN 32")
-}
+LIBS+=-lfaust
+LIBS+= $$LLVMDIR $$LLVMLIBS
 
-equals(OSX, 1){
-	LIBS+= -L/usr/local/lib/faust
+LIBS+=-lHTTPDFaust
+LIBS+=-lOSCFaust -loscpack
 
-	LIBS+=-lfaust
-	LIBS+= $$LLVMDIR $$LLVMLIBS
-
-	LIBS+=-lHTTPDFaust
-	LIBS+=-lOSCFaust -loscpack
-
-	LIBS+=-L/usr/local/Cellar/llvm/3.3/lib/
-	LIBS+=-L/usr/local/lib
-	LIBS+=-lmicrohttpd
-	LIBS+=-lqrencode
-	LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
-	LIBS+= $$LLVMDIR
-	LIBS+=-lcurl
-	LIBS+=-lc++
-
-message("OSX")
-}
+LIBS+=-L/opt/local/lib
+LIBS+=-lmicrohttpd
+LIBS+=-lqrencode
+LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
+LIBS+= $$LLVMDIR
+LIBS+=-lcurl
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -92,7 +67,7 @@ equals(REMVAR, 1){
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
-	LIBS+= -framework CoreAudio -framework AudioUnit -framework CoreServices
+	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
 	HEADERS += 	src/CA_audioFactory.h\
 				src/CA_audioSettings.h\
@@ -161,55 +136,55 @@ equals(ALVAR, 1){
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
-	LIBS+= -LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
 	LIBS += -lportaudio
 	DEFINES += PORTAUDIO
 	HEADERS += 	src/PA_audioFactory.h \
-			src/PA_audioSettings.h \
-			src/PA_audioManager.h \
-			src/PA_audioFader.h
-
-SOURCES += 	src/PA_audioFader.cpp \
-		src/PA_audioFactory.cpp \
-		src/PA_audioSettings.cpp \
-		src/PA_audioManager.cpp 
+				src/PA_audioSettings.h \
+				src/PA_audioManager.h \
+				src/PA_audioFader.h \
+	
+	SOURCES += 	src/PA_audioFader.cpp \
+				src/PA_audioFactory.cpp \
+				src/PA_audioSettings.cpp \
+				src/PA_audioManager.cpp 
+}else{
+	message("PORT AUDIO NOT LINKED")
 }		
 
 HEADERS +=	src/AudioSettings.h \
-		src/AudioManager.h \
-		src/AudioFactory.h \
-		src/AudioCreator.h \
-		src/AudioFader_Interface.h \
-		src/AudioFader_Implementation.h \
-		C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h \
-		src/FJUI.h \
-		src/FLToolBar.h \
-		#src/HTTPWindow.h \
-		src/FLrenameDialog.h \
-		src/FLErrorWindow.h \
-		src/FLExportManager.h \
-		#src/FLServerHttp.h \
-		src/FLEffect.h \
-		src/FLWindow.h \ 
-		src/FLApp.h \
+			src/AudioManager.h \
+			src/AudioFactory.h \
+			src/AudioCreator.h \
+			src/AudioFader_Interface.h \
+			src/AudioFader_Implementation.h \
+			/usr/local/include/faust/gui/faustqt.h \
+			src/FJUI.h \
+			src/FLToolBar.h \
+			src/HTTPWindow.h \
+			src/FLrenameDialog.h \
+			src/FLErrorWindow.h \
+			src/FLExportManager.h \
+			src/FLServerHttp.h \
+			src/FLEffect.h \
+			src/FLWindow.h \ 
+			src/FLApp.h \
     		src/SimpleParser.h 
 
 SOURCES += 	src/AudioCreator.cpp \
-		src/AudioFader_Implementation.cpp \
-		src/FLToolBar.cpp \
-		#src/HTTPWindow.cpp \
-		src/FLrenameDialog.cpp \
-		src/FLErrorWindow.cpp \
-		src/FLExportManager.cpp \
-		#src/FLServerHttp.cpp \
-		src/FLEffect.cpp \
-		src/FLWindow.cpp \ 
-		src/FLApp.cpp \
-		src/main.cpp \
+			src/AudioFader_Implementation.cpp \
+			src/FLToolBar.cpp \
+			src/HTTPWindow.cpp \
+			src/FLrenameDialog.cpp \
+			src/FLErrorWindow.cpp \
+			src/FLExportManager.cpp \
+			src/FLServerHttp.cpp \
+			src/FLEffect.cpp \
+			src/FLWindow.cpp \ 
+			src/FLApp.cpp \
+			src/main.cpp \
     		src/SimpleParser.cpp 
 
  RESOURCES     = Resources/application.qrc
-
 
 
 

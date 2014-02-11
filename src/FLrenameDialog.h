@@ -27,13 +27,13 @@ class FLrenameDialog : public QDialog{
     
     public :
     
-    string          fNewName;
+    QString          fNewName;
     QLineEdit*      fFilenameBox;
     QPushButton*    fYes_Button;
     
-                    FLrenameDialog(const string& name,QWidget* parent = NULL);
+                    FLrenameDialog(const QString& name,QWidget* parent = NULL);
                     ~FLrenameDialog();
-    string          getNewName();
+    QString          getNewName();
     
     public slots : 
     

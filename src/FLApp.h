@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.5"
+#define FLVERSION   "1.6"
 #define DEFAULTNAME "DefaultName"
 
 #define kExportUrlFile "/ServerURL.txt"
@@ -89,7 +89,7 @@ class FLApp : public QApplication
         QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
         FLExportManager*    fExportDialog;      //Manager for web service use
     
-        //FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
+        FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
     
     //List of windows currently running in the application
         QList<FLWindow*>     FLW_List;           //Container of the opened windows

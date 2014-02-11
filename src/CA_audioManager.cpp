@@ -28,7 +28,7 @@ CA_audioManager::~CA_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool CA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
     if(init(name, DSP))
         return true;
@@ -54,7 +54,7 @@ void CA_audioManager::stop(){
 }
 
 //Init new audio, that will fade in current audio
-bool CA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
+bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
 
     printf("CA_audioManager::init_FadeAudio\n");
     

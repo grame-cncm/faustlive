@@ -11,7 +11,7 @@
 #ifndef _HTTPWindow_h
 #define _HTTPWindow_h
 
-#include <string>
+//#include <string>
 
 #include <QtGui>
 #if QT_VERSION >= 0x050000
@@ -24,7 +24,7 @@
 
 class httpdUI;
 
-using namespace std;
+//using namespace std;
 
 class HTTPWindow : public QMainWindow{
     
@@ -32,9 +32,9 @@ class HTTPWindow : public QMainWindow{
     
     private : 
     
-    string      fIPaddress;     //IP adress
-    string      fEntireAddress; //IP + Port adress
-    string      fTitle;         //Htpp Window Title
+    QString      fIPaddress;     //IP adress
+    QString      fEntireAddress; //IP + Port adress
+    QString      fTitle;         //Htpp Window Title
     httpdUI*    fInterface;     //Httpd interface for distance control
     QPixmap     fQrCode;
     
@@ -48,9 +48,9 @@ class HTTPWindow : public QMainWindow{
     
     ~HTTPWindow();
     
-    void        displayQRCode(string url);
+    void        displayQRCode(QString url);
     
-    void        frontShow_Httpd(string windowTitle);
+    void        frontShow_Httpd(QString windowTitle);
     
     void        display_HttpdWindow(int x, int y, int port);
     
@@ -59,10 +59,10 @@ class HTTPWindow : public QMainWindow{
     void        hide_httpdWindow();
 
     void        search_IPadress();
-    string      getUrl();
+    QString      getUrl();
         int         get_Port();
     
-    bool        build_httpdInterface(string& error, string windowTitle, dsp* current_DSP, int port);
+    bool        build_httpdInterface(QString& error, QString windowTitle, dsp* current_DSP, int port);
     
     void        launch_httpdInterface();
     

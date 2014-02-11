@@ -18,14 +18,14 @@
 
 #include "AudioSettings.h"
 
-#include <string>
-
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
-
-using namespace std;
+//#include <string>
+//
+//#include <QtGui>
+//#if QT_VERSION >= 0x050000
+//#include <QtWidgets>
+//#endif
+//
+//using namespace std;
 
 #define NJ_SAVINGFILE "NJ_Settings.rf"
 
@@ -35,18 +35,20 @@ class NJ_audioSettings : public AudioSettings{
     
     //Real parameters
         int                 fCompressionValue;
-        string              fIP;
+        QString              fIP;
         int                 fPort;
         int                 fLatency;
+        int                 fMTU;
     
     //Graphical parameters
         QLineEdit*          fCVLine;
         QLineEdit*          fIPLine;
         QLineEdit*          fPortLine;
         QLineEdit*          fLatLine;
+        QLineEdit*          fMTULine;
     
     public :
-        NJ_audioSettings(string homeFolder, QGroupBox* parent);
+        NJ_audioSettings(QString homeFolder, QGroupBox* parent);
         virtual ~NJ_audioSettings();
     
         virtual void readSettings();
@@ -58,11 +60,12 @@ class NJ_audioSettings : public AudioSettings{
         bool         isStringInt(const char* word);
     
         int get_compressionValue();
-        string& get_IP();
+        QString& get_IP();
         int get_Port();
         int get_latency();
+        int get_mtu();
     
-        virtual string get_ArchiName();
+        virtual QString get_ArchiName();
 };
 
 #endif

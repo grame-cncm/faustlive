@@ -26,25 +26,25 @@ using namespace std;
 
 #include <QFileInfo>
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 
 int main(int argc, char *argv[])
 {   
-   
-	cout<<"I'm doing something"<<endl;
 
     FLApp* app = new FLApp(argc, argv);
     
 //    If app was executed with DSP as arguments
-    //for(int i=1; i < argc; i++){
-      //      string dsp(argv[i]);
+    for(int i=1; i < argc; i++){
+        QString dsp(argv[i]);
             
-        //    if(QFileInfo(argv[i]).exists())
-          //      app->create_New_Window(dsp);
-    //}
+        if(QFileInfo(argv[i]).exists())
+            app->create_New_Window(dsp);
+    }
     
 	app->exec();
     

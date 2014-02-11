@@ -19,7 +19,7 @@
 
 #include "utilities.h"
 
-NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : AudioSettings(homeFolder, parent){
+NJ_audioSettings::NJ_audioSettings(QString homeFolder, QGroupBox* parent) : AudioSettings(homeFolder, parent){
     
     fSavingFile = homeFolder + "/" + NJ_SAVINGFILE;
     
@@ -38,6 +38,9 @@ NJ_audioSettings::NJ_audioSettings(string homeFolder, QGroupBox* parent) : Audio
     
     fLatLine = new QLineEdit;
     layout->addRow(new QLabel(tr("Latency")), fLatLine);
+
+    fMTULine = new QLineEdit;
+    layout->addRow(new QLabel(tr("MTU")), fMTULine);
     
     parent->setLayout(layout);
     
@@ -53,15 +56,15 @@ NJ_audioSettings::~NJ_audioSettings(){
 //Real Params TO Saving File
 void NJ_audioSettings::writeSettings(){
     
-    QFile f(fSavingFile.c_str()); 
+    QFile f(fSavingFile); 
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
         QTextStream textWriting(&f);
         
-        QString IPaddress(fIP.c_str());
+        QString IPaddress(fIP);
         
-        textWriting<<fCompressionValue<<' '<<IPaddress<<' '<<fPort<<' '<<fLatency;
+        textWriting<<fCompressionValue<<' '<<IPaddress<<' '<<fPort<<' '<<fMTU<<' '<<fLatency;
         
         f.close();
     }
@@ -70,22 +73,21 @@ void NJ_audioSettings::writeSettings(){
 //Saving File TO Real Params 
 void NJ_audioSettings::readSettings(){
     
-    QFile f(fSavingFile.c_str());
+    QFile f(fSavingFile);
     
-    if(QFileInfo(fSavingFile.c_str()).exists() && f.open(QFile::ReadOnly)){
+    if(QFileInfo(fSavingFile).exists() && f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
-        QString IPaddress = "";
-        textReading>>fCompressionValue>>IPaddress>>fPort>>fLatency;
         
-        fIP = IPaddress.toStdString();
-        
+        textReading>>fCompressionValue>>fIP>>fPort>>fMTU>>fLatency;
+    
         f.close();
     }
     else{
         fCompressionValue = -1;
         fIP = "225.3.19.154";
         fPort = 19000;
+        fMTU = 1500;
         fLatency = 2;
     }
 }
@@ -93,14 +95,16 @@ void NJ_audioSettings::readSettings(){
 //Real Params TO Visual params
 void NJ_audioSettings::setVisualSettings(){
     
-    stringstream cv, p, l;
+    stringstream cv, p, l, m;
     cv << fCompressionValue;
     p << fPort;
+    m << fMTU;
     l << fLatency;
     
     fCVLine->setText(cv.str().c_str());
-    fIPLine->setText(fIP.c_str());
+    fIPLine->setText(fIP);
     fPortLine->setText(p.str().c_str());
+    fMTULine->setText(m.str().c_str());
     fLatLine->setText(l.str().c_str());
 }
 
@@ -110,10 +114,12 @@ void NJ_audioSettings::storeVisualSettings(){
 //    if(isStringInt(fCVLine->text().toStdString().c_str()))
         fCompressionValue = atoi(fCVLine->text().toStdString().c_str());
     
-    fIP = fIPLine->text().toStdString();
+    fIP = fIPLine->text();
     
 //    if(isStringInt(fPortLine->text().toStdString().c_str()))
         fPort = atoi(fPortLine->text().toStdString().c_str());
+    
+    fMTU = atoi(fMTULine->text().toStdString().c_str());
     
 //    if(isStringInt(fLatLine->text().toStdString().c_str()))
         fLatency = atoi(fLatLine->text().toStdString().c_str());
@@ -124,7 +130,7 @@ bool NJ_audioSettings::isEqual(AudioSettings* as){
 
     NJ_audioSettings* settings = dynamic_cast<NJ_audioSettings*>(as);
     
-    if(settings != NULL && settings->get_compressionValue() == fCompressionValue && settings->get_IP() == fIP && settings->get_Port() == fPort && settings->get_latency() == fLatency)
+    if(settings != NULL && settings->get_compressionValue() == fCompressionValue && settings->get_IP() == fIP && settings->get_Port() == fPort && settings->get_mtu() == fMTU && settings->get_latency() == fLatency)
         return true;
     else
         return false;
@@ -136,7 +142,7 @@ int NJ_audioSettings::get_compressionValue(){
     return fCompressionValue;
 }
 
-string& NJ_audioSettings::get_IP(){
+QString& NJ_audioSettings::get_IP(){
     return fIP;
 }
 
@@ -144,10 +150,14 @@ int NJ_audioSettings::get_Port(){
     return fPort;
 }
 
+int NJ_audioSettings::get_mtu(){
+    return fMTU;
+}
+
 int NJ_audioSettings::get_latency(){
     return fLatency;
 }
 
-string NJ_audioSettings::get_ArchiName(){
+QString NJ_audioSettings::get_ArchiName(){
     return "NetJackAudio";
 }

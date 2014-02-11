@@ -39,7 +39,7 @@ class CA_audioSettings : public AudioSettings{
         void linkClicked(const QUrl& link); 
     
     public :
-        CA_audioSettings(string home, QGroupBox* parent);
+        CA_audioSettings(QString home, QGroupBox* parent);
         ~CA_audioSettings();
     
         virtual void readSettings();
@@ -49,7 +49,7 @@ class CA_audioSettings : public AudioSettings{
     
         virtual bool isEqual(AudioSettings* as);    
         int get_BufferSize();
-        virtual string get_ArchiName();
+        virtual QString get_ArchiName();
 };
 
 #endif

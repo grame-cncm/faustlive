@@ -82,7 +82,7 @@ public slots:
         void sizeGrowth();
         void sizeReduction();
         void remoteStateChanged(int state);
-        void switchMachine(const string& ip, int port);
+        void switchMachine(const QString& ip, int port);
 };
 
 #endif

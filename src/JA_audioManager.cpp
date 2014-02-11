@@ -28,7 +28,7 @@ JA_audioManager::~JA_audioManager(){
 }
 
 //INIT/START/STOP on Current JackAudio
-bool JA_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* port_name){
+bool JA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* port_name){
     
     if(fCurrentAudio->init(port_name, DSP, name))
         return true;
@@ -49,7 +49,7 @@ void JA_audioManager::stop(){
 }
 
 //Init new dsp, that will fade in current audio
-bool JA_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
+bool JA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
 
     error = "";
     

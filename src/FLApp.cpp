@@ -1,4 +1,4 @@
-﻿//
+//
 //  FaustLiveApp.cpp
 //
 //  Created by Sarah Denoux on 12/04/13.
@@ -7,7 +7,7 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-//#include "FLServerHttp.h"
+#include "FLServerHttp.h"
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
@@ -624,9 +624,9 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
             printf("RENAME 2\n");
             //            }
             
-			printf("NAME EFFECT = %s\n", nameEffect.toStdString());
+			printf("NAME EFFECT = %s\n", nameEffect.toStdString().c_str());
             
-            while(nameEffect.indexOf(' ') != string::npos)
+            while(nameEffect.indexOf(' ') != -1)
                 nameEffect.remove(nameEffect.indexOf(' '), 1);
         }
     }
@@ -635,7 +635,7 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     else{
         QString name = getDeclareName(source);
         
-        printf("NAME OF EFFECT = %s\n", name.toStdString());
+        printf("NAME OF EFFECT = %s\n", name.toLatin1().data());
         
         if(name.compare("") == 0){
             //            list<QString> currentDefault = get_currentDefault();
@@ -736,7 +736,7 @@ void FLApp::update_Source(const QString& oldSource, const QString& newSource){
 QString FLApp::getDeclareName(QString text){
     
     QString returning = "";
-    size_t pos = text.indexOf("declare name");
+    int pos = text.indexOf("declare name");
     
     if(pos != -1){
         text.remove(0, pos);
@@ -781,7 +781,7 @@ QString FLApp::renameEffect(const QString& source, const QString& nomEffet, bool
 QString FLApp::ifUrlToText(const QString& source){
     
     //In case the text dropped is a web url
-    size_t pos = source.indexOf("http://");
+    int pos = source.indexOf("http://");
     
     QString UrlText(source);
     
@@ -1121,6 +1121,7 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
         }
     }
     
+    return true;
 }
 
 //FAIRE UNE FONCTION DE SUPPRESSION D'EFFET LOCAL ET D'EFFET REMOTE
@@ -1140,7 +1141,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     win->initNavigateMenu(fFrontWindow);
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
-    connect(win, SIGNAL(migrate(const string&, int)), this, SLOT(migrate_ProcessingInWin(const string&, int)));
+    connect(win, SIGNAL(migrate(const QString&, int)), this, SLOT(migrate_ProcessingInWin(const QString&, int)));
     connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
     connect(win, SIGNAL(create_Empty_Window()), this, SLOT(create_Empty_Window()));
     connect(win, SIGNAL(open_New_Window()), this, SLOT(open_New_Window()));
@@ -1520,7 +1521,7 @@ void FLApp::fileToSessionContent(const QString& filename, QList<WinInSession*>* 
 //Spaces in Compilation Options are erased/then restored for saving process.
 QString FLApp::convert_compilationOptions(QString compilationOptions){
     
-    size_t pos = compilationOptions.indexOf(" ");
+    int pos = compilationOptions.indexOf(" ");
     
     while(pos != -1){
         
@@ -1535,7 +1536,7 @@ QString FLApp::convert_compilationOptions(QString compilationOptions){
 
 QString FLApp::restore_compilationOptions(QString compilationOptions){
     
-    size_t pos = compilationOptions.indexOf("/");
+    int pos = compilationOptions.indexOf("/");
     
     while(pos != -1){
         
@@ -1998,7 +1999,7 @@ void FLApp::take_Snapshot(){
     //If no name is placed, nothing happens
     if(filename.compare("") != 0){
         
-        size_t pos = filename.indexOf(".tar");
+        int pos = filename.indexOf(".tar");
         
         if(pos != -1)
             filename = filename.mid(0, pos);
@@ -2430,7 +2431,7 @@ void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, QList<
             
             if(name.compare(toCompare) == 0){
                 QString newDir = dstDir + "/" +it2->second + "-svg";
-                printf("COPYING = %s TO %s\n", it->absoluteFilePath(), newDir);
+                printf("COPYING = %s TO %s\n", it->absoluteFilePath().toLatin1().data(), newDir.toLatin1().data());
                 //                if(!QFileInfo(newDir).exists())
                 cpDir(it->absoluteFilePath(), newDir);
             }
@@ -4156,10 +4157,10 @@ void FLApp::init_PreferenceWindow(){
     recall_Settings(fHomeSettings);
     
     fCompilModes->setText(fCompilationMode);
-    QTextStream oV;
+    stringstream oV;
     
     oV << fOpt_level;
-    fOptVal->setText(oV.readAll());
+    fOptVal->setText(oV.str().c_str());
     
     layout1->addRow(new QLabel(tr("")));
     layout1->addRow(new QLabel(tr("Faust Compiler Options")), fCompilModes);
@@ -4319,12 +4320,12 @@ void FLApp::save_Settings(const QString& home){
     
     QString modeText = fCompilationMode;
     
-    size_t pos = 0;
+    int pos = 0;
     
     if(modeText.compare("") == 0){
         modeText = " ";
     }
-    
+
     while(modeText.indexOf(" ", pos) != -1){
         
         if(pos != -1 && modeText[pos] != '-'){
@@ -4339,7 +4340,7 @@ void FLApp::save_Settings(const QString& home){
         
         QTextStream textWriting(&f);
         
-        textWriting<<modeText<<' '<<fOpt_level<<fStyleChoice;
+        textWriting<<modeText<<' '<<fOpt_level<<' '<<fStyleChoice;
         
         f.close();
     }
@@ -4379,8 +4380,8 @@ void FLApp::recall_Settings(const QString& home){
     
     QString modeText = ModeText;
     
-    size_t pos = 0;
-    
+    int pos = 0;
+
     while(modeText.indexOf("/", pos) != -1){
         
         if(pos != -1 && modeText[pos] != '-')
@@ -4543,61 +4544,61 @@ void FLApp::StopProgressSlot(){
 
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
-//
-//    bool returning = true;
-//    
-//    if(fServerHttp == NULL){
-//    
-//        fServerHttp = new FLServerHttp();
-//        
-//        int i = 0;
-//        
-//        while(!fServerHttp->start(fPort)){
-//            
-//            QTextStream s;
-//            s<<"Server Could Not Start On Port "<<fPort;
-//            
-//            fErrorWindow->print_Error(s.readAll());
-//            
-//            fPort++;
-//            
-//            if(i > 15){
-//                returning = false;
-//                break;
-//            }
-//            else{
-//                i++;
-//            }
-//        }
-//
-//        connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-//    }
-//    else
-//        returning = false;
-//    
-//    if(!returning)
-//        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
-//    else{
-//        QTextStream s;
-//        s<<"Server Started On Port "<<fPort;
-//        fErrorWindow->print_Error(s.readAll());
-//    }
-//    
+
+    bool returning = true;
+    
+    if(fServerHttp == NULL){
+    
+        fServerHttp = new FLServerHttp();
+        
+        int i = 0;
+        
+        while(!fServerHttp->start(fPort)){
+            
+            QString s("Server Could Not Start On Port ");
+            s += fPort;
+            
+            fErrorWindow->print_Error(s);
+            
+            fPort++;
+            
+            if(i > 15){
+                returning = false;
+                break;
+            }
+            else{
+                i++;
+            }
+        }
+
+        connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
+    }
+    else
+        returning = false;
+    
+    if(!returning)
+        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
+    else{
+        QString s("Server Started On Port ");
+        s += fPort;
+        fErrorWindow->print_Error(s);
+    }
+    
 }
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-//    if(fServerHttp != NULL){
-//        fServerHttp->stop();
-//        delete fServerHttp;
-//        fServerHttp = NULL;
-//    }
+    if(fServerHttp != NULL){
+        fServerHttp->stop();
+        delete fServerHttp;
+        fServerHttp = NULL;
+    }
 }
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
     
-    QString error;
+    string error("");
     
     QString source(data);
     
@@ -4609,13 +4610,13 @@ void FLApp::compile_HttpData(const char* data, int port){
     
         viewHttpd(win);
         
-        QString url = win->get_HttpUrl();
+        string url = win->get_HttpUrl().toStdString();
         
-//        fServerHttp->compile_Successfull(url);
+        fServerHttp->compile_Successfull(url);
     }
-//    else{
-//        fServerHttp->compile_Failed(error.);
-//    }
+    else{
+        fServerHttp->compile_Failed(error);
+    }
     
 }
 

@@ -31,12 +31,12 @@ class CA_audioManager : public AudioManager{
         virtual ~CA_audioManager();
     
         virtual bool init(const char*, dsp* DSP);
-        virtual bool initAudio(string& error, const char* name, dsp* DSP, const char* port_name);
+        virtual bool initAudio(QString& error, const char* name, dsp* DSP, const char* port_name);
 //        virtual void set_dsp(dsp* DSP);
         virtual bool start();
         virtual void stop();
     
-        virtual bool init_FadeAudio(string& error, const char* name, dsp* DSP);
+        virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
         virtual void start_Fade();
         virtual void wait_EndFade();
     

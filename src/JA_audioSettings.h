@@ -16,7 +16,7 @@
 class JA_audioSettings : public AudioSettings{
 
     public :
-    JA_audioSettings(std::string home, QGroupBox* parent);
+    JA_audioSettings(QString home, QGroupBox* parent);
     
         virtual ~JA_audioSettings();
     
@@ -27,7 +27,7 @@ class JA_audioSettings : public AudioSettings{
     
         virtual bool isEqual(AudioSettings* as);
     
-        virtual std::string get_ArchiName();
+        virtual QString get_ArchiName();
 };
 
 #endif

@@ -20,9 +20,9 @@ NJ_audioManager::NJ_audioManager(AudioSettings* as): AudioManager(as){
     fIP = settings->get_IP();
     fPort = settings->get_Port();
     fLatency = settings->get_latency();
-    fMTU = DEFAULT_MTU; // TODO
+    fMTU = settings->get_mtu();
     
-    fCurrentAudio = new NJ_audioFader(fCV, fIP, fPort, fMTU, fLatency);
+    fCurrentAudio = new NJ_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     
     connect(fCurrentAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
 }
@@ -33,7 +33,7 @@ NJ_audioManager::~NJ_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool NJ_audioManager::initAudio(string& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool NJ_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
     
 //    fCurrentAudio->set_NumOutput(DSP->getNumOutputs());
     
@@ -61,9 +61,9 @@ void NJ_audioManager::stop(){
 }
 
 //Init new audio, that will fade in current audio
-bool NJ_audioManager::init_FadeAudio(string& error, const char* name, dsp* DSP){
+bool NJ_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
     
-    fFadeInAudio = new NJ_audioFader(fCV, fIP, fPort, fLatency);
+    fFadeInAudio = new NJ_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     
 //    printf("INIT_FADEAUDIO THIS = %p \n",fFadeInAudio);
     
@@ -97,10 +97,10 @@ void NJ_audioManager::wait_EndFade(){
     while(fCurrentAudio->get_FadeOut() == 1){ 
         
         //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
-        if(i > 300) 
-            break; 
-        else 
-            i++;
+//        if(i > 300) 
+//            break; 
+//        else 
+//            i++;
     }
     
     fCurrentAudio->stop();

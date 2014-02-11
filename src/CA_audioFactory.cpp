@@ -19,7 +19,7 @@ CA_audioFactory::CA_audioFactory(){}
 CA_audioFactory::~CA_audioFactory(){}
 
 //Creates Settings, corresponding to a CoreAudio object
-AudioSettings* CA_audioFactory::createAudioSettings(string homeFolder, QGroupBox* parent){
+AudioSettings* CA_audioFactory::createAudioSettings(QString homeFolder, QGroupBox* parent){
 
     return new CA_audioSettings(homeFolder, parent);
 

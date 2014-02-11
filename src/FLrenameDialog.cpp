@@ -11,7 +11,7 @@
 //-----------------------------NEWNAMEDIALOG IMPLEMENTATION
 
 
-FLrenameDialog::FLrenameDialog(const string& name ,QWidget* parent): QDialog(parent, 0){
+FLrenameDialog::FLrenameDialog(const QString& name ,QWidget* parent): QDialog(parent, 0){
     fYes_Button = new QPushButton("Ok");
     fYes_Button->setDefault(true);
     fYes_Button->setEnabled(false);
@@ -19,8 +19,7 @@ FLrenameDialog::FLrenameDialog(const string& name ,QWidget* parent): QDialog(par
     QString tit("Renaming Effect");
     QString msg("");
     QString label1("New name : ");
-    string oldname = "Please Rename your effect, "+ name + " is already used!";
-    QString label(oldname.c_str());
+    QString label = "Please Rename your effect, "+ name + " is already used!";
     
     setWindowFlags(Qt::FramelessWindowHint);
     
@@ -50,9 +49,9 @@ void FLrenameDialog::enable_Button(const QString& text){
     
 }
 
-string FLrenameDialog::getNewName(){ return fNewName;}
+QString FLrenameDialog::getNewName(){ return fNewName;}
 
 void FLrenameDialog::accept(){
     hide();
-    fNewName = fFilenameBox->text().toStdString();
+    fNewName = fFilenameBox->text();
 }

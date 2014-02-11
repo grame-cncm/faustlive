@@ -18,7 +18,7 @@ NJ_audioFactory::NJ_audioFactory(){}
 NJ_audioFactory::~NJ_audioFactory(){}
 
 //Creates Settings, corresponding to a NetJack object
-AudioSettings* NJ_audioFactory::createAudioSettings(string homeFolder, QGroupBox* parent){
+AudioSettings* NJ_audioFactory::createAudioSettings(QString homeFolder, QGroupBox* parent){
     
     return new NJ_audioSettings(homeFolder, parent);
 }

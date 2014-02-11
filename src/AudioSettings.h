@@ -26,7 +26,7 @@ class AudioSettings : public QObject{
     
     public :
     
-        AudioSettings(QString home, QGroupBox* parent){ Q_UNUSED(home); Q_UNUSED(parent); }
+    AudioSettings(QString home, QGroupBox* parent){ Q_UNUSED(home); Q_UNUSED(parent); }
         virtual ~AudioSettings(){}
     
         virtual void readSettings() = 0;
@@ -37,7 +37,7 @@ class AudioSettings : public QObject{
         virtual bool isEqual(AudioSettings* as) = 0;
         virtual bool operator==(AudioSettings& as){return isEqual(&as);}
     
-        virtual QString get_ArchiName() = 0;
+    virtual QString get_ArchiName() = 0;
 
     protected slots:
         virtual void linkClicked(const QUrl&){}
