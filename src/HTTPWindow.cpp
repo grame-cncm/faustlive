@@ -10,10 +10,6 @@
 
 #include "HTTPWindow.h"
 
-//#include <string.h>
-//#include <string>
-#include <iostream>
-#include <sstream>
 #include <qrencode.h>
 
 #include "faust/gui/httpdUI.h"
@@ -134,21 +130,16 @@ void HTTPWindow::display_HttpdWindow(int x, int y, int port){
    
     move(x, y);
     
-//    stringstream s, p;
-//    s<<fInterface->getTCPPort();
-//    
-//    p<<port;
-    
     QString url;
     url = fIPaddress;
     url+=":";
-    url += port;
+    url += QString::number(port);
     url += "/";
-    url += fInterface->getTCPPort();
+    url += QString::number(fInterface->getTCPPort());
     
     fEntireAddress = fIPaddress;
     fEntireAddress += ":";
-    fEntireAddress += fInterface->getTCPPort();
+    fEntireAddress += QString::number(fInterface->getTCPPort());
     
     displayQRCode(url);
     frontShow_Httpd(fTitle);   
@@ -176,16 +167,13 @@ bool HTTPWindow::build_httpdInterface(QString& error, QString windowTitle, dsp* 
     
     fTitle = windowTitle;
     
-    stringstream s;
-    s<<port;
-    
     QString optionPort = "-port";
     
     char* argv[3];
 
     argv[0] = (char*)(fTitle.toLatin1().data());
     argv[1] = (char*)(optionPort.toLatin1().data());
-    argv[2] = (char*)(s.str().c_str());
+    argv[2] = (char*)(QString::number(port).toLatin1().data());
 
     fInterface = new httpdUI(argv[0], 3, argv);
 

@@ -4559,7 +4559,7 @@ void FLApp::launch_Server(){
         while(!fServerHttp->start(fPort)){
            
             QString s("Server Could Not Start On Port ");
-            s += fPort;
+            s += QString::number(fPort);
            
             fErrorWindow->print_Error(s);
             
@@ -4583,7 +4583,7 @@ void FLApp::launch_Server(){
         fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
     else{
         QString s("Server Started On Port ");
-        s += fPort;
+        s += QString::number(fPort);
         fErrorWindow->print_Error(s);
     }
 #endif
