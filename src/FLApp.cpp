@@ -4544,80 +4544,80 @@ void FLApp::StopProgressSlot(){
 
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
-
-    bool returning = true;
-    
-    if(fServerHttp == NULL){
-    
-        fServerHttp = new FLServerHttp();
-        
-        int i = 0;
-        
-        while(!fServerHttp->start(fPort)){
-            
-            QString s("Server Could Not Start On Port ");
-            s += fPort;
-            
-            fErrorWindow->print_Error(s);
-            
-            fPort++;
-            
-            if(i > 15){
-                returning = false;
-                break;
-            }
-            else{
-                i++;
-            }
-        }
-
-        connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-    }
-    else
-        returning = false;
-    
-    if(!returning)
-        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
-    else{
-        QString s("Server Started On Port ");
-        s += fPort;
-        fErrorWindow->print_Error(s);
-    }
+//
+ //   bool returning = true;
+ //   
+ //   if(fServerHttp == NULL){
+ //   
+ //       fServerHttp = new FLServerHttp();
+//        
+ //       int i = 0;
+ //       
+//        while(!fServerHttp->start(fPort)){
+ //           
+//            QString s("Server Could Not Start On Port ");
+//            s += fPort;
+ //           
+//            fErrorWindow->print_Error(s);
+//            
+ //           fPort++;
+ //           
+//            if(i > 15){
+//                returning = false;
+ //               break;
+ //           }
+//            else{
+ //               i++;
+//            }
+ //       }
+//
+//        connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
+//    }
+//    else
+ //       returning = false;
+//    
+//    if(!returning)
+//        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
+//    else{
+//        QString s("Server Started On Port ");
+//        s += fPort;
+//        fErrorWindow->print_Error(s);
+//    }
     
 }
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-    if(fServerHttp != NULL){
-        fServerHttp->stop();
-        delete fServerHttp;
-        fServerHttp = NULL;
-    }
+//    if(fServerHttp != NULL){
+//        fServerHttp->stop();
+//        delete fServerHttp;
+//        fServerHttp = NULL;
+//    }
 }
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
     
-    string error("");
-    
-    QString source(data);
-    
-    FLWindow* win = getWinFromHttp(port);
-    
-    if(win != NULL){
-    
-        update_SourceInWin(win, source);
-    
-        viewHttpd(win);
-        
-        string url = win->get_HttpUrl().toStdString();
-        
-        fServerHttp->compile_Successfull(url);
-    }
-    else{
-        fServerHttp->compile_Failed(error);
-    }
-    
+  //  string error("");
+//
+//	QString source(data);
+//    
+ //   FLWindow* win = getWinFromHttp(port);
+//    
+//    if(win != NULL){
+//    
+ //       update_SourceInWin(win, source);
+ //   
+ //       viewHttpd(win);
+ //       
+ //       string url = win->get_HttpUrl().toStdString();
+ //       
+//        fServerHttp->compile_Successfull(url);
+//    }
+ //   else{
+ //       fServerHttp->compile_Failed(error);
+ //   }
+//    
 }
 
 
