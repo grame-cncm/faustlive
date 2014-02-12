@@ -62,6 +62,7 @@ QT+=network
 
 macx{
 LIBS+=-L/usr/local/lib/faust
+LIBS+= $$LLVMDIR
 }
 else{
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
@@ -71,7 +72,6 @@ LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
 
 
 LIBS+=-lfaust
-LIBS+= -LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
 LIBS+= $$LLVMLIBS
 
 macx{
