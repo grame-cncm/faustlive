@@ -8,7 +8,7 @@ to provide dynamical compilation of the Faust langage.
 
 In order to compile FaustLive, the following libraries are needed:
 
-Through MacPorts :
+dlls are included for Win32/Debug architecture
 - llvm (3.1 and higher)
 - clang (same version than llvm)
 - qt (4.8 and higher)
