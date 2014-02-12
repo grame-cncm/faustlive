@@ -105,34 +105,38 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
 	argv[1] = libPath.c_str();
     printf("ARGV 1 = %s\n", argv[1]);
-#elif __linux__
-    
-    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-    argv[1] = libPath.toLatin1().data();
-#else    
-	QString libPath = "C:\Users\Sarah\faudiostream-faustlive\Resources\Libs";
-	argv[1] = libPath.toLatin1().data();
+//#elif __linux__
+//    
+//    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
+//    argv[1] = libPath.toLatin1().data();
+//#else    
+//	QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
+//	argv[1] = libPath.toLatin1().data();
 #endif
 
     argv[2] = "-I";    
-    QString sourcePath = QFileInfo(fSource).absolutePath();
+    string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
     
-	argv[3] = sourcePath.toLatin1().data();
+//    printf("Source Path = %s\n", sourcePath.toLatin1().data());
+    
+	argv[3] = sourcePath.c_str();
     argv[4] = "-O";
-    argv[5] = currentSVGFolder.toLatin1().data();
+    
+    string svgPath = currentSVGFolder.toStdString();
+    
+    argv[5] = svgPath.c_str();
     argv[6] = "-svg";
     
-    printf("ARGV 1 = %s || %s || %s \n", argv[1], argv[3], argv[5]);
+    for(int i=0; i<numberFixedParams; i++)
+        printf("ARGV %i = %s\n", i, argv[i]);
     
     //Parsing the compilationOptions from a string to a char**
     QString copy = fCompilationOptions;
     for(int i=numberFixedParams; i<argc; i++){
         
-        QString parseResult = parse_compilationParams(copy);
-        argv[i] = parseResult.toLatin1().data();
+        string parseResult = parse_compilationParams(copy).toStdString();
+        argv[i] = parseResult.c_str();
     }
-    
-//    const char** argument = (const char**) argv;
     
     QString path = currentIRFolder + "/" + fName;
 
