@@ -8,19 +8,31 @@
 # APPLICATION SETTINGS
 
 FAUSTDIR = /usr/local/lib/faust
-
-TEMPLATE = app
-TARGET = FaustLive
-DEPENDPATH += /usr/local/include/faust/gui
-INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include	
-
 ICON = Resources/FaustLiveIcon.icns
-QMAKE_INFO_PLIST = FaustLiveInfo.plist
+TARGET = FaustLive
 
 OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
+
+win32{
+
+TEMPLATE=vcapp
+INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
+INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
+INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
+INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
+
+LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
+LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
+
+} else{
+
+TEMPLATE = app
+DEPENDPATH += /usr/local/include/faust/gui
+INCLUDEPATH += .
+INCLUDEPATH += /opt/local/include	
+QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 all.commands += $(shell mkdir Resources/Libs)
 
@@ -32,31 +44,46 @@ for(FILE, MYFILES) {
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources/Libs)
 
-QMAKE_CXXFLAGS += -Wno-unused-variable -g
-QMAKE_EXTRA_TARGETS += all
-
-CONFIG -= x86_64
 
 LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
 
+}
+
+#QMAKE_CXXFLAGS += -Wno-unused-variable -g
+QMAKE_EXTRA_TARGETS += all
+
+CONFIG -= x86_64
+
+QT+=widgets
+QT+=core
+QT+=gui
 QT+=network
 
+macx{
 LIBS+=-L/usr/local/lib/faust
+}
+else{
+LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
+LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
+}
+
 
 LIBS+=-lfaust
-LIBS+= $$LLVMDIR $$LLVMLIBS
+LIBS+= -LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+LIBS+= $$LLVMLIBS
 
+macx{
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
-
 LIBS+=-L/opt/local/lib
 LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
 LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
-
+}
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
 
@@ -136,7 +163,12 @@ equals(ALVAR, 1){
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
+macx{
 	LIBS += -lportaudio
+}
+else{
+        LIBS += -lportaudio_x86
+}
 	DEFINES += PORTAUDIO
 	HEADERS += 	src/PA_audioFactory.h \
 				src/PA_audioSettings.h \
@@ -151,40 +183,48 @@ equals(PAVAR, 1){
 	message("PORT AUDIO NOT LINKED")
 }		
 
-HEADERS +=	src/AudioSettings.h \
+HEADERS +=              src/AudioSettings.h \
 			src/AudioManager.h \
 			src/AudioFactory.h \
 			src/AudioCreator.h \
 			src/AudioFader_Interface.h \
-			src/AudioFader_Implementation.h \
-			/usr/local/include/faust/gui/faustqt.h \
+                        src/AudioFader_Implementation.h \
 			src/FJUI.h \
 			src/FLToolBar.h \
-			src/HTTPWindow.h \
 			src/FLrenameDialog.h \
 			src/FLErrorWindow.h \
-			src/FLExportManager.h \
-			src/FLServerHttp.h \
-			src/FLEffect.h \
-			src/FLWindow.h \ 
-			src/FLApp.h \
-    		src/SimpleParser.h 
+                        src/FLExportManager.h \
+                        src/FLEffect.h \
+                        src/FLWindow.h \
+                        src/FLApp.h \
+                        src/SimpleParser.h
+macx{
+HEADERS +=		src/HTTPWindow.h \
+                        src/FLServerHttp.h \
+                        /usr/local/include/faust/gui/faustqt.h
+}
+else{
+HEADERS +=      C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h
+}
 
 SOURCES += 	src/AudioCreator.cpp \
-			src/AudioFader_Implementation.cpp \
-			src/FLToolBar.cpp \
-			src/HTTPWindow.cpp \
-			src/FLrenameDialog.cpp \
-			src/FLErrorWindow.cpp \
-			src/FLExportManager.cpp \
-			src/FLServerHttp.cpp \
-			src/FLEffect.cpp \
-			src/FLWindow.cpp \ 
-			src/FLApp.cpp \
-			src/main.cpp \
-    		src/SimpleParser.cpp 
+                src/AudioFader_Implementation.cpp \
+                src/FLToolBar.cpp \
+                src/FLrenameDialog.cpp \
+                src/FLErrorWindow.cpp \
+                src/FLExportManager.cpp \
+                src/FLEffect.cpp \
+                src/FLWindow.cpp \
+                src/FLApp.cpp
+macx{
+SOURCES +=	src/FLServerHttp.cpp \
+                src/HTTPWindow.cpp
+}	
 
- RESOURCES     = Resources/application.qrc
+SOURCES +=      src/SimpleParser.cpp \
+                src/main.cpp
+
+RESOURCES     = Resources/application.qrc
 
 
 

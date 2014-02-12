@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#include "faust/gui/OSCUI.h"
+//#include "faust/gui/OSCUI.h"
 
 list<GUI*>               GUI::fGuiList;
 
@@ -28,7 +28,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     
     fShortcut = false;
     fEffect = eff;
-    fHttpdWindow = NULL;
+//    fHttpdWindow = NULL;
     fPortHttp = httpdport;
     fPortOsc = oscPort;
     
@@ -49,7 +49,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     direct.mkdir(fHome);
     
     fRCInterface = NULL;
-    fOscInterface = NULL;
+//    fOscInterface = NULL;
     fMenu = NULL;
     
     fSettingsFolder = home + "/Settings";
@@ -114,7 +114,7 @@ void FLWindow::allocateOscInterface(){
     
     argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
     
-    fOscInterface = new OSCUI(argv[0], 3, argv);
+//    fOscInterface = new OSCUI(argv[0], 3, argv);
 }
 
 //Reaction to the modifications of the ToolBar options
@@ -126,12 +126,12 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
     if(fPortOsc != portOsc){
         fPortOsc = portOsc;
         
-        delete fOscInterface;
-        
-        allocateOscInterface();
-        
-        fCurrent_DSP->buildUserInterface(fOscInterface);
-        fOscInterface->run();
+//        delete fOscInterface;
+//       
+//        allocateOscInterface();
+//        
+//        fCurrent_DSP->buildUserInterface(fOscInterface);
+//        fOscInterface->run();
     }
 
     printf("PORT HTTP = %i || PORT OSC =%i\n", fPortHttp, fPortOsc);
@@ -216,10 +216,10 @@ void FLWindow::close_Window(){
     
     deleteInterfaces();
     
-    if(fHttpdWindow){
-        delete fHttpdWindow;
-        fHttpdWindow = NULL;
-    }
+//    if(fHttpdWindow){
+//        delete fHttpdWindow;
+//        fHttpdWindow = NULL;
+//    }
 //     printf("deleting instance = %p\n", current_DSP);   
     deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
     
@@ -233,10 +233,10 @@ void FLWindow::close_Window(){
 void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
-    delete fOscInterface;
+//    delete fOscInterface;
     fInterface = NULL;
     fRCInterface = NULL;
-    fOscInterface = NULL;
+//    fOscInterface = NULL;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -367,7 +367,7 @@ void FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     
     dsp->buildUserInterface(fRCInterface);
     dsp->buildUserInterface(fInterface);
-    dsp->buildUserInterface(fOscInterface);
+//    dsp->buildUserInterface(fOscInterface);
 }
 
 //Initialization of User Interface + StartUp of Audio Client
@@ -409,7 +409,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
     
 //    printf("OSCINTERFACE = %p\n", fOscInterface);
     
-    if(fRCInterface && fOscInterface){
+    if(fRCInterface /*&& fOscInterface*/){
         
         buildInterfaces(fCurrent_DSP, fEffect->getName());
         
@@ -430,7 +430,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
             setMinimumSize(QSize(0, 0));
             setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 //            adjustSize();
-            fOscInterface->run();
+//            fOscInterface->run();
             fInterface->run();
             return true;
         } 
@@ -504,7 +504,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     //Step 5 : get the new compilation parameters
     setWindowsOptions();
     
-    if(fRCInterface && fOscInterface){
+    if(fRCInterface /*&& fOscInterface*/){
 
         //Step 6 : init crossfade
 		if(!remoteSucess || !fAudioManager->init_FadeAudio(error, newName.toLatin1().data(), charging_DSP)){
@@ -518,7 +518,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             show();
             
             fInterface->run();
-            fOscInterface->run();
+//            fOscInterface->run();
             
             return false;
         }
@@ -557,7 +557,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             
         //Step 12 : Launch User Interface
         fInterface->run();
-        fOscInterface->run();
+//        fOscInterface->run();
         return true;
         
     }
@@ -681,9 +681,9 @@ int FLWindow::get_y(){
 
 int FLWindow::get_Port(){
     
-    if(fHttpdWindow != NULL)
-        return fHttpdWindow->get_Port();
-    else
+//    if(fHttpdWindow != NULL)
+//        return fHttpdWindow->get_Port();
+//    else
         return fPortHttp;
 }
 
@@ -716,53 +716,53 @@ int FLWindow::calculate_Coef(){
 //generalPortHttp : port on which remote drop on httpd interface is possible
 bool FLWindow::init_Httpd(QString& error, int generalPortHttp){
     
-    if(fHttpdWindow == NULL){
-        fHttpdWindow = new HTTPWindow();
-       connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
-    }
-    
-    if(fHttpdWindow != NULL){
-        fHttpdWindow->search_IPadress();
-        
-        //HttpdInterface reset the parameters when build. So we have to save the parameters before
-        
-        save_Window();
-        
-        QString windowTitle = fWindowName + ":" + fEffect->getName();
-        fPortHttp = fMenu->getPort();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
-            
-            //recall parameters to run them properly
-            //For a second, the initial parameters are reinitialize : it can sound weird
-            recall_Window();
-            
-            fHttpdWindow->launch_httpdInterface();
-            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0, generalPortHttp);
-           
-            return true;
-        }
-        else
-            return false;
-    }
-    else{
-        error = "Httpd Window could not be allocated!"; 
-        return false;
-    }
+//    if(fHttpdWindow == NULL){
+//        fHttpdWindow = new HTTPWindow();
+//       connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
+//    }
+//    
+//    if(fHttpdWindow != NULL){
+//        fHttpdWindow->search_IPadress();
+//        
+//        //HttpdInterface reset the parameters when build. So we have to save the parameters before
+//        
+//        save_Window();
+//        
+//        QString windowTitle = fWindowName + ":" + fEffect->getName();
+//        fPortHttp = fMenu->getPort();
+//        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
+//            
+//            //recall parameters to run them properly
+//            //For a second, the initial parameters are reinitialize : it can sound weird
+//            recall_Window();
+//            
+//            fHttpdWindow->launch_httpdInterface();
+//            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0, generalPortHttp);
+//           
+//            return true;
+//        }
+//        else
+//            return false;
+//    }
+//    else{
+//        error = "Httpd Window could not be allocated!"; 
+//        return false;
+//    }
 	return false;
 }
 
 bool FLWindow::is_httpdWindow_active() {
-//	return false;
-    return fHttpdWindow->isActiveWindow();
+	return false;
+//    return fHttpdWindow->isActiveWindow();
 }
 
 void FLWindow::hide_httpdWindow() {
-    fHttpdWindow->hide();
+////    fHttpdWindow->hide();
 }
 
 QString FLWindow::get_HttpUrl() {
-    return fHttpdWindow->getUrl();
-//	return "";
+//    return fHttpdWindow->getUrl();
+	return "";
 }
 
 //------------------------Right Click Reaction

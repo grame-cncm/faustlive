@@ -27,7 +27,7 @@
 #include "faust/gui/FUI.h"
 
 #include "FLEffect.h"
-#include "HTTPWindow.h"
+//#include "HTTPWindow.h"
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
@@ -69,7 +69,7 @@ class FLWindow : public QMainWindow
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-        HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        //HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 

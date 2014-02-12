@@ -93,9 +93,10 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     int numberFixedParams = 7;
     
     //+5 = -I libraryPath -O drawPath -svg
-    int argc = 7 + get_numberParameters(fCompilationOptions);
+    int argc = 7;
+	argc += get_numberParameters(fCompilationOptions);
     
-    const char* argv[argc];
+    const char** argv = new const char*[argc];
     
     argv[0] = "-I";
 
