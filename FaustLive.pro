@@ -25,7 +25,7 @@ INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
 
 LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
 LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
-
+CONFIG += console
 } else{
 
 TEMPLATE = app

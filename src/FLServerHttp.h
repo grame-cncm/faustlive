@@ -144,77 +144,76 @@ Init();\n\
 #include <fcntl.h>
 #include <stdlib.h>
 
-#include <microhttpd.h>
-
-#include <map>
-#include <vector>
-#include <string>
-
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
-
-using namespace std;
-
-#define POSTBUFFERSIZE 512
-
-#define GET 0
-#define POST 1
-
+//#include <microhttpd.h>
+//
+//#include <map>
+//#include <vector>
+//#include <string>
+//
+//#include <QtGui>
+//#if QT_VERSION >= 0x050000
+//#include <QtWidgets>
+//#endif
+//
+//using namespace std;
+//
+//#define POSTBUFFERSIZE 512
+//
+//#define GET 0
+//#define POST 1
+//
 struct connection_info_struct {
-    int connectiontype; // GET or POST
-    struct MHD_PostProcessor *postprocessor; // the POST processor used internally by microhttpd
-    int answercode; // used internally by microhttpd to see where things went wrong or right
-    
-    string data;
-    string compilationOptions;
-    std::string answerstring; // the answer sent to the user after upload
+//    int connectiontype; // GET or POST
+//    struct MHD_PostProcessor *postprocessor; // the POST processor used internally by microhttpd
+//    int answercode; // used internally by microhttpd to see where things went wrong or right
+//    
+//    string data;
+//    string compilationOptions;
+//    std::string answerstring; // the answer sent to the user after upload
 };
 
 class FLServerHttp : public QObject{
-    
-    Q_OBJECT
-    
-    int             fMax_clients;   // Maximum of clients the server can support
-    string          fError;         // Not important right now
-    string          fUrl;           // Url of wrapped http page 
-    
-    public :
-    
-    bool            fPosted;        // Post request completed
-    bool            fCompiled;      // Compilation sucess
-    
-    static int      fNr_of_uploading_clients;
-    
-    struct          MHD_Daemon* fDaemon;
-    
-                    FLServerHttp();
-                    ~FLServerHttp();
-    
-    int             getMaxClients();
-    
-    bool            start(unsigned short port);
-    void            stop();
-
-    int             send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
-    
-    static int      answer_to_connection	(void *cls, struct MHD_Connection *connection,
-                                     const char *url, const char *method,
-                                     const char *version, const char *upload_data,
-                                     size_t *upload_data_size, void **con_cls);
-    
-    static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
-    
-    static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
-    
-    void            compile_Successfull(string& url);
-    void            compile_Failed(string error);
-    
-    signals :
-    
-    void        compile_Data(const char*, int);
-  
+//    
+//    Q_OBJECT
+//    
+//    string          fError;         // Not important right now
+//    string          fUrl;           // Url of wrapped http page 
+//    
+//    public :
+//    
+//    bool            fPosted;        // Post request completed
+//    bool            fCompiled;      // Compilation sucess
+//    
+//    static int      fNr_of_uploading_clients;
+//    
+//   struct          MHD_Daemon* fDaemon;
+//    
+//                    FLServerHttp();
+//                    ~FLServerHttp();
+//    
+//    int             getMaxClients();
+//    
+//    bool            start(unsigned short port);
+//    void            stop();
+//
+//    int             send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
+//    
+//    static int      answer_to_connection	(void *cls, struct MHD_Connection *connection,
+//                                     const char *url, const char *method,
+//                                     const char *version, const char *upload_data,
+//                                     size_t *upload_data_size, void **con_cls);
+//    
+//    static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+//    
+//    static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
+//   
+//    void            compile_Successfull(string& url);
+//    void            compile_Failed(string error);
+//    
+//    signals :
+//    
+//    void        compile_Data(const char*, int);
+//  
 };
 
 #endif
