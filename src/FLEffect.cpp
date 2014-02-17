@@ -90,55 +90,6 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
 bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder){
     
-    int numberFixedParams = 7;
-    
-    //+5 = -I libraryPath -O drawPath -svg
-    int argc = 7;
-	argc += get_numberParameters(fCompilationOptions);
-    
-    const char** argv = new const char*[argc];
-    
-    argv[0] = "-I";
-
-    //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
-#ifdef __APPLE__
-    string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
-	argv[1] = libPath.c_str();
-    printf("ARGV 1 = %s\n", argv[1]);
-#elif __linux__
-    
-    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-    argv[1] = libPath.toLatin1().data();
-#else    
-	QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
-	argv[1] = libPath.toLatin1().data();
-#endif
-
-    argv[2] = "-I";    
-    string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
-    
-//    printf("Source Path = %s\n", sourcePath.toLatin1().data());
-    
-	argv[3] = sourcePath.c_str();
-    argv[4] = "-O";
-    
-    string svgPath = currentSVGFolder.toStdString();
-    
-    argv[5] = svgPath.c_str();
-    argv[6] = "-svg";
-    
-    //Parsing the compilationOptions from a string to a char**
-    QString copy = fCompilationOptions;
-    for(int i=numberFixedParams; i<argc; i++){
-        
-        string parseResult = parse_compilationParams(copy).toStdString();
-        
-        argv[i] = parseResult.c_str();
-    }
-    
-    for(int i=0; i<argc; i++)
-        printf("ARGV %i = %s\n", i, argv[i]);
-    
     QString path = currentIRFolder + "/" + fName;
 
     //To speed up the process of compilation, when a session is recalled, the DSP are re-compiled from Bitcode 
@@ -150,7 +101,9 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         buildingFactory = readDSPFactoryFromBitcodeFile(path.toStdString(), "");
         
         printf("factory from IR = %p\n", buildingFactory);
-
+            
+        fRecalled = false;
+        
         if(buildingFactory != NULL){
             if(factoryToBuild == kCurrentFactory){
                 fFactory = buildingFactory;
@@ -163,9 +116,62 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         }
     }
     
-    fRecalled = false;
-    
     if(buildingFactory == NULL && buildingRemoteFactory == NULL){
+        
+        int numberFixedParams = 7;
+        
+        //+5 = -I libraryPath -O drawPath -svg
+        int argc = 7;
+        argc += get_numberParameters(fCompilationOptions);
+        
+        const char** argv = new const char*[argc];
+        
+        argv[0] = "-I";
+        
+        //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
+#ifdef __APPLE__
+        string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
+        argv[1] = libPath.c_str();
+        printf("ARGV 1 = %s\n", argv[1]);
+#elif __linux__
+        
+        QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
+        argv[1] = libPath.toLatin1().data();
+#else    
+        QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
+        argv[1] = libPath.toLatin1().data();
+#endif
+        
+        argv[2] = "-I";    
+        string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
+        
+        //    printf("Source Path = %s\n", sourcePath.toLatin1().data());
+        
+        argv[3] = sourcePath.c_str();
+        argv[4] = "-O";
+        
+        string svgPath = currentSVGFolder.toStdString();
+        
+        argv[5] = svgPath.c_str();
+        argv[6] = "-svg";
+        
+        //Parsing the compilationOptions from a string to a char**
+        QString copy = fCompilationOptions;
+        
+        printf("COPY = %s\n", copy.toStdString().c_str());
+        
+        for(int i=numberFixedParams; i<argc; i++){
+            
+            string parseResult(parse_compilationParams(copy));
+            
+            char* intermediate = new char[parseResult.size()+1];
+            
+            strcpy(intermediate,parseResult.c_str());
+            argv[i] = (const char*)intermediate;
+        }
+        
+        for(int i=0; i<argc; i++)
+            printf("ARGV %i = %s\n", i, argv[i]);
         
         std::string getError("");
         
@@ -181,6 +187,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         }
 #endif
         error = getError.c_str();
+        
+        delete[] argv;
         
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
         fCreationDate = fCreationDate.currentDateTime();
@@ -244,18 +252,18 @@ int FLEffect::get_numberParameters(const QString& compilOptions){
 //Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway.
 //Returns : the first option found
 //CompilOptions : the rest of the options are kept in
-QString FLEffect::parse_compilationParams(QString& compilOptions){
+string FLEffect::parse_compilationParams(QString& compilOptions){
     
-    QString returning = "";
+    string returning = "";
     
-    size_t pos = compilOptions.indexOf(" ");
+    int pos = compilOptions.indexOf(" ");
     
     if(pos != -1){
-        returning = compilOptions.mid(0, pos);
+        returning = compilOptions.mid(0, pos).toStdString();
         compilOptions.remove(0, pos+1);
     }
     else if(compilOptions.compare("") != 0)
-        returning = compilOptions.mid(0, compilOptions.length());
+        returning = compilOptions.mid(0, compilOptions.length()).toStdString();
     
     return returning;
 }

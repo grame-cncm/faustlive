@@ -213,6 +213,7 @@ class FLWindow : public QMainWindow
         void            start_Audio();
     
         bool            init_audioClient(QString& error);
+        bool            init_audioClient(QString& error, int numInputs, int numOutputs);
         bool            setDSP(QString& error);
     
     //Drag and drop operations

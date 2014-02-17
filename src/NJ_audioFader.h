@@ -54,6 +54,8 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         virtual ~NJ_audioFader();
     
         virtual bool init(const char* name, dsp* DSP);
+        bool         init(const char* name, int numInputs, int numOutputs);
+        virtual bool set_dsp(dsp* DSP);
     
         virtual bool start();
         virtual void stop();
@@ -61,6 +63,7 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
+    void        force_stopFade();
     
     signals :
         void error(const char*);

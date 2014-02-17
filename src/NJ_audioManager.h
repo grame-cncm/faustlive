@@ -31,6 +31,7 @@ class NJ_audioManager : public AudioManager{
     int                     fSplRate;
     
     const char*             fName;
+    bool                    fInit; //Indicator of which init has been used
     
     NJ_audioFader*          fCurrentAudio;
     NJ_audioFader*          fFadeInAudio;
@@ -44,6 +45,7 @@ class NJ_audioManager : public AudioManager{
         virtual void stop();
     
         virtual bool initAudio(QString& error, const char* name);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
     
         virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);

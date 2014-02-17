@@ -175,7 +175,7 @@ bool FLWindow::is_Default(){
     
     QString sourceContent = pathToContent(fEffect->getSource());
     
-    if(sourceContent.compare("process =_;") == 0)
+    if(sourceContent.compare("process = !,!:0,0;") == 0)
         return true;
     else 
         return false;
@@ -386,13 +386,18 @@ void FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
 //Initialization of User Interface + StartUp of Audio Client
 bool FLWindow::init_Window(bool init, QString& errorMsg){
     
-    if(!init_audioClient(errorMsg))
-        return false;
-    
-    if(fEffect->isLocal())
+    if(fEffect->isLocal()){
+        if(!init_audioClient(errorMsg))
+            return false;
+        
         fCurrent_DSP = createDSPInstance(fEffect->getFactory());
+    }
 #ifdef REMOTE
     else{
+        
+        if(!init_audioClient(errorMsg, fEffect->getRemoteFactory()->numInputs(), fEffect->getRemoteFactory()->numOutputs()))
+            return false;
+        
         int argc = 2;
         const char* argv[2];
         
@@ -629,11 +634,21 @@ bool FLWindow::update_AudioArchitecture(QString& error){
 //Initialization of audio Client
 bool FLWindow::init_audioClient(QString& error){
     
-	if(fAudioManager->initAudio(error, fWindowName.toLatin1().data()))
+	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str()))
         return true;
     else
         return false;
 
+}
+
+//Initialization of audio Client
+bool FLWindow::init_audioClient(QString& error, int numInputs, int numOutputs){
+    
+	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fEffect->getName().toLatin1().data(), numInputs, numOutputs))
+        return true;
+    else
+        return false;
+    
 }
 
 bool FLWindow::setDSP(QString& error){

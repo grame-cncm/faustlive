@@ -81,7 +81,7 @@ class FLEffect : public QObject
     //The compilation options are decomposed in a table
         int        get_numberParameters(const QString& compilOptions);
         //Extract the first sub-string in the compilOptions
-        QString     parse_compilationParams(QString& compilOptions);
+        string     parse_compilationParams(QString& compilOptions);
     
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
     //@param factoryToBuild = is it the transition factory or the current factory ? 

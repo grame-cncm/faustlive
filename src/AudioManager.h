@@ -30,6 +30,7 @@ class AudioManager : public QObject, public audio{
     virtual ~AudioManager(){}
     
     virtual bool initAudio(QString& error, const char* name) = 0;
+    virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs){Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name);}
     
     virtual bool setDSP(QString& error, dsp* DSP, const char* port_name) = 0;
 

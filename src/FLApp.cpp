@@ -1028,6 +1028,12 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
     
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_remoteIP(), win->get_remotePort());
 
+// To force the update of compilation parameters ????
+//    bool optionChanged;
+//    
+//    if(newEffect != NULL)
+//        optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isLocalEffectInCurrentSession(newEffect->getSource()) && !isRemoteEffectInCurrentSession(newEffect->getSource(), newEffect->getRemoteIP(), newEffect->getRemotePort());
+    
 //  If the change fails, the leaving effect has to be reimplanted
     if(newEffect == NULL || (!(win)->update_Window(newEffect, error))){
         leavingEffect->launch_Watcher();
@@ -1053,6 +1059,12 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
         //The new effect is added in the session and watched
         addWinToSessionFile(win);
         newEffect->launch_Watcher();
+        
+        //In case the compilation options have changed... ???
+//        if(optionChanged){
+//            newEffect->update_compilationOptions(fCompilationMode, fOpt_level);
+//            printf("update_compilationOptions\n");
+//        }
     }
     
 }
@@ -1195,7 +1207,7 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
     //In case the source is empty, the effect is chosen by default 
     if(source.compare("") == 0){
         
-        source = "process = _;";
+        source = "process = !,!:0,0;";
         init = true;
     }
     
@@ -1210,6 +1222,8 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
     FLEffect* first = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level ,error, false, true); 
 
     if(first != NULL){
+//        To force the update in case compilation option changed ??? 
+//        bool optionChanged = (fCompilationMode.compare(first->getCompilationOptions()) != 0 || fOpt_level != (first->getOptValue())) && !isLocalEffectInCurrentSession(first->getSource()) && !isRemoteEffectInCurrentSession(first->getSource(), first->getRemoteIP(), first->getRemotePort());
         
         //Copy of the source File in the CurrentSession Source Folder
         QString copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
@@ -1241,6 +1255,11 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
             
             first->launch_Watcher();
             
+// ?????        
+//            if(optionChanged){
+//                printf("update_compilationOptions\n");
+//                first->update_compilationOptions(fCompilationMode, fOpt_level);
+//            }
             return win;
         }
         else{
