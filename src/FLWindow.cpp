@@ -388,6 +388,9 @@ void FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
 //Initialization of User Interface + StartUp of Audio Client
 bool FLWindow::init_Window(bool init, QString& errorMsg){
     
+    if(!init_audioClient(errorMsg))
+        return false;
+    
     if(fEffect->isLocal())
         fCurrent_DSP = createDSPInstance(fEffect->getFactory());
 #ifdef REMOTE
@@ -433,7 +436,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         
 //        this->adjustSize();  
         
-        if(init_audioClient(errorMsg)){
+        if(setDSP(errorMsg)){
             
             start_Audio();
             
@@ -603,8 +606,8 @@ void FLWindow::start_Audio(){
     
     QString connectFile = fHome + "/" + fWindowName + ".jc";
 
-    fAudioManager->connect_Audio(connectFile);
-    printf("CONNECT = %s\n", connectFile.toLatin1().data());
+    fAudioManager->connect_Audio(connectFile.toStdString());
+    printf("CONNECT = %s\n", connectFile.toStdString().c_str());
     
     fClientOpen = true;
 }
@@ -619,7 +622,7 @@ bool FLWindow::update_AudioArchitecture(QString& error){
     
     printf("NEW MANAGER\n");
     
-    if(init_audioClient(error))
+    if(init_audioClient(error) && setDSP(error))
         return true;
     else
         return false;
@@ -628,8 +631,16 @@ bool FLWindow::update_AudioArchitecture(QString& error){
 //Initialization of audio Client
 bool FLWindow::init_audioClient(QString& error){
     
-	if(fAudioManager->initAudio(error, fEffect->getName().toLatin1().data(), fCurrent_DSP, fWindowName.toLatin1().data())){ 
-            
+	if(fAudioManager->initAudio(error, fWindowName.toLatin1().data()))
+        return true;
+    else
+        return false;
+
+}
+
+bool FLWindow::setDSP(QString& error){
+    
+    if(fAudioManager->setDSP(error, fCurrent_DSP, fEffect->getName().toLatin1().data())){            
         recall_Window();
         return true;
     }
@@ -641,10 +652,10 @@ bool FLWindow::init_audioClient(QString& error){
 //------------------------SAVING WINDOW ACTIONS
 
 //When the window is imported in a current session, its properties may have to be updated
-void FLWindow::update_ConnectionFile(QList<std::pair<QString,QString> > changeTable){
+void FLWindow::update_ConnectionFile(std::list<std::pair<std::string, std::string> > changeTable){
     
     QString connectFile = fHome + "/" + fWindowName + ".jc";
-    fAudioManager->change_Connections(connectFile, changeTable);
+    fAudioManager->change_Connections(connectFile.toStdString(), changeTable);
 }
 
 //Read/Write window properties in saving file
@@ -654,12 +665,12 @@ void FLWindow::save_Window(){
     QString rcfilename = fHome + "/" + fWindowName + ".rc";
     fRCInterface->saveState(rcfilename.toLatin1().data());
     
-    printf("WINDOW SAVED\n");
-    
     //Audio Connections parameters
     QString connectFile = fHome + "/" + fWindowName + ".jc";
-        
-    fAudioManager->save_Connections(connectFile);
+    
+    printf("SAVE CNX = %s\n", connectFile.toStdString().c_str());
+    
+    fAudioManager->save_Connections(connectFile.toStdString());
 }
 
 void FLWindow::recall_Window(){
@@ -669,7 +680,7 @@ void FLWindow::recall_Window(){
     QString toto(rcfilename);
     
     if(QFileInfo(toto).exists()){
-        fRCInterface->recallState(rcfilename.toLatin1().data());	
+        fRCInterface->recallState(rcfilename.toStdString().c_str());	
         printf("state recalled for %p\n", fRCInterface);
     }
 }

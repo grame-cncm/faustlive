@@ -32,7 +32,8 @@ class JA_audioManager : public AudioManager{
         virtual ~JA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);
-    virtual bool initAudio(QString& error, const char* name, dsp* DSP, const char* port_name);
+    virtual bool initAudio(QString& error, const char* name);
+    virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
     virtual bool start();
     virtual void stop();
     

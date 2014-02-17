@@ -28,9 +28,11 @@ JA_audioManager::~JA_audioManager(){
 }
 
 //INIT/START/STOP on Current JackAudio
-bool JA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* port_name){
+bool JA_audioManager::initAudio(QString& error, const char* name){
     
-    if(fCurrentAudio->init(port_name, DSP, name))
+    printf("NAME INIT = %s\n", name);
+    
+    if(fCurrentAudio->init(name))
         return true;
     else{
         error = "Impossible to init JackAudio Client";
@@ -38,7 +40,22 @@ bool JA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, cons
     }
 }
 
-bool JA_audioManager::init(const char* name, dsp* DSP){return fCurrentAudio->init(name, DSP);}
+bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name){
+ 
+    printf("SET DSP = %s\n", port_name);
+    
+    if(fCurrentAudio->set_dsp(DSP, port_name))
+        return true;
+    else{
+        error = "Impossible to init JackAudio Client";
+        return false;
+    }
+    
+}
+
+bool JA_audioManager::init(const char* name, dsp* DSP){
+    return fCurrentAudio->init(name, DSP);
+}
 
 bool JA_audioManager::start(){
     return fCurrentAudio->start();

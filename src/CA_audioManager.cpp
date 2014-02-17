@@ -28,14 +28,21 @@ CA_audioManager::~CA_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool CA_audioManager::initAudio(QString& /*error*/, const char* name){
     
-    if(init(name, DSP))
+    fName = name;
+    return true;
+}
+
+bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
+    
+    if(init(fName, DSP))
         return true;
     else{
         error = "Impossible to init CoreAudio Client";
         return false;
     }
+
 }
 
 //INIT/START/STOP on Current CoreAudio

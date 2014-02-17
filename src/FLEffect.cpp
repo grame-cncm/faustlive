@@ -105,13 +105,13 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
 	argv[1] = libPath.c_str();
     printf("ARGV 1 = %s\n", argv[1]);
-//#elif __linux__
-//    
-//    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-//    argv[1] = libPath.toLatin1().data();
-//#else    
-//	QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
-//	argv[1] = libPath.toLatin1().data();
+#elif __linux__
+    
+    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
+    argv[1] = libPath.toLatin1().data();
+#else    
+	QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
+	argv[1] = libPath.toLatin1().data();
 #endif
 
     argv[2] = "-I";    
@@ -127,16 +127,17 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     argv[5] = svgPath.c_str();
     argv[6] = "-svg";
     
-    for(int i=0; i<numberFixedParams; i++)
-        printf("ARGV %i = %s\n", i, argv[i]);
-    
     //Parsing the compilationOptions from a string to a char**
     QString copy = fCompilationOptions;
     for(int i=numberFixedParams; i<argc; i++){
         
         string parseResult = parse_compilationParams(copy).toStdString();
+        
         argv[i] = parseResult.c_str();
     }
+    
+    for(int i=0; i<argc; i++)
+        printf("ARGV %i = %s\n", i, argv[i]);
     
     QString path = currentIRFolder + "/" + fName;
 
@@ -169,22 +170,17 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         std::string getError("");
         
         if(fIsLocal){      
-            printf("building local factory\n");
+//            printf("building local factory\n");
             buildingFactory = createDSPFactoryFromFile(fSource.toStdString(), argc, argv, "", getError, fOpt_level);
         }
 #ifdef REMOTE
         else{
-         
-            printf("IP = %s\n", fIpMachineRemote.toLatin1().data());
+//            printf("IP = %s\n", fIpMachineRemote.toLatin1().data());
             
             buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource.toStdString(), argc, argv, fIpMachineRemote.toStdString(), fPortMachineRemote, getError, fOpt_level);
         }
 #endif
-        printf("ERROR OF FACTORY BUILD = %s\n", getError.c_str());
-        
         error = getError.c_str();
-        
-        printf("FACTORY = %p\n", buildingRemoteFactory);
         
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
         fCreationDate = fCreationDate.currentDateTime();
@@ -202,7 +198,6 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
                 
                 if(factoryToBuild == kCurrentFactory){
                     fFactory = buildingFactory;
-                    printf("FFACTORY = %p\n", fFactory);
                 }
                 else
                     fOldFactory = buildingFactory;
@@ -213,15 +208,10 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
                 else
                     fOldRemoteFactory = buildingRemoteFactory;
             }
-                
-            printf("BUILD FACTORY SUCCEEDEED\n");
             return true;
         }
-        else{
-            printf("FALSE IS RETURNED\n");
+        else
             return false;
-        }
-        //    printf("NEW FACTORY = %p\n", factory);
     }
     else{
         fCreationDate = fCreationDate.currentDateTime();

@@ -83,11 +83,8 @@ JA_audioFader::~JA_audioFader()
 
 bool JA_audioFader::init(const char* /*name*/, dsp* /*DSP*/){ return false;} 
 
-// INIT/START of Jack audio Client
-bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName) 
+bool JA_audioFader::init(const char* name) 
 {
-    fDsp = DSP;
-    
     if ((fClient = jack_client_open(name, JackNullOption, NULL)) == 0) {
         fprintf(stderr, "JACK server not running ?\n");
         return false;
@@ -103,15 +100,23 @@ bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName)
 #endif
     
     jack_set_sample_rate_callback(fClient, _jack_srate, this);
+    jack_set_buffer_size_callback(fClient, _jack_buffersize, this);
     jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
+    
+    return true;
+}  
+
+//Set DSP
+bool JA_audioFader::set_dsp(dsp* DSP, const char* portsName)    {
+    fDsp = DSP;
     
     fNumInChans  = fDsp->getNumInputs();
     fNumOutChans = fDsp->getNumOutputs();
     
     fBufferSize = jack_get_buffer_size(fClient);
     
-    //        fInput_ports = new jack_port_t*[fNumInChans];
-    //      fOutput_ports = new jack_port_t*[fNumOutChans];
+//        fInput_ports = new jack_port_t*[fNumInChans];
+//      fOutput_ports = new jack_port_t*[fNumOutChans];
     
     for (int i = 0; i < fNumInChans; i++) {
         char buf[256];
@@ -123,8 +128,6 @@ bool JA_audioFader::init(const char* name, dsp* DSP, const char* portsName)
         snprintf(buf, 256, "%s_Out_%d",portsName, i);
         fOutputPorts[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     }
-    
-//    portName = portsName;
     
     fDsp->init(jack_get_sample_rate(fClient));
     return true;

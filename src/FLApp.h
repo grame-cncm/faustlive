@@ -187,13 +187,13 @@ class FLApp : public QApplication
     
     //In case of an import, those steps are necessary to modify the session before opening it
         QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);
-        void                copy_WindowsFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > indexChanges);
-        void                copy_AllSources(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges, const QString extension);
-        void                copy_SVGFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges);
+    void                copy_WindowsFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > indexChanges);
+        void                copy_AllSources(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges, const QString extension);
+        void                copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges);
     
-        void                establish_sourceChanges(QList<std::pair<QString,QString> > nameChanges, QList<WinInSession*>* session);
+        void                establish_sourceChanges(std::list<std::pair<std::string,std::string> > nameChanges, QList<WinInSession*>* session);
     
-        QList<std::pair<QString,QString> > establish_nameChanges(QList<WinInSession*>* session);
+        std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
     
         void                deleteLineIndexed(int index);
     
@@ -222,15 +222,23 @@ class FLApp : public QApplication
     QString                  getDeclareName(QString text);
     QString                  renameEffect(const QString& source, const QString& nomEffet, bool isRecalledEffect);
     
+    FLEffect*           recycleEffect(bool isLocal, QString source, const QString& ip, int port);
+    
     FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init, bool isLocal, const QString& ip = "localhost", int port= 0);
     
+    
+    
     //-----------------Questions about the current State
+    
+        void                deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect);
     
         bool                isIndexUsed(int index, QList<int> currentIndexes);
         bool                isLocalEffectInCurrentSession(const QString& sourceToCompare);
         bool                isRemoteEffectInCurrentSession(const QString& sourceToCompare, const QString& ip, int port);
         bool                isSourceInCurrentSession(const QString& sourceToCompare);
 
+        QString             nameWithoutSpaces(QString name);
+    
         QString              getNameEffectFromSource(const QString& sourceToCompare);
         bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name, bool isRecalledEffect);
         QList<QString>        getNameRunningEffects();

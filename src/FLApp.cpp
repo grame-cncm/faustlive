@@ -541,6 +541,65 @@ FLWindow* FLApp::getWinFromHttp(int port){
 
 //--------------------------CREATE EFFECT-------------------------------------
 
+// Look for already compiled Effect
+FLEffect* FLApp::recycleEffect(bool isLocal, QString source, const QString& ip, int port){
+    
+//        LOCAL EFFECT CASE 
+    if(isLocal){
+        
+        QList<FLEffect*>::iterator it;
+        for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
+            
+            //Effect already compiled
+            if(source.compare((*it)->getSource()) == 0){
+                
+                //Effect in current session = direct
+                if(isLocalEffectInCurrentSession((*it)->getSource())){
+                    return *it;                       
+                }
+                //Effect gardé en memoire mais potentiellement son nom est utilisé par un autre effet dans la session courante
+                else{
+                    QString effetName = (*it)->getName();
+                    (*it)->setName(renameEffect(source, (*it)->getName(), false));
+                    
+                    return *it;
+                }
+            }
+        }
+        
+        return NULL;
+    }
+//        REMOTE EFFECT CASE
+    else{
+        
+        QList<FLEffect*>::iterator it;
+        for(it = fRemoteEffects.begin(); it!= fRemoteEffects.end(); it++){
+            
+            const QString remoteEffectSource = (*it)->getSource();
+            const QString remoteEffectIP = (*it)->getRemoteIP();
+            int remoteEffectPort = (*it)->getRemotePort();
+            
+            //Effect already compiled
+            if(source.compare(remoteEffectSource) == 0 && ip.compare(remoteEffectIP) == 0 && port == remoteEffectPort){
+                
+                //Effect in current session = direct
+                if(isRemoteEffectInCurrentSession(remoteEffectSource, remoteEffectIP, remoteEffectPort)){
+                    return *it;                       
+                }
+                //Effect kept but potentially its name is used by another effect in the current session
+                else{
+                    QString effetName = (*it)->getName();
+                    (*it)->setName(renameEffect(source, (*it)->getName(), false));
+                    
+                    return *it;
+                }
+            }
+        }
+        
+        return NULL;
+    }
+}
+
 //--Creates/Recycles an Effect depending on it's source
 //@param source = faust code as string, file or url
 //@param nameEffect = name of faust application
@@ -550,6 +609,7 @@ FLWindow* FLApp::getWinFromHttp(int port){
 //@param recall = true when recalling a session
 FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int opt_Val, QString& error, bool recall, bool isLocal, const QString& ip, int port){
     
+//Marker of Source type : if true = file || if false = source
     bool fileSourceMark = false;
     QString content = "";
     QString fichierSource = "";
@@ -560,76 +620,23 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     //SOURCE = FILE.DSP    
     if(source.indexOf(".dsp") != -1){
         
-//        LOCAL EFFECT CASE 
-        if(isLocal){
-            
-            QList<FLEffect*>::iterator it;
-            for(it = fExecutedEffects.begin(); it!= fExecutedEffects.end(); it++){
-                
-                //Effect already compiled
-                if(source.compare((*it)->getSource()) == 0){
-                    
-                    //Effect in current session = direct
-                    if(isLocalEffectInCurrentSession((*it)->getSource())){
-                        return *it;                       
-                    }
-                    //Effect gardé en memoire mais potentiellement son nom est utilisé par un autre effet dans la session courante
-                    else{
-                        QString effetName = (*it)->getName();
-                        (*it)->setName(renameEffect(source, (*it)->getName(), false));
-                        
-                        return *it;
-                    }
-                }
-            }
-        }
-//        REMOTE EFFECT CASE
-        else{
-            
-            QList<FLEffect*>::iterator it;
-            for(it = fRemoteEffects.begin(); it!= fRemoteEffects.end(); it++){
-                
-                const QString remoteEffectSource = (*it)->getSource();
-                const QString remoteEffectIP = (*it)->getRemoteIP();
-                int remoteEffectPort = (*it)->getRemotePort();
-                
-                //Effect already compiled
-                if(source.compare(remoteEffectSource) == 0 && ip.compare(remoteEffectIP) == 0 && port == remoteEffectPort){
-                    
-                    //Effect in current session = direct
-                    if(isRemoteEffectInCurrentSession(remoteEffectSource, remoteEffectIP, remoteEffectPort)){
-                        return *it;                       
-                    }
-                    //Effect kept but potentially its name is used by another effect in the current session
-                    else{
-                        QString effetName = (*it)->getName();
-                        (*it)->setName(renameEffect(source, (*it)->getName(), false));
-                        
-                        return *it;
-                    }
-                }
-            }
-        }
+//        If the effect was already compiled, it is recycled
+        FLEffect* effectRecycled = recycleEffect(isLocal, source, ip, port);
         
-        // Si l'effet est pour la première fois compilé, il faut récupérer son nom et vérifier que son nom n'existe pas. 
-        // Le marqueur
+        if(effectRecycled)
+            return effectRecycled;
+        
+// If the effect is compiled for the first time, it has to be renamed if its name is already used
         
         fileSourceMark = true;
         fichierSource = source;
         
 //        NOT RECALLING && NOT MIGRATING
         if(!recall && nameEffect.compare("") == 0){
-            //            if(nameEffect.compare("") == 0){
 
-            nameEffect =QFileInfo(fichierSource).baseName();
+            nameEffect = QFileInfo(fichierSource).baseName();
             nameEffect = renameEffect(fichierSource, nameEffect, false);
-            printf("RENAME 2\n");
-            //            }
-            
-			printf("NAME EFFECT = %s\n", nameEffect.toStdString().c_str());
-            
-            while(nameEffect.indexOf(' ') != -1)
-                nameEffect.remove(nameEffect.indexOf(' '), 1);
+            nameEffect = nameWithoutSpaces(nameEffect);
         }
     }
     
@@ -637,24 +644,18 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     else{
         QString name = getDeclareName(source);
         
-        printf("NAME OF EFFECT = %s\n", name.toLatin1().data());
-        
         if(name.compare("") == 0){
-            //            list<QString> currentDefault = get_currentDefault();
             QString defaultName = find_smallest_defaultName(get_currentDefault());
             name = defaultName;
         }
             
-        //Erase the spaces because it brings problems ^^
-        while(name.indexOf(' ') != -1)
-            name.remove(name.indexOf(' '), 1);
+        name = nameWithoutSpaces(name);
         
         fichierSource = sourceFolder + "/" + name + ".dsp";
         
-        if(QFileInfo(fichierSource).exists()){
+        if(QFileInfo(fichierSource).exists())
             content = pathToContent(fichierSource);
-            //            printf("CONTENT = %s\n", content);
-        }
+        
         createSourceFile(fichierSource, source);
         nameEffect = name;
     }
@@ -682,11 +683,8 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
         if(!fileSourceMark){
             
             // If file did not exist, it is removed
-            if(content.compare("") == 0){
-                
-                if(QFile(fichierSource).remove())
-                    printf("FICHIER SOURCE WAS REMOVED\n");
-            }
+            if(content.compare("") == 0)
+                QFile(fichierSource).remove();
             // Otherwise, its previous content is restored
             else
                 createSourceFile(fichierSource, content);
@@ -797,6 +795,15 @@ QString FLApp::ifUrlToText(const QString& source){
     return UrlText;
 }
 
+// Removing spaces in name. They cause problems
+QString FLApp::nameWithoutSpaces(QString name){
+    
+    while(name.indexOf(' ') != -1)
+        name.remove(name.indexOf(' '), 1);
+    
+    return name;
+}
+
 //--Find name of an Effect in CurrentSession, depending on its source file
 QString FLApp::getNameEffectFromSource(const QString& sourceToCompare){
     
@@ -823,6 +830,7 @@ bool FLApp::isLocalEffectInCurrentSession(const QString& sourceToCompare){
     return false;
     
 }
+
 //--Finds out if a Remote Effect exist in CurrentSession, depending on its source file
 bool FLApp::isRemoteEffectInCurrentSession(const QString& sourceToCompare, const QString& ip, int port){
     
@@ -934,7 +942,7 @@ void FLApp::synchronize_Window(){
         bool update = modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder);
         
         if(!update){
-            //            StopProgressSlot();
+            StopProgressSlot();
             fErrorWindow->print_Error(error);
 
             modifiedEffect->launch_Watcher();
@@ -1040,38 +1048,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
         }
         
         //If the change is successfull : 
-
-        QFileInfo ff(leavingEffect->getSource());
-        QString folderOfSource = ff.absolutePath(); //Getting root folder of source
-        
-        //If leaving effect is not used elsewhere : 
-        if(!isSourceInCurrentSession(leavingEffect->getSource())){    
-            
-            //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
-            if(folderOfSource.compare(fSourcesFolder) == 0){
-                
-                //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
-                if(newEffect->getSource().compare(leavingEffect->getSource())!=0)
-                    removeFilesOfWin(leavingEffect->getSource(), leavingEffect->getName());
-                //                        QFile::remove(leavingEffect->getSource());
-                
-                if(leavingEffect->isLocal())
-                    fExecutedEffects.removeOne(leavingEffect);
-                else
-                    fRemoteEffects.removeOne(leavingEffect);
-                
-                delete leavingEffect;
-            } 
-            else{
-                //The copy made of the source is erased
-                QString toErase = fSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
-                //                    QFile::remove(toErase);
-                removeFilesOfWin(toErase, leavingEffect->getName());
-            }
-        }
-        //If the effect is used in an other window, its watcher is reactivated
-        else
-            leavingEffect->launch_Watcher();
+        deleteEffect(leavingEffect, newEffect);
         
         //The new effect is added in the session and watched
         addWinToSessionFile(win);
@@ -1095,11 +1072,14 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
         if(newEffect == NULL)
             return false;
         
-        if(migratingWin->update_Window(newEffect, error));
+        if(migratingWin->update_Window(newEffect, error))
+            deleteEffect(migratingWin->get_Effect(), newEffect);
         else{
             fRemoteEffects.removeOne(newEffect);
+            delete newEffect;
             fErrorWindow->print_Error(error);
             migratingWin->migrationFailed();
+            return false;
         }
     }
 //    REMOTE TO LOCAL
@@ -1113,9 +1093,9 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
         FLEffect* formerEffect = migratingWin->get_Effect();
         
         if(migratingWin->update_Window(newEffect, error)){
+        
+            deleteEffect(formerEffect, newEffect);
             
-            fRemoteEffects.removeOne(formerEffect);
-            delete formerEffect;
         }
         else{
             fErrorWindow->print_Error(error);
@@ -1127,7 +1107,42 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
 }
 
 //FAIRE UNE FONCTION DE SUPPRESSION D'EFFET LOCAL ET D'EFFET REMOTE
-
+void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
+    
+    QFileInfo ff(leavingEffect->getSource());
+    QString folderOfSource = ff.absolutePath(); //Getting root folder of source
+    
+    //If leaving effect is not used elsewhere : 
+    if(!isSourceInCurrentSession(leavingEffect->getSource())){    
+        
+        //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
+        if(folderOfSource.compare(fSourcesFolder) == 0){
+            
+            printf("DELETING SOURCE = %s\n", leavingEffect->getSource().toStdString().c_str());
+            
+            //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
+            if(newEffect->getSource().compare(leavingEffect->getSource())!=0)
+                removeFilesOfWin(leavingEffect->getSource(), leavingEffect->getName());
+            
+            if(leavingEffect->isLocal())
+                fExecutedEffects.removeOne(leavingEffect);
+            else
+                fRemoteEffects.removeOne(leavingEffect);
+            
+            delete leavingEffect;
+        } 
+        else{
+            //The copy made of the source is erased
+            QString toErase = fSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
+            
+            removeFilesOfWin(toErase, leavingEffect->getName());
+        }
+    }
+    //If the effect is used in an other window, its watcher is reactivated
+    else
+        leavingEffect->launch_Watcher();
+    
+}
 
 //--------------------------------FILE----------------------------------------
 
@@ -1454,9 +1469,7 @@ void FLApp::open_Recent_File(const QString& toto){
 
 //Write Current Session Properties into a File
 void FLApp::sessionContentToFile(const QString& filename){
-    
-    //    printf("SIZE OF CONTENT SESSION = %i\n", session->size());
-    
+
     QFile f(filename);
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
@@ -1466,9 +1479,6 @@ void FLApp::sessionContentToFile(const QString& filename){
         QTextStream textWriting(&f);
         
         for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
-            
-            //     printf("ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", (*it)->ID, (*it)->source.c_str(), (*it)->name.c_str(), (*it)->x, (*it)->y, (*it)->compilationOptions.c_str());
-            
             
             textWriting<<(*it)->ID<<' '<<(*it)->source<<' '<<(*it)->name<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<(*it)->compilationOptions<<' '<<(*it)->opt_level<<' '<<(*it)->oscPort<<' '<<(*it)->portHttpd<<endl;
             
@@ -1509,8 +1519,6 @@ void FLApp::fileToSessionContent(const QString& filename, QList<WinInSession*>* 
                 intermediate->opt_level = opt;
                 intermediate->oscPort = portOsc;
                 intermediate->portHttpd = portHttp;
-                
-                //                printf("FILLING ID = %i// Source = %s // Name = %s // X = %f // Y = %f // Option = %s\n", intermediate->ID, intermediate->source.c_str(), intermediate->name.c_str(), intermediate->x, intermediate->y, intermediate->compilationOptions);
                 
                 session->push_back(intermediate);
                 //                printf("SNAPSHOT SIZE = %i\n", session->size());
@@ -1576,19 +1584,19 @@ void FLApp::recall_Session(const QString& filename){
     //------------Resolution of the name conflicts (Window Names & Effect Names)
     QList<std::pair<int,int> > indexChanges = establish_indexChanges(&snapshotContent);
     
-    QList<std::pair<QString, QString> > windowNameChanges;
+    std::list<std::pair<std::string,std::string> > windowNameChanges;
     
     QList<std::pair<int, int> >::iterator it2;
     for(it2 = indexChanges.begin(); it2 != indexChanges.end(); it2++){
         
-        QString nameW = fWindowBaseName + "-" + QString::number(it2->first);
+        string nameW = fWindowBaseName.toStdString() + "-" + QString::number(it2->first).toStdString();
         
-        QString newNameW = fWindowBaseName + "-" + QString::number(it2->second);
+        string newNameW = fWindowBaseName.toStdString() + "-" + QString::number(it2->second).toStdString();
         
         windowNameChanges.push_back(make_pair(nameW, newNameW));
     }
     
-    QList<std::pair<QString,QString> > nameChanges = establish_nameChanges(&snapshotContent);
+    std::list<std::pair<std::string,std::string> > nameChanges = establish_nameChanges(&snapshotContent);
     
     //In case of Snapshot Restoration, sources and window parameters Folders have to be copied in currentSession
     if((QFileInfo(filename).absolutePath()).compare(fSessionFolder) != 0){
@@ -1903,7 +1911,7 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>* session){
     std::map<QString,bool> updated;
     
     //List of the sources to updated in Session File
-    QList<std::pair<QString, QString> > sourceChanges;
+    std::list<std::pair<std::string,std::string> > sourceChanges;
     
     QList<WinInSession*>::iterator it;
     
@@ -1961,7 +1969,7 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>* session){
             else{
                 delete existingNameMessage;
                 QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
-                sourceChanges.push_back(make_pair((*it)->source, newSource));
+                sourceChanges.push_back(make_pair((*it)->source.toStdString(), newSource.toStdString()));
                 (*it)->source = newSource;
             }
         }
@@ -1974,11 +1982,11 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>* session){
         }
         else if(updated.find((*it)->source) != updated.end()){
             
-            QList<std::pair<QString, QString> >::iterator itS;
+            std::list<std::pair<std::string,std::string> >::iterator itS;
             
             for(itS = sourceChanges.begin(); itS != sourceChanges.end() ; itS++){
-                if(itS->first.compare((*it)->source) == 0)
-                    (*it)->source = itS->second;
+                if(itS->first.compare((*it)->source.toStdString()) == 0)
+                    (*it)->source = itS->second.c_str();
                 
             }
         }
@@ -2058,7 +2066,7 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
     std::map<QString,bool> updated;
     
-    QList<std::pair<QString,QString> > sourceChanges;
+    std::list<std::pair<std::string,std::string> > sourceChanges;
     
     QList<WinInSession*>::iterator it;
     for(it = session->begin() ; it != session->end() ; it++){
@@ -2091,17 +2099,17 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
             fErrorWindow->print_Error(error);
             QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
             updated[(*it)->source] = true;       
-            sourceChanges.push_back(make_pair((*it)->source, newSource));
+            sourceChanges.push_back(make_pair((*it)->source.toStdString(), newSource.toStdString()));
             
             (*it)->source = newSource;
         }
         else if(updated.find((*it)->source) != updated.end()){
             
-            QList<std::pair<QString, QString> >::iterator itS;
+            std::list<std::pair<std::string,std::string> >::iterator itS;
             
             for(itS = sourceChanges.begin(); itS != sourceChanges.end() ; itS++){
-                if(itS->first.compare((*it)->source) == 0)
-                    (*it)->source = itS->second;
+                if(itS->first.compare((*it)->source.toStdString()) == 0)
+                    (*it)->source = itS->second.c_str();
             }
         }
     }
@@ -2223,11 +2231,11 @@ QList<std::pair<int, int> > FLApp::establish_indexChanges(QList<WinInSession*>* 
     return returning;
 }
 
-QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSession*>* session){
+std::list<std::pair<std::string,std::string> > FLApp::establish_nameChanges(QList<WinInSession*>* session){
     
     //For each window of the session File, if it's index is used (in current session or by the previous windows re-indexed), it is associated to a new one (the smallest not used)
     
-    QList<std::pair<QString,QString> > nameChanges;
+    std::list<std::pair<std::string,std::string> > nameChanges;
     QList<QString> currentDefault = get_currentDefault();
     
     //If 2 windows are holding the same name & source, to avoid renaming them twice
@@ -2244,19 +2252,19 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
         if(isSourceInCurrentSession((*it)->source) && QFileInfo((*it)->source).absolutePath().compare(fSourcesFolder) != 0){
             
             newName = getNameEffectFromSource((*it)->source);
-            nameChanges.push_front(make_pair((*it)->name, newName));
+            nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
             (*it)->name = newName;
         }
         
         //2- If the name was already updated ==> don't do nothing
         else if(updated.find(newName) != updated.end()){
             
-            QList<std::pair<QString,QString> >::iterator it2;
+            std::list<std::pair<std::string,std::string> >::iterator it2;
             
             for(it2 = nameChanges.begin(); it2 != nameChanges.end(); it2++){
                 
-                if(it2->first.compare((*it)->name) == 0){
-                    (*it)->name = it2->second;
+                if(it2->first.compare((*it)->name.toStdString()) == 0){
+                    (*it)->name = it2->second.c_str();
                     break;
                 }
             }
@@ -2280,7 +2288,7 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
                 
                 //                printf("NO FOUND thE DEFAULT NAME\n");
                 currentDefault.push_back(newName);
-                nameChanges.push_front(make_pair((*it)->name, newName));
+                nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
                 updated[(*it)->name] = true;
                 (*it)->name = newName;
             }
@@ -2288,7 +2296,7 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
                 //                printf("Found the default name\n");
                 newName = find_smallest_defaultName(currentDefault);
                 currentDefault.push_back(newName);
-                nameChanges.push_front(make_pair((*it)->name, newName));
+                nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
                 updated[(*it)->name] = true;
                 (*it)->name = newName;
             }
@@ -2298,7 +2306,7 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
             
             newName = renameEffect("", newName, true);
             
-            nameChanges.push_front(make_pair((*it)->name, newName));
+            nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
             updated[(*it)->name] = true;
             (*it)->name = newName;
         }
@@ -2307,7 +2315,7 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
             
             newName = renameEffect((*it)->source, newName, true);
             
-            nameChanges.push_front(make_pair((*it)->name, newName));
+            nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
             updated[(*it)->name] = true;
             (*it)->name = newName;
         }
@@ -2316,27 +2324,27 @@ QList<std::pair<QString,QString> > FLApp::establish_nameChanges(QList<WinInSessi
     return nameChanges;
 }
 
-void FLApp::establish_sourceChanges(QList<std::pair<QString,QString> > nameChanges, QList<WinInSession*>* session){
+void FLApp::establish_sourceChanges(std::list<std::pair<std::string,std::string> > nameChanges, QList<WinInSession*>* session){
     
     //For all the effects which source is in the current source Folder, the path in the description file has to be changed with the new name
     
-    QList<std::pair<QString, QString> > sourceChanges;
+    std::list<std::pair<std::string,std::string> > sourceChanges;
     
     QList<WinInSession*>::iterator it;
     
-    QList<std::pair<QString,QString> >::iterator it2;
+    std::list<std::pair<std::string,std::string> >::iterator it2;
     for(it2 = nameChanges.begin(); it2 != nameChanges.end() ; it2++){
         
         for(it = session->begin(); it != session->end() ; it++){
             
             if(QFileInfo((*it)->source).absolutePath().compare(fSourcesFolder)== 0){
                 
-                QString inter = it2->first;
+                QString inter(it2->first.c_str());
                 QFileInfo sourceInfo((*it)->source);
                 QString inter2 = sourceInfo.baseName();
                 
                 if(inter2.compare(inter) == 0){
-                    QString inter = fSourcesFolder + "/" + it2->second + ".dsp";
+                    QString inter = fSourcesFolder + "/" + it2->second.c_str() + ".dsp";
                     (*it)->source = inter;
                 }
             }
@@ -2345,7 +2353,7 @@ void FLApp::establish_sourceChanges(QList<std::pair<QString,QString> > nameChang
     }
 }
 
-void FLApp::copy_AllSources(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges, const QString extension){
+void FLApp::copy_AllSources(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges, const QString extension){
     
     //Following the renaming table, the sources are copied from snapshot Folder to current Session Folder
     
@@ -2356,9 +2364,9 @@ void FLApp::copy_AllSources(const QString& srcDir, const QString& dstDir, QList<
     QFileInfoList::iterator it;
     for(it = chilDirs.begin(); it!=chilDirs.end(); it++){
         
-        QString name = it->baseName();
+        string name = it->baseName().toStdString();
         
-        QList<std::pair<QString,QString> >::iterator it2;
+        std::list<std::pair<std::string,std::string> >::iterator it2;
         
         QFile source(it->filePath());
         
@@ -2367,13 +2375,13 @@ void FLApp::copy_AllSources(const QString& srcDir, const QString& dstDir, QList<
                 name = it2->second;
         }
         
-        QString newDir = dstDir + "/" + name + extension;
+        QString newDir = dstDir + "/" + name.c_str() + extension;
         source.copy(newDir);
     }
     
 }
 
-void FLApp::copy_WindowsFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > windowNameChanges){
+void FLApp::copy_WindowsFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string, std::string> > windowNameChanges){
     
     //Following the renaming table, the Folders containing the parameters of the window are copied from snapshot Folder to current Session Folder
     
@@ -2385,26 +2393,27 @@ void FLApp::copy_WindowsFolders(const QString& srcDir, const QString& dstDir, QL
     
     for(it = chilDirs.begin(); it!=chilDirs.end(); it++){
         
-        QList<std::pair<QString,QString> >::iterator it2;
+        std::list<std::pair<std::string,std::string> >::iterator it2;
         
-        QString name = it->baseName();
+        string name = it->baseName().toStdString();
         
         for(it2 = windowNameChanges.begin(); it2 !=windowNameChanges.end() ; it2++){
             
             if(name.compare(it2->first) == 0){
                 QString newDir(dstDir);
-                newDir += "/" + it2->second;
+                newDir += "/";
+                newDir += it2->second.c_str();
                 
                 QDir dir(newDir);
                 dir.mkdir(newDir);
                 
-                QString fileRC = it->filePath() + "/" + it2->first + ".rc";
-                QString newFileRC = newDir + "/" + it2->second +".rc";
+                QString fileRC = it->filePath() + "/" + it2->first.c_str() + ".rc";
+                QString newFileRC = newDir + "/" + it2->second.c_str() +".rc";
                 QFile toCopy(fileRC);
                 toCopy.copy(newFileRC);
                 
-                QString fileJC = it->filePath() + "/" + it2->first + ".jc";
-                QString newFileJC = newDir + "/"+ it2->second + ".jc";
+                QString fileJC = it->filePath() + "/" + it2->first.c_str() + ".jc";
+                QString newFileJC = newDir + "/"+ it2->second.c_str() + ".jc";
                 QFile toCpy(fileJC);
                 toCpy.copy(newFileJC);
             }
@@ -2413,7 +2422,7 @@ void FLApp::copy_WindowsFolders(const QString& srcDir, const QString& dstDir, QL
     
 }
 
-void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges){
+void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges){
     
     QDir src(srcDir);
     
@@ -2423,17 +2432,18 @@ void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, QList<
     
     for(it = chilDirs.begin(); it!=chilDirs.end(); it++){
         
-        QList<std::pair<QString,QString> >::iterator it2;
+        std::list<std::pair<std::string,std::string> >::iterator it2;
         
         QString name = it->baseName();
         
         for(it2 = nameChanges.begin(); it2 !=nameChanges.end() ; it2++){
             
-            QString toCompare = it2->first +"-svg";
+            QString toCompare = it2->first.c_str();
+            toCompare += "-svg";
             
             if(name.compare(toCompare) == 0){
-                QString newDir = dstDir + "/" +it2->second + "-svg";
-                printf("COPYING = %s TO %s\n", it->absoluteFilePath().toLatin1().data(), newDir.toLatin1().data());
+                QString newDir = dstDir + "/" +it2->second.c_str() + "-svg";
+                printf("COPYING = %s TO %s\n", it->absoluteFilePath().toStdString().c_str(), newDir.toStdString().c_str());
                 //                if(!QFileInfo(newDir).exists())
                 cpDir(it->absoluteFilePath(), newDir);
             }
@@ -2619,8 +2629,8 @@ void FLApp::common_shutAction(FLWindow* win){
     }
     else if(!isSourceInCurrentSession((win)->get_Effect()->getSource())){
         (win)->get_Effect()->stop_Watcher();
-        QString toErase = fSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
-        removeFilesOfWin(toErase, (win)->get_Effect()->getName());
+//        QString toErase = fSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
+//        removeFilesOfWin(toErase, (win)->get_Effect()->getName());
     }
     
     FLW_List.removeOne(win);
@@ -2726,8 +2736,8 @@ void FLApp::duplicate(FLWindow* window){
     toCy.copy(path);
     
     //Replacement of WindowName in the audio Connections File to reconnect the new window as the duplicated one.
-    QList<std::pair<QString, QString> > changeTable;
-    changeTable.push_back(make_pair(toFind, toReplace));
+    std::list<std::pair<std::string,std::string> > changeTable;
+    changeTable.push_back(make_pair(toFind.toStdString(), toReplace.toStdString()));
     win->update_ConnectionFile(changeTable);
     
     QString error;

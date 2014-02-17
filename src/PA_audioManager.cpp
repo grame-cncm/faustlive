@@ -30,9 +30,15 @@ PA_audioManager::~PA_audioManager(){
 }
 
 //INIT/START/STOP on Current PortAudio
-bool PA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool PA_audioManager::initAudio(QString& error, const char* name){
     
-    if(fCurrentAudio->init(name, DSP))
+    fName = name
+    return true;
+}
+
+bool PA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
+    
+    if(fCurrentAudio->init(fName, DSP))
         return true;
     else{
         error = "Impossible to init PortAudio Client";

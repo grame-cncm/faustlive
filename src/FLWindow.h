@@ -215,6 +215,7 @@ class FLWindow : public QMainWindow
         void            start_Audio();
     
         bool            init_audioClient(QString& error);
+        bool            setDSP(QString& error);
     
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
@@ -224,7 +225,7 @@ class FLWindow : public QMainWindow
     //Save the graphical and audio connections of current DSP
         void            save_Window();
     //Update the FJUI file following the changes table
-        void            update_ConnectionFile(QList<std::pair<QString,QString> > changeTable);
+        void            update_ConnectionFile(std::list<std::pair<std::string, std::string> > changeTable);
     
     //Recall the parameters (graphical and audio)
         void            recall_Window();

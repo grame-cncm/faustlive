@@ -33,11 +33,17 @@ NJ_audioManager::~NJ_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool NJ_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool NJ_audioManager::initAudio(QString& error, const char* name){
     
 //    fCurrentAudio->set_NumOutput(DSP->getNumOutputs());
     
-    if(init(name, DSP)){
+    fName = name;
+    return true;
+}
+
+bool NJ_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
+    
+    if(init(fName, DSP)){
         return true;
     }
     else{

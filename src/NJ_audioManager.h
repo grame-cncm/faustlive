@@ -30,6 +30,8 @@ class NJ_audioManager : public AudioManager{
     int                     fBufSize;
     int                     fSplRate;
     
+    const char*             fName;
+    
     NJ_audioFader*          fCurrentAudio;
     NJ_audioFader*          fFadeInAudio;
     
@@ -41,7 +43,8 @@ class NJ_audioManager : public AudioManager{
         virtual bool start();
         virtual void stop();
     
-        virtual bool initAudio(QString& error, const char* name, dsp* DSP, const char* port_name);
+        virtual bool initAudio(QString& error, const char* name);
+        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
     
         virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
     
