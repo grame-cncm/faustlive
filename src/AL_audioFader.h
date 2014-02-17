@@ -25,7 +25,6 @@ public:
 	virtual ~AL_audioFader(){}
     
 	virtual bool init(const char* /*name*/, dsp* DSP){
-		AVOIDDENORMALS;
 		fAudio->open();
 	    DSP->init(fAudio->frequency());
 		fAudio->longinfo();
