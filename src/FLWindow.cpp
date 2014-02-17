@@ -42,8 +42,6 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fPortOsc = oscPort;
     
     fIsLocal = true;
-    fIpRemoteServer = "127.0.0.1";
-    fPortRemoteServer = 7777;
     fIPToHostName = new map<QString, std::pair<QString, int> >;
     
     setAcceptDrops(true);
@@ -1202,7 +1200,7 @@ void FLWindow::initNavigateMenu(QList<QString> wins){
         
         fNavigateMenu->addAction(fifiWindow);
         
-        printf("NAME = %s\n", (*it).toLatin1().data());
+        printf("NAME = %s\n", (*it).toStdString().c_str());
     }
 }
 

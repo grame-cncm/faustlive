@@ -120,6 +120,14 @@ public:
     virtual int get_buffer_size() { return fFramesPerBuf; }
     virtual int get_sample_rate() { return fSampleRate; }
     
+    void        force_stopFade(){ 
+//        fCrossFadeDevice.set_doWeFadeOut(val);
+        fCrossFadeDevice.reset_Values();
+    }
+//    void        force_doWeFadeIn(bool val){ 
+//        fCrossFadeDevice.set_doWeFadeIn(val);
+//        fCrossFadeDevice.reset_Values();
+//    }
 };
 
 #endif

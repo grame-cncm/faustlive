@@ -85,8 +85,6 @@ class FLWindow : public QMainWindow
         bool            fIsLocal;      //True = llvm | False = remote
 
         map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-        QString          fIpRemoteServer;    //Address Remote machine chosen
-        int             fPortRemoteServer;  //Port Remote machine chosen
     
     //Position on screen
         int             fXPos;

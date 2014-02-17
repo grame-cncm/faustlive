@@ -75,6 +75,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 
 #ifdef REMOTE
+    fIpRemoteServer = "127.0.0.1";
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
     fRemoteButton->setText(tr("local processing"));
