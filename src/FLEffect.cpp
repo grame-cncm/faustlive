@@ -25,6 +25,8 @@ FLEffect::FLEffect(bool recallVal, QString sourceFile, QString name, bool isLoca
     
     fFactory = NULL;
     fOldFactory = NULL;
+    fRemoteFactory = NULL;
+    fOldRemoteFactory = NULL;
     fWatcher = NULL;
     fSynchroTimer = NULL;
     fSource = sourceFile;
@@ -35,7 +37,6 @@ FLEffect::FLEffect(bool recallVal, QString sourceFile, QString name, bool isLoca
     fIsLocal = isLocal;
     fIpMachineRemote = "localhost";
     fPortMachineRemote = 0;
-
 }
 
 FLEffect::~FLEffect(){
@@ -44,15 +45,14 @@ FLEffect::~FLEffect(){
     delete fWatcher;
     //    printf("deleting factory = %p\n", factory);
     
-    if(fIsLocal)
+    if (fIsLocal) {
         deleteDSPFactory(fFactory);
 #ifdef REMOTE
-    else
+    } else {
         deleteRemoteDSPFactory(fRemoteFactory);
+    }
 #endif
-        
 }
-
 
 //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
 //currentSVGFolder = where to create the SVG-Folder tied to the factory 
@@ -318,7 +318,7 @@ bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString 
 //Once the rebuild is complete, the former factory has to be deleted
 void FLEffect::erase_OldFactory(){
     
-	if(fIsLocal)
+	if(fIsLocal) {
 	    deleteDSPFactory(fOldFactory);
 #ifdef REMOTE
 	else{
