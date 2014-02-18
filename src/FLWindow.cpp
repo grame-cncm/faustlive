@@ -1257,4 +1257,8 @@ void FLWindow::migrationFailed(){
     fMenu->remoteFailed();
 }
 
+void FLWindow::migrationSuccessfull(){
+    fMenu->remoteSuccessfull();
+}
+
 

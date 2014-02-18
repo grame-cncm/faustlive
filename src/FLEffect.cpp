@@ -297,6 +297,7 @@ bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString 
 		}
 		else
 			return false;
+
 	}
 	else{
 
@@ -320,6 +321,7 @@ void FLEffect::erase_OldFactory(){
     
 	if(fIsLocal) {
 	    deleteDSPFactory(fOldFactory);
+    }
 #ifdef REMOTE
 	else{
         printf("DELETE REMOTE OLD FACTORY\n");

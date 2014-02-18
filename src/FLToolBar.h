@@ -44,7 +44,7 @@ class FLToolBar : public QToolBar{
         QString              fFormerIp;
         int                 fFormerPort;
         QString              fFormerName;
-    
+        QString              fNewName;
     
         QWidget*            fWidget1;;  
         QVBoxLayout*        fLayout1;
@@ -66,6 +66,7 @@ class FLToolBar : public QToolBar{
     int getPortOsc();
     
     void    remoteFailed();
+    void    remoteSuccessfull();
     void    setRemoteButtonName(const QString& name);
     QString  machineName();
 

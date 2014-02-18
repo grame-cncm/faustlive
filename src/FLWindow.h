@@ -245,6 +245,7 @@ class FLWindow : public QMainWindow
         int             get_remotePort();
         QString          get_machineName();
         void            migrationFailed();
+        void            migrationSuccessfull();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();

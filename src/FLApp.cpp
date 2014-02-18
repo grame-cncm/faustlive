@@ -691,7 +691,10 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
         }
         
         StopProgressSlot();
-        delete myNewEffect;
+        if(myNewEffect->isLocal())
+            delete myNewEffect;
+        else if(myNewEffect->getRemoteFactory())
+            delete myNewEffect;
         return NULL;
     }
 }
@@ -900,7 +903,7 @@ QList<int> FLApp::WindowCorrespondingToEffect(FLEffect* effect){
     
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
-        if((*it)->source.compare(effect->getSource()) == 0 && effect->isLocal() == (*it)->isLocal)
+        if((*it)->source.compare(effect->getSource()) == 0 /* && effect->isLocal() == (*it)->isLocal*/)
             returning.push_back((*it)->ID);
     }
     return returning;
@@ -925,7 +928,7 @@ void FLApp::synchronize_Window(){
     FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
     
     QString modifiedSource = modifiedEffect->getSource();
-    QString error;
+    QString error("");
     
     QDateTime modifiedLast = QFileInfo(modifiedSource).lastModified();
     QDateTime creationDate = modifiedEffect->get_creationDate();
@@ -939,12 +942,11 @@ void FLApp::synchronize_Window(){
         
         display_CompilingProgress("Updating your DSP...");
         
-        bool update = modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder);
-        
-        if(!update){
+        if(!modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder)){
+            
             StopProgressSlot();
             fErrorWindow->print_Error(error);
-
+            
             modifiedEffect->launch_Watcher();
             return;
         }
@@ -962,15 +964,20 @@ void FLApp::synchronize_Window(){
             
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
-
+                    
                     if(!(*it2)->update_Window(modifiedEffect, error)){
+                        
+                        if(!modifiedEffect->isLocal())
+                            (*it2)->migrationFailed();
+                        
                         fErrorWindow->print_Error(error);
                         break;
                     }
                     else{
                         
-                        //                        printf("WINDOW INDEX = %i\n", *it);
-                        
+                        if(!modifiedEffect->isLocal())
+                            (*it2)->migrationSuccessfull();
+                
                         deleteWinFromSessionFile(*it2);
                         QString name = (*it2)->get_nameWindow();
                         name+=" : ";
@@ -1081,11 +1088,16 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
         
         FLEffect* newEffect = getEffectFromSource(migratingWin->get_Effect()->getSource(), migratingWin->get_Effect()->getName(), fSourcesFolder, fCompilationMode, fOpt_level, error, false, false, ip, port);
         
-        if(newEffect == NULL)
+        if(newEffect == NULL){
+            migratingWin->migrationFailed();
+            fErrorWindow->print_Error("Impossible to switch to remote processing");
             return false;
+        }
         
-        if(migratingWin->update_Window(newEffect, error))
+        if(migratingWin->update_Window(newEffect, error)){
+            migratingWin->migrationSuccessfull();
             deleteEffect(migratingWin->get_Effect(), newEffect);
+        }
         else{
             fRemoteEffects.removeOne(newEffect);
             delete newEffect;
@@ -1099,13 +1111,16 @@ bool FLApp::migrate_ProcessingInWin(QString ip, int port){
         
         FLEffect* newEffect = getEffectFromSource(migratingWin->get_Effect()->getSource(), migratingWin->get_Effect()->getName(), fSourcesFolder, fCompilationMode, fOpt_level, error, false, true, ip, port);
         
-        if(newEffect == NULL)
+        if(newEffect == NULL){
+            migratingWin->migrationFailed();
+            fErrorWindow->print_Error("Impossible to switch back to local processing");
             return false;
+        }
         
         FLEffect* formerEffect = migratingWin->get_Effect();
         
         if(migratingWin->update_Window(newEffect, error)){
-        
+            migratingWin->migrationSuccessfull();
             deleteEffect(formerEffect, newEffect);
             
         }
