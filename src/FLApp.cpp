@@ -663,8 +663,8 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     display_CompilingProgress("Compiling your DSP...");
     
     FLEffect* myNewEffect = new FLEffect(recall, fichierSource, nameEffect, isLocal);
-        
-    if(myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error, ip, port)){
+    
+    if(myNewEffect && myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error, ip, port)){
         
         StopProgressSlot();
         

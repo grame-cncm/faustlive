@@ -610,7 +610,7 @@ void FLWindow::start_Audio(){
     QString connectFile = fHome + "/" + fWindowName + ".jc";
 
     fAudioManager->connect_Audio(connectFile.toStdString());
-    printf("CONNECT = %s\n", connectFile.toStdString().c_str());
+//    printf("CONNECT = %s\n", connectFile.toStdString().c_str());
     
     fClientOpen = true;
 }

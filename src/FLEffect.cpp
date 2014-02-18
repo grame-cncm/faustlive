@@ -167,7 +167,15 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
             char* intermediate = new char[parseResult.size()+1];
             
             strcpy(intermediate,parseResult.c_str());
-            argv[i] = (const char*)intermediate;
+            
+//        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
+            if(strcmp(intermediate, "-double") != 0)               
+                argv[i] = (const char*)intermediate;
+            else{
+                argc--;
+                i--;
+                printf("Option -double not taken into account\n");
+            }
         }
         
         for(int i=0; i<argc; i++)
@@ -192,6 +200,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         
         //The creation date is nedded in case the text editor sends a message of modification when actually the file has only been opened. It prevents recompilations for bad reasons
         fCreationDate = fCreationDate.currentDateTime();
+        
+        printf("REMOTE FACTORY = %p\n", buildingRemoteFactory);
         
         if(buildingFactory != NULL || buildingRemoteFactory != NULL){
             
@@ -218,8 +228,10 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
             }
             return true;
         }
-        else
+        else{
+            printf("FALSE IS RETURNED\n");
             return false;
+        }
     }
     else{
         fCreationDate = fCreationDate.currentDateTime();
@@ -273,7 +285,7 @@ bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString 
     
 	if(fIsLocal){
 		
-		 fOldFactory = fFactory;
+//		 fOldFactory = fFactory;
     
 		llvm_dsp_factory* factory_update = NULL;
     
@@ -288,7 +300,7 @@ bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString 
 	}
 	else{
 
-		fOldRemoteFactory = fRemoteFactory;
+//		fOldRemoteFactory = fRemoteFactory;
     
 		remote_dsp_factory* factory_update = NULL;
     
@@ -309,8 +321,10 @@ void FLEffect::erase_OldFactory(){
 	if(fIsLocal)
 	    deleteDSPFactory(fOldFactory);
 #ifdef REMOTE
-	else
-	    deleteRemoteDSPFactory(fOldRemoteFactory);
+	else{
+        printf("DELETE REMOTE OLD FACTORY\n");
+        deleteRemoteDSPFactory(fOldRemoteFactory);
+    }
 #endif
 }
 
