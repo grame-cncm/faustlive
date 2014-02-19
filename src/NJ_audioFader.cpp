@@ -57,7 +57,7 @@ bool NJ_audioFader::init(const char* name, int numInputs, int numOutputs) {
 
 bool NJ_audioFader::set_dsp(dsp* DSP){
     
-    set_dsp_aux(DSP);
+    set_dsp(DSP);
     return true;
 }
 
