@@ -222,7 +222,14 @@ class FLApp : public QApplication
     QString                  getDeclareName(QString text);
     QString                  renameEffect(const QString& source, const QString& nomEffet, bool isRecalledEffect);
     
-    FLEffect*           recycleEffect(bool isLocal, QString source, const QString& ip, int port);
+    // GET COMPILED EFFECT
+    // @param : isLocal = is Effect local or remote
+    // @param : source = file source of wanted Effect
+    // @param : ip = ip of wanted processing machine (Remote Case)
+    // @param : port = port of wanted processing machine (Remote Case)
+    //
+    // @return : Effect already compiled | NULL if not compiled
+    FLEffect*           getCompiledEffect(bool isLocal, QString source, const QString& ip, int port);
     
     FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init, bool isLocal, const QString& ip = "localhost", int port= 0);
     

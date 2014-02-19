@@ -31,25 +31,40 @@ CA_audioManager::~CA_audioManager(){
 bool CA_audioManager::initAudio(QString& /*error*/, const char* name){
     
     fName = name;
+    fInit = false;
     return true;
+}
+
+bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs){
+    
+    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
+        fInit = true;
+        return true;
+    }
+    else{
+        error = "Impossible to init CoreAudio Client";
+        return false;
+    }
 }
 
 bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
     
-    if(init(fName, DSP))
+    if(fInit)
+        return fCurrentAudio->set_dsp(DSP);
+    
+    else if(init(fName, DSP))
         return true;
     else{
         error = "Impossible to init CoreAudio Client";
         return false;
     }
-
+    
 }
 
 //INIT/START/STOP on Current CoreAudio
 bool CA_audioManager::init(const char* name, dsp* DSP){
 
     return fCurrentAudio->init(name, DSP);
-
 }
 
 bool CA_audioManager::start(){

@@ -23,6 +23,7 @@ class CA_audioManager : public AudioManager{
     //Settings are common to the 2 audioFader that can co-exist during a crossfade    
         int                 fBufferSize;
         const char*         fName;
+        bool                fInit;
     
         CA_audioFader*      fCurrentAudio;
         CA_audioFader*      fFadeInAudio;
@@ -34,6 +35,7 @@ class CA_audioManager : public AudioManager{
         virtual bool init(const char*, dsp* DSP);
         virtual bool initAudio(QString& error, const char* name);
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
     
         virtual bool start();
         virtual void stop();

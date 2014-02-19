@@ -53,8 +53,8 @@ class FLWindow : public QMainWindow
         QString          fHome;        //Folder of currentSession
         QString          fSettingsFolder;
     
-        FLToolBar*      fMenu;  
-        void            setMenu(const QString& machineName);
+        FLToolBar*      fMenu;
+        void            setToolBar(const QString& machineName);
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -166,15 +166,14 @@ class FLWindow : public QMainWindow
         
     public :
     
-    //Constructor
-    //baseName = Window name
-    //Index = Index of the window
-    //Effect = effect that will be contained in the window
-    //x,y = position on screen
-    //appHome = current Session folder
-    //GeneralPort = what 
-    //bufferSize, cprValue, ... = audio parameters
-    
+    //####CONSTRUCTOR
+    //@param : baseName = Window name
+    //@param : index = Index of the window
+    //@param : effect = effect that will be contained in the window
+    //@param : x,y = position on screen
+    //@param : home = current Session folder
+    //@param : osc/httpd port = port on which remote interface will be built 
+    //@param : machineName = in case of remote processing, the name of remote machine
 
         FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing");
         virtual ~FLWindow();
@@ -196,14 +195,17 @@ class FLWindow : public QMainWindow
     //Recalled = 1 --> the window is recalled from a session and needs its parameter
     //Recalled = 0 --> the window is a new one without parameters
 
-        void            buildInterfaces(dsp* dsp, const QString& nameEffect);
+        bool           buildInterfaces(dsp* dsp, const QString& nameEffect);
     
     //Returning false if it fails and fills the errorMsg buffer
-
+    //@param : init = if the window created is a default window.
+    //@param : error = in case init fails, the error is filled
         bool            init_Window(bool init, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
+    //@param : effect = effect that reemplaces the current one
+    //@param : error = in case update fails, the error is filled
         bool            update_Window(FLEffect* newEffect, QString& error);
     
         bool            update_AudioArchitecture(QString& error);
@@ -230,7 +232,7 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(QString& error, int generalPortHttp);
+        bool            init_Httpd(int generalPortHttp, QString& error);
     
     //Accessors to parameters
         QString          get_nameWindow();
@@ -241,8 +243,6 @@ class FLWindow : public QMainWindow
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
-        QString          get_remoteIP();
-        int             get_remotePort();
         QString          get_machineName();
         void            migrationFailed();
         void            migrationSuccessfull();

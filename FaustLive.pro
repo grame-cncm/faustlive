@@ -54,6 +54,7 @@ LLVMDIR = $$system(llvm-config --ldflags)
 QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
+CONFIG += exceptions rtti
 
 QT+=widgets
 QT+=core
@@ -80,7 +81,7 @@ LIBS+=-lOSCFaust -loscpack
 LIBS+=-L/opt/local/lib
 LIBS+=-lmicrohttpd
 LIBS+=-lqrencode
-LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
+#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
 }

@@ -89,14 +89,22 @@ class FLEffect : public QObject
         bool        buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder); 
     
     public:
-        FLEffect(bool recallVal, QString sourceFile, QString name = "", bool isLocal = true);
+    
+    //###CONSTRUCTOR
+    //@param : isEffectRecalled = is Effect created from a session recalling situation
+    //@param : sourceFile = source of effect
+    //@param : name = name of the created effect
+    //@param : isLocal = is it processing on local or remote machine
+        FLEffect(bool recallVal, const QString& sourceFile, const QString& name = "", bool isLocal = true);
         ~FLEffect();
     
-    //Initialisation of the effect. From a source, it extracts the source file, the name and builds the factory
-    //currentSVGFolder = where to create the SVG-Folder tied to the factory 
-    //currentIRFolder = where to save the bitcode tied to the factory
-    //Compilation Options = needed to build the llvm factory
-    //Error = if the initialisation fails, the function returns false + the buffer is filled
+    //Initialisation of the effect. From a source file, it builds the factory
+    //@param : currentSVGFolder = where to create the SVG-Folder tied to the factory 
+    //@param : currentIRFolder = where to save the bitcode tied to the factory
+    //@param : compilation Options = options to create the factory in faust compiler
+    //@param : optvalue = optimization value for LLVM compiler
+    //@param : error = if the initialisation fails, error is filled
+    //@param : ip/port remote = IP/Port of processing machine (Remote Case)
         bool        init(const QString& currentSVGFolder, const QString& currentIRFolder , QString compilationMode, int optVal, QString& error, const QString& IPremote = "localhost", int portremote = 0);
 
     //Accessors to the Factory
@@ -134,9 +142,6 @@ class FLEffect : public QObject
     //When any action on the effect is performed, the watcher has to be stopped (and then re-launched) otherwise the synchronisation is called without good reason
         void        stop_Watcher();
         void        launch_Watcher();
-    
-    //The source file is copied in the sourceFolder in case of a source loss
-//        void        copySourceFile(QString& sourceFolder);
             
     signals :     
     //When the watcher locates a modification on the file, the signal is emited

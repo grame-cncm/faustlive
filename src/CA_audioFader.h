@@ -81,11 +81,28 @@ public:
 	virtual ~CA_audioFader(){}
     
 	virtual bool init(const char* /*name*/, dsp* DSP){
-        if (fCrossFadeDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+        if (fCrossFadeDevice.OpenDefault(DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
             printf("Cannot open CoreAudio device\n");
             return false;
         }
+        fCrossFadeDevice.set_dsp(DSP);
         // If -1 was given, fSampleRate will be changed by OpenDefault
+        DSP->init(fSampleRate);
+        return true;
+    }
+    
+    bool init(const char* /*name*/, int numInputs, int numOutputs){
+        if (fCrossFadeDevice.OpenDefault(numInputs, numOutputs, fFramesPerBuf, fSampleRate) < 0) {
+            printf("Cannot open CoreAudio device\n");
+            return false;
+        }
+        else
+            return true;
+    }
+    
+    bool set_dsp(dsp* DSP){
+        
+        fCrossFadeDevice.set_dsp(DSP);
         DSP->init(fSampleRate);
         return true;
     }
