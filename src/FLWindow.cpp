@@ -207,9 +207,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         QString newName = newEffect->getName();
         bool isLocalEffect = newEffect->isLocal();
         
-        if(!fAudioManager->init_FadeAudio(error, newName.toStdString().c_str(), charging_DSP))
-            show();
-        else{
+        if(fAudioManager->init_FadeAudio(error, newName.toStdString().c_str(), charging_DSP)){
             
             deleteInterfaces();
             
@@ -259,6 +257,8 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     }
     else
         error = "Impossible to allocate DSP";
+    
+    show();
     
     return isUpdateSucessfull;
 }

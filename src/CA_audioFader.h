@@ -75,7 +75,6 @@ public:
         
         fSampleRate = -1;
         fFramesPerBuf = fpb;
-        //    printf("BUFFER SIZE = %i\n", fpb);
     }
     
 	virtual ~CA_audioFader(){}
@@ -129,22 +128,15 @@ public:
     }
     
     virtual bool get_FadeOut(){
-        //    printf("COREAUDIO fade out\n");
-//        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
         return fCrossFadeDevice.get_doWeFadeOut();
     }
     
     virtual int get_buffer_size() { return fFramesPerBuf; }
     virtual int get_sample_rate() { return fSampleRate; }
     
-    void        force_stopFade(){ 
-//        fCrossFadeDevice.set_doWeFadeOut(val);
+    void force_stopFade(){
         fCrossFadeDevice.reset_Values();
     }
-//    void        force_doWeFadeIn(bool val){ 
-//        fCrossFadeDevice.set_doWeFadeIn(val);
-//        fCrossFadeDevice.reset_Values();
-//    }
 };
 
 #endif
