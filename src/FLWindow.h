@@ -277,6 +277,7 @@ class FLWindow : public QMainWindow
     //Error received
         void            errorPrint(const char* msg);
 
+        static          void RemoteDSPErrorCallback(int error_code, void* arg);
 };
 
 #endif
