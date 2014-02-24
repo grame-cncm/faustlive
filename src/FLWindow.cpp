@@ -436,6 +436,7 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
+    
     delete fInterface;
     delete fRCInterface;
 #ifdef __APPLE__
@@ -1261,3 +1262,6 @@ void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
 {
     printf("RemoteDSPErrorCallback error = %d\n", error_code);
 }
+
+
+

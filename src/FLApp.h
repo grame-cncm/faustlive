@@ -266,7 +266,7 @@ class FLApp : public QApplication
     
     
     //--------Switch to remote processing
-        bool    migrate_ProcessingInWin(QString ip, int port);
+        bool    migrate_ProcessingInWin(const QString& ip, int port);
     
     //---------Presentation Window Slots
     
