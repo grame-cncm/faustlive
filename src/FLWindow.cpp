@@ -129,7 +129,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         
         string error("");
         
-        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), error);
+        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), RemoteDSPErrorCallback, 0, error);
         errorMsg = error.c_str();
     }
 #endif
@@ -193,7 +193,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         
         string errorMsg("");
         
-        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), errorMsg);
+        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, 0, errorMsg);
         
         error = errorMsg.c_str();
         
@@ -1257,4 +1257,7 @@ void FLWindow::errorPrint(const char* msg){
 }
 
 
-
+void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
+{
+    printf("RemoteDSPErrorCallback error = %d\n", error_code);
+}
