@@ -172,7 +172,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
             strcpy(intermediate,parseResult.c_str());
             
 //        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-            if(strcmp(intermediate, "-double") != 0)               
+            if(strcmp(intermediate, "-double") != 0)
                 argv[i] = (const char*)intermediate;
             else{
                 argc--;
@@ -194,6 +194,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         }
 #ifdef REMOTE
         else{
+            printf("REMOTE BUILDING FACTORY\n");
              
             buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource.toStdString(), argc, argv, fIpMachineRemote.toStdString(), fPortMachineRemote, getError, fOpt_level);
         }
@@ -281,43 +282,63 @@ void FLEffect::erase_OldFactory(){
 //Get number of compilation options
 int FLEffect::get_numberParameters(const QString& compilOptions){
     
-    QString copy = compilOptions;
-    
     int argc = 0;
-    int pos = 0;
+    int pos = compilOptions.indexOf("-");
     
-	if(copy.indexOf("-") == -1){
-        return 0;
-    }
-    
-    while(copy.indexOf(" ", pos+1) != -1){
+    while(pos != -1 && pos < compilOptions.size()){
+        
         argc++;
-        pos = copy.indexOf(" ", pos+1);
+        
+        pos = compilOptions.indexOf(" ", pos);
+        
+        while(pos != -1 && pos < compilOptions.size()){
+            
+            if(compilOptions[pos] == ' ')
+                pos++;
+            else if(compilOptions[pos] == '-')
+                break;
+            else{
+                argc++;
+                pos = compilOptions.indexOf(" ", pos);
+            }
+        }
     }
     
-    return argc+1;
+    printf("ARGC = %i\n", argc);
+    
+    return argc;
     
 }
 
-//Hand Made Parser = a ' ' means a separation between parameters. If there are none and still there are compilation Options = it's the last one but it has to be taken into account anyway.
-//Returns : the first option found
+//Hand Made Parser
+//Returns : the first option found, skipping the ' '
 //CompilOptions : the rest of the options are kept in
 string FLEffect::parse_compilationParams(QString& compilOptions){
     
-    string returning = "";
+    QString returning = "";
     
-    int pos = compilOptions.indexOf(" ");
+    int pos = 0;
     
-    if(pos != -1){
-        returning = compilOptions.mid(0, pos).toStdString();
-        compilOptions.remove(0, pos+1);
+    while(pos != -1 && pos < compilOptions.size()){
+        if(compilOptions[pos] == ' ')
+            pos++;
+        else{
+            int pos2 = compilOptions.indexOf(" ", pos);
+            
+            returning = compilOptions.mid(pos, pos2-pos);
+            
+            if(pos2 == -1)
+                pos2 = compilOptions.size();
+            compilOptions.remove(0, pos2);
+            
+            break;
+        }
     }
-    else if(compilOptions.compare("") != 0)
-        returning = compilOptions.mid(0, compilOptions.length()).toStdString();
     
-    return returning;
+    string returnin(returning.toStdString());
+    
+    return returnin;
 }
-
 
 //---------------WATCHER & FILE MODIFICATIONS ACTIONS
 
@@ -391,6 +412,9 @@ QString FLEffect::getCompilationOptions(){
 
 void FLEffect::update_compilationOptions(QString& compilOptions, int newOptValue){
     if(fCompilationOptions.compare(compilOptions) !=0 || fOpt_level != newOptValue){
+        
+        printf("EFFECT CHANGED IS LOCAL = %i\n", fIsLocal);
+        
         fCompilationOptions = compilOptions;
         fOpt_level = newOptValue;   
         //        printf("opt level = %i\n", opt_level);
