@@ -284,6 +284,7 @@ class FLApp : public QApplication
         FLWindow*           new_Window(const QString& mySource, QString& error);
         void                create_Empty_Window();
         void                open_New_Window();
+        void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
         void                shut_Window(); 

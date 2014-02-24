@@ -236,7 +236,7 @@ void FLApp::setup_Menu(){
             
             openExamples[i] = new QAction(it->baseName(), menuOpen_Example);
             openExamples[i]->setData(QVariant(it->absoluteFilePath()));
-            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Example_Action()));
+            connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Example_From_FileMenu()));
             
             menuOpen_Example->addAction(openExamples[i]);
             i++;
@@ -1304,6 +1304,14 @@ void FLApp::open_New_Window(){
 }
 
 //--------------OPEN EXAMPLE
+
+void FLApp::open_Example_From_FileMenu(){
+
+    QAction* action = qobject_cast<QAction*>(sender());
+    QString toto(action->data().toString());
+        
+    open_Example_Action(toto);
+}
 
 void FLApp::open_Example_Action(QString pathInQResource){
     

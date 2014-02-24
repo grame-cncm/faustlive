@@ -1257,10 +1257,22 @@ void FLWindow::errorPrint(const char* msg){
     emit error(msg);
 }
 
+//void FLWindow::cancelSwitch(){
+//    
+//    string errorToPrint("Remote Connection Error.\n Switching back to local processing.");
+//    
+//    errorPrint(errorToPrint.c_str());
+//    
+//    redirectSwitch("127.0.0.1", 80);
+//}
 
 void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
 {
-    printf("RemoteDSPErrorCallback error = %d\n", error_code);
+    FLWindow* errorWin = (FLWindow*) arg;
+    
+    if(error_code == WRITE_ERROR || error_code == READ_ERROR){
+//        errorWin->cancelSwitch();
+    }
 }
 
 

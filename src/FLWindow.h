@@ -163,7 +163,8 @@ class FLWindow : public QMainWindow
         void            import_Recent_Session();
         void            frontShowFromMenu(); 
         void            redirectSwitch(const QString& ip, int port);
-        
+//        void            cancelSwitch();
+    
     public :
     
     //####CONSTRUCTOR
