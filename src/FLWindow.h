@@ -48,7 +48,9 @@ class FLWindow : public QMainWindow
     
     private : 
     
-        bool            fShortcut;   //True if ALT is pressed when x button is pressed
+        QDateTime        fLastMigration;
+    
+        bool             fShortcut;   //True if ALT is pressed when x button is pressed
     
         QString          fHome;        //Folder of currentSession
         QString          fSettingsFolder;

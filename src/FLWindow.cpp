@@ -83,6 +83,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 //    Set Menu & ToolBar
     setToolBar(machineName);
     set_MenuBar();
+    fLastMigration = QDateTime::currentDateTime();
 }
 
 FLWindow::~FLWindow(){}
@@ -129,7 +130,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         
         string error("");
         
-        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), RemoteDSPErrorCallback, 0, error);
+        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), RemoteDSPErrorCallback, this, error);
         errorMsg = error.c_str();
     }
 #endif
@@ -193,7 +194,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         
         string errorMsg("");
         
-        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, 0, errorMsg);
+        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
         
         error = errorMsg.c_str();
         
@@ -1257,22 +1258,26 @@ void FLWindow::errorPrint(const char* msg){
     emit error(msg);
 }
 
-//void FLWindow::cancelSwitch(){
-//    
-//    string errorToPrint("Remote Connection Error.\n Switching back to local processing.");
-//    
-//    errorPrint(errorToPrint.c_str());
-//    
-//    redirectSwitch("127.0.0.1", 80);
-//}
-
 void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
 {
+    QDateTime currentTime(QDateTime::currentDateTime());
+    
     FLWindow* errorWin = (FLWindow*) arg;
     
-    if(error_code == WRITE_ERROR || error_code == READ_ERROR){
-//        errorWin->cancelSwitch();
+    if(errorWin->fLastMigration.secsTo(currentTime) > 3){
+        
+        printf("MIGRATING...\n");
+        
+        if(error_code == WRITE_ERROR || error_code == READ_ERROR){
+            
+            errorWin->errorPrint("Remote Connection Error.\n Switching back to local processing.");
+            
+            errorWin->fMenu->setNewOptions("127.0.0.1", 80, "local processing");
+            errorWin->redirectSwitch("127.0.0.1", 80);
+        }
     }
+    
+    errorWin->fLastMigration = currentTime;
 }
 
 

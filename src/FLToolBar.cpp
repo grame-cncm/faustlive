@@ -154,6 +154,18 @@ void FLToolBar::remoteSuccessfull(){
     setRemoteButtonName(fNewName);
 }
 
+void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
+    
+    fFormerIp = fIpRemoteServer;
+    fFormerPort = fPortRemoteServer;
+    fFormerName = fRemoteButton->text();
+    
+    fIpRemoteServer = ip;
+    fPortRemoteServer = port;
+    fNewName = newName;
+    
+}
+
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     
     removeAction(fAction1);
