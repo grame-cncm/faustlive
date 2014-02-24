@@ -67,6 +67,14 @@ bool PA_audioFader::init(const char* name, dsp* DSP, const char* /*portsName*/)
     return init(name, DSP);
 }
 
+//bool PA_audioFader::init(const char* name){
+//    
+//}
+//
+//bool PA_audioFader::set_dsp(dsp* DSP, const char* /*portsName*/){
+//    
+//}
+
 bool PA_audioFader::start(){
 
     if (pa_error(Pa_OpenStream(&fAudioStream, &fInputParameters, &fOutputParameters, fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
