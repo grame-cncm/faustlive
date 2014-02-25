@@ -200,6 +200,9 @@ class FLWindow : public QMainWindow
 
         bool           buildInterfaces(dsp* dsp, const QString& nameEffect);
     
+    
+        QString         getErrotFromCode(int code);
+    
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
     //@param : error = in case init fails, the error is filled

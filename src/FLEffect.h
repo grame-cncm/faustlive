@@ -35,6 +35,9 @@ class FLEffect : public QObject
     
     //Indicator of a special situation where the effect is build from saved bitcode
         bool                fRecalled;
+        
+    //Indicator of forced recompilation in case of source changes
+        bool                fRecompilation;
     
     //File holding the Faust Code
         QString              fSource;  
@@ -45,9 +48,13 @@ class FLEffect : public QObject
     //Optimization value for the llvm compilation
         int                 fOpt_level;      
     
+    //Current Session Folders
+        QString              fCurrentSVGFolder;
+        QString              fCurrentIRFolder;
+    
     // IP + Port of remote server for remote Effects
         QString              fIPaddress;
-        int                 fPort;
+        int                  fPort;
        
     //Llvm Factory corresponding to file
         llvm_dsp_factory*   fFactory;        
@@ -97,6 +104,8 @@ class FLEffect : public QObject
     //@param : isLocal = is it processing on local or remote machine
         FLEffect(bool recallVal, const QString& sourceFile, const QString& name = "", bool isLocal = true);
         ~FLEffect();
+        void reset();
+        bool reinit(QString& error);
     
     //Initialisation of the effect. From a source file, it builds the factory
     //@param : currentSVGFolder = where to create the SVG-Folder tied to the factory 
@@ -111,6 +120,9 @@ class FLEffect : public QObject
         llvm_dsp_factory*   getFactory();
         remote_dsp_factory*   getRemoteFactory();
     
+    //In case source modified outside of session use
+        void        forceRecompilation(bool val);
+        bool        hasToBeRecompiled();
     //Re-Build of the factory from the source file
         bool        update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder);
     //Once the rebuild is complete, the former factory has to be deleted

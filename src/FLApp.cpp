@@ -677,6 +677,9 @@ FLEffect* FLApp::getCompiledEffect(bool isLocal, QString source, const QString& 
             else{
                 (*it)->setName(renameEffect(source, (*it)->getName(), false));
                 
+                if((*it)->hasToBeRecompiled())
+                    synchronize_Window(*it);
+                
                 return *it;
             }
             
@@ -910,20 +913,30 @@ bool FLApp::isEffectNameInCurrentSession(const QString& sourceToCompare , const 
 
 //----------------------UPDATES UPDATES
 
-//Refresh a window. In case the source/options have been modified.
-void FLApp::synchronize_Window(){ 
+//In case source is modified from a remote/local effect and has to be recompiled when reused
+void FLApp::setRecompileEffects(FLEffect* modifiedEffect){
+    
+    QList<FLEffect*>::iterator it;
+    
+    for(it = fExecutedEffects.begin(); it != fExecutedEffects.end(); it++){
+        if(modifiedEffect->getSource().compare((*it)->getSource()) == 0)
+            (*it)->forceRecompilation(true);
+    }
+    
+    for(it = fRemoteEffects.begin(); it != fRemoteEffects.end(); it++){
+        if(modifiedEffect->getSource().compare((*it)->getSource()) == 0)
+            (*it)->forceRecompilation(true);
+    }
+}
 
-    printf("FLApp::synchronize_Window\n");
-    
-    FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
-    
+void FLApp::synchronize_Window(FLEffect* modifiedEffect){
     QString modifiedSource = modifiedEffect->getSource();
     QString error("");
     
     QDateTime modifiedLast = QFileInfo(modifiedSource).lastModified();
     QDateTime creationDate = modifiedEffect->get_creationDate();
     
-//Avoiding the flicker when the source is saved
+    //Avoiding the flicker when the source is saved
     if(QFileInfo(modifiedSource).exists() && (modifiedEffect->isSynchroForced() || creationDate<modifiedLast)){
         
         modifiedEffect->setForceSynchro(false);
@@ -946,12 +959,12 @@ void FLApp::synchronize_Window(){
         
         StopProgressSlot();
         
-//        METTRE EN PLACE WINDOW UPDATE POUR LE CAS DU SWITCH d'IP!!!!!!!!!!!!!!!
-//        if(!modifiedEffect->isLocal())
-//            (*it2)->migrationFailed();
-//        
-//        if(!modifiedEffect->isLocal())
-//            (*it2)->migrationSuccessfull();
+        //        METTRE EN PLACE WINDOW UPDATE POUR LE CAS DU SWITCH d'IP!!!!!!!!!!!!!!!
+        //        if(!modifiedEffect->isLocal())
+        //            (*it2)->migrationFailed();
+        //        
+        //        if(!modifiedEffect->isLocal())
+        //            (*it2)->migrationSuccessfull();
         
         QList<int> indexes = WindowCorrespondingToEffect(modifiedEffect);
         
@@ -970,7 +983,7 @@ void FLApp::synchronize_Window(){
                         break;
                     }
                     else{
-                
+                        
                         deleteWinFromSessionFile(*it2);
                         QString name = (*it2)->get_nameWindow();
                         name+=" : ";
@@ -989,11 +1002,14 @@ void FLApp::synchronize_Window(){
             
         }
         
+        setRecompileEffects(modifiedEffect);
+        
+        
         modifiedEffect->erase_OldFactory();
         modifiedEffect->launch_Watcher();
         printf("modifiedEffect OPT = %i\n", modifiedEffect->getOptValue());
     }
-//In case the file is erased during the execution
+    //In case the file is erased during the execution
     else if(!QFileInfo(modifiedSource).exists()){
         
         modifiedEffect->stop_Watcher();
@@ -1007,7 +1023,16 @@ void FLApp::synchronize_Window(){
         modifiedEffect->setSource(toReplace);
         modifiedEffect->launch_Watcher();
     }
+}
+
+//Refresh a window. In case the source/options have been modified.
+void FLApp::synchronize_Window(){ 
+
+    printf("FLApp::synchronize_Window\n");
     
+    FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
+    
+    synchronize_Window(modifiedEffect);
 }
 
 //Modify the content of a specific window with a new source
@@ -1097,6 +1122,7 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
         addWinToSessionFile(migratingWin);
         
         fErrorWindow->print_Error("Impossible to switch processing machine");
+        fErrorWindow->print_Error(error.toStdString().c_str());
         return false;
     }
         

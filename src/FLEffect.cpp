@@ -36,6 +36,7 @@ FLEffect::FLEffect(bool isEffectRecalled, const QString& sourceFile, const QStri
     fSource = sourceFile;
     fName = name;
     fForceSynchro = false;
+    fRecompilation= false;
     fRecalled = isEffectRecalled;
     
     fIsLocal = isLocal;
@@ -44,6 +45,11 @@ FLEffect::FLEffect(bool isEffectRecalled, const QString& sourceFile, const QStri
 }
 
 FLEffect::~FLEffect(){
+    reset();
+}
+
+//In case of lost remote factory
+void FLEffect::reset(){
     
     delete fSynchroTimer;
     delete fWatcher;
@@ -52,10 +58,14 @@ FLEffect::~FLEffect(){
         deleteDSPFactory(fFactory);
     }
 #ifdef REMOTE
-     else {
+    else {
         deleteRemoteDSPFactory(fRemoteFactory);
     }
-#endif
+#endif 
+}
+
+bool FLEffect::reinit(QString& error){
+    return init(fCurrentSVGFolder, fCurrentIRFolder, fCompilationOptions, fOpt_level, error, fIpMachineRemote, fPortMachineRemote);
 }
 
 //Initialisation of the effect. From a source file, it builds the factory
@@ -74,6 +84,9 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
     fIpMachineRemote = IPremote;
     fPortMachineRemote = portremote;
 
+    fCurrentSVGFolder = currentSVGFolder;
+    fCurrentIRFolder = currentIRFolder;
+    
     if(buildFactory(kCurrentFactory, error, currentSVGFolder, currentIRFolder)){
         
         //Initializing watcher looking for changes on faust source through text editor 
@@ -91,6 +104,21 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 }
 
 //---------------FACTORY ACTIONS
+
+void FLEffect::forceRecompilation(bool val){
+    
+    fRecompilation = val;
+}
+
+bool FLEffect::hasToBeRecompiled(){
+    
+    if(fRecompilation){
+        fRecompilation = false;
+        return true;
+    }
+    else
+        return false;
+}   
 
 //Creating the factory with the specific compilation options, in case of an error the buffer is filled
 //@param : factoryToBuild = creating the current or charged factory

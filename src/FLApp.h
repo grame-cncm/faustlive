@@ -310,6 +310,8 @@ class FLApp : public QApplication
         void                edit(FLWindow* win);
         void                edit_Action();
     
+        void                setRecompileEffects(FLEffect* modifiedEffect);
+        void                synchronize_Window(FLEffect* modifiedEffect);
         void                synchronize_Window();
     
         void                paste(FLWindow* win);

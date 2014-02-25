@@ -103,6 +103,25 @@ void FLWindow::frontShow(){
     setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 }
 
+QString FLWindow::getErrotFromCode(int code){
+    
+    if(code == ERROR_FACTORY_NOTFOUND){
+        return "Impossible to remote factory";
+    }
+    
+    if(code == ERROR_INSTANCE_NOTCREATED){
+        return "Impossible to create DSP Instance";
+    }
+    else if(code == ERROR_NETJACK_NOTSTARTED){
+        return "NetJack Master not started";
+    }
+    else if (code == ERROR_CURL_CONNECTION){
+        return "Curl connection failed";
+    }
+    
+    return "ERROR not recognized";
+}
+
 //Initialization of User Interface + StartUp of Audio Client
 //@param : init = if the window created is a default window.
 //@param : error = in case init fails, the error is filled
@@ -128,15 +147,29 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
         
-        string error("");
+        int error;
         
         fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), RemoteDSPErrorCallback, this, error);
-        errorMsg = error.c_str();
+        
+//        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
+//        NORMALLY NOT IMPORTANT FOR INIT (because a window is init in remote only when duplicated = already in current session = factory existant)
+//        if(fCurrent_DSP == NULL){
+//            
+//            if(error == ERROR_FACTORY_NOTFOUND){
+//                fEffect->reset();
+//                
+//                if(fEffect->reinit(errorMsg)){
+//                    fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, error);
+//                }
+//            }
+            errorMsg = getErrotFromCode(error);
+//        }
     }
 #endif
     
     if (fCurrent_DSP == NULL){
-        errorMsg = "Impossible to create a DSP instance"; 
+        if(fEffect->isLocal())
+            errorMsg = "Impossible to create a DSP instance"; 
         return false;
     }
     
@@ -192,12 +225,22 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
         
-        string errorMsg("");
+        int errorMsg;
         
         charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-        
-        error = errorMsg.c_str();
-        
+
+//        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
+        if(charging_DSP == NULL){
+            
+            if(errorMsg == ERROR_FACTORY_NOTFOUND){
+                newEffect->reset();
+                
+                if(newEffect->reinit(error)){
+                    charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
+                }
+            }
+            error = getErrotFromCode(errorMsg);
+        }
     }
 #endif
     
@@ -256,8 +299,10 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
 #endif
         
     }
-    else
-        error = "Impossible to allocate DSP";
+    else{
+        if(newEffect->isLocal())
+            error = "Impossible to allocate DSP";
+    }
     
     show();
     
@@ -1279,6 +1324,7 @@ void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
     
     errorWin->fLastMigration = currentTime;
 }
+
 
 
 
