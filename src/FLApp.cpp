@@ -1108,6 +1108,7 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
     QString error("");
     
     bool isEffectLocal = false;
+    bool isMigrationSuccessfull = true;
     
     if(ip.compare("127.0.0.1") == 0 || ip.compare("localhost") == 0)
         isEffectLocal = true;
@@ -1117,27 +1118,19 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
     FLEffect* newEffect = getEffectFromSource(migratingWin->get_Effect()->getSource(), migratingWin->get_Effect()->getName(), fSourcesFolder, compilationOptions, migratingWin->get_Effect()->getOptValue(), error, false, isEffectLocal, ip, port);
     
     if(newEffect == NULL){
-        leavingEffect->launch_Watcher();
-        migratingWin->migrationFailed();
-        addWinToSessionFile(migratingWin);
-        
-        fErrorWindow->print_Error("Impossible to switch processing machine");
-        fErrorWindow->print_Error(error.toStdString().c_str());
-        return false;
+        error += "\nImpossible to switch processing machine";
+        isMigrationSuccessfull = false;
     }
         
-    if(migratingWin->update_Window(newEffect, error)){
+    if(isMigrationSuccessfull && migratingWin->update_Window(newEffect, error)){
         newEffect->launch_Watcher();
         migratingWin->migrationSuccessfull();
         addWinToSessionFile(migratingWin);
         
         deleteEffect(migratingWin->get_Effect(), newEffect);
+        return true;
     }
     else{
-//        if(isEffectLocal){
-//            fRemoteEffects.removeOne(newEffect);
-//            delete newEffect;
-//        }
         leavingEffect->launch_Watcher();
         migratingWin->migrationFailed();
         addWinToSessionFile(migratingWin);        
@@ -1145,8 +1138,6 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
         fErrorWindow->print_Error(error);
         return false;
     }
-
-    return true;
 }
 
 //--------------------------------FILE-----------------------------

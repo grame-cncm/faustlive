@@ -288,7 +288,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             else
                 error = "Impossible to allocate Interface";
         }
-        
+
         //-----Delete Charging DSP---PROBLEME ICI ICI ICI
         
         if(isLocalEffect)
@@ -1303,8 +1303,9 @@ void FLWindow::errorPrint(const char* msg){
     emit error(msg);
 }
 
-void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
-{
+void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
+
+#ifdef REMOTE
     QDateTime currentTime(QDateTime::currentDateTime());
     
     FLWindow* errorWin = (FLWindow*) arg;
@@ -1315,6 +1316,10 @@ void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
         
         if(error_code == WRITE_ERROR || error_code == READ_ERROR){
             
+            remote_dsp* currentDSP = (remote_dsp*) errorWin->fCurrent_DSP;
+            
+            currentDSP->setRunningFlag(false);
+            
             errorWin->errorPrint("Remote Connection Error.\n Switching back to local processing.");
             
             errorWin->fMenu->setNewOptions("127.0.0.1", 80, "local processing");
@@ -1323,6 +1328,7 @@ void FLWindow::RemoteDSPErrorCallback(int error_code, void* arg)
     }
     
     errorWin->fLastMigration = currentTime;
+#endif
 }
 
 

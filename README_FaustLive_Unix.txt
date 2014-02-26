@@ -22,7 +22,7 @@ Other Packages
 	make
 	make httpd
 	sudo make install
-	(  if you want to use remote function
+	(  if you want to use remote processing
 	make remote
 	sudo make install  )
 
@@ -55,6 +55,8 @@ make REMOTE=1
 
 3) If you use the remote control through httpd and you want to use a port < 100, you will have to start FaustLive in sudo mode.
 
+4) To use remote processing through wi-fi, set network parameters MTU on standard 1500.
+
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 
 1) Implement the classes : 
@@ -71,4 +73,7 @@ make REMOTE=1
 
 3) Modify FaustLive.pro to add the libraries through conditional Compilation
 
+----------------TO ADD FAUST LIBRAIRIES
 
+1) Add the library in "Resources" folder
+2) Add the library in application.qrc

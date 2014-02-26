@@ -241,7 +241,7 @@ class FLWindow : public QMainWindow
         bool            init_Httpd(int generalPortHttp, QString& error);
     
     //Accessors to parameters
-        QString          get_nameWindow();
+        QString         get_nameWindow();
         int             get_indexWindow();
         FLEffect*       get_Effect();
         int             get_x();
@@ -249,7 +249,7 @@ class FLWindow : public QMainWindow
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
-        QString          get_machineName();
+        QString         get_machineName();
         void            migrationFailed();
         void            migrationSuccessfull();
     
