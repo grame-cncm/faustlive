@@ -92,7 +92,7 @@ class FLWindow : public QMainWindow
         int             fXPos;
         int             fYPos;
 
-        QString          fWindowName;     //WindowName = Common Base Name + - + index
+        QString         fWindowName;     //WindowName = Common Base Name + - + index
         int             fWindowIndex;    //Unique index corresponding to this window
     
     //Calculate a multiplication coefficient to place the window (and httpdWindow) on screen (avoiding overlapping of the windows)
@@ -283,7 +283,7 @@ class FLWindow : public QMainWindow
     //Error received
         void            errorPrint(const char* msg);
 
-        static          void RemoteDSPErrorCallback(int error_code, void* arg);
+        static          int RemoteDSPErrorCallback(int error_code, void* arg);
 };
 
 #endif
