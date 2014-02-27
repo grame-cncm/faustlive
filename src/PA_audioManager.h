@@ -22,7 +22,7 @@ class PA_audioManager : public AudioManager{
 
     Q_OBJECT
     
-    const char*             fName;
+    bool                    fInit;
     
     PA_audioSettings*       fSettings;
     PA_audioFader*          fCurrentAudio;
@@ -33,7 +33,8 @@ class PA_audioManager : public AudioManager{
         virtual ~PA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);
-    virtual bool initAudio(QString& error, const char* name);
+    virtual bool initAudio(QString&, const char*);
+    virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
     virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
     virtual bool start();
     virtual void stop();

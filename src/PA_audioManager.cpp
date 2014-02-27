@@ -32,13 +32,30 @@ PA_audioManager::~PA_audioManager(){
 //INIT/START/STOP on Current PortAudio
 bool PA_audioManager::initAudio(QString& error, const char* name){
     
-    fName = name;
+    fInit = false;
     return true;
 }
 
-bool PA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
+bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs){
     
-    if(fCurrentAudio->init(fName, DSP))
+    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
+        fInit = true;
+        return true;
+    }
+    else{
+        error = "Impossible to init PortAudio Client";
+        return false;
+    }
+}
+
+bool PA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name){
+    
+    if(fInit){
+        fCurrentAudio->set_dsp(DSP);
+        return true;
+    }
+    
+    else if(init(port_name, DSP))
         return true;
     else{
         error = "Impossible to init PortAudio Client";
@@ -98,11 +115,13 @@ void PA_audioManager::wait_EndFade(){
 int PA_audioManager::get_buffer_size()
 {
     // TODO
-    return 512;
+    return fCurrentAudio->get_buffer_size();
 }
 
 int PA_audioManager::get_sample_rate()
 {
     // TODO
-    return 44100;
+    return fCurrentAudio->get_sample_rate();
 }
+
+

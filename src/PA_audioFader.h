@@ -21,25 +21,27 @@ using namespace std;
 class PA_audioFader : public portaudio, public AudioFader_Interface, public AudioFader_Implementation
 {    
     
+    virtual int processAudio(float** ibuf, float** obuf, unsigned long frames);
+    
     public:
     
         PA_audioFader(long srate, long bsize);
     
         virtual ~PA_audioFader();
     
-        virtual bool init(const char* name, dsp* DSP); 
-    
-        virtual bool init(const char* name, dsp* DSP, const char* portsName);
-        virtual bool start();
-        virtual void stop();
-    
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames);
+        virtual bool set_dsp(dsp* DSP);
+//        virtual bool start();
+//        virtual void stop();
+
     
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();
         virtual bool get_FadeOut();
     
-        virtual void upDate_DSP();
+        void        force_stopFade();
+    
+        virtual int get_buffer_size();
+        virtual int get_sample_rate();
 
 };
 
