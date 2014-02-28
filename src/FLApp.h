@@ -262,6 +262,8 @@ class FLApp : public QApplication
     //---------Drop on a window
     
         void                update_SourceInWin(FLWindow* win, const QString& source);
+    
+        QString          soundFileToFaust(const QString& soundFile);
         void                drop_Action(QList<QString>);
     
     

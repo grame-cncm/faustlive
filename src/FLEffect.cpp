@@ -155,7 +155,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         int numberFixedParams = 7;
         
         //+7 = -I libraryPath -I currentFolder -O drawPath -svg
-        int argc = 7;
+        int argc = numberFixedParams;
         argc += get_numberParameters(fCompilationOptions);
         
         const char** argv = new const char*[argc];
@@ -166,7 +166,6 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
 #ifdef __APPLE__
         string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
         argv[1] = libPath.c_str();
-        printf("ARGV 1 = %s\n", argv[1]);
 #elif __linux__
         
         QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
@@ -208,6 +207,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
                 printf("Option -double not taken into account\n");
             }
         }
+        
+        printf("ARGC = %i\n", argc);
         
         for(int i=0; i<argc; i++)
             printf("ARGV %i = %s\n", i, argv[i]);

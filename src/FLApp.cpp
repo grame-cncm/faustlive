@@ -711,7 +711,7 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     source = ifUrlToText(source);
     
     //SOURCE = FILE.DSP    
-    if(source.indexOf(".dsp") != -1){
+    if(QFileInfo(source).completeSuffix().compare("dsp") == 0){
         
 //        If the effect was already compiled, it is recycled
         FLEffect* effectRecycled = getCompiledEffect(isLocal, source, ip, port);
@@ -2928,14 +2928,76 @@ void FLApp::export_Action(){
 
 //---------------Drop
 
+
+
+//For sound files, a pass transforms them into faust code through the waveforms
+QString FLApp::soundFileToFaust(const QString& soundFile){
+    
+    QString destinationFile = fSourcesFolder;
+    destinationFile += "/" ;
+    destinationFile += QFileInfo(soundFile).baseName();
+
+    QString waveFile = destinationFile;
+    waveFile += "_waveform.dsp";
+
+    destinationFile += ".dsp";
+
+    printf("FLAPP::destinationFile = %s\n", destinationFile.toStdString().c_str());
+    
+    QProcess myCmd;
+    QByteArray error;
+    
+    QString systemInstruct("sound2faust ");
+    systemInstruct += soundFile + " -d -o " + waveFile;
+    
+    printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
+    
+    myCmd.start(systemInstruct);
+    myCmd.waitForFinished();
+    
+    error = myCmd.readAllStandardError();
+    
+    if(strcmp(error.data(), "") != 0)
+        fErrorWindow->print_Error(error.data());
+    
+    QString finalFileContent = "import(\"";
+    finalFileContent += QFileInfo(soundFile).baseName() + "_waveform.dsp";
+    finalFileContent += "\");\nprocess=";
+    finalFileContent += QFileInfo(soundFile).baseName();
+    finalFileContent += ";";
+    
+    printf("finalFileContent = %s\n", finalFileContent.toStdString().c_str());
+    
+    QFile f(destinationFile); 
+    
+    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+        
+        QTextStream textWriting(&f);
+        
+        textWriting<<finalFileContent;
+        
+        f.close();
+    }
+    
+    return destinationFile;
+}
+
 //Drop of sources on a window
 void FLApp::drop_Action(QList<QString> sources){
     
-    QList<QString>::iterator it = sources.begin();
+    QList<QString>::iterator it;
     FLWindow* win = (FLWindow*)QObject::sender();
+ 
+//    The sound files are transformated into faust files
+    for(it = sources.begin(); it != sources.end(); it++){
+
+        if(QFileInfo(*it).completeSuffix().compare("wav") == 0)
+            *it = soundFileToFaust(*it);
+    }
+    
+    it = sources.begin();
     
     //The first source dropped is updated in the dropped Window
-    
     update_SourceInWin(win, *it);
     
     //The other source are opened in new Windows

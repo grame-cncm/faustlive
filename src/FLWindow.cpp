@@ -601,6 +601,7 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     
     //The event is not entirely handled by the window, it is redirected to the application through the drop signal
     if (event->mimeData()->hasUrls()) {
+        
         QList<QString>    sourceList;
         QList<QUrl> urls = event->mimeData()->urls();
         QList<QUrl>::iterator i;
@@ -617,6 +618,7 @@ void FLWindow::dropEvent ( QDropEvent * event ){
         emit drop(sourceList);
     }
     if (event->mimeData()->hasText()){
+        
         event->accept();
         
         QString TextContent = event->mimeData()->text();
@@ -641,7 +643,7 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
                 QString fileName = i->toLocalFile();
                 QString dsp = fileName;
                 
-                if(QFileInfo(dsp).completeSuffix().compare("dsp") == 0){
+                if(QFileInfo(dsp).completeSuffix().compare("dsp") == 0 || QFileInfo(dsp).completeSuffix().compare("wav") == 0){
                     
                     centralWidget()->hide();
                     event->acceptProposedAction();   
@@ -667,6 +669,16 @@ void FLWindow::dragLeaveEvent ( QDragLeaveEvent * /*event*/ ){
 //Start/Stop of audio
 void FLWindow::stop_Audio(){
     
+#ifdef REMOTE
+    
+    if(!fEffect->isLocal()){
+        
+        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+        currentDSP->stopAudio();
+    }
+    
+#endif
+    
     fAudioManager->stop();
     printf("STOP AUDIO\n");
     fClientOpen = false;
@@ -684,6 +696,14 @@ void FLWindow::start_Audio(){
 //    printf("CONNECT = %s\n", connectFile.toStdString().c_str());
     
     fClientOpen = true;
+    
+#ifdef REMOTE
+    if(!fEffect->isLocal()){
+        
+        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+        currentDSP->startAudio();
+    }
+#endif
 }
 
 //Switch of Audio architecture
