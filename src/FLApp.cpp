@@ -7,7 +7,9 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
+#ifdef __APPLE__
 #include "FLServerHttp.h"
+#endif
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
@@ -109,11 +111,14 @@ FLApp::~FLApp(){
 void FLApp::create_Session_Hierarchy(){    
     
     //Initialization of current Session Path  
-    
+#ifdef _WIN32
+	fSessionFolder = "C:";
+#else
     fSessionFolder = getenv("HOME");
-    
-	printf("HOME = %s\n", fSessionFolder.toLatin1().data());
-    
+#endif
+
+	printf("HOME = %s\n", fSessionFolder.toStdString().c_str());
+
     fSessionFolder += "/.CurrentSession-";
     fSessionFolder += FLVERSION;
     if(!QFileInfo(fSessionFolder).exists()){
@@ -148,6 +153,8 @@ void FLApp::create_Session_Hierarchy(){
     if(!QFileInfo(fSVGFolder).exists()){
         QDir direct(fSVGFolder);
         direct.mkdir(fSVGFolder);
+
+		printf("SVG FOLDER CREATED\n");
     }  
     
     fIRFolder = fSessionFolder + "/IR";

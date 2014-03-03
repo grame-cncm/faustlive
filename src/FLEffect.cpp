@@ -10,7 +10,7 @@
 
 #include "FLEffect.h"
 
-#define LIBRARY_PATH "/Resources/Libs/"
+#define LIBRARY_PATH "\\Resources\\Libs\\"
 
 #include "faust/llvm-dsp.h"
 
@@ -89,6 +89,8 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
     
     if(buildFactory(kCurrentFactory, error, currentSVGFolder, currentIRFolder)){
         
+		printf("Factory was build\n");
+
         //Initializing watcher looking for changes on faust source through text editor 
         fWatcher = new QFileSystemWatcher(this);
         fSynchroTimer = new QTimer(fWatcher);
@@ -106,7 +108,6 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 //---------------FACTORY ACTIONS
 
 void FLEffect::forceRecompilation(bool val){
-    
     fRecompilation = val;
 }
 
@@ -153,39 +154,59 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     if(buildingFactory == NULL && buildingRemoteFactory == NULL){
         
         int numberFixedParams = 7;
+		int iteratorParams = 0;
         
+#ifdef _WIN32
+		numberFixedParams = numberFixedParams+2;
+#endif
+
         //+7 = -I libraryPath -I currentFolder -O drawPath -svg
         int argc = numberFixedParams;
         argc += get_numberParameters(fCompilationOptions);
         
         const char** argv = new const char*[argc];
         
-        argv[0] = "-I";
+        argv[iteratorParams] = "-I";
+		iteratorParams++;
         
 //The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
 #ifdef __APPLE__
         string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
-        argv[1] = libPath.c_str();
+        argv[iteratorParams] = libPath.c_str();
+		iteratorParams++;
 #elif __linux__
         
         QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-        argv[1] = libPath.toLatin1().data();
+        argv[iteratorParams] = libPath.toLatin1().data();
+		iteratorParams++;
 #else    
-        QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
-        argv[1] = libPath.toLatin1().data();
+        string libPath = "C:\\Users\\Sarah\\faudiostream-faustlive\\Resources\\Libs";
+        argv[iteratorParams] = libPath.c_str();
+		iteratorParams++;
 #endif
-        
-        argv[2] = "-I";    
+
+        argv[iteratorParams] = "-I";   
+		iteratorParams++;
         string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
-        
-        
-        argv[3] = sourcePath.c_str();
-        argv[4] = "-O";
+        argv[iteratorParams] = sourcePath.c_str();
+		iteratorParams++;
+
+        argv[iteratorParams] = "-O";
+		iteratorParams++;
         
         string svgPath = currentSVGFolder.toStdString();
         
-        argv[5] = svgPath.c_str();
-        argv[6] = "-svg";
+        argv[iteratorParams] = svgPath.c_str();
+		iteratorParams++;
+        argv[iteratorParams] = "-svg";
+		iteratorParams++;
+
+#ifdef _WIN32
+		argv[iteratorParams] = "-l";
+		iteratorParams++;
+		argv[iteratorParams] = "llvm_math.ll";
+		iteratorParams++;
+#endif
         
         //Parsing the compilationOptions from a string to a char**
         QString copy = fCompilationOptions;
@@ -199,13 +220,13 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
             strcpy(intermediate,parseResult.c_str());
             
 //        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-            if(strcmp(intermediate, "-double") != 0)
-                argv[i] = (const char*)intermediate;
-            else{
-                argc--;
-                i--;
-                printf("Option -double not taken into account\n");
-            }
+//            if(strcmp(intermediate, "-double") != 0)
+//                argv[i] = (const char*)intermediate;
+//            else{
+//                argc--;
+//                i--;
+//                printf("Option -double not taken into account\n");
+//            }
         }
         
         printf("ARGC = %i\n", argc);
@@ -220,6 +241,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         if(fIsLocal){      
             
             buildingFactory = createDSPFactoryFromFile(fSource.toStdString(), argc, argv, "", getError, fOpt_level);
+
+			printf("ERROR FROM BUILD FACTORY = %s\n", getError.c_str());
         }
 #ifdef REMOTE
         else{
