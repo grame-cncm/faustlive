@@ -2933,9 +2933,12 @@ void FLApp::export_Action(){
 //For sound files, a pass transforms them into faust code through the waveforms
 QString FLApp::soundFileToFaust(const QString& soundFile){
     
+    QString soundFileName = QFileInfo(soundFile).baseName();
+    soundFileName = nameWithoutSpaces(soundFileName);
+    
     QString destinationFile = fSourcesFolder;
     destinationFile += "/" ;
-    destinationFile += QFileInfo(soundFile).baseName();
+    destinationFile += soundFileName;
 
     QString waveFile = destinationFile;
     waveFile += "_waveform.dsp";
@@ -2948,7 +2951,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QByteArray error;
     
     QString systemInstruct("sound2faust ");
-    systemInstruct += soundFile + " -d -o " + waveFile;
+    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
     
@@ -2961,7 +2964,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
         fErrorWindow->print_Error(error.data());
     
     QString finalFileContent = "import(\"";
-    finalFileContent += QFileInfo(soundFile).baseName() + "_waveform.dsp";
+    finalFileContent += soundFileName + "_waveform.dsp";
     finalFileContent += "\");\nprocess=";
     finalFileContent += QFileInfo(soundFile).baseName();
     finalFileContent += ";";

@@ -33,6 +33,7 @@ class PA_audioSettings : public AudioSettings{
     //Graphical CoreAudio Settings
     QLineEdit*       fsplRate;
     QLineEdit*       fBufSize;
+    QFormLayout*     fLayout;
     
     public :
         PA_audioSettings(QString home, QGroupBox* parent);

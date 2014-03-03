@@ -14,16 +14,16 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     
     fSavingFile = home + "/" + PA_SAVINGFILE;
     
-    QFormLayout* layout = new QFormLayout;
+    fLayout = new QFormLayout;
     
     fBufSize = new QLineEdit;
     
     fsplRate = new QLineEdit;
     
-    layout->addRow(new QLabel(tr("Audio Sample Rate")), fsplRate);
-    layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
+    fLayout->addRow(new QLabel(tr("Audio Sample Rate")), fsplRate);
+    fLayout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     
-    parent->setLayout(layout);
+    parent->setLayout(fLayout);
     
     readSettings();
     setVisualSettings();
@@ -32,6 +32,7 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
 PA_audioSettings::~PA_audioSettings(){
     
     writeSettings();
+    delete fLayout;
     delete fBufSize;
     delete fsplRate;
 }
@@ -95,6 +96,7 @@ void PA_audioSettings::writeSettings(){
         textWriting<<fSampleRate<<' '<<fBufferSize;
         
         f.close();
+        printf("FILE WAS WROTE\n");
     }
 }
 
