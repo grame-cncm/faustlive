@@ -20,10 +20,13 @@
 void FLApp::create_Session_Hierarchy(){    
     
     //Initialization of current Session Path  
-    
+#ifdef _WIN32
+	fSessionFolder = "C:";
+#else
     fSessionFolder = getenv("HOME");
+#endif
 
-	printf("HOME = %s\n", fSessionFolder.toLatin1().data());
+	printf("HOME = %s\n", fSessionFolder.toStdString().c_str());
 
     fSessionFolder += "/.CurrentSession-";
     fSessionFolder += FLVERSION;
@@ -59,6 +62,8 @@ void FLApp::create_Session_Hierarchy(){
     if(!QFileInfo(fSVGFolder).exists()){
         QDir direct(fSVGFolder);
         direct.mkdir(fSVGFolder);
+
+		printf("SVG FOLDER CREATED\n");
     }  
     
     fIRFolder = fSessionFolder + "/IR";

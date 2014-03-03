@@ -105,22 +105,23 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
     string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
 	argv[1] = libPath.c_str();
     printf("ARGV 1 = %s\n", argv[1]);
-//#elif __linux__
-//    
-//    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-//    argv[1] = libPath.toLatin1().data();
-//#else    
-//	QString libPath = "C:/Users/Sarah/faudiostream-faustlive/Resources/Libs";
-//	argv[1] = libPath.toLatin1().data();
+#elif __linux__
+    
+    QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
+    argv[1] = libPath.toLatin1().data();
+#else    
+	string libPath = "C:\\Users\\Sarah\\faudiostream-faustlive\\Resources\\Libs";
+	argv[1] = libPath.c_str();
 #endif
 
     argv[2] = "-I";    
     string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
     
-//    printf("Source Path = %s\n", sourcePath.toLatin1().data());
+    printf("Source Path = %s\n", sourcePath.c_str());
     
 	argv[3] = sourcePath.c_str();
-    argv[4] = "-O";
+//	argv[3] = "";
+	argv[4] = "-O";
     
     string svgPath = currentSVGFolder.toStdString();
     
@@ -136,6 +137,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         
         string parseResult = parse_compilationParams(copy).toStdString();
         argv[i] = parseResult.c_str();
+
+		printf("Option de compilation = %s\n", argv[i]);
     }
     
     QString path = currentIRFolder + "/" + fName;
