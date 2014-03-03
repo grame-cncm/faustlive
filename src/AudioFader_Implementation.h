@@ -36,9 +36,7 @@ class AudioFader_Implementation
     
     //Specific to the 2 clients crossfade
     void    crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
-    
-            void    reset_Values();
-    
+        
     public:
     
         AudioFader_Implementation();
@@ -47,6 +45,8 @@ class AudioFader_Implementation
         void set_doWeFadeOut(bool val);
         void set_doWeFadeIn(bool val);
         bool get_doWeFadeOut();
+        void reset_Values();
+
 };
 
 #endif

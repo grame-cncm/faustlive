@@ -48,13 +48,15 @@ class FLWindow : public QMainWindow
     
     private : 
     
-        bool            fShortcut;   //True if ALT is pressed when x button is pressed
+        QDateTime        fLastMigration;
+    
+        bool             fShortcut;   //True if ALT is pressed when x button is pressed
     
         QString          fHome;        //Folder of currentSession
         QString          fSettingsFolder;
     
-        FLToolBar*      fMenu;  
-        void            setMenu(const QString& machineName);
+        FLToolBar*      fMenu;
+        void            setToolBar(const QString& machineName);
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -85,14 +87,12 @@ class FLWindow : public QMainWindow
         bool            fIsLocal;      //True = llvm | False = remote
 
         map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-        QString          fIpRemoteServer;    //Address Remote machine chosen
-        int             fPortRemoteServer;  //Port Remote machine chosen
     
     //Position on screen
         int             fXPos;
         int             fYPos;
 
-        QString          fWindowName;     //WindowName = Common Base Name + - + index
+        QString         fWindowName;     //WindowName = Common Base Name + - + index
         int             fWindowIndex;    //Unique index corresponding to this window
     
     //Calculate a multiplication coefficient to place the window (and httpdWindow) on screen (avoiding overlapping of the windows)
@@ -165,18 +165,18 @@ class FLWindow : public QMainWindow
         void            import_Recent_Session();
         void            frontShowFromMenu(); 
         void            redirectSwitch(const QString& ip, int port);
-        
+//        void            cancelSwitch();
+    
     public :
     
-    //Constructor
-    //baseName = Window name
-    //Index = Index of the window
-    //Effect = effect that will be contained in the window
-    //x,y = position on screen
-    //appHome = current Session folder
-    //GeneralPort = what 
-    //bufferSize, cprValue, ... = audio parameters
-    
+    //####CONSTRUCTOR
+    //@param : baseName = Window name
+    //@param : index = Index of the window
+    //@param : effect = effect that will be contained in the window
+    //@param : x,y = position on screen
+    //@param : home = current Session folder
+    //@param : osc/httpd port = port on which remote interface will be built 
+    //@param : machineName = in case of remote processing, the name of remote machine
 
         FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing");
         virtual ~FLWindow();
@@ -198,14 +198,20 @@ class FLWindow : public QMainWindow
     //Recalled = 1 --> the window is recalled from a session and needs its parameter
     //Recalled = 0 --> the window is a new one without parameters
 
-        void            buildInterfaces(dsp* dsp, const QString& nameEffect);
+        bool           buildInterfaces(dsp* dsp, const QString& nameEffect);
+    
+    
+        QString         getErrotFromCode(int code);
     
     //Returning false if it fails and fills the errorMsg buffer
-
+    //@param : init = if the window created is a default window.
+    //@param : error = in case init fails, the error is filled
         bool            init_Window(bool init, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
+    //@param : effect = effect that reemplaces the current one
+    //@param : error = in case update fails, the error is filled
         bool            update_Window(FLEffect* newEffect, QString& error);
     
         bool            update_AudioArchitecture(QString& error);
@@ -215,6 +221,8 @@ class FLWindow : public QMainWindow
         void            start_Audio();
     
         bool            init_audioClient(QString& error);
+        bool            init_audioClient(QString& error, int numInputs, int numOutputs);
+        bool            setDSP(QString& error);
     
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
@@ -224,16 +232,16 @@ class FLWindow : public QMainWindow
     //Save the graphical and audio connections of current DSP
         void            save_Window();
     //Update the FJUI file following the changes table
-        void            update_ConnectionFile(QList<std::pair<QString,QString> > changeTable);
+        void            update_ConnectionFile(std::list<std::pair<std::string, std::string> > changeTable);
     
     //Recall the parameters (graphical and audio)
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(QString& error, int generalPortHttp);
+        bool            init_Httpd(int generalPortHttp, QString& error);
     
     //Accessors to parameters
-        QString          get_nameWindow();
+        QString         get_nameWindow();
         int             get_indexWindow();
         FLEffect*       get_Effect();
         int             get_x();
@@ -241,10 +249,9 @@ class FLWindow : public QMainWindow
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
-        QString          get_remoteIP();
-        int             get_remotePort();
-        QString          get_machineName();
+        QString         get_machineName();
         void            migrationFailed();
+        void            migrationSuccessfull();
     
     //Accessors to httpd Window
         bool            is_httpdWindow_active();
@@ -276,6 +283,7 @@ class FLWindow : public QMainWindow
     //Error received
         void            errorPrint(const char* msg);
 
+        static          int RemoteDSPErrorCallback(int error_code, void* arg);
 };
 
 #endif

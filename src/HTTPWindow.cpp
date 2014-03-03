@@ -173,7 +173,7 @@ bool HTTPWindow::build_httpdInterface(QString& error, QString windowTitle, dsp* 
 
     argv[0] = (char*)(fTitle.toLatin1().data());
     argv[1] = (char*)(optionPort.toLatin1().data());
-    argv[2] = (char*)(QString::number(port).toLatin1().data());
+    argv[2] = (char*)(QString::number(port).toStdString().c_str());
 
     fInterface = new httpdUI(argv[0], 3, argv);
 

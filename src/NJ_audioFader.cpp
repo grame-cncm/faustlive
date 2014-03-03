@@ -50,19 +50,15 @@ bool NJ_audioFader::init(const char* name, dsp* DSP) {
     return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
 }
 
-bool NJ_audioFader::start() 
-{
-    if (jack_net_slave_activate(fNet)) {
-        printf("cannot activate net");
-        return false;
-    }
-    return true;
+bool NJ_audioFader::init(const char* name, int numInputs, int numOutputs) {
+    
+    return init_aux(name, numInputs, numOutputs, 0, 0);
 }
 
-void NJ_audioFader::stop() 
-{
-    jack_net_slave_deactivate(fNet);
-    jack_net_slave_close(fNet);
+bool NJ_audioFader::set_dsp(dsp* DSP){
+    
+    set_dsp_aux(DSP);
+    return true;
 }
 
 void NJ_audioFader::launch_fadeIn(){
@@ -77,4 +73,6 @@ bool NJ_audioFader::get_FadeOut(){
     return get_doWeFadeOut();
 }
 
-
+void NJ_audioFader::force_stopFade(){
+    reset_Values();
+}

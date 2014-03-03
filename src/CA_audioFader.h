@@ -75,17 +75,33 @@ public:
         
         fSampleRate = -1;
         fFramesPerBuf = fpb;
-        //    printf("BUFFER SIZE = %i\n", fpb);
     }
     
 	virtual ~CA_audioFader(){}
     
 	virtual bool init(const char* /*name*/, dsp* DSP){
-        if (fCrossFadeDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+        if (fCrossFadeDevice.OpenDefault(DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
             printf("Cannot open CoreAudio device\n");
             return false;
         }
+        fCrossFadeDevice.set_dsp(DSP);
         // If -1 was given, fSampleRate will be changed by OpenDefault
+        DSP->init(fSampleRate);
+        return true;
+    }
+    
+    bool init(const char* /*name*/, int numInputs, int numOutputs){
+        if (fCrossFadeDevice.OpenDefault(numInputs, numOutputs, fFramesPerBuf, fSampleRate) < 0) {
+            printf("Cannot open CoreAudio device\n");
+            return false;
+        }
+        else
+            return true;
+    }
+    
+    bool set_dsp(dsp* DSP){
+        
+        fCrossFadeDevice.set_dsp(DSP);
         DSP->init(fSampleRate);
         return true;
     }
@@ -112,14 +128,15 @@ public:
     }
     
     virtual bool get_FadeOut(){
-        //    printf("COREAUDIO fade out\n");
-//        printf("DOWEFADEOUT = %i || %p\n", fCrossFadeDevice.get_doWeFadeOut(), &fCrossFadeDevice);
         return fCrossFadeDevice.get_doWeFadeOut();
     }
     
     virtual int get_buffer_size() { return fFramesPerBuf; }
     virtual int get_sample_rate() { return fSampleRate; }
     
+    void force_stopFade(){
+        fCrossFadeDevice.reset_Values();
+    }
 };
 
 #endif

@@ -45,7 +45,8 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
         virtual bool init(const char* name, dsp* DSP); 
     
-        virtual bool init(const char* name, dsp* DSP, const char* portsName);
+        virtual bool init(const char* name);
+        bool set_dsp(dsp* DSP, const char* portsName);
         virtual bool start();
     
         virtual void init_FadeIn_Audio(dsp* DSP, const char* portsName);  

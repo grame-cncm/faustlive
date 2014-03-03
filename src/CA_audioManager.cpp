@@ -28,21 +28,43 @@ CA_audioManager::~CA_audioManager(){
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(QString& error, const char* name, dsp* DSP, const char* /*port_name*/){
+bool CA_audioManager::initAudio(QString& /*error*/, const char* name){
     
-    if(init(name, DSP))
+    fName = name;
+    fInit = false;
+    return true;
+}
+
+bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs){
+    
+    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
+        fInit = true;
         return true;
+    }
     else{
         error = "Impossible to init CoreAudio Client";
         return false;
     }
 }
 
+bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/){
+    
+    if(fInit)
+        return fCurrentAudio->set_dsp(DSP);
+    
+    else if(init(fName, DSP))
+        return true;
+    else{
+        error = "Impossible to init CoreAudio Client";
+        return false;
+    }
+    
+}
+
 //INIT/START/STOP on Current CoreAudio
 bool CA_audioManager::init(const char* name, dsp* DSP){
 
     return fCurrentAudio->init(name, DSP);
-
 }
 
 bool CA_audioManager::start(){
@@ -86,27 +108,27 @@ void CA_audioManager::start_Fade(){
 
 //When the crossfade ends, FadeInAudio becomes the current audio 
 void CA_audioManager::wait_EndFade(){
-
-    int i=0;
     
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
-    QTimer* timer = new QTimer(this);
-    timer->start(2);
-    
-    while(fCurrentAudio->get_FadeOut() == 1){ 
+    QDateTime currentTime(QDateTime::currentDateTime());
         
-        if(!timer->isActive()){
-            printf("COREAUDIO IS IN ITS STRANGE STATE\n");
-            break;
+    while(fCurrentAudio->get_FadeOut() == 1){
+    
+        QDateTime currentTime2(QDateTime::currentDateTime());
+        
+        if(currentTime.secsTo(currentTime2)>3){
+            printf("STOPED PROGRAMATICALLY\n");
+            fFadeInAudio->force_stopFade();
+            fCurrentAudio->force_stopFade();
+//            break;
         }
     }
-    
+
     fCurrentAudio->stop();
     CA_audioFader* intermediate = fCurrentAudio;
     fCurrentAudio = fFadeInAudio;
     fFadeInAudio = intermediate;
     delete fFadeInAudio;
-    
 }
 
 int CA_audioManager::get_buffer_size(){

@@ -85,5 +85,6 @@ void AudioFader_Implementation::crossfade_Calcul(int numFrames, int numOutputs, 
         }  
     }
     
-    increment_crossFade();
+    if(fDoWeFadeIn || fDoWeFadeOut)
+        increment_crossFade();
 }

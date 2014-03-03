@@ -187,13 +187,13 @@ class FLApp : public QApplication
     
     //In case of an import, those steps are necessary to modify the session before opening it
         QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);
-        void                copy_WindowsFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > indexChanges);
-        void                copy_AllSources(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges, const QString extension);
-        void                copy_SVGFolders(const QString& srcDir, const QString& dstDir, QList<std::pair<QString,QString> > nameChanges);
+    void                copy_WindowsFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > indexChanges);
+        void                copy_AllSources(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges, const QString extension);
+        void                copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges);
     
-        void                establish_sourceChanges(QList<std::pair<QString,QString> > nameChanges, QList<WinInSession*>* session);
+        void                establish_sourceChanges(std::list<std::pair<std::string,std::string> > nameChanges, QList<WinInSession*>* session);
     
-        QList<std::pair<QString,QString> > establish_nameChanges(QList<WinInSession*>* session);
+        std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
     
         void                deleteLineIndexed(int index);
     
@@ -222,15 +222,30 @@ class FLApp : public QApplication
     QString                  getDeclareName(QString text);
     QString                  renameEffect(const QString& source, const QString& nomEffet, bool isRecalledEffect);
     
+    // GET COMPILED EFFECT
+    // @param : isLocal = is Effect local or remote
+    // @param : source = file source of wanted Effect
+    // @param : ip = ip of wanted processing machine (Remote Case)
+    // @param : port = port of wanted processing machine (Remote Case)
+    //
+    // @return : Effect already compiled | NULL if not compiled
+    FLEffect*           getCompiledEffect(bool isLocal, QString source, const QString& ip, int port);
+    
     FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init, bool isLocal, const QString& ip = "localhost", int port= 0);
     
+    
+    
     //-----------------Questions about the current State
+    
+        void                deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect);
     
         bool                isIndexUsed(int index, QList<int> currentIndexes);
         bool                isLocalEffectInCurrentSession(const QString& sourceToCompare);
         bool                isRemoteEffectInCurrentSession(const QString& sourceToCompare, const QString& ip, int port);
         bool                isSourceInCurrentSession(const QString& sourceToCompare);
 
+        QString             nameWithoutSpaces(QString name);
+    
         QString              getNameEffectFromSource(const QString& sourceToCompare);
         bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name, bool isRecalledEffect);
         QList<QString>        getNameRunningEffects();
@@ -247,11 +262,13 @@ class FLApp : public QApplication
     //---------Drop on a window
     
         void                update_SourceInWin(FLWindow* win, const QString& source);
+    
+        QString          soundFileToFaust(const QString& soundFile);
         void                drop_Action(QList<QString>);
     
     
     //--------Switch to remote processing
-        bool    migrate_ProcessingInWin(QString ip, int port);
+        bool    migrate_ProcessingInWin(const QString& ip, int port);
     
     //---------Presentation Window Slots
     
@@ -269,6 +286,7 @@ class FLApp : public QApplication
         FLWindow*           new_Window(const QString& mySource, QString& error);
         void                create_Empty_Window();
         void                open_New_Window();
+        void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
         void                shut_Window(); 
@@ -294,6 +312,8 @@ class FLApp : public QApplication
         void                edit(FLWindow* win);
         void                edit_Action();
     
+        void                setRecompileEffects(FLEffect* modifiedEffect);
+        void                synchronize_Window(FLEffect* modifiedEffect);
         void                synchronize_Window();
     
         void                paste(FLWindow* win);

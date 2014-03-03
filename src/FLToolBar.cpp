@@ -75,6 +75,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
 
 #ifdef REMOTE
+    fIpRemoteServer = "127.0.0.1";
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
     fRemoteButton->setText(tr("local processing"));
@@ -108,7 +109,6 @@ void FLToolBar::expansionAction(QTreeWidgetItem * /*item*/){
 //Reaction to a click on the remote enabling button
 void FLToolBar::openRemoteBox(){
     
-//    emit update_Menu(fRemoteMenu);
 #ifdef REMOTE    
     fRemoteButton->menu()->clear();
     fIPToHostName->clear();
@@ -136,16 +136,6 @@ void FLToolBar::openRemoteBox(){
     }
     
 #endif
-    
-//    if(!fRemoteEnabled)
-//        fRemoteButton->setText(tr("Disable remote Processing"));
-//    else
-//        fRemoteButton->setText(tr("Enable remote Processing"));
-//
-//    fRemoteButton->setDown(!fRemoteEnabled);
-//    fRemoteEnabled = !fRemoteEnabled;
-//    emit remoteStateChanged(fRemoteEnabled);
-
 }
 
 void FLToolBar::setRemoteButtonName(const QString& name){
@@ -158,9 +148,22 @@ void FLToolBar::remoteFailed(){
 
     fIpRemoteServer = fFormerIp;
     fPortRemoteServer = fFormerPort;
-    
-    setRemoteButtonName(fFormerName);
+}
 
+void FLToolBar::remoteSuccessfull(){
+    setRemoteButtonName(fNewName);
+}
+
+void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
+    
+    fFormerIp = fIpRemoteServer;
+    fFormerPort = fPortRemoteServer;
+    fFormerName = fRemoteButton->text();
+    
+    fIpRemoteServer = ip;
+    fPortRemoteServer = port;
+    fNewName = newName;
+    
 }
 
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
@@ -288,9 +291,9 @@ void FLToolBar::update_remoteMachine(){
         
         printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
         
-        emit switchMachine(fIpRemoteServer, fPortRemoteServer);
+        fNewName = toto.c_str();
         
-        setRemoteButtonName(toto.c_str());
+        emit switchMachine(fIpRemoteServer, fPortRemoteServer);
     }
     
 #endif
