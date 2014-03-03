@@ -267,7 +267,13 @@ void FLToolBar::setPortOsc(int port){
 }
 
 QString FLToolBar::machineName(){
+
+#ifdef REMOTE
     return fRemoteButton->text();
+#else
+	return "";
+#endif
+
 }
 
 //--- Update when new processing machine is chosen

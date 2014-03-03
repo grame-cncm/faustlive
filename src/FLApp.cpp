@@ -7,7 +7,9 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
+#ifdef __APPLE__
 #include "FLServerHttp.h"
+#endif
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
