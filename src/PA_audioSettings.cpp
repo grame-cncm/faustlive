@@ -17,9 +17,11 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     fLayout = new QFormLayout;
     
     fBufSize = new QLineEdit;
-    
     fsplRate = new QLineEdit;
     
+    fDeviceBox = new QComboBox;
+    
+    fLayout->addRow(new QLabel(tr("Choose Audio Device")), fDeviceBox);
     fLayout->addRow(new QLabel(tr("Audio Sample Rate")), fsplRate);
     fLayout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     
@@ -135,4 +137,15 @@ bool PA_audioSettings::isEqual(AudioSettings* as){
 QString PA_audioSettings::get_ArchiName(){
     return "PortAudio";
 }
+
+void PA_audioSettings::add_audioDevice(const QString& deviceName){
+    fDeviceBox->addItem(deviceName);
+}
+
+QString PA_audioSettings::get_audioDevice(){
+    return fDeviceBox->currentText();
+}
+
+
+
 

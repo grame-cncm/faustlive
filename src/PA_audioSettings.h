@@ -34,6 +34,7 @@ class PA_audioSettings : public AudioSettings{
     QLineEdit*       fsplRate;
     QLineEdit*       fBufSize;
     QFormLayout*     fLayout;
+    QComboBox*       fDeviceBox;
     
     public :
         PA_audioSettings(QString home, QGroupBox* parent);
@@ -49,6 +50,8 @@ class PA_audioSettings : public AudioSettings{
         long    get_BufferSize();
         long    get_SampleRate();
         virtual QString get_ArchiName();
+        QString get_audioDevice();
+        void    add_audioDevice(const QString& deviceName);
 };
 
 #endif
