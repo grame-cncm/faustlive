@@ -122,6 +122,7 @@ class FLApp : public QApplication
         QString              fSVGFolder;   //Folder with the SVG processes
         QString              fIRFolder;    //Folder with the Bitcode files
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
+        QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
     //Recent Files Parameters and functions
         QString              fRecentsFile;    //Path to  Recent Dsp file

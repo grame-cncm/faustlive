@@ -14,8 +14,8 @@
     <file>Examples/envelop.dsp</file>
     <file>Examples/freeverb.dsp</file>
     <file>Examples/harpe.dsp</file>
-<file>Examples/harpeautomation.dsp</file>    
-<file>Examples/karplus.dsp</file>
+	<file>Examples/harpeautomation.dsp</file>    
+	<file>Examples/karplus.dsp</file>
     <file>Examples/lowcut.dsp</file>
 	<file>Examples/noise.dsp</file>
 	<file>Examples/osc.dsp</file>
@@ -35,5 +35,6 @@
 <file>Libs/music.lib</file>
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
+<file>Libs/llvm_math.ll</file>
 </qresource>
 </RCC>

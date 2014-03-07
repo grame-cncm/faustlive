@@ -1,7 +1,18 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // clang -emit-llvm -O3 llvm_math.c -c -S -o llvm_math.ll
+
+void* llvm_malloc(size_t size)
+{ 
+    printf("SIZE OF MALLOC = %zi\n", size);
+    return malloc(size); 
+}
+
+void llvm_free(void *ptr){
+    free(ptr);
+}
 
 float fabsf(float x)
 { 

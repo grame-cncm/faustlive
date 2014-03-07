@@ -214,14 +214,11 @@ void FLExportManager::readKey(){
         
         fStep++;
         
-        QString ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + "/Resources/Images/";
-        QString pathCheck = ImagesPath + "Check.png";
-        
-        if(QFileInfo(pathCheck).exists()){
+        QDir ImagesDir(":/");
+        ImagesDir.cd("Images");
             
-            QPixmap checkImg(pathCheck);    
-            fCheck1->setPixmap(checkImg);
-        }
+        QPixmap checkImg(ImagesDir.absoluteFilePath("Check.png"));   
+        fCheck1->setPixmap(checkImg);
         
         fMsgLayout->insertRow(3, new QLabel(tr("Remote Compilation")), fCheck2);
         
@@ -240,20 +237,16 @@ void FLExportManager::networkError(QNetworkReply::NetworkError /*msg*/){
     
 //    printf("NETWORK ERROR CODE = %i\n", msg);
     
-    QString ImagesPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath() + "/Resources/Images/";
+    QDir ImagesDir(":/");
+    ImagesDir.cd("Images");
     
-    QString pathNotCheck = ImagesPath + "NotCheck.png";
-    QPixmap notCheckImg(pathNotCheck);
+    QPixmap notCheckImg(ImagesDir.absoluteFilePath("NotCheck.png"));   
     
-    if(QFileInfo(pathNotCheck).exists()){
-        
-        printf("Path existed\n");
-        
-        if(fStep == 0)
-            fCheck1->setPixmap(notCheckImg);
-        else
-            fCheck2->setPixmap(notCheckImg);
-    }
+    if(fStep == 0)
+        fCheck1->setPixmap(notCheckImg);
+    else
+        fCheck2->setPixmap(notCheckImg);
+
     delete fPrgBar;
     
     QTextEdit* textZone = new QTextEdit;
