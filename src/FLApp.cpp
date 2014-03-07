@@ -112,14 +112,14 @@ void FLApp::create_Session_Hierarchy(){
     
     //Initialization of current Session Path  
 #ifdef _WIN32
-	fSessionFolder = "C:";
+	fSessionFolder = "C:/CurrentSession-";
 #else
     fSessionFolder = getenv("HOME");
+    fSessionFolder += "/.CurrentSession-";
 #endif
 
 	printf("HOME = %s\n", fSessionFolder.toStdString().c_str());
 
-    fSessionFolder += "/.CurrentSession-";
     fSessionFolder += FLVERSION;
     if(!QFileInfo(fSessionFolder).exists()){
         QDir direct(fSessionFolder);

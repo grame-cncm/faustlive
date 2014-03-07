@@ -183,6 +183,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         if(setDSP(errorMsg)){
             
             start_Audio();
+			printf("Audio started\n");
             frontShow();
             
 #ifdef __APPLE__  
@@ -477,8 +478,9 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
                 return true;
             }
         }
+#ifdef __APPLE__
     }
-    
+#endif    
     return false;
 }
 

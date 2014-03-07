@@ -200,8 +200,9 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
 		iteratorParams++;
         argv[iteratorParams] = "-svg";
 		iteratorParams++;
-
+		
 #ifdef _WIN32
+//LLVM_MATH is added to resolve mathematical float functions, like powf
 		argv[iteratorParams] = "-l";
 		iteratorParams++;
 		argv[iteratorParams] = "llvm_math.ll";
@@ -220,13 +221,13 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
             strcpy(intermediate,parseResult.c_str());
             
 //        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-//            if(strcmp(intermediate, "-double") != 0)
-//                argv[i] = (const char*)intermediate;
-//            else{
-//                argc--;
-//                i--;
-//                printf("Option -double not taken into account\n");
-//            }
+            if(strcmp(intermediate, "-double") != 0)
+                argv[i] = (const char*)intermediate;
+            else{
+                argc--;
+                i--;
+                printf("Option -double not taken into account\n");
+            }
         }
         
         printf("ARGC = %i\n", argc);
