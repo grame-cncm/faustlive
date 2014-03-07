@@ -22,6 +22,8 @@ INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
 INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
 INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
+INCLUDEPATH += C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32
+INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
 
 LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
 LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
@@ -43,7 +45,6 @@ for(FILE, MYFILES) {
 }
 
 all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources/Libs)
-
 
 LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
@@ -67,8 +68,10 @@ LIBS+= $$LLVMDIR
 }
 else{
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
+LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
+LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
 }
 
 
@@ -76,14 +79,20 @@ LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
 
 macx{
+LIBS+=-lqrencode
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
 LIBS+=-L/opt/local/lib
 LIBS+=-lmicrohttpd
-LIBS+=-lqrencode
 #LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
+}
+else{
+equals(HTTPDVAR, 1){
+LIBS+=-lHTTPDFaust
+LIBS+=-lqrcodelib
+}
 }
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -200,11 +209,13 @@ HEADERS +=              src/AudioSettings.h \
                         src/FLApp.h \
                         src/SimpleParser.h
 macx{
-HEADERS +=		src/HTTPWindow.h \
-                        src/FLServerHttp.h \
+HEADERS +=	        src/FLServerHttp.h \
                         /usr/local/include/faust/gui/faustqt.h
 }
 else{
+equals(HTTPDVAR, 1){
+HEADERS +=		src/HTTPWindow.h 
+}
 HEADERS +=      C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h
 }
 
@@ -219,8 +230,13 @@ SOURCES += 	src/AudioCreator.cpp \
                 src/FLApp.cpp
 macx{
 SOURCES +=	src/FLServerHttp.cpp \
-                src/HTTPWindow.cpp
-}	
+                src/HTTPWindow.cpp 
+}
+else{
+equals(HTTPDVAR, 1){
+SOURCES +=	src/HTTPWindow.cpp
+}
+}
 
 SOURCES +=      src/SimpleParser.cpp \
                 src/main.cpp
