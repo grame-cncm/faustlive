@@ -8,7 +8,6 @@
 # APPLICATION SETTINGS
 
 FAUSTDIR = /usr/local/lib/faust
-ICON = Resources/FaustLiveIcon.icns
 TARGET = FaustLive
 
 OBJECTS_DIR += src
@@ -16,6 +15,8 @@ MOC_DIR += src
 RCC_DIR += src
 
 win32{
+
+ICON = Resources/FaustLiveIcon.ico
 
 TEMPLATE=vcapp
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
@@ -28,6 +29,7 @@ LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ld
 CONFIG += console
 } else{
 
+ICON = Resources/FaustLiveIcon.icns
 TEMPLATE = app
 DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
