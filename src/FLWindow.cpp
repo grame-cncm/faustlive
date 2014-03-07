@@ -155,17 +155,17 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         
 //        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
 //        NORMALLY NOT IMPORTANT FOR INIT (because a window is init in remote only when duplicated = already in current session = factory existant)
-//        if(fCurrent_DSP == NULL){
-//            
-//            if(error == ERROR_FACTORY_NOTFOUND){
-//                fEffect->reset();
-//                
-//                if(fEffect->reinit(errorMsg)){
-//                    fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, error);
-//                }
-//            }
+        if(fCurrent_DSP == NULL){
+            
+            if(error == ERROR_FACTORY_NOTFOUND){
+                fEffect->reset();
+                
+                if(fEffect->reinit(errorMsg)){
+                    fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, error);
+                }
+            }
             errorMsg = getErrotFromCode(error);
-//        }
+        }
     }
 #endif
     

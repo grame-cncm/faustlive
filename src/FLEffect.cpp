@@ -65,7 +65,7 @@ void FLEffect::reset(){
 }
 
 bool FLEffect::reinit(QString& error){
-    return init(fCurrentSVGFolder, fCurrentIRFolder, fCompilationOptions, fOpt_level, error, fIpMachineRemote, fPortMachineRemote);
+    return init(fCurrentSVGFolder, fCurrentIRFolder, fCurrentLibsFolder, fCompilationOptions, fOpt_level, error, fIpMachineRemote, fPortMachineRemote);
 }
 
 //Initialisation of the effect. From a source file, it builds the factory
@@ -75,7 +75,7 @@ bool FLEffect::reinit(QString& error){
 //@param : optvalue = optimization value for LLVM compiler
 //@param : error = if the initialisation fails, error is filled
 //@param : ip/port remote = IP/Port of processing machine (Remote Case)
-bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFolder ,QString compilationMode, int optValue, QString& error, const QString& IPremote, int portremote){
+bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFolder, const QString& currentLibsFolder, QString compilationMode, int optValue, QString& error, const QString& IPremote, int portremote){
     
     printf("FICHIER SOURCE = %s\n", fSource.toStdString().c_str());
     
@@ -86,8 +86,9 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 
     fCurrentSVGFolder = currentSVGFolder;
     fCurrentIRFolder = currentIRFolder;
+    fCurrentLibsFolder = currentLibsFolder;
     
-    if(buildFactory(kCurrentFactory, error, currentSVGFolder, currentIRFolder)){
+    if(buildFactory(kCurrentFactory, error)){
         
 		printf("Factory was build\n");
 
@@ -126,13 +127,13 @@ bool FLEffect::hasToBeRecompiled(){
 //@param : error = buffer to build in case build fails
 //@param : currentSVGFolder = where to create the SVG-Folder tied to the factory 
 //@param : currentIRFolder = where to save the bitcode tied to the factory
-bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder){
+bool FLEffect::buildFactory(int factoryToBuild, QString& error){
     
     llvm_dsp_factory* buildingFactory = NULL;
     remote_dsp_factory* buildingRemoteFactory = NULL;
     
 //To speed up the process of compilation, when a session is recalled, the DSP are re-compiled from Bitcode 
-    QString IRpath = currentIRFolder + "/" + fName;
+    QString IRpath = fCurrentIRFolder + "/" + fName;
     
     if(fRecalled && QFileInfo(IRpath).exists() && fIsLocal){        
         buildingFactory = readDSPFactoryFromBitcodeFile(IRpath.toStdString(), "");
@@ -169,21 +170,10 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         argv[iteratorParams] = "-I";
 		iteratorParams++;
         
-//The library path is where libraries like the scheduler architecture file are = Application Bundle/Resources
-#ifdef __APPLE__
-        string libPath = QFileInfo(QFileInfo( QCoreApplication::applicationFilePath()).absolutePath()).absolutePath().toStdString() + LIBRARY_PATH;
+//The library path is where libraries like the scheduler architecture file are = currentSession
+        string libPath = fCurrentLibsFolder.toStdString();
         argv[iteratorParams] = libPath.c_str();
 		iteratorParams++;
-#elif __linux__
-        
-        QString libPath = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath() + LIBRARY_PATH;
-        argv[iteratorParams] = libPath.toLatin1().data();
-		iteratorParams++;
-#else    
-        string libPath = "C:\\Users\\Sarah\\faudiostream-faustlive\\Resources\\Libs";
-        argv[iteratorParams] = libPath.c_str();
-		iteratorParams++;
-#endif
 
         argv[iteratorParams] = "-I";   
 		iteratorParams++;
@@ -194,7 +184,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
         argv[iteratorParams] = "-O";
 		iteratorParams++;
         
-        string svgPath = currentSVGFolder.toStdString();
+        string svgPath = fCurrentSVGFolder.toStdString();
         
         argv[iteratorParams] = svgPath.c_str();
 		iteratorParams++;
@@ -293,12 +283,12 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error, QString currentS
 //@param : error = buffer to build in case build fails
 //@param : currentSVGFolder = where to create the SVG-Folder tied to the factory 
 //@param : currentIRFolder = where to save the bitcode tied to the factory
-bool FLEffect::update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder){
+bool FLEffect::update_Factory(QString& error){
     
     llvm_dsp_factory* local_factory_update = NULL;
     remote_dsp_factory* remote_factory_update = NULL;
     
-	if(buildFactory(kChargingFactory, error, currentSVGFolder, currentIRFolder)){
+	if(buildFactory(kChargingFactory, error)){
         
         if(fIsLocal){
 			local_factory_update = fFactory;

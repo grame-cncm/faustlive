@@ -42,6 +42,8 @@ install : install-$(system)
 
 uninstall : uninstall-$(system)
 
+###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
+math_lib : $(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/llvm_math.c -c -S -o Resources/Libs/llvm_math.ll)
 
 ####### Packages
 
@@ -83,6 +85,7 @@ clean : Makefile.qt4
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
 	rm -f Makefile.qt4
+	rm -f Resources/Libs/llvm_math.ll
 
 Makefile.qt4: 
 	$(qm) $(SPEC) -o Makefile.qt4 $(QM-DEFS)

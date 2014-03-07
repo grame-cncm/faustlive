@@ -153,8 +153,6 @@ void FLApp::create_Session_Hierarchy(){
     if(!QFileInfo(fSVGFolder).exists()){
         QDir direct(fSVGFolder);
         direct.mkdir(fSVGFolder);
-
-		printf("SVG FOLDER CREATED\n");
     }  
     
     fIRFolder = fSessionFolder + "/IR";
@@ -163,11 +161,38 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fIRFolder);
     }  
     
+//    To copy QT resources that where loaded at compilation with application.qrc
     fExamplesFolder = fSessionFolder + "/Examples";
     if(!QFileInfo(fExamplesFolder).exists()){
         QDir direct(fExamplesFolder);
         direct.mkdir(fExamplesFolder);
     }  
+    
+    fLibsFolder = fSessionFolder + "/Libs";
+    if(!QFileInfo(fLibsFolder).exists()){
+        QDir direct(fLibsFolder);
+        direct.mkdir(fLibsFolder);
+    }  
+    
+    QDir libsDir(":/");
+    
+    if(libsDir.cd("Libs")){
+        
+        QFileInfoList children = libsDir.entryInfoList(QDir::Files);
+        
+        QFileInfoList::iterator it;
+        
+        for(it = children.begin(); it != children.end(); it++){
+            
+            QString pathInSession = fLibsFolder + "/" + it->baseName();
+            
+            QFile file(it->absoluteFilePath());
+            
+            file.copy(pathInSession);
+        }
+        
+    }
+    
     
     QDir direc(fSessionFile);
 }
@@ -765,7 +790,7 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     
     FLEffect* myNewEffect = new FLEffect(recall, fileSource, nameEffect, isLocal);
     
-    if(myNewEffect && myNewEffect->init(fSVGFolder, fIRFolder, compilationOptions, opt_Val, error, ip, port)){
+    if(myNewEffect && myNewEffect->init(fSVGFolder, fIRFolder, fLibsFolder, compilationOptions, opt_Val, error, ip, port)){
         
         StopProgressSlot();
         
@@ -952,7 +977,7 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
         
         display_CompilingProgress("Updating your DSP...");
         
-        if(!modifiedEffect->update_Factory(error, fSVGFolder, fIRFolder)){
+        if(!modifiedEffect->update_Factory(error)){
             
             StopProgressSlot();
             fErrorWindow->print_Error(error);

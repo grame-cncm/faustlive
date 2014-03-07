@@ -51,6 +51,7 @@ class FLEffect : public QObject
     //Current Session Folders
         QString              fCurrentSVGFolder;
         QString              fCurrentIRFolder;
+        QString              fCurrentLibsFolder;
     
     // IP + Port of remote server for remote Effects
         QString              fIPaddress;
@@ -93,7 +94,7 @@ class FLEffect : public QObject
     //Creating the factory with the specific compilation options, in case of an error the buffer is filled
     //@param factoryToBuild = is it the transition factory or the current factory ? 
     //@param        
-        bool        buildFactory(int factoryToBuild, QString& error, QString currentSVGFolder, QString currentIRFolder); 
+        bool        buildFactory(int factoryToBuild, QString& error); 
     
     public:
     
@@ -114,7 +115,7 @@ class FLEffect : public QObject
     //@param : optvalue = optimization value for LLVM compiler
     //@param : error = if the initialisation fails, error is filled
     //@param : ip/port remote = IP/Port of processing machine (Remote Case)
-        bool        init(const QString& currentSVGFolder, const QString& currentIRFolder , QString compilationMode, int optVal, QString& error, const QString& IPremote = "localhost", int portremote = 0);
+        bool        init(const QString& currentSVGFolder, const QString& currentIRFolder , const QString& currentLibsFolder, QString compilationMode, int optVal, QString& error, const QString& IPremote = "localhost", int portremote = 0);
 
     //Accessors to the Factory
         llvm_dsp_factory*   getFactory();
@@ -124,7 +125,7 @@ class FLEffect : public QObject
         void        forceRecompilation(bool val);
         bool        hasToBeRecompiled();
     //Re-Build of the factory from the source file
-        bool        update_Factory(QString& error, QString currentSVGFolder, QString currentIRFolder);
+        bool        update_Factory(QString& error);
     //Once the rebuild is complete, the former factory has to be deleted
         void        erase_OldFactory();
     
