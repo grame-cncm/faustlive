@@ -103,11 +103,11 @@ void FLWindow::frontShow(){
     setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 }
 
-QString FLWindow::getErrotFromCode(int code){
+QString FLWindow::getErrorFromCode(int code){
  
 #ifdef REMOTE
     if(code == ERROR_FACTORY_NOTFOUND){
-        return "Impossible to remote factory";
+        return "Impossible to create remote factory";
     }
     
     if(code == ERROR_INSTANCE_NOTCREATED){
@@ -164,7 +164,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
                     fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, error);
                 }
             }
-            errorMsg = getErrotFromCode(error);
+            errorMsg = getErrorFromCode(error);
         }
     }
 #endif
@@ -242,7 +242,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                     charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
                 }
             }
-            error = getErrotFromCode(errorMsg);
+            error = getErrorFromCode(errorMsg);
         }
     }
 #endif
@@ -519,12 +519,11 @@ void FLWindow::print_initWindow(){
         plainTextEdit->setContextMenuPolicy(Qt::NoContextMenu);
         plainTextEdit->setFixedSize (QApplication::desktop()->geometry().size().height()/3, QApplication::desktop()->geometry().size().height()/3);
         
-        plainTextEdit->setPlainText(tr("\n      INIT WINDOW\n\n\n      DROP A DSP \n      OR EDIT ME.\n\n      !! ^^ !!"));
-        
         QFont font;
         font.setFamily(QString::fromUtf8("Menlo"));
-        font.setPointSize(26);
+        font.setPointSize(50);
         plainTextEdit->setFont(font);
+        plainTextEdit->setPlainText(tr("\n     INIT WINDOW\n\n\n      DROP A DSP \n      OR EDIT ME.\n\n      !! ^^ !!"));
         
         plainTextEdit->setReadOnly(true);
         QSize size = plainTextEdit->frameSize();

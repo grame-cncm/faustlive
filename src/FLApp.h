@@ -82,6 +82,7 @@ class FLApp : public QApplication
         QTextBrowser*       fToolText;          //ToolText in Help Dialog
         QPlainTextEdit*       fAppText;
         QPlainTextEdit*       fWinText;
+        QPlainTextEdit*     fLibsText;
     
         FLErrorWindow*      fErrorWindow;       //Error Dialog
         QDialog*            fPresWin;           //Presentation Window
@@ -341,6 +342,7 @@ class FLApp : public QApplication
         void                setToolText(const QString&);
         void                setAppPropertiesText(const QString& currentText);
         void                setWinPropertiesText(const QString& currentText);
+        void                setLibText(const QString& currentText);
         void                apropos();
         void                end_apropos();
         void                version_Action();

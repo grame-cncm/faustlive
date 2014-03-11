@@ -2277,6 +2277,12 @@ void FLApp::recall_Session(const QString& filename){
             fErrorWindow->print_Error(error);
         }
     }
+    
+//    If the current session is not recalled for some reason, the presentation menu is opened
+    if(filename.compare(fSessionFile) == 0){
+        if(FLW_List.size() == 0)
+            show_presentation_Action();
+    }
 }
 
 
@@ -2748,6 +2754,14 @@ void FLApp::common_shutAction(FLWindow* win){
 //Delete File and Folder directly related to a window
 void FLApp::removeFilesOfWin(const QString& sourceName, const QString& effName){
     
+//    In case the source is a waveform, 2 files have to be deleted
+    QString possibleWaveformFile = QFileInfo(sourceName).absolutePath() + "/" + QFileInfo(sourceName).baseName()  + "_waveform." + QFileInfo(sourceName).completeSuffix();
+    
+//    printf("Possible Waveform = %s\n", possibleWaveformFile.toStdString().c_str());
+    
+    if(QFileInfo(possibleWaveformFile).exists())
+        QFile::remove(possibleWaveformFile);
+    
     QFile::remove(sourceName);
     
     QString irFile = fIRFolder + "/" + effName;
@@ -2758,7 +2772,7 @@ void FLApp::removeFilesOfWin(const QString& sourceName, const QString& effName){
     
 }
 
-//
+//The effect is deleted, depending on its situation
 void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
     
     QFileInfo ff(leavingEffect->getSource());
@@ -2997,8 +3011,6 @@ void FLApp::export_Action(){
 
 //---------------Drop
 
-
-
 //For sound files, a pass transforms them into faust code through the waveforms
 QString FLApp::soundFileToFaust(const QString& soundFile){
     
@@ -3159,8 +3171,18 @@ void FLApp::setWinPropertiesText(const QString& currentText){
         fWinText->setPlainText("\nYou can display the SVG diagram of the active Window. It will be opened in your chosen default navigator.");
     
     else if(currentText.compare("Export")==0)
-        fWinText->setPlainText("\nA web service is available to campile and export your Faust application for another platform or/and architecture.");
+        fWinText->setPlainText("\nA web service is available to compile and export your Faust application for another platform or/and architecture.");
     
+}
+
+//Set Faust Lib Text in Help Menu
+void FLApp::setLibText(const QString& currentText){
+    
+    QString pathLib = fLibsFolder + "/" + currentText;
+    
+    QString libText = pathToContent(pathLib);
+    
+    fLibsText->setPlainText(libText);
 }
 
 void FLApp::init_HelpWindow(){
@@ -3225,7 +3247,7 @@ void FLApp::init_HelpWindow(){
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
     
-    vue->setMaximumWidth(100);
+    vue->setMaximumWidth(150);
     connect(vue, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setToolText(const QString &)));
     
     toolLayout->addWidget(vue, 0, 0, 1, 1);
@@ -3233,6 +3255,7 @@ void FLApp::init_HelpWindow(){
     fToolText = new QTextBrowser;
     fToolText->setOpenExternalLinks(true);
     fToolText->setReadOnly(true);
+    fToolText->setMinimumWidth(400);
 
     myTabWidget->addTab(tab_tool, QString(tr("Tools")));
     
@@ -3240,6 +3263,44 @@ void FLApp::init_HelpWindow(){
     tab_tool->setLayout(toolLayout);
     
     vue->setCurrentRow(0);
+    
+    //-----------------------Faust Librairies
+    
+    QWidget* tab_app1 = new QWidget();
+    
+    QGridLayout* appLayout1 = new QGridLayout;
+    
+    QListWidget *vue1 = new QListWidget;
+    
+    //    Mettre en route d'ajouter les librairies présentes dans le dossier Libs
+    
+    QDir libsDir(fLibsFolder);
+    
+    QFileInfoList children = libsDir.entryInfoList(QDir::Files);
+    
+    QFileInfoList::iterator it;
+    
+    for(it = children.begin(); it != children.end(); it++){
+        QString completeName = it->baseName() + it->completeSuffix();
+        vue1->addItem(completeName);
+    }
+    
+    vue1->setMaximumWidth(150);
+    connect(vue1, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setLibText(const QString &)));
+    
+    appLayout1->addWidget(vue1, 0, 0, 1, 1);
+    
+    fLibsText = new QPlainTextEdit;
+    fLibsText->setReadOnly(true);
+    fLibsText->setMinimumWidth(400);
+    
+    vue1->setCurrentRow(0);
+    
+    appLayout1->addWidget(fLibsText, 0, 1, 1, 2);
+    
+    myTabWidget->addTab(tab_app1, QString(tr("Faust Librairies Included")));
+    
+    tab_app1->setLayout(appLayout1);
     
     //-----------------------Faust Live Menu
     
@@ -3265,6 +3326,7 @@ void FLApp::init_HelpWindow(){
     
     fAppText = new QPlainTextEdit;
     fAppText->setReadOnly(true);
+    fAppText->setMinimumWidth(400);
     
     vue2->setCurrentRow(0);
     
@@ -3273,7 +3335,6 @@ void FLApp::init_HelpWindow(){
     myTabWidget->addTab(tab_app, QString(tr("Application Properties")));
     
     tab_app->setLayout(appLayout);
-    
     
     //-----------------------Window Properties
     
@@ -3302,6 +3363,7 @@ void FLApp::init_HelpWindow(){
     
     fWinText = new QPlainTextEdit;
     fWinText->setReadOnly(true);
+    fWinText->setMinimumWidth(400);
     
     vue3->setCurrentRow(0);
     
@@ -3386,6 +3448,7 @@ void FLApp::init_presentationWindow(){
     QPushButton*    new_Window;
     QPushButton*    open_Window;
     QPushButton*    open_Session;
+    QPushButton*    preferences;
     QPushButton*    help;
     
     QPushButton*    ok;
@@ -3431,6 +3494,7 @@ void FLApp::init_presentationWindow(){
     QPixmap newPix(ImagesDir.absoluteFilePath("InitWin.png"));
     newPix = newPix.scaledToWidth(60, Qt::SmoothTransformation);
     new_Image->setPixmap(newPix);
+    new_Image->setAlignment(Qt::AlignCenter);
     layout2->addWidget(new_Image, 0, 0);
     
     new_Window = new QPushButton("New Default Window\nOpen a window with simple process");
@@ -3461,7 +3525,7 @@ void FLApp::init_presentationWindow(){
     snap_Image->setPixmap(snapPix);
     layout2->addWidget(snap_Image, 2, 0);
     
-    open_Session = new QPushButton("Recall your Snapshot.tar\n");
+    open_Session = new QPushButton("Recall your Snapshot\n");
     open_Session->setToolTip("Open a saved snapshot.");
     open_Session->setFlat(true);
     open_Session->setDefault(false);
@@ -3469,16 +3533,31 @@ void FLApp::init_presentationWindow(){
     layout2->addWidget(open_Session, 2, 1);
     connect(open_Session, SIGNAL(clicked()), this, SLOT(open_Session_pres()));
     
+    QLabel *pref_Image = new QLabel(gridBox);
+    QPixmap prefPix(ImagesDir.absoluteFilePath("Preferences.png"));
+    prefPix = prefPix.scaledToWidth(60, Qt::SmoothTransformation);
+    pref_Image->setPixmap(prefPix);
+    layout2->addWidget(pref_Image, 3, 0);
+    
+    preferences = new QPushButton("Open Preferences Menu\n");
+    preferences->setToolTip("Modify audio & compilation preferences");
+    preferences->setFlat(true);
+    preferences->setDefault(false);
+    
+    layout2->addWidget(preferences, 3, 1);
+    connect(preferences, SIGNAL(clicked()), this, SLOT(Preferences()));
+    
+    
     QLabel *help_Image = new QLabel(gridBox);
     QPixmap helpPix(ImagesDir.absoluteFilePath("HelpMenu.png"));
     helpPix = helpPix.scaledToWidth(60, Qt::SmoothTransformation);
     help_Image->setPixmap(helpPix);
-    layout2->addWidget(help_Image, 3, 0);
+    layout2->addWidget(help_Image, 4, 0);
     
     help = new QPushButton("About Faust Live\n Learn all about FaustLive charateristics");
     help->setToolTip("Help Menu.");
     
-    layout2->addWidget(help, 3, 1);
+    layout2->addWidget(help, 4, 1);
     connect(help, SIGNAL(clicked()), this, SLOT(apropos()));
     help->setFlat(true);
     help->setDefault(false);
@@ -3494,7 +3573,7 @@ void FLApp::init_presentationWindow(){
     QDir examplesDir(":/");
     
     if(examplesDir.cd("Examples")){
-    
+        
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
         
         fExampleToOpen = (children.begin())->baseName();
@@ -3514,7 +3593,7 @@ void FLApp::init_presentationWindow(){
     ok = new QPushButton("Open");
     connect(ok, SIGNAL(clicked()), this, SLOT(open_Example_Action()));
     ok->setDefault(true);
-//    ok->setStyleSheet("*{background-color: transparent;}");
+    //    ok->setStyleSheet("*{background-color: transparent;}");
     layout5->addWidget(ok);
     
     buttonBox->setLayout(layout2);
@@ -3522,13 +3601,13 @@ void FLApp::init_presentationWindow(){
     
     layout3->addWidget(buttonBox);
     layout3->addWidget(openExamples); 
-        
+    
     gridBox->setLayout(layout3);
     
     QHBoxLayout *layout4 = new QHBoxLayout;
     
     QPushButton* cancel = new QPushButton("Cancel");
-//    cancel->setStyleSheet("*{background-color: transparent;}");
+    //    cancel->setStyleSheet("*{background-color: transparent;}");
     connect(cancel, SIGNAL(clicked()), fPresWin, SLOT(hide()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
@@ -3567,6 +3646,16 @@ void FLApp::init_presentationWindow(){
                                 "QPushButton:flat:hover{"
                                 "background-color: darkGray;"                         
                                 "}" );
+    
+    preferences->setStyleSheet("QPushButton:flat{"
+                               "background-color: lightGray;"
+                               "color: black;"
+                               "border: 2px solid gray;"
+                               "border-radius: 6px;"
+                               "}"
+                               "QPushButton:flat:hover{"
+                               "background-color: darkGray;"                         
+                               "}" );
     
     help->setStyleSheet("QPushButton:flat{"
                         "background-color: lightGray;"

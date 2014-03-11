@@ -10,6 +10,7 @@
 <file>Images/FaustLiveIcon.png</file>
 <file>Images/FaustLiveIcon.ico</file>
 <file>Images/FaustLiveIcon.icns</file>
+	<file>Images/Preferences.png</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>
@@ -38,5 +39,6 @@
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
 <file>Libs/llvm_math.ll</file>
+<file>Libs/scheduler.ll</file>
 </qresource>
 </RCC>
