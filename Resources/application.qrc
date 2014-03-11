@@ -1,13 +1,15 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>Images/Check.png</file>
-    <file>Images/faustlive.png</file>
     <file>Images/HelpMenu.png</file>
     <file>Images/InitWin.png</file>
     <file>Images/NotCheck.png</file>
     <file>Images/OpenWin.png</file>
     <file>Images/Presentation_Image.png</file>
     <file>Images/RecallMenu.png</file>
+<file>Images/FaustLiveIcon.png</file>
+<file>Images/FaustLiveIcon.ico</file>
+<file>Images/FaustLiveIcon.icns</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>

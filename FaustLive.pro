@@ -16,7 +16,7 @@ RCC_DIR += src
 
 win32{
 
-ICON = Resources/FaustLiveIcon.ico
+RC_FILE = FaustLive.rc
 
 TEMPLATE=vcapp
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include

@@ -9,6 +9,9 @@
 #include "FLrenameDialog.h"
 #ifdef __APPLE__
 #include "FLServerHttp.h"
+#else
+#include <windows.h>
+#include <shlobj.h>
 #endif
 #include "FLWindow.h"
 #include "FLErrorWindow.h"
@@ -20,7 +23,7 @@
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
-    
+
     //Create Current Session Folder
     create_Session_Hierarchy();
     
@@ -109,13 +112,20 @@ FLApp::~FLApp(){
 }
 
 void FLApp::create_Session_Hierarchy(){    
-    
+
+	QString separationChar;
+
     //Initialization of current Session Path  
 #ifdef _WIN32
-	fSessionFolder = "C:/CurrentSession-";
+	char path[512];
+	if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
+	fSessionFolder = path;
+	fSessionFolder += "\\CurrentSession-";
+	separationChar = "\\";
 #else
     fSessionFolder = getenv("HOME");
     fSessionFolder += "/.CurrentSession-";
+	separationChar = "/";
 #endif
 
 	printf("HOME = %s\n", fSessionFolder.toStdString().c_str());
@@ -126,49 +136,49 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fSessionFolder);
     }
     
-    fSessionFile = fSessionFolder + "/Description.sffx";
+	fSessionFile = fSessionFolder + separationChar + "Description.sffx";
     if(!QFileInfo(fSessionFile).exists()){
         QFile f(fSessionFile);
         f.open(QFile::ReadOnly);
         f.close();
     }    
     
-    fSourcesFolder = fSessionFolder + "/Sources";
+	fSourcesFolder = fSessionFolder + separationChar + "Sources";
     if(!QFileInfo(fSourcesFolder).exists()){
         QDir direct(fSourcesFolder);
         direct.mkdir(fSourcesFolder);
     }    
     
-    fSettingsFolder = fSessionFolder + "/Settings";
+    fSettingsFolder = fSessionFolder + separationChar  + "Settings";
     if(!QFileInfo(fSettingsFolder).exists()){
         QDir direct(fSettingsFolder);
         direct.mkdir(fSettingsFolder);
     }
     
-    fHomeSettings = fSettingsFolder + "/FaustLive_Settings.rf"; 
-    fRecentsFile = fSettingsFolder + "/FaustLive_FileSavings.rf"; 
-    fHomeRecentSessions = fSettingsFolder + "/FaustLive_SessionSavings.rf"; 
+    fHomeSettings = fSettingsFolder + separationChar  + "FaustLive_Settings.rf"; 
+    fRecentsFile = fSettingsFolder + separationChar  + "FaustLive_FileSavings.rf"; 
+    fHomeRecentSessions = fSettingsFolder + separationChar  + "FaustLive_SessionSavings.rf"; 
     
-    fSVGFolder = fSessionFolder + "/SVG";
+    fSVGFolder = fSessionFolder + separationChar  + "SVG";
     if(!QFileInfo(fSVGFolder).exists()){
         QDir direct(fSVGFolder);
         direct.mkdir(fSVGFolder);
     }  
     
-    fIRFolder = fSessionFolder + "/IR";
+    fIRFolder = fSessionFolder + separationChar  + "IR";
     if(!QFileInfo(fIRFolder).exists()){
         QDir direct(fIRFolder);
         direct.mkdir(fIRFolder);
     }  
     
 //    To copy QT resources that where loaded at compilation with application.qrc
-    fExamplesFolder = fSessionFolder + "/Examples";
+    fExamplesFolder = fSessionFolder + separationChar  + "Examples";
     if(!QFileInfo(fExamplesFolder).exists()){
         QDir direct(fExamplesFolder);
         direct.mkdir(fExamplesFolder);
     }  
     
-    fLibsFolder = fSessionFolder + "/Libs";
+    fLibsFolder = fSessionFolder + separationChar  + "Libs";
     if(!QFileInfo(fLibsFolder).exists()){
         QDir direct(fLibsFolder);
         direct.mkdir(fLibsFolder);
@@ -184,7 +194,7 @@ void FLApp::create_Session_Hierarchy(){
         
         for(it = children.begin(); it != children.end(); it++){
             
-            QString pathInSession = fLibsFolder + "/" + it->baseName();
+			QString pathInSession = fLibsFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
             QFile file(it->absoluteFilePath());
             
@@ -1834,7 +1844,15 @@ void FLApp::reset_CurrentSession(){
     QString ir(fSessionFolder);
     ir += "/IR";
     nv.mkdir(ir);
-    
+
+	QString ex(fExamplesFolder);
+    ex += "/Examples";
+    nv.mkdir(ex);
+
+	QString libs(fLibsFolder);
+    libs += "/Libs";
+    nv.mkdir(libs);
+
     fSessionContent.clear();
     
     recall_Settings(fHomeSettings);
@@ -1939,8 +1957,13 @@ void FLApp::take_Snapshot(){
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
     
-    QString filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""), tr("(*.tar)"));
-    
+	QString filename;
+
+#ifndef _WIN32
+    filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""), tr("(*.tar)"));
+#else
+	filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""));
+#endif
 	printf("filename = %s\n", filename.toStdString().c_str());
     
     //If no name is placed, nothing happens
@@ -1959,6 +1982,7 @@ void FLApp::take_Snapshot(){
         
         //        QString descriptionFile = filename + "/Description.sffx";
         
+#ifndef _WIN32
         QProcess myCmd;
         QByteArray error;
         
@@ -1991,6 +2015,7 @@ void FLApp::take_Snapshot(){
         set_Current_Session(sessionName);
         
         //        deleteDirectoryAndContent(filename);
+#endif
     }
 }
 
@@ -2053,21 +2078,29 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
 }
 
 void FLApp::recallSnapshotFromMenu(){
+	
+	QString fileName;
+#ifndef _WIN32
+    fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Snapshot"), "",tr("Files (*.tar)"));
+#else
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
+#endif
     
-    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Session"), "",tr("Files (*.tar)"));
-    
-    QString filename = fileName;
-    
-    if(filename != ""){
+    if(fileName != ""){
         
-        recall_Snapshot(filename, false);
+        recall_Snapshot(fileName, false);
     }
 }
 
 void FLApp::importSnapshotFromMenu(){
     
-    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Session"), "",tr("Files (*.tar)"));
-      
+	QString fileName;
+#ifndef _WIN32
+    fileName = QFileDialog::getOpenFileName(NULL, tr("Import a Snapshot"), "",tr("Files (*.tar)"));
+#else
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
+#endif
+
     if(fileName != ""){
         
         recall_Snapshot(fileName, true);
@@ -2082,9 +2115,10 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
 
     set_Current_Session(filename);
     
+#ifndef _WIN32
     QProcess myCmd;
+	QByteArray error;
 	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QByteArray error;
     
     QString systemInstruct("tar xfv ");
     systemInstruct += filename +" -C /";
@@ -2099,7 +2133,8 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     if(strcmp(error.data(), "") != 0)
         fErrorWindow->print_Error(error.data());
-    
+#endif
+
     if(!importOption){
         shut_AllWindows(); 
         reset_CurrentSession();
@@ -2113,6 +2148,7 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     recall_Session(finalFilename);
     
+#ifndef _Win32
     QProcess myCmd2;
     QByteArray error2;
     
@@ -2122,10 +2158,11 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     myCmd2.start(rmInstruct);
     myCmd2.waitForFinished();
     
-    error = myCmd.readAllStandardError();
-    
+    error2 = myCmd2.readAllStandardError();
+
     if(strcmp(error2.data(), "") != 0)
         fErrorWindow->print_Error(error2.data());
+#endif
 
 	fRecalling = false;
 }
@@ -2700,7 +2737,7 @@ void FLApp::common_shutAction(FLWindow* win){
         (*it)->update_RecentFileMenu();
     }
 
-#ifdef __linux__
+#ifndef __APPLE__
     if(FLW_List.size() == 0 && !fRecalling)
         exit();
 #endif
@@ -2982,7 +3019,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QProcess myCmd;
     QByteArray error;
     
-    QString systemInstruct("sound2faust ");
+    QString systemInstruct("sound2faust.exe ");
     systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
