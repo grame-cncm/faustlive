@@ -36,17 +36,6 @@ INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
-all.commands += $(shell mkdir Resources/Libs)
-
-MYFILES = $$system(ls $$FAUSTDIR/*.lib)
-
-for(FILE, MYFILES) {
-	all.commands += $(shell cp $$FILE Resources/Libs)
-}
-
-all.commands += $(shell cp $$FAUSTDIR/scheduler.ll Resources/Libs)
-
-
 LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
 

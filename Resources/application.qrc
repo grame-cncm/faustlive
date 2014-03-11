@@ -8,6 +8,7 @@
     <file>Images/OpenWin.png</file>
     <file>Images/Presentation_Image.png</file>
     <file>Images/RecallMenu.png</file>
+	<file>Images/Preferences.png</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>
@@ -36,5 +37,6 @@
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
 <file>Libs/llvm_math.ll</file>
+<file>Libs/scheduler.ll</file>
 </qresource>
 </RCC>

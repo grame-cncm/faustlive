@@ -36,7 +36,6 @@ endif
 
 all : Makefile.qt4
 	make -f Makefile.qt4
-	cp -r Resources/ FaustLive.app/Contents/Resources
 
 install : install-$(system)
 
