@@ -31,7 +31,7 @@ LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ld
 CONFIG += console
 } else{
 
-ICON = Resources/FaustLiveIcon.icns
+ICON = Resources/Images/FaustLiveIcon.icns
 TEMPLATE = app
 DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
@@ -202,6 +202,7 @@ HEADERS +=              src/AudioSettings.h \
                         src/SimpleParser.h
 macx{
 HEADERS +=	        src/FLServerHttp.h \
+					src/HTTPWindow.h \
                         /usr/local/include/faust/gui/faustqt.h
 }
 else{

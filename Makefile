@@ -66,16 +66,16 @@ uninstall-Darwin:
 install-Linux :
 	install FaustLive $(PREFIX)/bin
 	install FaustLive.desktop $(PREFIX)/share/applications/
-	install Resources/Images/faustlive.xpm $(PREFIX)/share/pixmaps/
-	install Resources/Images/faustlive.png $(PREFIX)/share/icons/hicolor/32x32/apps/
-	install Resources/Images/faustlive.svg $(PREFIX)/share/icons/hicolor/scalable/apps/
+	install Resources/Images/Faustlive.xpm $(PREFIX)/share/pixmaps/
+	install Resources/Images/Faustlive.png $(PREFIX)/share/icons/hicolor/32x32/apps/
+	install Resources/Images/Faustlive.svg $(PREFIX)/share/icons/hicolor/scalable/apps/
 
 uninstall-Linux :
 	rm -f $(PREFIX)/bin/FaustLive
 	rm -f $(PREFIX)/share/applications/FaustLive.desktop 
-	rm -f $(PREFIX)/share/pixmaps/faustlive.xpm 
-	rm -f $(PREFIX)/share/icons/hicolor/32x32/apps/faustlive.png
-	rm -f $(PREFIX)/share/icons/hicolor/scalable/apps/faustlive.svg
+	rm -f $(PREFIX)/share/pixmaps/Faustlive.xpm 
+	rm -f $(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
+	rm -f $(PREFIX)/share/icons/hicolor/scalable/apps/Faustlive.svg
 
 ####### MAKE MAKEFILE.QT4
 

@@ -6,7 +6,7 @@ Comment=Embbeded Faust and LLVM Compiler in a QT application
 Version=1.0
 Terminal=false
 Exec=FaustLive
-Icon=faustlive
+Icon=Faustlive
 Categories=Development;
 
 

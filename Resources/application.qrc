@@ -39,6 +39,5 @@
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
 <file>Libs/llvm_math.ll</file>
-<file>Libs/scheduler.ll</file>
 </qresource>
 </RCC>

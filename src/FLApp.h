@@ -197,7 +197,7 @@ class FLApp : public QApplication
     
         std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
     
-        void                deleteLineIndexed(int index);
+        void                deleteLineIndexed(int index, QList<WinInSession*>& sessionToModify);
     
     //In case of drops on Application Icon, this event is called
         virtual bool        event(QEvent *ev);
@@ -210,7 +210,7 @@ class FLApp : public QApplication
         void                reset_CurrentSession();
     
     //Functions of rehabilitation if sources disapears
-        void                currentSessionRestoration(QList<WinInSession*>* session);
+        void                currentSessionRestoration(QList<WinInSession*>& session);
         void                snapshotRestoration(const QString& file, QList<WinInSession*>* session);
     
     //-----------------Creation of Effects

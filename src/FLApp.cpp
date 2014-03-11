@@ -1000,14 +1000,7 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
         }
         
         StopProgressSlot();
-        
-        //        METTRE EN PLACE WINDOW UPDATE POUR LE CAS DU SWITCH d'IP!!!!!!!!!!!!!!!
-        //        if(!modifiedEffect->isLocal())
-        //            (*it2)->migrationFailed();
-        //        
-        //        if(!modifiedEffect->isLocal())
-        //            (*it2)->migrationSuccessfull();
-        
+
         QList<int> indexes = WindowCorrespondingToEffect(modifiedEffect);
         
         QList<int>::iterator it;
@@ -1056,9 +1049,9 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
         
         modifiedEffect->stop_Watcher();
         
-        error = "WARNING = ";
+        error = "\nWARNING = ";
         error += modifiedSource; 
-        error += "has been deleted or moved\n You are now working on its copy.";
+        error += " has been deleted or moved\n You are now working on its copy.";
         fErrorWindow->print_Error(error);
         
         QString toReplace = fSourcesFolder + "/" + modifiedEffect->getName() +".dsp";      
@@ -1858,95 +1851,6 @@ void FLApp::reset_CurrentSession(){
     recall_Settings(fHomeSettings);
 }
 
-//Behaviour of session restoration when re-starting the application
-//The user is notified in case of source file lost or modified. He can choose to reload from original file or backup.
-void FLApp::currentSessionRestoration(QList<WinInSession*>* session){
-    
-    //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
-    std::map<QString,bool> updated;
-    
-    //List of the sources to updated in Session File
-    std::list<std::pair<std::string,std::string> > sourceChanges;
-    
-    QList<WinInSession*>::iterator it;
-    
-    for(it = session->begin() ; it != session->end() ; it++){
-        
-        QString contentOrigin("");
-        QString contentSaved("");
-        contentOrigin = pathToContent((*it)->source);
-        QString sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
-        contentSaved = pathToContent(sourceSaved);
-        
-        QFileInfo infoSource((*it)->source);
-        //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
-        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) != 0 && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0) ){
-            
-            QString mesg;
-            bool contentModif = false;
-            
-            if(!infoSource.exists())
-                mesg = (*it)->source + " cannot be found! Do you want to reload it from a copied file?";
-            else{
-                mesg = "The content of " + (*it)->source + " has been modified, do you want to reload it from a copied file?";
-                contentModif = true;
-            }
-            
-            QPushButton* yes_Button;
-            QPushButton* cancel_Button; 
-            
-            QString msg(mesg);
-            
-            QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), msg);
-            
-            yes_Button = existingNameMessage->addButton(tr("Copied File"), QMessageBox::AcceptRole);
-            cancel_Button = existingNameMessage->addButton(tr("Original File"), QMessageBox::RejectRole);
-            
-            existingNameMessage->exec();
-            updated[(*it)->source] = true;
-            
-            if (existingNameMessage->clickedButton() == cancel_Button) {
-                delete existingNameMessage;
-                
-                QString toErase = fSourcesFolder + "/" + (*it)->name + ".dsp";
-                removeFilesOfWin(toErase, (*it)->name);
-                if(!contentModif){
-                    deleteLineIndexed((*it)->ID);
-                    //                    string toErase = currentSourcesFolder + "/" + (*it)->name + ".dsp";
-                    //                    removeFilesOfWin(toErase, (*it)->name);
-                }
-                else{
-                    QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
-                    QFile file((*it)->source);
-                    file.copy(newSource);
-                }
-            }    
-            else{
-                delete existingNameMessage;
-                QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
-                sourceChanges.push_back(make_pair((*it)->source.toStdString(), newSource.toStdString()));
-                (*it)->source = newSource;
-            }
-        }
-        //If the source was in the Source Folder and couldn't be found, it can't be reloaded.
-        else if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) == 0 && !infoSource.exists()){
-            
-            deleteLineIndexed((*it)->ID);
-            QString msg = (*it)->name + " could not be reload. The File is lost!"; 
-            fErrorWindow->print_Error(msg);
-        }
-        else if(updated.find((*it)->source) != updated.end()){
-            
-            std::list<std::pair<std::string,std::string> >::iterator itS;
-            
-            for(itS = sourceChanges.begin(); itS != sourceChanges.end() ; itS++){
-                if(itS->first.compare((*it)->source.toStdString()) == 0)
-                    (*it)->source = itS->second.c_str();
-                
-            }
-        }
-    }
-}
 
 //---------------SAVE SNAPSHOT FUNCTIONS
 
@@ -1994,7 +1898,7 @@ void FLApp::take_Snapshot(){
         
         error = myCmd.readAllStandardError();
         
-        if(strcmp(error.data(), "") != 0)
+        if(myCmd.readChannel() == QProcess::StandardError )
             fErrorWindow->print_Error(error.data());
         
         QProcess myCmd2;
@@ -2008,7 +1912,7 @@ void FLApp::take_Snapshot(){
         
         error2 = myCmd2.readAllStandardError();
         
-        if(strcmp(error2.data(), "") != 0)
+        if(myCmd2.readChannel() == QProcess::StandardError )
             fErrorWindow->print_Error(error2.data());
         
         QString sessionName =  filename + ".tar ";
@@ -2049,14 +1953,14 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
             QString error;
             
             if(!infoSource.exists()){
-                error = "WARNING = ";
+                error = "\nWARNING = ";
                 error += (*it)->source;
-                error += "cannot be found! It is reloaded from a copied file.";
+                error += " cannot be found! It is reloaded from a copied file.";
             }
             else if(contentSaved.compare(contentOrigin) != 0){
-                error = "WARNING = The content of ";
+                error = "\nWARNING = The content of ";
                 error += (*it)->source;
-                error += "has been modified! It is reloaded from a copied file.";
+                error += " has been modified! It is reloaded from a copied file.";
             }
             fErrorWindow->print_Error(error);
             QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
@@ -2072,6 +1976,107 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
             for(itS = sourceChanges.begin(); itS != sourceChanges.end() ; itS++){
                 if(itS->first.compare((*it)->source.toStdString()) == 0)
                     (*it)->source = itS->second.c_str();
+            }
+        }
+    }
+}
+
+//Behaviour of session restoration when re-starting the application
+//The user is notified in case of source file lost or modified. He can choose to reload from original file or backup.
+void FLApp::currentSessionRestoration(QList<WinInSession*>& session){
+    
+    //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
+    std::map<QString,bool> updated;
+    
+    //List of the sources to updated in Session File
+    std::list<std::pair<std::string,std::string> > sourceChanges;
+    
+    QList<WinInSession*>::iterator it;
+    
+    for(it = session.begin() ; it != session.end() ; it++){
+        
+        QString contentOrigin("");
+        QString contentSaved("");
+        contentOrigin = pathToContent((*it)->source);
+        QString sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
+        contentSaved = pathToContent(sourceSaved);
+        
+        QFileInfo infoSource((*it)->source);
+        //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
+        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) != 0 && (!infoSource.exists() || contentSaved.compare(contentOrigin) != 0) ){
+            
+            QString mesg;
+            bool contentModif = false;
+            
+            QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), mesg);
+            QPushButton* yes_Button;
+            QPushButton* cancel_Button; 
+            
+            if(!infoSource.exists()){
+                mesg = (*it)->source + " cannot be found! Do you want to reload it from a copied file?";
+                
+                yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
+                cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+            }
+            else{
+                mesg = "The content of " + (*it)->source + " has been modified, do you want to reload it from a copied file?";
+                contentModif = true;
+                
+                yes_Button = existingNameMessage->addButton(tr("Copied File"), QMessageBox::AcceptRole);
+                cancel_Button = existingNameMessage->addButton(tr("Original File"), QMessageBox::RejectRole);
+            }
+            
+            existingNameMessage->setText(mesg);
+            
+            existingNameMessage->exec();
+            updated[(*it)->source] = true;
+            
+//            ORIGINAL SOURCE CASE
+            if (existingNameMessage->clickedButton() == cancel_Button) {
+                
+                QString toErase = fSourcesFolder + "/" + (*it)->name + ".dsp";
+                removeFilesOfWin(toErase, (*it)->name);
+                
+                //ORIGINAL - Source Erased - Copy not used --> Effect erased
+                if(!contentModif)
+                    deleteLineIndexed((*it)->ID, session);
+                //ORIGINAL - Content modified
+                else{
+                    QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
+                    QFile file((*it)->source);
+                    file.copy(newSource);
+                }
+            }    
+//          COPIED SOURCE CASE
+            else{
+                
+                QString newSource = fSourcesFolder + "/" + (*it)->name + ".dsp";
+                sourceChanges.push_back(make_pair((*it)->source.toStdString(), newSource.toStdString()));
+                (*it)->source = newSource;
+                infoSource = QFileInfo((*it)->source);
+            }
+            
+            delete existingNameMessage;
+            
+        }
+        //If the source was in the Source Folder and couldn't be found, it can't be reloaded.
+        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) == 0 && !infoSource.exists()){
+            
+            deleteLineIndexed((*it)->ID, session);
+            QString msg = "\n" + (*it)->name + " could not be reload. The File is lost!"; 
+            fErrorWindow->print_Error(msg);
+//            QUESTION : If sources were lost, does IR have to be deleted??
+            removeFilesOfWin((*it)->source, (*it)->name);
+        }
+//        Lost Source was already handled
+        else if(updated.find((*it)->source) != updated.end()){
+            
+            std::list<std::pair<std::string,std::string> >::iterator itS;
+            
+            for(itS = sourceChanges.begin(); itS != sourceChanges.end() ; itS++){
+                if(itS->first.compare((*it)->source.toStdString()) == 0)
+                    (*it)->source = itS->second.c_str();
+                
             }
         }
     }
@@ -2131,7 +2136,7 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     error = myCmd.readAllStandardError();
     
-    if(strcmp(error.data(), "") != 0)
+    if(myCmd.readChannel() == QProcess::StandardError )
         fErrorWindow->print_Error(error.data());
 #endif
 
@@ -2160,13 +2165,12 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     error2 = myCmd2.readAllStandardError();
 
-    if(strcmp(error2.data(), "") != 0)
+    if(myCmd2.readChannel() == QProcess::StandardError )
         fErrorWindow->print_Error(error2.data());
 #endif
 
 	fRecalling = false;
 }
-
 
 //Recall for any type of session (current or snapshot)
 //@param : filename = snapshot that is loaded
@@ -2182,12 +2186,14 @@ void FLApp::recall_Session(const QString& filename){
         //Reset current Session File to avoid the return true in all the isInCurrentSession? when recalling currentSession
         
         //In case of a disappearance of a source file
-        currentSessionRestoration(&snapshotContent);
+        currentSessionRestoration(snapshotContent);
     }
     else{
         //Different resolution of disappearance for a snapshot 
         snapshotRestoration(filename, &snapshotContent);
     }
+    
+    printf("SIZE OF SNAPSHOT CONTENT = %i\n", snapshotContent.size());
     
     //------------Resolution of the name conflicts (Window Names & Effect Names)
     QList<std::pair<int,int> > indexChanges = establish_indexChanges(&snapshotContent);
@@ -2288,15 +2294,15 @@ void FLApp::recall_Session(const QString& filename){
 
 //---------------RENAMING AND ALL FUNCTIONS TO IMPORT
 
-void FLApp::deleteLineIndexed(int index){
+void FLApp::deleteLineIndexed(int index, QList<WinInSession*>& sessionToModify){
     
     QList<WinInSession*>::iterator it;
     
-    for(it = fSessionContent.begin(); it != fSessionContent.end() ; it++){
+    for(it = sessionToModify.begin(); it != sessionToModify.end() ; it++){
         
         //Check if line wasn't empty
         if((*it)->ID == index){
-            fSessionContent.removeOne(*it);
+            sessionToModify.removeOne(*it);
             break;    
         }
     }
@@ -3041,7 +3047,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     
     error = myCmd.readAllStandardError();
     
-    if(strcmp(error.data(), "") != 0)
+    if(myCmd.readChannel() == QProcess::StandardError )
         fErrorWindow->print_Error(error.data());
     
     QString finalFileContent = "import(\"";
@@ -4887,7 +4893,8 @@ void FLApp::launch_Server(){
     
     if(!returning)
         fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
-    else{
+//    That way, it doesn't say it when the application is started
+    else if(FLW_List.size() != 0){
         QString s("Server Started On Port ");
         s += QString::number(fPort);
         fErrorWindow->print_Error(s);
