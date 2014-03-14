@@ -35,13 +35,11 @@ class FLExportManager : public QObject{
 
         QString              fHome;
         QString              fFileToExport;
-        QString              fFilenameToExport;
-        QString              fFilenameToSave;
     
     //Export graphical parameters 
     
-        QDialog*        fDialogWindow;  //Export Manager to choose your export parameters
-        QDialog*        fMessageWindow; //Window that displays the progress of the export process
+        QDialog*            fDialogWindow;  //Export Manager to choose your export parameters
+        QDialog*            fMessageWindow; //Window that displays the progress of the export process
     
         QGroupBox*          fMenu2Export;
         QFormLayout*        fMenu2Layout;
@@ -50,8 +48,12 @@ class FLExportManager : public QObject{
         QComboBox*          fExportArchi;
         QComboBox*          fExportChoice;
     
-    
+        QTextEdit*          fTextZone;
+        QLabel*             fErrorText;
     //Dialog for export progress and its graphical elements
+    
+        QPixmap             fCheckImg;
+        QPixmap             fNotCheckImg;
     
         QFormLayout*        fMsgLayout;
         QLabel*             fConnectionLabel;
@@ -61,32 +63,28 @@ class FLExportManager : public QObject{
         QLabel*             fCheck2;
     
         QPushButton*        fCloseB;
-        QPushButton*        fSaveB;
         QByteArray          fDataReceived;
     
-        int                 fStep;  // To know what step has crashed the export
-    
         void                display_progress();
-        void                continueProgress(QCheckBox* toCheckBox , QString followingMsg);
+    
+        void                init();
+        void                showMsg(const QString& msg);
     
     public :
     
-        FLExportManager(QString url, QString sessionHome, QString file, QString filename);
+        FLExportManager(QString url, QString sessionHome);
         virtual ~FLExportManager();
     
-        void init();
+        void                exportFile(QString file);
+        void                set_URL(const QString& url);
     
     public slots :
     
-        void            postExport();
-        void            readKey();
-        void            networkError(QNetworkReply::NetworkError msg);
-        void            getFileFromKey(const char* key);
-        void            saveFileOnDisk();
-        void            targetsDescriptionReceived();
-        void            platformChanged(const QString& index);
-        void            StopProgressSlot();
-        void            showSaveB();
+        void                postExport();
+        void                getFileFromKey(const char* key);
+        void                targetsDescriptionReceived();
+        void                platformChanged(const QString& index);
+        void                stopProgressSlot();
 };
 
 #endif

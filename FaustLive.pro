@@ -203,6 +203,7 @@ HEADERS +=              src/AudioSettings.h \
 macx{
 HEADERS +=	        src/FLServerHttp.h \
 					src/HTTPWindow.h \
+					API_FAUSTWEB/Faust_Exporter.h \
                         /usr/local/include/faust/gui/faustqt.h
 }
 else{
@@ -223,6 +224,7 @@ SOURCES += 	src/AudioCreator.cpp \
                 src/FLApp.cpp
 macx{
 SOURCES +=	src/FLServerHttp.cpp \
+			API_FAUSTWEB/Faust_Exporter.cpp \
                 src/HTTPWindow.cpp 
 }
 else{

@@ -196,9 +196,11 @@ void FLApp::create_Session_Hierarchy(){
             
 			QString pathInSession = fLibsFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
-            QFile file(it->absoluteFilePath());
-            
-            file.copy(pathInSession);
+            if(!QFileInfo(pathInSession).exists()){
+                
+                QFile file(it->absoluteFilePath());
+                file.copy(pathInSession);
+            }
         }
         
     }
@@ -394,6 +396,11 @@ void FLApp::setup_Menu(){
     helpMenu->addAction(presentationAction);
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
+    
+    
+//    EXPORT MANAGER
+    
+    fExportDialog = new FLExportManager(fServerUrl, fSettingsFolder);
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
@@ -3002,8 +3009,7 @@ void FLApp::svg_View_Action(){
 //Open ExportManager for a specific Window
 void FLApp::export_Win(FLWindow* win){
     
-    fExportDialog = new FLExportManager(fServerUrl, fSettingsFolder, win->get_Effect()->getSource(), win->get_Effect()->getName());
-    fExportDialog->init();
+    fExportDialog->exportFile(win->get_Effect()->getSource());
 }
 
 //--Export From Menu
@@ -3182,13 +3188,17 @@ void FLApp::setWinPropertiesText(const QString& currentText){
 }
 
 //Set Faust Lib Text in Help Menu
-void FLApp::setLibText(const QString& currentText){
+void FLApp::setLibText(QListWidgetItem * item){
     
-    QString pathLib = fLibsFolder + "/" + currentText;
+    QString pathLib = fLibsFolder + "/" + item->text();
+   
+    QUrl url = QUrl::fromLocalFile(pathLib);
+    bool b = QDesktopServices::openUrl(url);
     
-    QString libText = pathToContent(pathLib);
+    QString error = pathLib + " could not be opened!";
     
-    fLibsText->setPlainText(libText);
+    if(!b)
+        fErrorWindow->print_Error(error);    
 }
 
 void FLApp::init_HelpWindow(){
@@ -3261,7 +3271,7 @@ void FLApp::init_HelpWindow(){
     fToolText = new QTextBrowser;
     fToolText->setOpenExternalLinks(true);
     fToolText->setReadOnly(true);
-    fToolText->setMinimumWidth(400);
+    fToolText->setMinimumWidth(300);
 
     myTabWidget->addTab(tab_tool, QString(tr("Tools")));
     
@@ -3287,24 +3297,27 @@ void FLApp::init_HelpWindow(){
     QFileInfoList::iterator it;
     
     for(it = children.begin(); it != children.end(); it++){
-        QString completeName = it->baseName() + it->completeSuffix();
-        vue1->addItem(completeName);
+        if(it->completeSuffix().compare("ll") != 0){
+            QString completeName = it->baseName() + "." + it->completeSuffix();
+            vue1->addItem(completeName);
+        }
     }
     
     vue1->setMaximumWidth(150);
-    connect(vue1, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setLibText(const QString &)));
+    connect(vue1, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
     
     appLayout1->addWidget(vue1, 0, 0, 1, 1);
     
     fLibsText = new QPlainTextEdit;
     fLibsText->setReadOnly(true);
-    fLibsText->setMinimumWidth(400);
+    fLibsText->setMinimumWidth(300);
+    fLibsText->setPlainText("\nDouble Click On a Librairy to Open It.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These librairies exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
     
     vue1->setCurrentRow(0);
     
     appLayout1->addWidget(fLibsText, 0, 1, 1, 2);
     
-    myTabWidget->addTab(tab_app1, QString(tr("Faust Librairies Included")));
+    myTabWidget->addTab(tab_app1, QString(tr("Faust Librairies")));
     
     tab_app1->setLayout(appLayout1);
     
@@ -3332,7 +3345,7 @@ void FLApp::init_HelpWindow(){
     
     fAppText = new QPlainTextEdit;
     fAppText->setReadOnly(true);
-    fAppText->setMinimumWidth(400);
+    fAppText->setMinimumWidth(300);
     
     vue2->setCurrentRow(0);
     
@@ -3369,7 +3382,7 @@ void FLApp::init_HelpWindow(){
     
     fWinText = new QPlainTextEdit;
     fWinText->setReadOnly(true);
-    fWinText->setMinimumWidth(400);
+    fWinText->setMinimumWidth(300);
     
     vue3->setCurrentRow(0);
     
@@ -4599,6 +4612,7 @@ void FLApp::cancelPref(){
 void FLApp::save_Mode(){
 
     fServerUrl = fServerLine->text();
+    fExportDialog->set_URL(fServerUrl);
     
     fCompilationMode = fCompilModes->text();
     
