@@ -6,31 +6,54 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-//#include <netdb.h>
-//#include <arpa/inet.h>
+
+#include <iostream> 
+#include <fstream>
 
 #include <QtNetwork>
 
+////Returns the content of a file passed in path
+//QString pathToContent(QString path){
+//    
+//    QFile file(path);
+//    QString Content;
+//    
+//    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+//        //        printf("impossible to open content\n");
+//        Content = "";
+//        //        return Content;
+//    }
+//    while (!file.atEnd()) {
+//        //        printf("Content read\n");
+//        QByteArray line = file.readLine();
+//        Content += line.data();
+//    }
+//    
+//    //    printf("CONTENT = %s\n", Content.c_str());
+//    return Content;
+//}
+
 //Returns the content of a file passed in path
-QString pathToContent(QString path){
+QString pathToContent(QString path)
+{
+    ifstream file(path.toStdString().c_str(), std::ifstream::binary);
     
-    QFile file(path);
-    QString Content;
+    file.seekg (0, file.end);
+    int size = file.tellg();
+    file.seekg (0, file.beg);
     
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        //        printf("impossible to open content\n");
-        Content = "";
-        //        return Content;
-    }
-    while (!file.atEnd()) {
-        //        printf("Content read\n");
-        QByteArray line = file.readLine();
-        Content += line.data();
-    }
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
     
-    //    printf("CONTENT = %s\n", Content.c_str());
-    return Content;
+    // Terminate the string
+    buffer[size] = 0;
+    QString result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
 }
+
 
 //Delete recursively the content of a folder
 bool deleteDirectoryAndContent(QString& directory){
