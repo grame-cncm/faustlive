@@ -195,8 +195,9 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
         else
             deleteInterfaces();
     }
+    else
+        errorMsg = "Interface could not be allocated";
     
-    errorMsg = "Interface could not be allocated";
     return false;
 }
 
