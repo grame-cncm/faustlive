@@ -3139,7 +3139,7 @@ void FLApp::setAppPropertiesText(const QString& currentText){
         fAppText->setPlainText("\nCreates a new window containing the DSP you choose on disk.\n");
  
     else if(currentText.compare("Take Snapshot")==0)
-        fAppText->setPlainText("\nSaves the actual state of the application in a folder.tar : all the windows, their graphical parameters, their audio connections, their position on the screen.\n");
+        fAppText->setPlainText("\nSaves the actual state of the application in a folder : all the windows, their graphical parameters, their audio connections, their position on the screen, ...\n");
     
     else if(currentText.compare("Recall Snapshot")==0)
         fAppText->setPlainText("\nRestores the state of the application as saved. All current windows are closed. If one of the source file can't be found, a back up file is used.\n");
@@ -3150,9 +3150,17 @@ void FLApp::setAppPropertiesText(const QString& currentText){
     else if(currentText.compare("Navigate")==0)
         fAppText->setPlainText("\nBrings the chosen running window to front end.\n");
     
-    else if(currentText.compare("Preferences")==0)
-        fAppText->setPlainText("\nYou can choose default compilation options for new windows.\n\n The compilation web service URL can be modified.\n\n If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\n You can also choose the graphical style of the application.\n");
-    
+    else if(currentText.compare("Preferences")==0){
+        
+        QString text = "\nWINDOW PREFERENCES : You can choose default compilation options for new windows. (Faust & LLVM options)\n\nAUDIO PREFERENCES : If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\nNETWORK PREFERENCES : The compilation web service URL can be modified.";
+#ifndef _WIN32 || HTTPDVAR
+      text += "The port of remote drop (on html interface) can be modified.";  
+#endif
+        
+        text += "\n\nSTYLE PREFERENCES : You can also choose the graphical style of the application.\n";
+        
+        fAppText->setPlainText(text);
+    }
     else if(currentText.compare("Error Displaying")==0)
         fAppText->setPlainText("\nDisplays a window every time the program catches an error : whether it's a error in the edited code, a compilation problem, a lack of memory during saving action, ...");
             
@@ -3165,25 +3173,30 @@ void FLApp::setWinPropertiesText(const QString& currentText){
         fWinText->setPlainText("\nWith JackRouter audio device, you can connect a window to another one or to an external application like iTunes, VLC or directly to the computer input/output.\nYou can choose Jack as the audio architecture in the preferences.");
         
     else if(currentText.compare("Edit Source")==0)
-        fWinText->setPlainText("\nThe Faust code corresponding to the active window is opened in a text editor to be edited. When you save your modification, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connections that can be kept will stay unmodified.");
+        fWinText->setPlainText("\nThe Faust code corresponding to the active window is opened in a text editor. When you save your modifications, the window(s) corresponding to this source will be updated. The graphical parameters and the audio connections that can be kept will stay unmodified.");
             
     else if(currentText.compare("Drag and Drop / Paste")==0)
         fWinText->setPlainText("\nIn a window, you can drop or paste : \n - File.dsp\n - Faust code\n - Faust URL\nAn audio crossfade will be calculated between the outcoming and the incoming audio application. The new application will be connected as the outcoming one.\n");
     
     else if(currentText.compare("Duplicate")==0)
-        fWinText->setPlainText("\nCreates a new window, that has the same characteristics : same Faust code, same graphical parameters, same audio connections as the active window.\n");
+        fWinText->setPlainText("\nCreates a new window, that has the same characteristics : same Faust code, same graphical parameters, same compilation options, ...\n");
     
     else if(currentText.compare("View QrCode")==0)
         fWinText->setPlainText("\nYou can display a new window with a QRcode so that you can remotely control the User Interface of the audio application.");
     
-    else if(currentText.compare("Window Options")==0)
-        fWinText->setPlainText("\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.\nThe Httpd Port corresponds to the connection port for remote control of the interface.");
-    
+    else if(currentText.compare("Window Options")==0){
+        
+        QString text = "\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.";
+#ifndef _WIN || HTTPDVAR 
+        text+="\n\nThe Httpd Port corresponds to the connection port for remote http control of the interface.\n\n The Httpd Port corresponds to the connection port for remote osc control of the interface.";
+#endif
+        fWinText->setPlainText(text);
+    }
     else if(currentText.compare("View SVG")==0)
         fWinText->setPlainText("\nYou can display the SVG diagram of the active Window. It will be opened in your chosen default navigator.");
     
     else if(currentText.compare("Export")==0)
-        fWinText->setPlainText("\nA web service is available to compile and export your Faust application for another platform or/and architecture.");
+        fWinText->setPlainText("\nA web service is available to upload your Faust application for another platform or/and architecture.");
     
 }
 
@@ -3372,11 +3385,12 @@ void FLApp::init_HelpWindow(){
     vue3->addItem(QString(tr("Edit Source")));    
     vue3->addItem(QString(tr("Drag and Drop / Paste")));
     vue3->addItem(QString(tr("Duplicate")));
-    vue3->addItem(QString(tr("View QrCode")));
-    vue3->addItem(QString(tr("Window Options")));
 #ifndef _WIN32 || HTTPDVAR 
-    vue3->addItem(QString(tr("View SVG")));
+    vue3->addItem(QString(tr("View QrCode")));
 #endif
+    
+    vue3->addItem(QString(tr("Window Options")));
+    vue3->addItem(QString(tr("View SVG")));
     vue3->addItem(QString(tr("Export")));
     
     vue3->setMaximumWidth(150);
