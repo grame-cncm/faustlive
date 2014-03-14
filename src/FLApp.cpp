@@ -3877,7 +3877,7 @@ void FLApp::styleClicked(const QString& style){
                       "background: grey;"
                       "}"
                       
-                      "QListWidget, QLineEdit{"                      
+                      "QListWidget{"                      
                       "background-color: transparent;"
                       "}"
                       );
@@ -4078,7 +4078,7 @@ void FLApp::styleClicked(const QString& style){
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
                       "}"
                       
-                      "QListWidget, QLineEdit{"                      
+                      "QListWidget{"                      
                       "background-color: transparent;"
                       "}"
                       );
@@ -4271,7 +4271,7 @@ void FLApp::styleClicked(const QString& style){
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
                       "}"
                       
-                      "QListWidget, QLineEdit{"                      
+                      "QListWidget{"                      
                       "background-color: transparent;"
                       "}"
                       );
@@ -4455,7 +4455,7 @@ void FLApp::styleClicked(const QString& style){
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
                       "}"
                       
-                      "QListWidget, QLineEdit{"                      
+                      "QListWidget{"                      
                       "background-color: transparent;"
                       "}"
                       );
