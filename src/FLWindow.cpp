@@ -1045,10 +1045,12 @@ void FLWindow::set_MenuBar(){
     duplicateAction->setToolTip(tr("Duplicate current DSP"));
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
+#ifndef _WIN32 || HTTPDVAR
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
     httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
     connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View()));
+#endif
     
     QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
     svgViewAction->setShortcut(tr("Ctrl+G"));
@@ -1065,7 +1067,9 @@ void FLWindow::set_MenuBar(){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
+#ifndef _WIN32 || HTTPDVAR    
     fWindowMenu->addAction(httpdViewAction);
+#endif
     fWindowMenu->addAction(svgViewAction);
     fWindowMenu->addSeparator();
     fWindowMenu->addAction(exportAction);

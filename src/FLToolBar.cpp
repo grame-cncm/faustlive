@@ -49,8 +49,6 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fOptionLine = new QLineEdit(tr(""), fWidget1);
     fOptValLine = new QLineEdit(tr(""), fWidget1);
-    fPortLine = new QLineEdit(tr(""), fWidget1);
-    fPortOscLine = new QLineEdit(tr(""), fWidget1);
 
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
@@ -59,20 +57,24 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fLayout1->addWidget(new QLabel(tr("FAUST Compiler Options"), fWidget1));
     fLayout1->addWidget(fOptionLine);
-    
+    connect (fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+
     fLayout1->addWidget(new QLabel(tr("LLVM Optimization"), fWidget1));
-    fLayout1->addWidget(fOptValLine);
+    fLayout1->addWidget(fOptValLine);    
+    connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
+#ifndef _WIN32 || HTTPDVAR
+    fPortLine = new QLineEdit(tr(""), fWidget1);
     fLayout1->addWidget(new QLabel(tr("HTTPD Port"), fWidget1));
     fLayout1->addWidget(fPortLine);
+    connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
+    fPortOscLine = new QLineEdit(tr(""), fWidget1);
     fLayout1->addWidget(new QLabel(tr("OSC Port"), fWidget1));
     fLayout1->addWidget(fPortOscLine);
-    
-    connect (fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+#endif
+
 
 #ifdef REMOTE
     fIpRemoteServer = "127.0.0.1";
@@ -188,7 +190,8 @@ void FLToolBar::modifiedOptions(){
     QString val = fOptValLine->text();
 	if(isStringInt(val.toLatin1().data()))
         value = atoi(val.toStdString().c_str());
-    
+  
+#ifndef _WIN32 || HTTPDVAR
     int port = 5510;
     
     QString portText = fPortLine->text();
@@ -200,6 +203,7 @@ void FLToolBar::modifiedOptions(){
     QString portOscText = fPortOscLine->text();
 	if(isStringInt(portOscText.toStdString().c_str()))
 		portOsc = atoi(portOscText.toStdString().c_str());
+#endif
     
 //    printf("value = %i// text = %s\n", value, text.c_str());
     
@@ -233,37 +237,44 @@ int FLToolBar::getVal(){
 }
 
 int FLToolBar::getPort(){
-    
+
+#ifndef _WIN32 || HTTPDVAR
     QString val = fPortLine->text();
 	if(isStringInt(val.toStdString().c_str()))
 		return atoi(val.toStdString().c_str());
     else
+#endif
         return 0;
 }
 
 void FLToolBar::setPort(int port){
-    
+#ifndef _WIN32 || HTTPDVAR
     stringstream ss;
     ss<<port;
     
     fPortLine->setText(ss.str().c_str());
+#endif
 }
 
 int FLToolBar::getPortOsc(){
     
+#ifndef _WIN32 || OSCVAR    
     QString val = fPortOscLine->text();
 	if(isStringInt(val.toStdString().c_str()))
 		return atoi(val.toStdString().c_str());
     else
+#endif
         return 0;
 }
 
 void FLToolBar::setPortOsc(int port){
     
+#ifndef _WIN32 || OSCVAR
     stringstream ss;
     ss<<port;
     
     fPortOscLine->setText(ss.str().c_str());
+#endif
 }
 
 QString FLToolBar::machineName(){

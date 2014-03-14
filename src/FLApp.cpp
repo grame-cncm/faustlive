@@ -3122,7 +3122,7 @@ void FLApp::setToolText(const QString & currentText){
     else if(currentText.compare("NETJACK") == 0)
         fToolText->setHtml("<br>NetJack (fully integrated in Jack) is a Realtime Audio Transport over a generic IP Network. It allows to send audio signals through the network to a server.<br><br>""LEARN MORE ABOUT NETJACK : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
     else if(currentText.compare("PORTAUDIO") == 0)
-        fToolText->setHtml("<br>PortAudio is a free, cross-platform, open-source, audio I/O library. <br><br>""LEARN MORE ABOUT PORTAUDIO : <a href = http://netjack.sourceforge.net> netjack.sourceforge.net</a>\n");
+        fToolText->setHtml("<br>PortAudio is a free, cross-platform, open-source, audio I/O library. <br><br>""LEARN MORE ABOUT PORTAUDIO : <a href = http://www.portaudio.com/> portaudio.com</a>\n");
     else if(currentText.compare("LIB QRENCODE") == 0)
         fToolText->setHtml("<br>Libqrencode is a C library for encoding data in a QR Code symbol, a kind of 2D symbology that can be scanned by handy terminals such as a mobile phone with CCD.<br><br>""LEARN MORE ABOUT LIB QRENCODE : <a href = http://fukuchi.org/works/qrencode> fukuchi.org/works/qrencode</a>\n");
     else if(currentText.compare("LIB MICROHTTPD") == 0)
@@ -3221,7 +3221,7 @@ void FLApp::init_HelpWindow(){
     
     QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamic compiler for audio DSP programs coded with Faust. It embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
     
-    QLineEdit* lineEdit = new QLineEdit(tr("DISTRIBUTED by GRAME - Centre de Creation Musicale"));
+    QLineEdit* lineEdit = new QLineEdit(tr(" Distributed by GRAME - Centre de Creation Musicale"));
     
     generalText->setReadOnly(true);
     lineEdit->setReadOnly(true);
@@ -3260,8 +3260,10 @@ void FLApp::init_HelpWindow(){
     vue->addItem(QString(tr("PORTAUDIO")));
 #endif
     
+#ifndef _WIN32 || HTTPDVAR 
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
+#endif
     
     vue->setMaximumWidth(150);
     connect(vue, SIGNAL(currentTextChanged(const QString&)), this, SLOT(setToolText(const QString &)));
@@ -3372,7 +3374,9 @@ void FLApp::init_HelpWindow(){
     vue3->addItem(QString(tr("Duplicate")));
     vue3->addItem(QString(tr("View QrCode")));
     vue3->addItem(QString(tr("Window Options")));
+#ifndef _WIN32 || HTTPDVAR 
     vue3->addItem(QString(tr("View SVG")));
+#endif
     vue3->addItem(QString(tr("Export")));
     
     vue3->setMaximumWidth(150);
@@ -3858,6 +3862,10 @@ void FLApp::styleClicked(const QString& style){
                       "QSlider::add-page:horizontal {"
                       "background: grey;"
                       "}"
+                      
+                      "QListWidget, QLineEdit{"                      
+                      "background-color: transparent;"
+                      "}"
                       );
     }
     
@@ -4055,6 +4063,10 @@ void FLApp::styleClicked(const QString& style){
                       "QTabBar::tab:!selected {"
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
                       "}"
+                      
+                      "QListWidget, QLineEdit{"                      
+                      "background-color: transparent;"
+                      "}"
                       );
     }
     
@@ -4065,7 +4077,7 @@ void FLApp::styleClicked(const QString& style){
                       
                       // BUTTONS
                       "QPushButton {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
                       "stop: 0 #B0B0B0, stop: 1 #404040);"
                       "min-width : 80px;"
                       "border: 2px solid grey;"
@@ -4085,7 +4097,7 @@ void FLApp::styleClicked(const QString& style){
                       // GROUPS
                       "QGroupBox {"
                       "subcontrol: .QGroupBox"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
                       "stop: 0 #A0A0A0, stop: 1 #202020);"
                       "border: 2px solid gray;"
                       "border-radius: 5px;"
@@ -4102,7 +4114,7 @@ void FLApp::styleClicked(const QString& style){
                       "color : white;"
                       "}"
                       "QMainWindow {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
                       "stop: 0 #A0A0A0, stop: 1 #202020);"
                       "border: 2px solid gray;"
                       "border-radius: 5px;"
@@ -4114,7 +4126,7 @@ void FLApp::styleClicked(const QString& style){
                       
                       // PLAINTEXTEDIT
                       "QPlainTextEdit, QTextEdit{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
                       "stop: 0 #A0A0A0, stop: 1 #202020);"
                       "border-color: yellow;"
                       "border-radius: 5px;"
@@ -4128,7 +4140,7 @@ void FLApp::styleClicked(const QString& style){
                       
                       //TextBrowser
                       "QTextBrowser {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
                       "stop: 0 #A0A0A0, stop: 1 #202020);"
                       //                           "border: 2px solid gray;"
                       //                           "border-radius: 5px;"
@@ -4243,6 +4255,10 @@ void FLApp::styleClicked(const QString& style){
                       
                       "QTabBar::tab:!selected {"
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
+                      "}"
+                      
+                      "QListWidget, QLineEdit{"                      
+                      "background-color: transparent;"
                       "}"
                       );
     }
@@ -4424,6 +4440,10 @@ void FLApp::styleClicked(const QString& style){
                       "QTabBar::tab:!selected {"
                       "    margin-top: 2px;" /* make non-selected tabs look smaller */
                       "}"
+                      
+                      "QListWidget, QLineEdit{"                      
+                      "background-color: transparent;"
+                      "}"
                       );
     }
 }
@@ -4511,15 +4531,18 @@ void FLApp::init_PreferenceWindow(){
     fServerLine = new QLineEdit(menu4);
     fServerLine->setText(fServerUrl);
     
+#ifndef _WIN32 || HTTPDVAR
     fPortLine = new QLineEdit(menu4);
     QString p =  QString::number(fPort);
     fPortLine->setText(p);
-    
+#endif
     myTab->addTab(menu4, tr("Network"));
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
+#ifndef _WIN32 || HTTPDVAR
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
+#endif
     
     menu4->setLayout(layoutNet);
     
@@ -4621,6 +4644,7 @@ void FLApp::save_Mode(){
     else
         fOpt_level = 3;
     
+#ifndef _WIN32 || HTTPDVAR
     if(isStringInt(fPortLine->text().toLatin1().data())){
         
         if(fPort != atoi(fPortLine->text().toLatin1().data())){
@@ -4631,6 +4655,7 @@ void FLApp::save_Mode(){
         }   
     }
     else
+#endif
         fPort = 7777;
     
     fPrefDialog->hide();
