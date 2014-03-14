@@ -2848,6 +2848,51 @@ void FLApp::frontShow(QString name){
 void FLApp::edit(FLWindow* win){
     
     QString source = win->get_Effect()->getSource();
+
+//    In Case The Source Is An Example, the file has to be saved in another location. Then it can be edited 
+    if(source.contains(fExamplesFolder, Qt::CaseInsensitive)){
+        QString mesg;
+        
+        QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), mesg);
+        
+        QPushButton* yes_Button;
+        QPushButton* cancel_Button; 
+        
+        mesg = QFileInfo(source).baseName();
+        mesg += " is an example. It cannot be modified! Do you want to save it in another location ?";
+            
+        yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
+        cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+        
+        existingNameMessage->setText(mesg);
+        
+        existingNameMessage->exec();
+        if (existingNameMessage->clickedButton() == cancel_Button) {
+            return;
+        }
+        else{
+            QFileDialog* fileDialog = new QFileDialog;
+            fileDialog->setConfirmOverwrite(true);
+            
+            QString filename;
+            
+            filename = fileDialog->getSaveFileName(NULL, "Rename File", tr(""), tr("(*.dsp)"));
+            
+            QFile f(filename); 
+            
+            if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+                
+                QTextStream textWriting(&f);
+                
+                textWriting<<pathToContent(source);
+                
+                f.close();
+            }
+            
+            source = filename;    
+            update_SourceInWin(win, source);
+        }
+    }
     
     printf("SOURCE = %s\n", source.toStdString().c_str());
     
