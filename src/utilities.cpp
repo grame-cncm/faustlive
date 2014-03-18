@@ -34,7 +34,7 @@
 //}
 
 //Returns the content of a file passed in path
-QString pathToContent(QString path)
+QString pathToContent(const QString& path)
 {
     ifstream file(path.toStdString().c_str(), std::ifstream::binary);
     

@@ -52,8 +52,8 @@ void FLExportManager::init()
     QPushButton* updateButton = new QPushButton(tr("\n Refresh Targets \n"));
     connect(updateButton, SIGNAL(released()), this, SLOT(targetsDescriptionReceived()));
     
-    fMenu2Layout->addRow(updateButton, new QLabel(""));
-    fMenu2Layout->addRow(new QLabel(""));
+//    fMenu2Layout->addRow(updateButton, new QLabel(""));
+//    fMenu2Layout->addRow(new QLabel(""));
     
     fErrorText = new QLabel;
     fMenu2Layout->addRow(fErrorText);
@@ -128,6 +128,7 @@ void FLExportManager::exportFile(QString file){
 
 void FLExportManager::set_URL(const QString& url){
     fServerUrl = QUrl(url);
+    targetsDescriptionReceived();
 }
 
 //Build Graphical lists of OS and Platforms received from the server
@@ -140,21 +141,21 @@ void FLExportManager::targetsDescriptionReceived()
     fPlatforms.clear();
     fTargets.clear();
     
+    fExportPlatform->clear();
+    fExportArchi->clear();
+
     if(get_available_targets(targetUrl.toStdString(), fPlatforms, fTargets, error)){
         
         fErrorText->setText("");
-        // prepare plaform menu
         
-        fExportPlatform->hide();
-        fExportPlatform->clear();
+        // prepare plaform menu
         for (size_t i=0; i<fPlatforms.size();i++) 
             fExportPlatform->addItem(fPlatforms[i].c_str());
         
         fExportPlatform->show();
         
         // prepare architecture menu
-        fExportArchi->hide();
-        fExportArchi->clear();
+
         vector<string> archs = fTargets[fPlatforms[0]];
         
         for (size_t i=0; i<archs.size();i++) 

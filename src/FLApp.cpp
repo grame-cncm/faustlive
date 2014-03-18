@@ -40,7 +40,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fServerUrl = "http://faust.grame.fr:8888";
     fPort = 7777;
     fStyleChoice = "Default";
-    recall_Settings(fHomeSettings);
+    recall_Settings(fSettingsFolder);
     styleClicked(fStyleChoice);
     
     // Presentation Window Initialization
@@ -85,7 +85,7 @@ FLApp::~FLApp(){
     
     save_Recent_Files();
     save_Recent_Sessions();
-    save_Settings(fHomeSettings);
+    save_Settings(fSettingsFolder);
     
     for(int i=0; i<kMAXRECENTFILES; i++){
         delete fRecentFileAction[i];
@@ -155,7 +155,6 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fSettingsFolder);
     }
     
-    fHomeSettings = fSettingsFolder + separationChar  + "FaustLive_Settings.rf"; 
     fRecentsFile = fSettingsFolder + separationChar  + "FaustLive_FileSavings.rf"; 
     fHomeRecentSessions = fSettingsFolder + separationChar  + "FaustLive_SessionSavings.rf"; 
     
@@ -1855,7 +1854,7 @@ void FLApp::reset_CurrentSession(){
 
     fSessionContent.clear();
     
-    recall_Settings(fHomeSettings);
+    recall_Settings(fSettingsFolder);
 }
 
 
@@ -2849,7 +2848,7 @@ void FLApp::edit(FLWindow* win){
     
     QString source = win->get_Effect()->getSource();
 
-//    In Case The Source Is An Example, the file has to be saved in another location. Then it can be edited 
+//    In case the file is an example, it has to be relocated before being edited
     if(source.contains(fExamplesFolder, Qt::CaseInsensitive)){
         QString mesg;
         
@@ -4560,7 +4559,7 @@ void FLApp::init_PreferenceWindow(){
     fCompilModes = new QLineEdit(menu1);
     fOptVal = new QLineEdit(menu1);
     
-    recall_Settings(fHomeSettings);
+    recall_Settings(fSettingsFolder);
     
     fCompilModes->setText(fCompilationMode);
     stringstream oV;
@@ -4727,24 +4726,9 @@ void FLApp::save_Mode(){
         fAudioCreator->reset_Settings();
 }
 
-//Save/Recall Settings from file
-void FLApp::save_Settings(const QString& home){
-    
-    QString modeText = fCompilationMode;
-    
-    int pos = 0;
-    
-    if(modeText.compare("") == 0){
-        modeText = " ";
-    }
 
-    while(modeText.indexOf(" ", pos) != -1){
-        
-        if(pos != -1 && modeText[pos] != '-'){
-            modeText.replace(pos, 1, "/");
-        }
-        pos = modeText.indexOf(" ", pos+1);
-    }
+//Write Setting "parameter" in file "home"
+void FLApp::save_Setting(const QString& home, const QString& parameter){
     
     QFile f(home); 
     
@@ -4752,79 +4736,97 @@ void FLApp::save_Settings(const QString& home){
         
         QTextStream textWriting(&f);
         
-        textWriting<<modeText<<' '<<fOpt_level<<' '<<fStyleChoice;
+        textWriting<<parameter;
         
         f.close();
     }
-    
-//    SAVING THE EXPORT URL
-    
-    QString homeFile = fSettingsFolder + kExportUrlFile;
-    
-    QFile g(homeFile); 
-    QString server(fServerUrl);
-    
-    if(g.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&g);
-        
-        textWriting<<server<<' '<<fPort;
-        g.close();
-    }    
+    else{
+        printf("Impossible to open file = %s\n", home.toStdString().c_str());
+    }
 }
 
-void FLApp::recall_Settings(const QString& home){
-
-    QString ModeText;
+//Reading Setting returned form file "home"
+QString FLApp::recall_Setting(const QString& home){
     
-    QFile f(home); 
+    QString parameter("");
+    
+    QFile f(home);
     
     if(f.open(QFile::ReadOnly)){
         
         QTextStream textReading(&f);
-        QString styleIntermediate;
+        QString tutu;
         
-        textReading>>ModeText>>fOpt_level>>styleIntermediate;
-
-        fStyleChoice = styleIntermediate;        
+        while(!textReading.atEnd()){
+            textReading >> tutu;
+        
+            parameter += tutu;
+            
+            if(!textReading.atEnd())
+                parameter += ' ';
+        }
         f.close();
     }
-    
-    QString modeText = ModeText;
-    
-    int pos = 0;
+    return parameter;
+}
 
-    while(modeText.indexOf("/", pos) != -1){
-        
-        if(pos != -1 && modeText[pos] != '-')
-            modeText.replace(pos, 1, " ");
-        
-        pos = modeText.indexOf("/", pos+1);
+//Each Setting is written and read in a specific file
+void FLApp::save_Settings(const QString& home){
+    
+    QString homeSetting = home + kCompilationFile;
+    save_Setting(homeSetting, fCompilationMode);
+    
+    homeSetting = home + kLLVMFile;
+    QString s = QString::number(fOpt_level);
+    save_Setting(homeSetting, s);
+    
+    homeSetting = home + kStyleFile;
+    save_Setting(homeSetting, fStyleChoice);
+
+    homeSetting = fSettingsFolder + kExportUrlFile;
+    save_Setting(homeSetting, fServerUrl);
+    
+    homeSetting = fSettingsFolder + kDropPortFile;
+    QString port = QString::number(fPort);
+    save_Setting(homeSetting, port);
+}
+
+void FLApp::recall_Settings(const QString& home){
+    
+    QString homeSetting = home + kCompilationFile;
+    fCompilationMode = recall_Setting(homeSetting);
+    
+    homeSetting = home + kLLVMFile;
+    QString opt = recall_Setting(homeSetting);
+    
+    homeSetting = home + kStyleFile;
+    fStyleChoice = recall_Setting(homeSetting);
+    
+    homeSetting = home + kExportUrlFile;
+    fServerUrl = recall_Setting(homeSetting);
+    
+    homeSetting = home + kDropPortFile;
+    QString port = recall_Setting(homeSetting);
+    
+    if(opt.compare("") == 0){
+        fOpt_level = 3;
+    }
+    else
+        fOpt_level = opt.toInt();
+    
+    if(fStyleChoice.compare("") == 0){
+        fStyleChoice = "Default";
     }
     
-    if(modeText.compare(" ") == 0)
-        modeText = "";
-    
-    fCompilationMode = modeText;
-    
-//    RECALL THE URL FOR EXPORTATION SERVICE
-
-    QString server("http://faust.grame.fr:8888");
-        
-    QString homeFile = fSettingsFolder + kExportUrlFile;
-    
-    QFile g(homeFile); 
-    
-    if(g.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&g);
-        textReading>>server>>fPort;
-        
-        g.close();
+    if(fServerUrl.compare("") == 0){
+        fServerUrl = "http://faust.grame.fr:8888";
     }
     
-    fServerUrl = server;
-    
+    if(port.compare("") == 0){
+        fPort = 7777;
+    }
+    else
+        fPort = port.toInt();
 }
 
 //Update Audio Architecture of all opened windows

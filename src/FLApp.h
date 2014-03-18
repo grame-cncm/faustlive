@@ -27,10 +27,15 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.6"
+#define FLVERSION   "1.7"
 #define DEFAULTNAME "DefaultName"
 
+//Setting Files
+#define kCompilationFile "/CompilationOptions.txt"
+#define kLLVMFile "/LLVMFile.txt"
+#define kStyleFile "/StyleFile.txt"
 #define kExportUrlFile "/ServerURL.txt"
+#define kDropPortFile "/DropPortFile.txt"
 
 #define kMAXRECENTFILES 4
 #define kMAXRECENTSESSIONS 3
@@ -146,8 +151,6 @@ class FLApp : public QApplication
         AudioCreator*       fAudioCreator;
         QGroupBox*          fAudioBox;
     
-        QString              fHomeSettings;       //Path of settings file
-    
         QLineEdit*          fCompilModes;
         QLineEdit*          fOptVal;
         QLineEdit*          fServerLine;
@@ -161,6 +164,8 @@ class FLApp : public QApplication
         QString              fStyleChoice;
     
         void                init_PreferenceWindow();
+        void                save_Setting(const QString& home, const QString& parameter);
+        QString             recall_Setting(const QString& home);
         void                save_Settings(const QString& home);
         void                recall_Settings(const QString& home);
     
