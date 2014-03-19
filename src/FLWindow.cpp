@@ -613,15 +613,19 @@ void FLWindow::dropEvent ( QDropEvent * event ){
             QString fileName = i->toLocalFile();
             QString dsp = fileName;
             
+			printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
+
             event->accept();
             
             sourceList.push_back(dsp);
         }   
         emit drop(sourceList);
     }
-    if (event->mimeData()->hasText()){
+    else if (event->mimeData()->hasText()){
+
+        printf("TEXT DROPPED= %s\n", event->mimeData()->text().toStdString().c_str());
         
-        event->accept();
+		event->accept();
         
         QString TextContent = event->mimeData()->text();
         sourceList.push_back(TextContent);
