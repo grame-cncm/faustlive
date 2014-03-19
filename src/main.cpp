@@ -33,8 +33,21 @@ using namespace std;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{   
+#if defined(WIN32) && !defined(_DEBUG)
+# define USEWINMAIN
+#endif
+//_______________________________________________________________________
+#ifdef USEWINMAIN
+#include <windows.h>
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow)
+#else
+int main( int argc, char **argv )
+#endif
+{
+#ifdef USEWINMAIN
+int argc = __argc;
+char **argv = __argv;
+#endif
 
     FLApp* app = new FLApp(argc, argv);
     

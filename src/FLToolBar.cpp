@@ -191,15 +191,15 @@ void FLToolBar::modifiedOptions(){
 	if(isStringInt(val.toLatin1().data()))
         value = atoi(val.toStdString().c_str());
   
+	int port = 5510;    
+    int portOsc = 5510;
+    
 #ifndef _WIN32 || HTTPDVAR
-    int port = 5510;
     
     QString portText = fPortLine->text();
 	if(isStringInt(portText.toStdString().c_str()))
 		port = atoi(portText.toStdString().c_str());
-    
-    int portOsc = 5510;
-    
+
     QString portOscText = fPortOscLine->text();
 	if(isStringInt(portOscText.toStdString().c_str()))
 		portOsc = atoi(portOscText.toStdString().c_str());
