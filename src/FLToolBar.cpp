@@ -77,7 +77,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
 
 
 #ifdef REMOTE
-    fIpRemoteServer = "127.0.0.1";
+    fIpRemoteServer = "localhost";
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
     fRemoteButton->setText(tr("local processing"));
@@ -119,7 +119,7 @@ void FLToolBar::openRemoteBox(){
     if(getRemoteMachinesAvailable(fIPToHostName)){
         
         // Add localhost to the machine list
-        (*fIPToHostName)[string("local processing")] = make_pair("127.0.0.1", 80);
+        (*fIPToHostName)[string("local processing")] = make_pair("localhost", 0);
         
         map<string, pair <string, int> >::iterator it = fIPToHostName->begin();
         
