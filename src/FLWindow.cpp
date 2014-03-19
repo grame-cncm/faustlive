@@ -514,24 +514,15 @@ bool FLWindow::is_Default(){
 //Artificial content of a default window
 void FLWindow::print_initWindow(){
     
-    //To help the user, a new empty window is filled with a TextEdit
-    QPlainTextEdit* plainTextEdit = new QPlainTextEdit(this);
-    if(plainTextEdit){
-        plainTextEdit->setContextMenuPolicy(Qt::NoContextMenu);
-        plainTextEdit->setFixedSize (QApplication::desktop()->geometry().size().height()/3, QApplication::desktop()->geometry().size().height()/3);
-        
-        QFont font;
-        font.setFamily(QString::fromUtf8("Menlo"));
-        font.setPointSize(50);
-        plainTextEdit->setFont(font);
-        plainTextEdit->setPlainText(tr("\n     INIT WINDOW\n\n\n      DROP A DSP \n      OR EDIT ME.\n\n      !! ^^ !!"));
-        
-        plainTextEdit->setReadOnly(true);
-        QSize size = plainTextEdit->frameSize();
-        resize(size);
-        setCentralWidget(plainTextEdit);
-        //        plainTextEdit->setAlignment(Qt::AlignCenter);
-    }
+    QPixmap dropImage(":/Images/DropYourFaustLife.png");
+    dropImage.scaledToHeight(10, Qt::SmoothTransformation);
+    
+    QLabel *image = new QLabel();
+//    image->setMinimumSize (dropImage.width()*3, dropImage.height()*3);
+    
+    image->setPixmap(dropImage);
+    image->setAlignment(Qt::AlignCenter);
+    setCentralWidget(image);
 }
 
 //------------------------CLOSING ACTIONS
@@ -571,7 +562,7 @@ void FLWindow::close_Window(){
     
     hide();
     
-    if(fClientOpen)
+    if(fClientOpen && fAudioManager)
         fAudioManager->stop();
     
     deleteInterfaces();

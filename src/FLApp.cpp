@@ -1534,10 +1534,32 @@ void FLApp::sessionContentToFile(const QString& filename){
         
         for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
             
-            textWriting<<(*it)->ID<<' '<<(*it)->source<<' '<<(*it)->name<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<(*it)->compilationOptions<<' '<<(*it)->opt_level<<' '<<(*it)->oscPort<<' '<<(*it)->portHttpd<<endl;
-            
+            textWriting<<(*it)->ID<<' '<<(*it)->source<<' '<<(*it)->name<<' '<<(*it)->x<<' '<<(*it)->y<<' '<<(*it)->opt_level<<' '<<(*it)->oscPort<<' '<<(*it)->portHttpd<<' '<<(*it)->compilationOptions<<endl;            
         }
         f.close();
+    }
+}
+
+//Parses the fileSessionContent one option at a time
+QString FLApp::parseNextOption(QString& optionsCompilation){
+    
+    int pos = optionsCompilation.indexOf(" ");
+    
+    if(pos != -1){
+    
+//        The next option is from the beginning to the space
+    QString option = optionsCompilation.mid(0, pos);
+        
+//        The rest of the options are from after the space to the end of the string
+    optionsCompilation = optionsCompilation.mid(pos+1);
+
+    return option;
+    }
+//    When the string is all parsed
+    else{
+        QString option = optionsCompilation;
+        optionsCompilation = "";
+        return option;
     }
 }
 
@@ -1554,63 +1576,29 @@ void FLApp::fileToSessionContent(const QString& filename, QList<WinInSession*>* 
         
         while(!textReading.atEnd()){
             
-            int id = 0;
-            int opt, portHttp, portOsc;
-            QString Source, Nom, CompilationOptions, ServerIP;
-            float x,y;
-            
-            textReading>>id>>Source>>Nom>>x>>y>>CompilationOptions>>opt>>portOsc>>portHttp;
-            
-            if(id != 0){
+            QString line = textReading.readLine();
                 
-                WinInSession* intermediate = new WinInSession;
-                intermediate->ID = id;
-                intermediate->source = Source;
-                intermediate->name = Nom;
-                intermediate->x = x;
-                intermediate->y = y;
-                intermediate->compilationOptions = CompilationOptions;
-                intermediate->opt_level = opt;
-                intermediate->oscPort = portOsc;
-                intermediate->portHttpd = portHttp;
+            WinInSession* intermediate = new WinInSession;
+            intermediate->ID = parseNextOption(line).toInt();
+            intermediate->source = parseNextOption(line);
+            intermediate->name = parseNextOption(line);
+            intermediate->x = parseNextOption(line).toFloat();
+            intermediate->y = parseNextOption(line).toFloat();
+            intermediate->opt_level = parseNextOption(line).toInt();
+            intermediate->oscPort = parseNextOption(line).toInt();
+            intermediate->portHttpd = parseNextOption(line).toInt();
+        
+            while(line.size() != 0){
+                intermediate->compilationOptions += parseNextOption(line);
                 
-                session->push_back(intermediate);
-                //                printf("SNAPSHOT SIZE = %i\n", session->size());
+                if(line.size() != 0)
+                    intermediate->compilationOptions += ' ';
             }
+                
+            session->push_back(intermediate);
         }
         f.close();
     }
-}
-
-//Spaces in Compilation Options are erased/then restored for saving process.
-QString FLApp::convert_compilationOptions(QString compilationOptions){
-    
-    int pos = compilationOptions.indexOf(" ");
-    
-    while(pos != -1){
-        
-        compilationOptions.remove(pos, 1);
-        compilationOptions.insert(pos, "/");
-        
-        pos = compilationOptions.indexOf(" ");
-    }
-    
-    return compilationOptions;
-}
-
-QString FLApp::restore_compilationOptions(QString compilationOptions){
-    
-    int pos = compilationOptions.indexOf("/");
-    
-    while(pos != -1){
-        
-		compilationOptions.remove(pos, 1);
-        compilationOptions.insert(pos, " ");
-        
-        pos = compilationOptions.indexOf("/");
-    }
-    
-    return compilationOptions;
 }
 
 //--------------RECENTLY OPENED
@@ -1730,10 +1718,7 @@ void FLApp::import_Recent_Session(){
 //Add window in Current Session Structure
 void FLApp::addWinToSessionFile(FLWindow* win){
     
-    QString compilationOptions = convert_compilationOptions(win->get_Effect()->getCompilationOptions());
-    
-    if(compilationOptions.compare("") == 0)
-        compilationOptions = "/";
+    QString compilationOptions = win->get_Effect()->getCompilationOptions();
     
     WinInSession* intermediate = new WinInSession;
     intermediate->ID = win->get_indexWindow();
@@ -2248,7 +2233,7 @@ void FLApp::recall_Session(const QString& filename){
         
         QString error;
         
-        (*it)->compilationOptions = restore_compilationOptions((*it)->compilationOptions);
+        (*it)->compilationOptions = (*it)->compilationOptions;
         
         FLEffect* newEffect = getEffectFromSource((*it)->source, (*it)->name, fSourcesFolder, (*it)->compilationOptions, (*it)->opt_level, error, true, true);
         
@@ -3056,7 +3041,7 @@ void FLApp::export_Win(FLWindow* win){
     fExportDialog->exportFile(win->get_Effect()->getSource());
 }
 
-//--Export From Menu
+//Export From Menu
 void FLApp::export_Action(){ 
     
     FLWindow* win = getActiveWin();
@@ -3868,6 +3853,7 @@ void FLApp::styleClicked(const QString& style){
                       //LABEL
                       "QLabel{"
                       "color : black;"
+                      "background: transparent;"
                       "}"
                       
                       // SLIDERS
@@ -4725,7 +4711,6 @@ void FLApp::save_Mode(){
     else
         fAudioCreator->reset_Settings();
 }
-
 
 //Write Setting "parameter" in file "home"
 void FLApp::save_Setting(const QString& home, const QString& parameter){

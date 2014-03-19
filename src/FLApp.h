@@ -27,7 +27,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.7"
+#define FLVERSION   "1.0"
 #define DEFAULTNAME "DefaultName"
 
 //Setting Files
@@ -141,10 +141,6 @@ class FLApp : public QApplication
     //When the application is launched without parameter, this timer will start a initialized window
         QTimer*             fInitTimer;
         QTimer*             fEndTimer;
-
-    //To be stored in a file, the compilation options have to be converted
-        QString              convert_compilationOptions(QString compilationOptions);
-        QString              restore_compilationOptions(QString   compilationOptions);
     
     //Preference Menu Objects and Functions
         QDialog*            fPrefDialog;     //Preference Window
@@ -208,6 +204,7 @@ class FLApp : public QApplication
         virtual bool        event(QEvent *ev);
     
     //Functions of read/write of a session description file
+        QString             parseNextOption(QString& optionsCompilation);
         void                sessionContentToFile(const QString& filename);
         void                fileToSessionContent(const QString& filename, QList<WinInSession*>* session);
     
