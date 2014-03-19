@@ -120,11 +120,11 @@ void FLApp::create_Session_Hierarchy(){
 	char path[512];
 	if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
 	fSessionFolder = path;
-	fSessionFolder += "\\CurrentSession-";
+	fSessionFolder += "\\FaustLive-CurrentSession-";
 	separationChar = "\\";
 #else
     fSessionFolder = getenv("HOME");
-    fSessionFolder += "/.CurrentSession-";
+    fSessionFolder += "/.FaustLive-CurrentSession-";
 	separationChar = "/";
 #endif
 
@@ -1151,8 +1151,10 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
     bool isEffectLocal = false;
     bool isMigrationSuccessfull = true;
     
-    if(ip.compare("127.0.0.1") == 0 || ip.compare("localhost") == 0)
+    if(ip.compare("localhost") == 0){
         isEffectLocal = true;
+        printf("Back to Local host\n");
+    }
     
     QString compilationOptions(migratingWin->get_Effect()->getCompilationOptions());
     

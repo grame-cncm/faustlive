@@ -1341,8 +1341,8 @@ int FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
             
             errorWin->errorPrint("Remote Connection Error.\n Switching back to local processing.");
             
-            errorWin->fMenu->setNewOptions("127.0.0.1", 80, "local processing");
-            errorWin->redirectSwitch("127.0.0.1", 80);
+            errorWin->fMenu->setNewOptions("localhost", 0, "local processing");
+            errorWin->redirectSwitch("localhost", 0);
         }
     }
     
