@@ -114,7 +114,7 @@ void FLToolBar::openRemoteBox(){
     fIPToHostName.clear();
     
     // Browse the remote machines available
-    if(getRemoteMachinesAvailable(fIPToHostName)){
+    if(getRemoteMachinesAvailable(&fIPToHostName)){
         
         // Add localhost to the machine list
         fIPToHostName[string("local processing")] = make_pair("localhost", 0);
