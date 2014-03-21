@@ -19,8 +19,6 @@
 
 FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
-    fIPToHostName = new map<string, pair<string, int> >;
-    
     QLineEdit* myLine = new QLineEdit(this);
     myLine->setReadOnly(true);
     myLine->setStyleSheet("*{background-color:transparent; selection-background-color : white; border-color:white;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;}*:selected{color:black; border-color : white;margin: 0px;padding: 0px;spacing: 0px;}");
@@ -113,17 +111,17 @@ void FLToolBar::openRemoteBox(){
     
 #ifdef REMOTE    
     fRemoteButton->menu()->clear();
-    fIPToHostName->clear();
+    fIPToHostName.clear();
     
     // Browse the remote machines available
-    if(getRemoteMachinesAvailable(fIPToHostName)){
+    if(getRemoteMachinesAvailable(&fIPToHostName)){
         
         // Add localhost to the machine list
-        (*fIPToHostName)[string("local processing")] = make_pair("localhost", 0);
+        fIPToHostName[string("local processing")] = make_pair("localhost", 0);
         
-        map<string, pair <string, int> >::iterator it = fIPToHostName->begin();
+        map<string, pair <string, int> >::iterator it = fIPToHostName.begin();
         
-        while(it!= fIPToHostName->end()){
+        while(it!= fIPToHostName.end()){
             
             printf("IPOFHOSTNAME = %s\n", it->second.first.c_str());
             
@@ -295,7 +293,7 @@ void FLToolBar::update_remoteMachine(){
     string toto(action->text().toStdString());
     
     //    If the server is the same, there is no update
-    if((fIpRemoteServer.toStdString()).compare(((*fIPToHostName)[toto]).first) == 0)
+    if((fIpRemoteServer.toStdString()).compare((fIPToHostName[toto]).first) == 0)
         return;
     else{
         
@@ -303,8 +301,8 @@ void FLToolBar::update_remoteMachine(){
         fFormerPort = fPortRemoteServer;
         fFormerName = fRemoteButton->text();
         
-        fIpRemoteServer = (*fIPToHostName)[toto].first.c_str();
-        fPortRemoteServer = (*fIPToHostName)[toto].second;
+        fIpRemoteServer = fIPToHostName[toto].first.c_str();
+        fPortRemoteServer = fIPToHostName[toto].second;
         
         printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
         
