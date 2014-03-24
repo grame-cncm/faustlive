@@ -40,14 +40,14 @@ class FLToolBar : public QToolBar{
         QMenu*              fRemoteMenu;
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
-        map<string, pair<string, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-        QString              fIpRemoteServer;    //IP of the processing machine
+        map<string, pair<string, int> > fIPToHostName;  //Correspondance of remote machine IP to its name
+        QString             fIpRemoteServer;    //IP of the processing machine
         int                 fPortRemoteServer;  //Port used for processing
     
-        QString              fFormerIp;
+        QString             fFormerIp;
         int                 fFormerPort;
-        QString              fFormerName;
-        QString              fNewName;
+        QString             fFormerName;
+        QString             fNewName;
     
         QWidget*            fWidget1;;  
         QVBoxLayout*        fLayout1;
