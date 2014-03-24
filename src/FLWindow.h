@@ -76,6 +76,8 @@ class FLWindow : public QMainWindow
 #ifdef __APPLE__
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 #endif
+        QString         fFullHttpUrl;
+        int             fGeneralHttpPort;
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 
@@ -238,7 +240,8 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(int generalPortHttp, QString& error);
+        bool            init_Httpd(QString& error);
+        void            viewQrCode();
     
     //Accessors to parameters
         QString         get_nameWindow();
@@ -247,6 +250,7 @@ class FLWindow : public QMainWindow
         int             get_x();
         int             get_y();
         int             get_Port();
+        void            set_GeneralPort(int port);
         int             get_oscPort();
         bool            is_Default();
         QString         get_machineName();
@@ -277,6 +281,8 @@ class FLWindow : public QMainWindow
         void            modifiedOptions(QString text, int value, int port, int portOsc);
         void            resizingBig();
         void            resizingSmall();
+        void            switchHttp(bool on);
+        void            exportToPNG();
     
     //Raises and shows the window
         void            frontShow();

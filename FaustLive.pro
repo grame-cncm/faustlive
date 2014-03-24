@@ -79,6 +79,7 @@ LIBS+=-lmicrohttpd
 #LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
+LIBS+=-lcrypto
 }
 else{
 equals(HTTPDVAR, 1){

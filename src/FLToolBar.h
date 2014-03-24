@@ -31,7 +31,10 @@ class FLToolBar : public QToolBar{
 
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
+        QGroupBox*          fHttpBox;
         QLineEdit*          fPortLine;      //Edit port http
+        
+        QGroupBox*          fOscBox;
         QLineEdit*          fPortOscLine;   //Edit osc port
     
         QMenu*              fRemoteMenu;
@@ -57,6 +60,7 @@ class FLToolBar : public QToolBar{
     
     void setOptions(QString options);
     void setVal(int value);
+    void switchHttp(bool on);
     void setPort(int port);
     void setPortOsc(int port);
     void setNewOptions(const QString& ip, int port, const QString& newName);
@@ -77,6 +81,8 @@ public slots:
     void    collapseAction(QTreeWidgetItem* item);
     void    openRemoteBox();
     void    update_remoteMachine();
+    void    redirectHttp(bool);
+    void    redirectOsc(bool);
     
     signals :
     
@@ -85,6 +91,8 @@ public slots:
         void sizeReduction();
         void remoteStateChanged(int state);
         void switchMachine(const QString& ip, int port);
+        void switch_http(bool on);
+        void switch_osc(bool on);
 };
 
 #endif

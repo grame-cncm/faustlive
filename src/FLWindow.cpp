@@ -57,6 +57,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fMenu = NULL;
     
     fPortHttp = httpdport;
+    fFullHttpUrl = "";
     fPortOsc = oscPort;
     
     fIsLocal = true;
@@ -326,6 +327,8 @@ void FLWindow::setToolBar(const QString& machineName){
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fMenu, SIGNAL(switchMachine(const QString&, int)), this, SLOT(redirectSwitch(const QString&, int)));
+    connect(fMenu, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
+    connect(fMenu, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     
 #ifdef REMOTE
     fMenu->setRemoteButtonName(machineName);
@@ -349,8 +352,12 @@ void FLWindow::setWindowsOptions(){
 //Reaction to the modifications of the ToolBar options
 void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
     
-    if(fPortHttp != port)
+    if(fPortHttp != port){
         fPortHttp = port;
+        QString errorMsg;
+        if(!init_Httpd(errorMsg))
+            emit error(errorMsg.toStdString().c_str());
+    }
     
     if(fPortOsc != portOsc){
         fPortOsc = portOsc;
@@ -821,10 +828,22 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
+void FLWindow::switchHttp(bool on){
+        
+    if(on){
+        QString error;
+        init_Httpd(error);
+    }
+    else{
+        delete fHttpdWindow;
+        fHttpdWindow = NULL;
+    } 
+}
+
 //Initalization of QrCode Window
 //@param : generalPortHttp = port on which remote drop on httpd interface is possible
 //@param : error = in case init fails, the error is filled
-bool FLWindow::init_Httpd(int generalPortHttp, QString& error){
+bool FLWindow::init_Httpd(QString& error){
  
     printf("PORT HTTPD = %i\n", fPortHttp);
     
@@ -832,10 +851,10 @@ bool FLWindow::init_Httpd(int generalPortHttp, QString& error){
     if(fHttpdWindow == NULL){
         fHttpdWindow = new HTTPWindow();
        connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
+        connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
     }
     
     if(fHttpdWindow != NULL){
-        fHttpdWindow->search_IPadress();
         
         //HttpdInterface reset the parameters when build. So we have to save the parameters before
         
@@ -850,7 +869,6 @@ bool FLWindow::init_Httpd(int generalPortHttp, QString& error){
             recall_Window();
             
             fHttpdWindow->launch_httpdInterface();
-            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0, generalPortHttp);
            
             fPortHttp = fHttpdWindow->get_Port();
             setWindowsOptions();
@@ -865,6 +883,49 @@ bool FLWindow::init_Httpd(int generalPortHttp, QString& error){
     }
 #endif
 	return false;
+}
+
+void FLWindow::viewQrCode(){
+    
+    if(fHttpdWindow){
+        
+        fFullHttpUrl = "http://";
+        fFullHttpUrl += searchLocalIP();
+        fFullHttpUrl += ":";
+        fFullHttpUrl += QString::number(fGeneralHttpPort);
+        fFullHttpUrl += "/";
+        fFullHttpUrl += QString::number(fHttpdWindow->get_Port());
+        
+        fInterface->displayQRCode(fFullHttpUrl, fHttpdWindow);
+        fHttpdWindow->move(calculate_Coef()*10, 0);
+        
+        QString windowTitle = fWindowName + ":" + fEffect->getName();
+        
+        fHttpdWindow->setWindowTitle(windowTitle);
+        fHttpdWindow->raise();
+        fHttpdWindow->show();
+        fHttpdWindow->adjustSize();
+    }
+    else
+        emit error("Enable Http Before Asking for Qr Code");
+}
+
+void FLWindow::exportToPNG(){
+    
+    printf("Export to PNG\n");
+    
+    QFileDialog* fileDialog = new QFileDialog;
+    fileDialog->setConfirmOverwrite(true);
+    
+    QString filename;
+    
+    filename = fileDialog->getSaveFileName(NULL, "PNG Name", tr(""), tr("(*.png)"));
+    
+    QString errorMsg;
+    
+    if(!fInterface->toPNG(filename, errorMsg))
+        emit error(errorMsg.toStdString().c_str());
+    
 }
 
 bool FLWindow::is_httpdWindow_active() {
@@ -886,10 +947,14 @@ void FLWindow::hide_httpdWindow() {
 QString FLWindow::get_HttpUrl() {
 
 #ifdef __APPLE__
-    return fHttpdWindow->getUrl();
+    return fFullHttpUrl;
 #else
 	return "";
 #endif
+}
+
+void FLWindow::set_GeneralPort(int port){
+    fGeneralHttpPort = port;
 }
 
 //------------------------Right Click Reaction
@@ -1164,7 +1229,13 @@ void FLWindow::duplicate(){
 }
 
 void FLWindow::httpd_View(){
-    emit httpd_View_Window();
+    
+//    QString errorMsg;
+//    
+//    init_Httpd(errorMsg);
+    fMenu->switchHttp(true);
+    
+    viewQrCode();
 }
 
 void FLWindow::svg_View(){

@@ -31,12 +31,8 @@ class HTTPWindow : public QMainWindow{
     Q_OBJECT
     
     private : 
-    
-    QString      fIPaddress;     //IP adress
-    QString      fEntireAddress; //IP + Port adress
-    QString      fTitle;         //Htpp Window Title
+
     httpdUI*    fInterface;     //Httpd interface for distance control
-    QPixmap     fQrCode;
     
     bool        fShortcut;      //In case ALT + x button is pressed, shortcut is activated
     
@@ -45,28 +41,15 @@ class HTTPWindow : public QMainWindow{
     //------------------------HTTPD WINDOW ACTIONS
     
     HTTPWindow();
-    
     ~HTTPWindow();
     
-    void        displayQRCode(QString url);
-    
     void        frontShow_Httpd(QString windowTitle);
-    
-    void        display_HttpdWindow(int x, int y, int port);
-    
-    bool        is_httpdWindow_active();
-    
-    void        hide_httpdWindow();
 
-    void        search_IPadress();
-    QString      getUrl();
-        int         get_Port();
+    int         get_Port();
     
     bool        build_httpdInterface(QString& error, QString windowTitle, dsp* current_DSP, int port);
     
     void        launch_httpdInterface();
-    
-    void        toPNG();
     
     virtual void contextMenuEvent(QContextMenuEvent* ev);
     
@@ -76,6 +59,7 @@ class HTTPWindow : public QMainWindow{
     
 signals:
     void        closeAll();
+    void        toPNG();
 };
 
 #endif

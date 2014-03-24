@@ -313,25 +313,25 @@ class FLApp : public QApplication
         void                frontShow(QString name);
     
     //--------Window
-        void                edit(FLWindow* win);
-        void                edit_Action();
-    
+//        void                edit(FLWindow* win);
+//        void                edit_Action();
+//    
         void                setRecompileEffects(FLEffect* modifiedEffect);
         void                synchronize_Window(FLEffect* modifiedEffect);
         void                synchronize_Window();
-    
-        void                paste(FLWindow* win);
-        void                paste_Text();
-        void                duplicate(FLWindow* window);
-        void                duplicate_Window();
-    
-        void                viewHttpd(FLWindow* win);
-        void                httpd_View_Window();
-        void                viewSvg(FLWindow* win);
-        void                svg_View_Action();
-    
-        void                export_Win(FLWindow* Win);
-        void                export_Action();
+//    
+//        void                paste(FLWindow* win);
+//        void                paste_Text();
+//        void                duplicate(FLWindow* window);
+//        void                duplicate_Window();
+//    
+//        void                viewHttpd(FLWindow* win);
+//        void                httpd_View_Window();
+//        void                viewSvg(FLWindow* win);
+//        void                svg_View_Action();
+//    
+//        void                export_Win(FLWindow* Win);
+//        void                export_Action();
     
     //---------Preferences
         void                styleClicked();

@@ -25,10 +25,10 @@ text-align: center;\n\
 padding: 1em 0;\n\
 margin: 1em 0;\n\
 color: #CECECE;\n\
-border: 2px dashed #CECECE;\n\
+border: 8px dashed #CECECE;\n\
 border-radius: 7px;\n\
 cursor: default;\n\
-font-size : 20px;\n\
+font-size : 40px;\n\
 }\n\
 \n\
 #filedrag.hover{\n\

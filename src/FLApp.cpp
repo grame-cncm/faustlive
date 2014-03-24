@@ -1189,6 +1189,8 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
 
 void FLApp::redirectMenuToWindow(FLWindow* win){
     
+    win->set_GeneralPort(fPort);
+    
     win->set_RecentFile(fRecentFiles);
     win->update_RecentFileMenu();
     
@@ -2718,7 +2720,7 @@ void FLApp::common_shutAction(FLWindow* win){
         else
             fRemoteEffects.removeOne(win->get_Effect());
 
-        removeFilesOfWin((win)->get_Effect()->getSource(), (win)->get_Effect()->getName());
+        removeFilesOfWin(toto, tutu);
         toDelete = (win)->get_Effect();
     }
     else if(!isSourceInCurrentSession((win)->get_Effect()->getSource())){
@@ -2829,228 +2831,227 @@ void FLApp::frontShow(QString name){
 }
 
 //--------------------------------Window----------------------------------------
-
-//Open the source of a specific window
-void FLApp::edit(FLWindow* win){
-    
-    QString source = win->get_Effect()->getSource();
-
-//    In case the file is an example, it has to be relocated before being edited
-    if(source.contains(fExamplesFolder, Qt::CaseInsensitive)){
-        QString mesg;
-        
-        QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), mesg);
-        
-        QPushButton* yes_Button;
-        QPushButton* cancel_Button; 
-        
-        mesg = QFileInfo(source).baseName();
-        mesg += " is an example. It cannot be modified! Do you want to save it in another location ?";
-            
-        yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
-        cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
-        
-        existingNameMessage->setText(mesg);
-        
-        existingNameMessage->exec();
-        if (existingNameMessage->clickedButton() == cancel_Button) {
-            return;
-        }
-        else{
-            QFileDialog* fileDialog = new QFileDialog;
-            fileDialog->setConfirmOverwrite(true);
-            
-            QString filename;
-            
-            filename = fileDialog->getSaveFileName(NULL, "Rename File", tr(""), tr("(*.dsp)"));
-            
-            QFile f(filename); 
-            
-            if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-                
-                QTextStream textWriting(&f);
-                
-                textWriting<<pathToContent(source);
-                
-                f.close();
-            }
-            
-            source = filename;    
-            update_SourceInWin(win, source);
-        }
-    }
-    
-    printf("SOURCE = %s\n", source.toStdString().c_str());
-    
-    QUrl url = QUrl::fromLocalFile(source);
-    bool b = QDesktopServices::openUrl(url);
-    
-    QString error = source + " could not be opened!";
-    
-    if(!b)
-        fErrorWindow->print_Error(error);
-}
-
-//Edit Source from Menu
-void FLApp::edit_Action(){
-    
-    FLWindow* win = getActiveWin();
-    if(win != NULL)
-        edit(win);
-}
-
-//Duplicate a specific window
-void FLApp::duplicate(FLWindow* window){
-    
-    FLEffect* commonEffect = window->get_Effect();
-    //To avoid flicker of the original window, the watcher is stopped during operation
-    commonEffect->stop_Watcher();
-    
-    QString source = commonEffect->getSource();
-    
-    QList<int> currentIndexes = get_currentIndexes();
-    int val = find_smallest_index(currentIndexes);
-    QString ss = QString::number(val);
-    
-    int x = window->get_x() + 10;
-    int y = window->get_y() + 10;
-    
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName());
-    
-    redirectMenuToWindow(win);
-    
-    //Save then Copy of duplicated window's parameters
-    window->save_Window();
-    
-    QString toFind = window->get_nameWindow();
-    QString toReplace = win->get_nameWindow();
-    
-    QString savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".rc";
-    QFile toCpy(savingsPath);
-    QString path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".rc";
-    toCpy.copy(path);
-    
-    savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".jc";
-    QFile toCy(savingsPath);
-    path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".jc";
-    toCy.copy(path);
-    
-    //Replacement of WindowName in the audio Connections File to reconnect the new window as the duplicated one.
-    std::list<std::pair<std::string,std::string> > changeTable;
-    changeTable.push_back(make_pair(toFind.toStdString(), toReplace.toStdString()));
-    win->update_ConnectionFile(changeTable);
-    
-    QString error;
-    
-    if(win->init_Window(false, error)){
-        FLW_List.push_back(win);
-        addWinToSessionFile(win);
-    }
-    else{
-        QString toDelete = fSessionFolder + "/" + win->get_nameWindow(); 
-        deleteDirectoryAndContent(toDelete);
-        delete win;
-        fErrorWindow->print_Error(error); 
-    }
-    
-    //Whatever happens, the watcher has to be started (at least for the duplicated window that needs it)
-    commonEffect->launch_Watcher();
-}
-
-//Duplication window from Menu
-void FLApp::duplicate_Window(){ 
-    
-    //copy parameters of previous window
-    FLWindow* win = getActiveWin();
-    if(win != NULL)
-        duplicate(win);
-}
-
-//Paste text in a specific window
-void FLApp::paste(FLWindow* win){
-    
-    //Recuperation of Clipboard Content
-    const QClipboard *clipboard = QApplication::clipboard();
-    const QMimeData *mimeData = clipboard->mimeData();
-    
-    if (mimeData->hasText()) {
-        QString clipText = clipboard->text();
-
-        update_SourceInWin(win, clipText);
-        
-    }
-}
-
-//Paste from Menu
-void FLApp::paste_Text(){
-    
-    FLWindow* win = getActiveWin();
-    if(win != NULL)
-        paste(win);
-} 
-
-//View Httpd Window
-void FLApp::viewHttpd(FLWindow* win){
-    
-    QString error("");
-    
-    if(!win->init_Httpd(fPort, error))
-        fErrorWindow->print_Error(error);
-}
-
-//View Httpd From Menu
-void FLApp::httpd_View_Window(){
-    
-    //Searching the active Window to show its QRcode
-    FLWindow* win = getActiveWin();
-    if(win != NULL)
-        viewHttpd(win);
-    else
-        fErrorWindow->print_Error("No active Window");
-}
-
-//View SVG of a specific Window
-void FLApp::viewSvg(FLWindow* win){
-    
-    QString source = win->get_Effect()->getSource();
-    QString pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
-    
-
-    QUrl url = QUrl::fromLocalFile(pathToOpen);
-    bool b = QDesktopServices::openUrl(url);
-
-   	QString error = pathToOpen + " could not be opened!";
-    
-    if(!b)
-        fErrorWindow->print_Error(error);
-}
-
-//View SVG from Menu
-void FLApp::svg_View_Action(){
-    
-    //Searching the active Window to show its SVG Diagramm
-    FLWindow* win = getActiveWin();
-    if(win != NULL)
-        viewSvg(win);
-    
-}
-
-//---------------Export
-
-//Open ExportManager for a specific Window
-void FLApp::export_Win(FLWindow* win){
-    
-    fExportDialog->exportFile(win->get_Effect()->getSource());
-}
-
-//Export From Menu
-void FLApp::export_Action(){ 
-    
-    FLWindow* win = getActiveWin();
-    
-    if(win != NULL)
-        export_Win(win);
-}
+//
+////Open the source of a specific window
+//void FLApp::edit(FLWindow* win){
+//    
+//    QString source = win->get_Effect()->getSource();
+//
+////    In case the file is an example, it has to be relocated before being edited
+//    if(source.contains(fExamplesFolder, Qt::CaseInsensitive)){
+//        QString mesg;
+//        
+//        QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), mesg);
+//        
+//        QPushButton* yes_Button;
+//        QPushButton* cancel_Button; 
+//        
+//        mesg = QFileInfo(source).baseName();
+//        mesg += " is an example. It cannot be modified! Do you want to save it in another location ?";
+//            
+//        yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
+//        cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+//        
+//        existingNameMessage->setText(mesg);
+//        
+//        existingNameMessage->exec();
+//        if (existingNameMessage->clickedButton() == cancel_Button) {
+//            return;
+//        }
+//        else{
+//            QFileDialog* fileDialog = new QFileDialog;
+//            fileDialog->setConfirmOverwrite(true);
+//            
+//            QString filename;
+//            
+//            filename = fileDialog->getSaveFileName(NULL, "Rename File", tr(""), tr("(*.dsp)"));
+//            
+//            QFile f(filename); 
+//            
+//            if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
+//                
+//                QTextStream textWriting(&f);
+//                
+//                textWriting<<pathToContent(source);
+//                
+//                f.close();
+//            }
+//            
+//            source = filename;    
+//            update_SourceInWin(win, source);
+//        }
+//    }
+//    
+//    printf("SOURCE = %s\n", source.toStdString().c_str());
+//    
+//    QUrl url = QUrl::fromLocalFile(source);
+//    bool b = QDesktopServices::openUrl(url);
+//    
+//    QString error = source + " could not be opened!";
+//    
+//    if(!b)
+//        fErrorWindow->print_Error(error);
+//}
+//
+////Edit Source from Menu
+//void FLApp::edit_Action(){
+//    
+//    FLWindow* win = getActiveWin();
+//    if(win != NULL)
+//        edit(win);
+//}
+//
+////Duplicate a specific window
+//void FLApp::duplicate(FLWindow* window){
+//    
+//    FLEffect* commonEffect = window->get_Effect();
+//    //To avoid flicker of the original window, the watcher is stopped during operation
+//    commonEffect->stop_Watcher();
+//    
+//    QString source = commonEffect->getSource();
+//    
+//    QList<int> currentIndexes = get_currentIndexes();
+//    int val = find_smallest_index(currentIndexes);
+//    QString ss = QString::number(val);
+//    
+//    int x = window->get_x() + 10;
+//    int y = window->get_y() + 10;
+//    
+//    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName());
+//    
+//    redirectMenuToWindow(win);
+//    
+//    //Save then Copy of duplicated window's parameters
+//    window->save_Window();
+//    
+//    QString toFind = window->get_nameWindow();
+//    QString toReplace = win->get_nameWindow();
+//    
+//    QString savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".rc";
+//    QFile toCpy(savingsPath);
+//    QString path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".rc";
+//    toCpy.copy(path);
+//    
+//    savingsPath = fSessionFolder + "/" + toFind + "/" + toFind + ".jc";
+//    QFile toCy(savingsPath);
+//    path = fSessionFolder + "/" + toReplace + "/" + toReplace + ".jc";
+//    toCy.copy(path);
+//    
+//    //Replacement of WindowName in the audio Connections File to reconnect the new window as the duplicated one.
+//    std::list<std::pair<std::string,std::string> > changeTable;
+//    changeTable.push_back(make_pair(toFind.toStdString(), toReplace.toStdString()));
+//    win->update_ConnectionFile(changeTable);
+//    
+//    QString error;
+//    
+//    if(win->init_Window(false, error)){
+//        FLW_List.push_back(win);
+//        addWinToSessionFile(win);
+//    }
+//    else{
+//        QString toDelete = fSessionFolder + "/" + win->get_nameWindow(); 
+//        deleteDirectoryAndContent(toDelete);
+//        delete win;
+//        fErrorWindow->print_Error(error); 
+//    }
+//    
+//    //Whatever happens, the watcher has to be started (at least for the duplicated window that needs it)
+//    commonEffect->launch_Watcher();
+//}
+//
+////Duplication window from Menu
+//void FLApp::duplicate_Window(){ 
+//    
+//    //copy parameters of previous window
+//    FLWindow* win = getActiveWin();
+//    if(win != NULL)
+//        duplicate(win);
+//}
+//
+////Paste text in a specific window
+//void FLApp::paste(FLWindow* win){
+//    
+//    //Recuperation of Clipboard Content
+//    const QClipboard *clipboard = QApplication::clipboard();
+//    const QMimeData *mimeData = clipboard->mimeData();
+//    
+//    if (mimeData->hasText()) {
+//        QString clipText = clipboard->text();
+//
+//        update_SourceInWin(win, clipText);
+//        
+//    }
+//}
+//
+////Paste from Menu
+//void FLApp::paste_Text(){
+//    
+//    FLWindow* win = getActiveWin();
+//    if(win != NULL)
+//        paste(win);
+//} 
+//
+////View Httpd Window
+//void FLApp::viewHttpd(FLWindow* win){
+//    
+//    QString error("");
+//
+//    win->viewQrCode(fPort);
+//}
+//
+////View Httpd From Menu
+//void FLApp::httpd_View_Window(){
+//    
+//    //Searching the active Window to show its QRcode
+//    FLWindow* win = getActiveWin();
+//    if(win != NULL)
+//        viewHttpd(win);
+//    else
+//        fErrorWindow->print_Error("No active Window");
+//}
+//
+////View SVG of a specific Window
+//void FLApp::viewSvg(FLWindow* win){
+//    
+//    QString source = win->get_Effect()->getSource();
+//    QString pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
+//    
+//
+//    QUrl url = QUrl::fromLocalFile(pathToOpen);
+//    bool b = QDesktopServices::openUrl(url);
+//
+//   	QString error = pathToOpen + " could not be opened!";
+//    
+//    if(!b)
+//        fErrorWindow->print_Error(error);
+//}
+//
+////View SVG from Menu
+//void FLApp::svg_View_Action(){
+//    
+//    //Searching the active Window to show its SVG Diagramm
+//    FLWindow* win = getActiveWin();
+//    if(win != NULL)
+//        viewSvg(win);
+//    
+//}
+//
+////---------------Export
+//
+////Open ExportManager for a specific Window
+//void FLApp::export_Win(FLWindow* win){
+//    
+//    fExportDialog->exportFile(win->get_Effect()->getSource());
+//}
+//
+////Export From Menu
+//void FLApp::export_Action(){ 
+//    
+//    FLWindow* win = getActiveWin();
+//    
+//    if(win != NULL)
+//        export_Win(win);
+//}
 
 //---------------Drop
 
@@ -4704,6 +4705,11 @@ void FLApp::save_Mode(){
 #endif
         fPort = 7777;
     
+    QList<FLWindow*>::iterator it;
+    
+    for(it = FLW_List.begin(); it!= FLW_List.end(); it++)
+        (*it)->set_GeneralPort(fPort);
+    
     fPrefDialog->hide();
 
     if(fAudioCreator->didSettingChanged()){
@@ -5012,8 +5018,9 @@ void FLApp::compile_HttpData(const char* data, int port){
     if(win != NULL){
     
        update_SourceInWin(win, source);
-   
-       viewHttpd(win);
+        
+        QString errorMsg;
+        win->init_Httpd(errorMsg);
        
        string url = win->get_HttpUrl().toStdString();
        
