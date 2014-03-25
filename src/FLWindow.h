@@ -33,6 +33,7 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
+class httpdUI;
 class QTGUI;
 class FLToolBar;
 class OSCUI;
@@ -70,11 +71,14 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
+        
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
 #ifdef __APPLE__
+        httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        void            allocateHttpInterface();
 #endif
         QString         fFullHttpUrl;
         int             fGeneralHttpPort;
@@ -240,7 +244,6 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(QString& error);
         void            viewQrCode();
     
     //Accessors to parameters
@@ -261,6 +264,7 @@ class FLWindow : public QMainWindow
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
         QString          get_HttpUrl();
+        void            resetHttpInterface();
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -283,6 +287,7 @@ class FLWindow : public QMainWindow
         void            resizingSmall();
         void            switchHttp(bool on);
         void            exportToPNG();
+        void            switchOsc(bool on);
     
     //Raises and shows the window
         void            frontShow();

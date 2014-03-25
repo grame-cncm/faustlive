@@ -346,6 +346,22 @@ void FLToolBar::switchHttp(bool on){
 #endif
 }
 
+bool FLToolBar::isHttpOn(){
+#ifndef _WIN32 || HTTPDVAR
+    return fHttpBox->isChecked();
+#else
+    return false;
+#endif
+}
+
+bool FLToolBar::isOscOn(){
+#ifndef _WIN32 || OSCVAR
+    return fOscBox->isChecked();
+#else
+    return false;
+#endif
+}
+
 void FLToolBar::redirectOsc(bool on){
     emit switch_osc(on);
 }

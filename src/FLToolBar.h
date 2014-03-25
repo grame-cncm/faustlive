@@ -58,23 +58,26 @@ class FLToolBar : public QToolBar{
     FLToolBar(QWidget* parent = NULL);
     ~FLToolBar();
     
-    void setOptions(QString options);
-    void setVal(int value);
-    void switchHttp(bool on);
-    void setPort(int port);
-    void setPortOsc(int port);
-    void setNewOptions(const QString& ip, int port, const QString& newName);
+    void    setOptions(QString options);
+    void    setVal(int value);
+    void    switchHttp(bool on);
+    void    setPort(int port);
+    void    setPortOsc(int port);
+    void    setNewOptions(const QString& ip, int port, const QString& newName);
     
     QString getOptions();
-    int getVal();
-    int getPort();
-    int getPortOsc();
+    int     getVal();
+    int     getPort();
+    int     getPortOsc();
     
     void    remoteFailed();
     void    remoteSuccessfull();
     void    setRemoteButtonName(const QString& name);
     QString  machineName();
-
+    
+    bool    isHttpOn();
+    bool    isOscOn();
+    
 public slots: 
     void    modifiedOptions();
     void    expansionAction(QTreeWidgetItem * item);

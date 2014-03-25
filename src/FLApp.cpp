@@ -5019,8 +5019,7 @@ void FLApp::compile_HttpData(const char* data, int port){
     
        update_SourceInWin(win, source);
         
-        QString errorMsg;
-        win->init_Httpd(errorMsg);
+        win->resetHttpInterface();
        
        string url = win->get_HttpUrl().toStdString();
        

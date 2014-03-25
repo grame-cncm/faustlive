@@ -19,10 +19,9 @@
 #endif
 
 #include <QtNetwork>
+//
+//#include "faust/audio/dsp.h"
 
-#include "faust/audio/dsp.h"
-
-class httpdUI;
 
 //using namespace std;
 
@@ -31,8 +30,6 @@ class HTTPWindow : public QMainWindow{
     Q_OBJECT
     
     private : 
-
-    httpdUI*    fInterface;     //Httpd interface for distance control
     
     bool        fShortcut;      //In case ALT + x button is pressed, shortcut is activated
     
@@ -44,12 +41,6 @@ class HTTPWindow : public QMainWindow{
     ~HTTPWindow();
     
     void        frontShow_Httpd(QString windowTitle);
-
-    int         get_Port();
-    
-    bool        build_httpdInterface(QString& error, QString windowTitle, dsp* current_DSP, int port);
-    
-    void        launch_httpdInterface();
     
     virtual void contextMenuEvent(QContextMenuEvent* ev);
     

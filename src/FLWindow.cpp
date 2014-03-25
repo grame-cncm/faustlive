@@ -10,6 +10,7 @@
 #include "faust/gui/faustqt.h"
 #ifdef __APPLE__
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 list<GUI*>               GUI::fGuiList;
@@ -50,6 +51,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     
 #ifdef __APPLE__
     fHttpdWindow = NULL;
+    fHttpInterface = NULL;
     fOscInterface = NULL;
 #endif
     fRCInterface = NULL;
@@ -188,7 +190,18 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
             frontShow();
             
 #ifdef __APPLE__  
-            fOscInterface->run();
+            if(fOscInterface)
+                fOscInterface->run();
+            
+            if(fHttpInterface){
+                
+                printf("Does HTTP RUN ? = %i\n", fMenu->isHttpOn());
+                
+                fHttpInterface->run();
+                
+                fPortHttp = fHttpInterface->getTCPPort();
+                setWindowsOptions();
+            }
 #endif
             fInterface->run();
             return true;
@@ -286,7 +299,15 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 //Step 12 : Launch User Interface
                 fInterface->run();
 #ifdef __APPLE__
-                fOscInterface->run();
+                if(fOscInterface)   
+                    fOscInterface->run();
+                
+                if(fHttpInterface){
+                    fHttpInterface->run();
+                    
+                    fPortHttp = fHttpInterface->getTCPPort();
+                    setWindowsOptions();
+                }
 #endif
                 isUpdateSucessfull = true;
             }
@@ -354,9 +375,22 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
     
     if(fPortHttp != port){
         fPortHttp = port;
-        QString errorMsg;
-        if(!init_Httpd(errorMsg))
-            emit error(errorMsg.toStdString().c_str());
+        
+        save_Window();
+#ifdef __APPLE__
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+        
+        allocateHttpInterface();
+        
+        fCurrent_DSP->buildUserInterface(fHttpInterface);
+        recall_Window();
+        fHttpInterface->run();
+        
+        fPortHttp = fHttpInterface->getTCPPort();
+        setWindowsOptions();
+#endif
+        
     }
     
     if(fPortOsc != portOsc){
@@ -366,6 +400,7 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
         
 #ifdef __APPLE__
         delete fOscInterface;
+        fOscInterface = NULL;
         
         allocateOscInterface();
         
@@ -428,7 +463,7 @@ int FLWindow::get_Port(){
     
 #ifdef __APPLE__
     if(fHttpdWindow != NULL)
-        return fHttpdWindow->get_Port();
+        return fHttpInterface->getTCPPort();
     else
 #endif
         return fPortHttp;
@@ -441,18 +476,39 @@ int FLWindow::get_oscPort(){
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
 
+void FLWindow::switchOsc(bool on){
+ 
+    if(on){
+        
+        save_Window();
+#ifdef __APPLE__
+        allocateOscInterface();
+        fCurrent_DSP->buildUserInterface(fOscInterface);
+        recall_Window();
+        fOscInterface->run();
+#endif
+    }
+    else{
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
+}
+
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
-    char* argv[3];
-	argv[0] = fWindowName.toLatin1().data();
-    argv[1] = "-port";
-    
-    argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
-    
+    if(fOscInterface == NULL){
+        
+        char* argv[3];
+        argv[0] = fWindowName.toLatin1().data();
+        argv[1] = "-port";
+        
+        argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
+        
 #ifdef __APPLE__
-    fOscInterface = new OSCUI(argv[0], 3, argv);
+        fOscInterface = new OSCUI(argv[0], 3, argv);
 #endif
+    }
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
@@ -463,32 +519,35 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     
     fRCInterface = new FUI;
     
-    allocateOscInterface();
+    if(fMenu->isOscOn())
+        allocateOscInterface();
     
+    if(fMenu->isHttpOn())
+        allocateHttpInterface();
+
     //    printf("OSCINTERFACE = %p\n", fOscInterface);
-#ifdef __APPLE__ 
-    if(fOscInterface){
-#endif
-        if(fRCInterface){
+    if(fRCInterface){
+        
+        //Window tittle is build with the window Name + effect Name
+        QString intermediate = fWindowName + " : " + nameEffect;
+        
+        fInterface = new QTGUI(this, intermediate.toLatin1().data());
+        
+        if(fInterface){
             
-            //Window tittle is build with the window Name + effect Name
-            QString intermediate = fWindowName + " : " + nameEffect;
+            dsp->buildUserInterface(fRCInterface);
+            dsp->buildUserInterface(fInterface);
             
-            fInterface = new QTGUI(this, intermediate.toLatin1().data());
-            
-            if(fInterface){
-                
-                dsp->buildUserInterface(fRCInterface);
-                dsp->buildUserInterface(fInterface);
 #ifdef __APPLE__
+            if(fOscInterface)
                 dsp->buildUserInterface(fOscInterface);
+            
+            if(fHttpInterface)
+                dsp->buildUserInterface(fHttpInterface);
 #endif
-                return true;
-            }
+            return true;
         }
-#ifdef __APPLE__
-    }
-#endif    
+    }  
     return false;
 }
 
@@ -498,9 +557,15 @@ void FLWindow::deleteInterfaces(){
     delete fInterface;
     delete fRCInterface;
 #ifdef __APPLE__
-    delete fOscInterface;
-    fOscInterface = NULL;
+    if(fMenu->isOscOn()){
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
 #endif
+    if(fMenu->isHttpOn()){
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+    }
     fInterface = NULL;
     fRCInterface = NULL;
 }
@@ -828,65 +893,65 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
+void FLWindow::resetHttpInterface(){
+    delete fHttpInterface;
+    fHttpInterface = NULL;
+    
+    fMenu->switchHttp(true);
+}
+
+void FLWindow::allocateHttpInterface(){
+    
+    if(fMenu->isHttpOn()){
+        
+        QString optionPort = "-port";
+        QString windowTitle = fWindowName + ":" + fEffect->getName();
+        fPortHttp = fMenu->getPort();
+        
+        char* argv[3];
+        
+        argv[0] = (char*)(windowTitle.toLatin1().data());
+        argv[1] = (char*)(optionPort.toLatin1().data());
+        argv[2] = (char*)(QString::number(fPortHttp).toStdString().c_str());
+        
+        fHttpInterface = new httpdUI(argv[0], 3, argv);
+    }
+}
+
 void FLWindow::switchHttp(bool on){
         
     if(on){
-        QString error;
-        init_Httpd(error);
-    }
-    else{
-        delete fHttpdWindow;
-        fHttpdWindow = NULL;
-    } 
-}
-
-//Initalization of QrCode Window
-//@param : generalPortHttp = port on which remote drop on httpd interface is possible
-//@param : error = in case init fails, the error is filled
-bool FLWindow::init_Httpd(QString& error){
- 
-    printf("PORT HTTPD = %i\n", fPortHttp);
-    
-#ifdef __APPLE__ 
-    if(fHttpdWindow == NULL){
-        fHttpdWindow = new HTTPWindow();
-       connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
-        connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
-    }
-    
-    if(fHttpdWindow != NULL){
-        
-        //HttpdInterface reset the parameters when build. So we have to save the parameters before
-        
+#ifdef __APPLE__
         save_Window();
+        allocateHttpInterface();
         
-        QString windowTitle = fWindowName + ":" + fEffect->getName();
-        fPortHttp = fMenu->getPort();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
-            
-            //recall parameters to run them properly
-            //For a second, the initial parameters are reinitialize : it can sound weird
-            recall_Window();
-            
-            fHttpdWindow->launch_httpdInterface();
-           
-            fPortHttp = fHttpdWindow->get_Port();
-            setWindowsOptions();
-            return true;
-        }
-        else
-            return false;
+        fCurrent_DSP->buildUserInterface(fHttpInterface);
+        recall_Window();
+        fHttpInterface->run();
+        
+        fPortHttp = fHttpInterface->getTCPPort();
+        setWindowsOptions();
+#endif
     }
     else{
-        error = "Httpd Window could not be allocated!"; 
-        return false;
-    }
-#endif
-	return false;
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+    } 
 }
 
 void FLWindow::viewQrCode(){
     
+    if(fHttpInterface == NULL){
+        allocateHttpInterface();
+    }
+    
+    if(fHttpdWindow != NULL){
+        delete fHttpdWindow;
+        fHttpdWindow = NULL;
+    }
+    
+    fHttpdWindow = new HTTPWindow();
+
     if(fHttpdWindow){
         
         fFullHttpUrl = "http://";
@@ -894,7 +959,7 @@ void FLWindow::viewQrCode(){
         fFullHttpUrl += ":";
         fFullHttpUrl += QString::number(fGeneralHttpPort);
         fFullHttpUrl += "/";
-        fFullHttpUrl += QString::number(fHttpdWindow->get_Port());
+        fFullHttpUrl += QString::number(fHttpInterface->getTCPPort());
         
         fInterface->displayQRCode(fFullHttpUrl, fHttpdWindow);
         fHttpdWindow->move(calculate_Coef()*10, 0);
@@ -1229,12 +1294,8 @@ void FLWindow::duplicate(){
 }
 
 void FLWindow::httpd_View(){
-    
-//    QString errorMsg;
-//    
-//    init_Httpd(errorMsg);
-    fMenu->switchHttp(true);
-    
+
+    fMenu->switchHttp(true);    
     viewQrCode();
 }
 
