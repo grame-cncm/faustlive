@@ -70,6 +70,7 @@ class FLApp : public QApplication
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
+        QMenu*              fNavigateMenu;
     
         QAction**           fRecentFileAction;
         QAction**           fRrecentSessionAction;
@@ -186,7 +187,6 @@ class FLApp : public QApplication
         void                recall_Session(const QString& filename);
         void                addWinToSessionFile(FLWindow* win);
         void                deleteWinFromSessionFile(FLWindow* win);
-        void                update_CurrentSession();
     
     //In case of an import, those steps are necessary to modify the session before opening it
         QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);
@@ -205,7 +205,6 @@ class FLApp : public QApplication
     
     //Functions of read/write of a session description file
         QString             parseNextOption(QString& optionsCompilation);
-        void                sessionContentToFile(const QString& filename);
         void                fileToSessionContent(const QString& filename, QList<WinInSession*>* session);
     
     //Reset of the Folders contained in the current Session Folder
@@ -293,9 +292,6 @@ class FLApp : public QApplication
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
-        void                shut_Window(); 
-        void                shut_AllWindows();
-        virtual void        closeAllWindows();
         void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();
@@ -313,25 +309,25 @@ class FLApp : public QApplication
         void                frontShow(QString name);
     
     //--------Window
-//        void                edit(FLWindow* win);
-//        void                edit_Action();
-//    
+        void                edit(FLWindow* win);
+        void                edit_Action();
+    
         void                setRecompileEffects(FLEffect* modifiedEffect);
         void                synchronize_Window(FLEffect* modifiedEffect);
         void                synchronize_Window();
-//    
-//        void                paste(FLWindow* win);
-//        void                paste_Text();
-//        void                duplicate(FLWindow* window);
-//        void                duplicate_Window();
-//    
-//        void                viewHttpd(FLWindow* win);
-//        void                httpd_View_Window();
-//        void                viewSvg(FLWindow* win);
-//        void                svg_View_Action();
-//    
-//        void                export_Win(FLWindow* Win);
-//        void                export_Action();
+    
+        void                paste(FLWindow* win);
+        void                paste_Text();
+        void                duplicate(FLWindow* window);
+        void                duplicate_Window();
+    
+        void                viewHttpd(FLWindow* win);
+        void                httpd_View_Window();
+        void                viewSvg(FLWindow* win);
+        void                svg_View_Action();
+    
+        void                export_Win(FLWindow* Win);
+        void                export_Action();
     
     //---------Preferences
         void                styleClicked();
@@ -358,9 +354,6 @@ class FLApp : public QApplication
         void                display_CompilingProgress(const QString& msg);
         void                StopProgressSlot(); 
     
-    //--------Error received
-        void                errorPrinting(const char* msg);
-    
     //--------Server Response
         void                compile_HttpData(const char* data, int port);
         void                stop_Server();
@@ -371,6 +364,17 @@ class FLApp : public QApplication
         virtual             ~FLApp();
     
         void                create_New_Window(const QString& name);
+    
+    public slots :
+    
+        virtual void        closeAllWindows();
+        void                shut_AllWindows();
+        void                shut_Window(); 
+        void                update_CurrentSession();
+        void                sessionContentToFile();
+
+    //--------Error received
+    void                errorPrinting(const char* msg);
 
 };
 

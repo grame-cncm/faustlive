@@ -39,8 +39,8 @@ bool get_available_targets(const std::string& url, std::vector<std::string>& pla
         curl_easy_setopt(curl, CURLOPT_URL, finalURL.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 600);
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -90,6 +90,11 @@ bool get_shaKey(const std::string& url, const std::string& file, std::string& ke
     CURL *curl = curl_easy_init();
     struct curl_httppost* formpost = NULL;
     struct curl_httppost* lastptr = NULL;
+
+//    ADD EXPANSION
+    
+//    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+//        return 0;
     
     struct curl_forms forms[3]; 
     
@@ -112,8 +117,8 @@ bool get_shaKey(const std::string& url, const std::string& file, std::string& ke
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT , 60); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 600);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         
         CURLcode res = curl_easy_perform(curl);
@@ -162,8 +167,8 @@ bool get_file_from_key(const std::string& url, const std::string& key, const std
             curl_easy_setopt(curl, CURLOPT_URL, finalURL.c_str());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_File);
             curl_easy_setopt(curl, CURLOPT_FILE, file);
-            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-            curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT , 60); 
+            curl_easy_setopt(curl,CURLOPT_TIMEOUT, 600);
             //        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
             
             CURLcode res = curl_easy_perform(curl);

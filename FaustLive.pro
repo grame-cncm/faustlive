@@ -80,6 +80,9 @@ LIBS+=-lmicrohttpd
 LIBS+= $$LLVMDIR
 LIBS+=-lcurl
 LIBS+=-lcrypto
+
+DEFINES += HTTPCTRL
+DEFINES += QRCODECTRL
 }
 else{
 equals(HTTPDVAR, 1){

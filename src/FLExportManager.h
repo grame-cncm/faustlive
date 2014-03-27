@@ -35,6 +35,7 @@ class FLExportManager : public QObject{
 
         QString              fHome;
         QString              fFileToExport;
+        QString              fTemporaryFile;
     
     //Export graphical parameters 
     
@@ -50,25 +51,30 @@ class FLExportManager : public QObject{
     
         QTextEdit*          fTextZone;
         QLabel*             fErrorText;
+    
+        QString             fLastPlatform;
+        QString             fLastArchi;
+        QString             fLastChoice;
+    
     //Dialog for export progress and its graphical elements
     
         QPixmap             fCheckImg;
         QPixmap             fNotCheckImg;
     
-        QFormLayout*        fMsgLayout;
+        QGridLayout*        fMsgLayout;
         QLabel*             fConnectionLabel;
-        QLabel*             fRemoteComp;
+        QLabel*             fCompilationLabel;
         QProgressDialog*    fPrgBar;
         QLabel*             fCheck1;
         QLabel*             fCheck2;
     
         QPushButton*        fCloseB;
+        QPushButton*        fSaveB;
+        QPushButton*        fOkB;
         QByteArray          fDataReceived;
     
-        void                display_progress();
-    
-        void                init();
-        void                showMsg(const QString& msg);
+        void                init_MessageWindow();
+        void                init_DialogWindow();
     
     public :
     
@@ -84,7 +90,7 @@ class FLExportManager : public QObject{
         void                getFileFromKey(const char* key);
         void                targetsDescriptionReceived();
         void                platformChanged(const QString& index);
-        void                stopProgressSlot();
+        void                saveFile();
 };
 
 #endif

@@ -65,10 +65,11 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fHttpBox = new QGroupBox(tr("Enable Http Remote Interface"));
     fHttpBox->setCheckable(true);
-    fHttpBox->setChecked(false);
     QVBoxLayout* httpLayout = new QVBoxLayout();
     
     connect(fHttpBox, SIGNAL(toggled(bool)), this, SLOT(redirectHttp(bool)));
+    
+    fHttpBox->setChecked(true);
     
     fPortLine = new QLineEdit(tr(""), fWidget1);
     httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
@@ -80,11 +81,12 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     fOscBox = new QGroupBox(tr("Enable Osc Remote Interface"));
     fOscBox->setCheckable(true);
-    fOscBox->setChecked(false);
     
     QVBoxLayout* oscLayout = new QVBoxLayout();
     
     connect(fOscBox, SIGNAL(toggled(bool)), this, SLOT(redirectOsc(bool)));
+    
+    fOscBox->setChecked(true);
     
     fPortOscLine = new QLineEdit(tr(""), fWidget1);
     oscLayout->addWidget(new QLabel(tr("Osc Port"), fWidget1));

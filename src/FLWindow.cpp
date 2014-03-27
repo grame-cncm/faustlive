@@ -190,9 +190,10 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
             frontShow();
             
 #ifdef __APPLE__  
-            if(fOscInterface)
+            if(fOscInterface){
                 fOscInterface->run();
-            
+                fPortOsc = fOscInterface->getUDPPort();
+            }
             if(fHttpInterface){
                 
                 printf("Does HTTP RUN ? = %i\n", fMenu->isHttpOn());
@@ -200,8 +201,8 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
                 fHttpInterface->run();
                 
                 fPortHttp = fHttpInterface->getTCPPort();
-                setWindowsOptions();
             }
+                setWindowsOptions();
 #endif
             fInterface->run();
             return true;
@@ -299,15 +300,16 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 //Step 12 : Launch User Interface
                 fInterface->run();
 #ifdef __APPLE__
-                if(fOscInterface)   
+                if(fOscInterface){   
                     fOscInterface->run();
-                
+                    fPortOsc = fOscInterface->getUDPPort();
+                }
                 if(fHttpInterface){
                     fHttpInterface->run();
-                    
                     fPortHttp = fHttpInterface->getTCPPort();
-                    setWindowsOptions();
                 }
+                
+                setWindowsOptions();
 #endif
                 isUpdateSucessfull = true;
             }
@@ -407,6 +409,9 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
         fOscInterface->run();
+        
+        fPortOsc = fOscInterface->getUDPPort();
+        setWindowsOptions();
 #endif
     }
     
@@ -462,7 +467,7 @@ QString FLWindow::get_machineName(){
 int FLWindow::get_Port(){
     
 #ifdef __APPLE__
-    if(fHttpdWindow != NULL)
+    if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
 #endif
@@ -486,6 +491,9 @@ void FLWindow::switchOsc(bool on){
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
         fOscInterface->run();
+        
+        fPortOsc = fOscInterface->getUDPPort();
+        setWindowsOptions();
 #endif
     }
     else{
@@ -650,8 +658,11 @@ void FLWindow::close_Window(){
     
     printf("DELETE AUDIO MANAGER FROM CLOSE WIN\n");
     
-    delete fAudioManager;
-    delete fMenu;
+    if(fAudioManager)
+        delete fAudioManager;
+    
+    if(fMenu)
+        delete fMenu;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -951,6 +962,7 @@ void FLWindow::viewQrCode(){
     }
     
     fHttpdWindow = new HTTPWindow();
+    connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
 
     if(fHttpdWindow){
         
@@ -996,16 +1008,16 @@ void FLWindow::exportToPNG(){
 bool FLWindow::is_httpdWindow_active() {
     
 #ifdef __APPLE__
-    return fHttpdWindow->isActiveWindow();    
-#else
-	return false;
+    if(fHttpdWindow)
+        return fHttpdWindow->isActiveWindow();
 #endif
-
+	return false;
 }
 
 void FLWindow::hide_httpdWindow() {
 #ifdef __APPLE__
-    fHttpdWindow->hide();
+    if(fHttpdWindow)
+        fHttpdWindow->hide();
 #endif
 }
 
