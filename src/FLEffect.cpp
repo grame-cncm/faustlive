@@ -13,6 +13,7 @@
 #define LIBRARY_PATH "\\Resources\\Libs\\"
 
 #include "faust/llvm-dsp.h"
+#include "utilities.h"
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
@@ -318,6 +319,84 @@ void FLEffect::erase_OldFactory(){
         deleteRemoteDSPFactory(fOldRemoteFactory);
     }
 #endif
+}
+
+string FLEffect::get_expandedVersion(){
+    
+    string sha_key;
+    string error_msg;
+    
+    string name_app = fName.toStdString();
+    string dsp_content = pathToContent(fSource).toStdString();
+    
+    int numberFixedParams = 7;
+    int iteratorParams = 0;
+    
+#ifdef _WIN32
+    numberFixedParams = numberFixedParams+2;
+#endif
+    
+    //+7 = -I libraryPath -I currentFolder -O drawPath -svg
+    int argc = numberFixedParams;
+    argc += get_numberParameters(fCompilationOptions);
+    
+    const char** argv = new const char*[argc];
+    
+    argv[iteratorParams] = "-I";
+    iteratorParams++;
+    
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    string libPath = fCurrentLibsFolder.toStdString();
+    argv[iteratorParams] = libPath.c_str();
+    iteratorParams++;
+    
+    argv[iteratorParams] = "-I";   
+    iteratorParams++;
+    string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
+    argv[iteratorParams] = sourcePath.c_str();
+    iteratorParams++;
+    
+    argv[iteratorParams] = "-O";
+    iteratorParams++;
+    
+    string svgPath = fCurrentSVGFolder.toStdString();
+    
+    argv[iteratorParams] = svgPath.c_str();
+    iteratorParams++;
+    argv[iteratorParams] = "-svg";
+    iteratorParams++;
+    
+#ifdef _WIN32
+    //LLVM_MATH is added to resolve mathematical float functions, like powf
+    argv[iteratorParams] = "-l";
+    iteratorParams++;
+    argv[iteratorParams] = "llvm_math.ll";
+    iteratorParams++;
+#endif
+    
+    //Parsing the compilationOptions from a string to a char**
+    QString copy = fCompilationOptions;
+    
+    for(int i=numberFixedParams; i<argc; i++){
+        
+        string parseResult(parse_compilationParams(copy));
+        
+        char* intermediate = new char[parseResult.size()+1];
+        
+        strcpy(intermediate,parseResult.c_str());
+        
+        //        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
+        if(strcmp(intermediate, "-double") != 0)
+            argv[i] = (const char*)intermediate;
+        else{
+            argc--;
+            i--;
+            printf("Option -double not taken into account\n");
+        }
+    }
+
+        
+   return expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg);
 }
 
 //---------------COMPILATION OPTIONS

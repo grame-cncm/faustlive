@@ -3064,7 +3064,9 @@ void FLApp::svg_View_Action(){
 //Open ExportManager for a specific Window
 void FLApp::export_Win(FLWindow* win){
     
-    fExportDialog->exportFile(win->get_Effect()->getSource());
+    QString expanded_code = win->get_Effect()->get_expandedVersion().c_str();
+    
+    fExportDialog->exportFile(win->get_Effect()->getSource(), expanded_code);
 }
 
 //Export From Menu
@@ -3182,6 +3184,8 @@ void FLApp::setToolText(const QString & currentText){
         fToolText->setHtml("<br>Libqrencode is a C library for encoding data in a QR Code symbol, a kind of 2D symbology that can be scanned by handy terminals such as a mobile phone with CCD.<br><br>""LEARN MORE ABOUT LIB QRENCODE : <a href = http://fukuchi.org/works/qrencode> fukuchi.org/works/qrencode</a>\n");
     else if(currentText.compare("LIB MICROHTTPD") == 0)
         fToolText->setHtml("<br>GNU libmicrohttpd is a small C library that allows running an HTTP server as part of an application.<br><br>""LEARN MORE ABOUT LIB MICROHTTPD : <a href = http://www.gnu.org/software/libmicrohttpd> gnu.org/software/libmicrohttpd</a>\n");
+    else if(currentText.compare("OSC PACK") == 0)
+        fToolText->setHtml("<br>Oscpack is simply a set of C++ classes for packing and unpacking OSC packets. Oscpack includes a minimal set of UDP networking classes for Windows and POSIX.<br><br>""LEARN MORE ABOUTOSC PACK : <a href = http://code.google.com/p/oscpack/> code.google.com/p/oscpack/</a>\n");
 }
 
 //Set Text in Application Properties Menu of HELP
@@ -3244,6 +3248,9 @@ void FLApp::setWinPropertiesText(const QString& currentText){
         QString text = "\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.";
 #ifndef _WIN || HTTPDVAR 
         text+="\n\nThe Httpd Port corresponds to the connection port for remote http control of the interface.\n\n The Httpd Port corresponds to the connection port for remote osc control of the interface.";
+#endif
+#ifndef _WIN || OSCVAR 
+        text+="\n\nThe OSC Port corresponds to the UDP port used for OSC control. \nWARNING : a port needs a few seconds to be released once a window is closed. Moreover, only 30 OSC ports can be opened at the same time.";
 #endif
         fWinText->setPlainText(text);
     }
@@ -3331,6 +3338,7 @@ void FLApp::init_HelpWindow(){
 #ifndef _WIN32 || HTTPDVAR 
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
+    vue->addItem(QString(tr("OSC PACK")));
 #endif
     
     vue->setMaximumWidth(150);

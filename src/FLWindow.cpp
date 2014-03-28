@@ -566,6 +566,7 @@ void FLWindow::deleteInterfaces(){
     delete fRCInterface;
 #ifdef __APPLE__
     if(fMenu->isOscOn()){
+        printf("OSC INTERFACE DELETED\n");
         delete fOscInterface;
         fOscInterface = NULL;
     }
