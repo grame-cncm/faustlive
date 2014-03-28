@@ -61,6 +61,7 @@ class FLToolBar : public QToolBar{
     void    setOptions(QString options);
     void    setVal(int value);
     void    switchHttp(bool on);
+    void    switchOsc(bool on);
     void    setPort(int port);
     void    setPortOsc(int port);
     void    setNewOptions(const QString& ip, int port, const QString& newName);

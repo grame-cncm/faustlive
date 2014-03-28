@@ -18,6 +18,8 @@
 #include <QtWidgets>
 #endif
 
+#define numberWindows 60
+
 class FLServerHttp;
 class FLExportManager;
 class FLErrorWindow;

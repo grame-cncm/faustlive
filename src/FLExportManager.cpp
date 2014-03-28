@@ -397,14 +397,19 @@ void FLExportManager::saveFileOnDisk(){
     
     //     nom par défaut dans le dialogue
     
+    QString defaultFilename = getenv("HOME");
+    defaultFilename += "/Desktop/" + fFilenameToSave;
+    
+    printf("DEFAULT FILENAME = %s\n", defaultFilename.toStdString().c_str());
+    
     if(fExportChoice->currentText().compare("src.cpp") == 0){
-        QString defaultFilename = "/Desktop/" + fFilenameToSave + ".zip";
+        defaultFilename += ".cpp";
         
         filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", defaultFilename, tr("(*.cpp)"));
     }
     else{
         
-        QString defaultFilename = "/Desktop/" + fFilenameToSave + ".zip";
+        defaultFilename += ".zip";
         
         filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", defaultFilename, tr("(*.zip)"));
     }
@@ -471,8 +476,15 @@ void FLExportManager::set_URL(const QString& url){
     
     setLastState();
     fDialogWindow->show();
+
+//    DO SOMETHING ABOUT THIS
     
-    fServerUrl = QUrl(url);
+//    if(url.indexOf("http://") != 0){
+//        QString fullUrl = "http://" + url;
+//        fServerUrl = QUrl(fullUrl);
+//    }
+//    else
+        fServerUrl = QUrl(url);
     
     QString targetUrl= fServerUrl.toString();
     targetUrl += "/targets";

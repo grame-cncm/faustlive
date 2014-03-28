@@ -288,6 +288,7 @@ class FLWindow : public QMainWindow
         void            switchHttp(bool on);
         void            exportToPNG();
         void            switchOsc(bool on);
+        void            disableOSCInterface();
     
     //Raises and shows the window
         void            frontShow();

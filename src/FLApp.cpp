@@ -1250,6 +1250,11 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
 //--Creation of a new window
 FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
     
+    if(FLW_List.size() >= numberWindows){
+        error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
+        return NULL;
+    }
+    
     bool init = false;
     
     QString source(mySource);
@@ -2272,6 +2277,11 @@ void FLApp::recall_Session(const QString& filename){
                 fErrorWindow->print_Error(error);
             }
             
+            if(FLW_List.size() >= numberWindows){
+                fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
+                return;
+            }
+            
             FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->oscPort, (*it)->portHttpd);
             
             redirectMenuToWindow(win);
@@ -2928,6 +2938,13 @@ void FLApp::edit_Action(){
 
 //Duplicate a specific window
 void FLApp::duplicate(FLWindow* window){
+    
+    printf("SIZE OF LIST = %i\n", FLW_List.size());
+    
+    if(FLW_List.size() == numberWindows){
+        fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
+        return;
+    }
     
     FLEffect* commonEffect = window->get_Effect();
     //To avoid flicker of the original window, the watcher is stopped during operation

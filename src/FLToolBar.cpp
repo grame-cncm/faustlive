@@ -368,3 +368,8 @@ void FLToolBar::redirectOsc(bool on){
     emit switch_osc(on);
 }
 
+void FLToolBar::switchOsc(bool on){
+#ifndef _WIN32 || OSCVAR
+    fOscBox->setChecked(on);
+#endif
+}

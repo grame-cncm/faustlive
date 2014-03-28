@@ -481,6 +481,10 @@ int FLWindow::get_oscPort(){
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
 
+void FLWindow::disableOSCInterface(){
+    fMenu->switchOsc(false);
+}
+
 void FLWindow::switchOsc(bool on){
  
     if(on){
@@ -502,6 +506,14 @@ void FLWindow::switchOsc(bool on){
     }
 }
 
+void catch_OSCError(void* arg){
+    
+    FLWindow* win = (FLWindow*)(arg);
+    
+    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");    
+    win->disableOSCInterface();
+}
+
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
@@ -514,7 +526,7 @@ void FLWindow::allocateOscInterface(){
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
 #ifdef __APPLE__
-        fOscInterface = new OSCUI(argv[0], 3, argv);
+        fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
 #endif
     }
 }
