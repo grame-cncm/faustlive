@@ -187,7 +187,6 @@ void FLExportManager::exportFile(QString file, QString faustCode){
 //    Reset message dialog graphical elements
     fStep = 0;
     fTextZone->clear();
-    fCloseB->hide();
     fSaveB->hide();
     fOkB->hide();
     fCheck1->hide();
@@ -350,8 +349,6 @@ void FLExportManager::networkError(QNetworkReply::NetworkError /*msg*/){
     
     fTextZone->setText(response->errorString());
     fTextZone->show();
-    
-    fCloseB->show();
 }
 
 //Send new request : urlServer/SHA1Key/Platform/Architecture/BinaryOrSource
@@ -464,7 +461,6 @@ void FLExportManager::showSaveB(){
         fTextZone->show();
         
         fSaveB->show();
-        fCloseB->show();
         
         response->deleteLater(); //IMPORTANT : on emploie la fonction deleteLater() pour supprimer la réponse du serveur.
         //Si vous ne le faites pas, vous risquez des fuites de mémoire ou autre.
@@ -474,8 +470,15 @@ void FLExportManager::showSaveB(){
 
 void FLExportManager::set_URL(const QString& url){
     
+    bool isVisible = true;
+    
+    if(fDialogWindow->isVisible())
+        isVisible = false;
+    
     setLastState();
-    fDialogWindow->show();
+    
+    if(!isVisible)
+        fDialogWindow->show();
 
 //    DO SOMETHING ABOUT THIS
     

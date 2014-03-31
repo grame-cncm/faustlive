@@ -80,7 +80,7 @@ class FLWindow : public QMainWindow
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         void            allocateHttpInterface();
 #endif
-        QString         fFullHttpUrl;
+        QString         fInterfaceUrl;
         int             fGeneralHttpPort;
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface

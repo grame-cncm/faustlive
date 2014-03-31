@@ -59,7 +59,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fMenu = NULL;
     
     fPortHttp = httpdport;
-    fFullHttpUrl = "";
+    fInterfaceUrl = "";
     fPortOsc = oscPort;
     
     fIsLocal = true;
@@ -268,7 +268,6 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     if(charging_DSP){
         
         QString newName = newEffect->getName();
-        bool isLocalEffect = newEffect->isLocal();
         
         if(fAudioManager->init_FadeAudio(error, newName.toStdString().c_str(), charging_DSP)){
             
@@ -295,7 +294,9 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 fCurrent_DSP = charging_DSP; 
                 charging_DSP = VecInt;
                 
+                FLEffect* effectInter = fEffect;
                 fEffect = newEffect;
+                newEffect = effectInter;
                 
                 //Step 12 : Launch User Interface
                 fInterface->run();
@@ -317,15 +318,14 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 error = "Impossible to allocate Interface";
         }
 
-        //-----Delete Charging DSP---PROBLEME ICI ICI ICI
+//-----Delete Charging DSP if update fails || Delete old DSP if update suceeds        
         
-        if(isLocalEffect)
+        if(newEffect->isLocal())
             deleteDSPInstance((llvm_dsp*)charging_DSP);
 #ifdef REMOTE  
         else
             deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
 #endif
-        
     }
     else{
         if(newEffect->isLocal())
@@ -666,8 +666,14 @@ void FLWindow::close_Window(){
         fHttpdWindow = NULL;
     }
 #endif
-    //     printf("deleting instance = %p\n", current_DSP);   
-    deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
+    //     printf("deleting instance = %p\n", current_DSP);  
+    
+    if(fEffect->isLocal())
+        deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
+#ifdef REMOTE
+    else
+        deleteRemoteDSPInstance((remote_dsp*)fCurrent_DSP);
+#endif
     
     printf("DELETE AUDIO MANAGER FROM CLOSE WIN\n");
     
@@ -918,9 +924,8 @@ int FLWindow::calculate_Coef(){
 }
 
 void FLWindow::resetHttpInterface(){
-    delete fHttpInterface;
-    fHttpInterface = NULL;
-    
+
+    fMenu->switchHttp(false);
     fMenu->switchHttp(true);
 }
 
@@ -979,14 +984,20 @@ void FLWindow::viewQrCode(){
 
     if(fHttpdWindow){
         
-        fFullHttpUrl = "http://";
-        fFullHttpUrl += searchLocalIP();
-        fFullHttpUrl += ":";
-        fFullHttpUrl += QString::number(fGeneralHttpPort);
-        fFullHttpUrl += "/";
-        fFullHttpUrl += QString::number(fHttpInterface->getTCPPort());
+        QString fullUrl("");
         
-        fInterface->displayQRCode(fFullHttpUrl, fHttpdWindow);
+        fInterfaceUrl = "http://";
+        fInterfaceUrl += searchLocalIP();
+        fInterfaceUrl += ":";
+        
+        fullUrl = fInterfaceUrl;
+        
+        fullUrl += QString::number(fGeneralHttpPort);
+        fullUrl += "/";
+        fInterfaceUrl += QString::number(fHttpInterface->getTCPPort());
+        fullUrl += QString::number(fHttpInterface->getTCPPort());
+        
+        fInterface->displayQRCode(fullUrl, fHttpdWindow);
         fHttpdWindow->move(calculate_Coef()*10, 0);
         
         QString windowTitle = fWindowName + ":" + fEffect->getName();
@@ -1037,7 +1048,7 @@ void FLWindow::hide_httpdWindow() {
 QString FLWindow::get_HttpUrl() {
 
 #ifdef __APPLE__
-    return fFullHttpUrl;
+    return fInterfaceUrl;
 #else
 	return "";
 #endif

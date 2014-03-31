@@ -94,10 +94,6 @@ int main(int argc, char *argv[])
 {
     qInstallMsgHandler(myMessageOutput);
     
-    QThreadPool* instance = QThreadPool::globalInstance();
-    
-    printf("maxThreadCount () = %i\n", instance->maxThreadCount());
-    
     int filecount = 0;
     if(GetMaximumFiles(filecount)){
         
