@@ -69,7 +69,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     connect(fHttpBox, SIGNAL(toggled(bool)), this, SLOT(redirectHttp(bool)));
     
-    fHttpBox->setChecked(true);
+    fHttpBox->setChecked(false);
     
     fPortLine = new QLineEdit(tr(""), fWidget1);
     httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
@@ -86,7 +86,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
     connect(fOscBox, SIGNAL(toggled(bool)), this, SLOT(redirectOsc(bool)));
     
-    fOscBox->setChecked(true);
+    fOscBox->setChecked(false);
     
     fPortOscLine = new QLineEdit(tr(""), fWidget1);
     oscLayout->addWidget(new QLabel(tr("Osc Port"), fWidget1));

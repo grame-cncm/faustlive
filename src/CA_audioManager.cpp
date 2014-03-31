@@ -20,6 +20,8 @@ CA_audioManager::CA_audioManager(AudioSettings* as) : AudioManager(as){
     
     fCurrentAudio = new CA_audioFader(fBufferSize);
     
+    fStopped = false;
+    
 }
 
 CA_audioManager::~CA_audioManager(){
@@ -72,7 +74,9 @@ bool CA_audioManager::start(){
 }
 
 void CA_audioManager::stop(){
-    fCurrentAudio->stop();
+    
+    if(!fStopped)
+        fCurrentAudio->stop();
 }
 
 //Init new audio, that will fade in current audio
@@ -93,21 +97,21 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
 //Crossfade start
 void CA_audioManager::start_Fade(){
 
-    printf("CA_audioManager::start_FadeIn\n");
-    
     fFadeInAudio->launch_fadeIn();
-    
-    printf("CA_audioManager::start_FadeOut\n");
     
     fCurrentAudio->launch_fadeOut();
     
-    printf("CA_audioManager::start_FadeInAudio\n");
-    
-    fFadeInAudio->start();
+    if(!fFadeInAudio->start()){
+        printf("CoreAudio did not Start\n");
+    }
+    else
+        printf("CoreAudio Totally Started\n");
 }
 
 //When the crossfade ends, FadeInAudio becomes the current audio 
 void CA_audioManager::wait_EndFade(){
+    
+    fStopped = false;
     
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
     QDateTime currentTime(QDateTime::currentDateTime());
@@ -117,9 +121,11 @@ void CA_audioManager::wait_EndFade(){
         QDateTime currentTime2(QDateTime::currentDateTime());
         
         if(currentTime.secsTo(currentTime2)>3){
-            printf("STOPED PROGRAMATICALLY\n");
+            printf("STOPPED PROGRAMATICALLY\n");
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();
+            
+            fStopped = true;
 //            break;
         }
     }

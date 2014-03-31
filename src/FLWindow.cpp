@@ -1473,7 +1473,7 @@ void FLWindow::errorPrint(const char* msg){
 }
 
 int FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
-
+    
 #ifdef REMOTE
     QDateTime currentTime(QDateTime::currentDateTime());
     

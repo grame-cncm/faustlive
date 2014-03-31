@@ -1761,6 +1761,8 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     name+=" : ";
     name+= win->get_Effect()->getName();
     
+    printf("ADD = %s\n", name.toStdString().c_str());
+    
     QAction* newWin = new QAction(name, fNavigateMenu);
     fFrontWindow.push_back(newWin);
     
@@ -1793,6 +1795,8 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
                 name+=" : ";
                 name+= win->get_Effect()->getName();
                 
+                printf("DELETE = %s\n", name.toStdString().c_str());
+                
                 if((*it2)->text().compare(name) == 0){
                     fFrontWindow.removeOne(*it2);
                     
@@ -1800,13 +1804,8 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
                     
                     QList<FLWindow*>::iterator it3;
                     
-                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++){
-                        if(win != *it3){
+                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++)
                             (*it3)->deleteWinInMenu(*it2);
-                        
-                        
-                        }
-                    }
                     break;
                 }
             }

@@ -199,7 +199,7 @@ void FLExportManager::exportFile(QString file, QString faustCode){
     
     fFilenameToSave = QFileInfo(file).baseName() + "_";
     
-    fErrorText->setText("Searching for available targets.");
+    fErrorText->setText("Searching for available targets...");
     
     QString targetUrl= fServerUrl.toString();
     targetUrl += "/targets";
