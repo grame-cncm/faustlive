@@ -562,7 +562,7 @@ QString FLApp::find_smallest_defaultName(QList<QString> currentDefault){
         ss = QString::number(index);
         
         nomEffet = DEFAULTNAME;
-        nomEffet += "-";
+        nomEffet += "_";
 		nomEffet += ss;
         
         QList<QString>::iterator it;
@@ -3111,7 +3111,13 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QProcess myCmd;
     QByteArray error;
     
-    QString systemInstruct("sound2faust.exe ");
+    QString systemInstruct;
+#ifdef _WIN32
+    systemInstruct = "sound2faust.exe ";
+#else
+    systemInstruct = "sound2faust ";
+#endif
+    
     systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
