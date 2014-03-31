@@ -2723,11 +2723,9 @@ void FLApp::shut_Window(){
 //Close from Window Action
 void FLApp::close_Window_Action(){
     
-//    FLWindow* win = (FLWindow*)QObject::sender();
-//    
-//    common_shutAction(win);
-
-    shut_Window();
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
+    common_shutAction(win);
 }
 
 //Shut a specific window 
