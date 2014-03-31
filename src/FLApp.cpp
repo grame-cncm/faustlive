@@ -1047,10 +1047,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
                     else{
                         
                         deleteWinFromSessionFile(*it2);
-                        QString name = (*it2)->get_nameWindow();
-                        name+=" : ";
-                        name+= (*it2)->get_Effect()->getName();
-                        (*it2)->deleteWinInMenu(name);
                         addWinToSessionFile(*it2);
                         
                         QString oldSource = modifiedEffect->getSource();
@@ -1107,12 +1103,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
     FLEffect* leavingEffect = win->get_Effect();
     leavingEffect->stop_Watcher();
     deleteWinFromSessionFile(win);
-    
-    QString name = win->get_nameWindow();
-    name+=" : ";
-    name+= win->get_Effect()->getName();
-    
-    win->deleteWinInMenu(name);
+
     
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_Effect()->getRemoteIP(), win->get_Effect()->getRemotePort());
 
@@ -1764,21 +1755,27 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->portHttpd = win->get_Port();
     intermediate->isLocal = win->get_Effect()->isLocal();
     
+    fSessionContent.push_back(intermediate);
+    
     QString name = win->get_nameWindow();
     name+=" : ";
     name+= win->get_Effect()->getName();
     
-    fFrontWindow.push_back(name);
+    QAction* newWin = new QAction(name, fNavigateMenu);
+    fFrontWindow.push_back(newWin);
     
-    fSessionContent.push_back(intermediate);
+    newWin->setData(QVariant(name));
+    connect(newWin, SIGNAL(triggered()), win, SLOT(frontShowFromMenu()));
+    
+    fNavigateMenu->addAction(newWin);
     
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->addWinInMenu(name);
+        (*it)->addWinInMenu(newWin);
 }
 
-//Add window from Current Session Structure
+//Delete window from Current Session Structure
 void FLApp::deleteWinFromSessionFile(FLWindow* win){
     
     QList<WinInSession*>::iterator it;
@@ -1786,33 +1783,33 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it++){
         
         if((*it)->ID == win->get_indexWindow()){
-            //            printf("REMOVING = %i\n", win->get_indexWindow());
+            
             fSessionContent.removeOne(*it);
             
-            //            QAction* toRemove = NULL;
-            
-            QList<QString>::iterator it2;
+            QList<QAction*>::iterator it2;
             for(it2 = fFrontWindow.begin(); it2 != fFrontWindow.end() ; it2++){
                 
                 QString name = win->get_nameWindow();
                 name+=" : ";
                 name+= win->get_Effect()->getName();
                 
-                if((*it2).compare(name) == 0){
+                if((*it2)->text().compare(name) == 0){
                     fFrontWindow.removeOne(*it2);
+                    
+                    fNavigateMenu->removeAction(*it2);
                     
                     QList<FLWindow*>::iterator it3;
                     
                     for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++){
-                     
-                        if(win != *it3)
-                            (*it3)->deleteWinInMenu(name);
+                        if(win != *it3){
+                            (*it3)->deleteWinInMenu(*it2);
+                        
+                        
+                        }
                     }
-                    //                    toRemove = *it;
                     break;
                 }
             }
-            //            delete toRemove;
             break;
         }
     }

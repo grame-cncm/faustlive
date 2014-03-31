@@ -1442,44 +1442,22 @@ void FLWindow::import_Recent_Session(){
     emit recall_Snapshot(toto, true);
 }
 
-void FLWindow::initNavigateMenu(QList<QString> wins){
+void FLWindow::initNavigateMenu(QList<QAction*> wins){
         
-    QList<QString>::iterator it;
-    for(it = wins.begin(); it != wins.end() ; it++){
-
-        QAction* fifiWindow = new QAction(*it, fNavigateMenu);
-        fFrontWindow.push_back(fifiWindow);
-        
-        fifiWindow->setData(QVariant(*it));
-        connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
-        
-        fNavigateMenu->addAction(fifiWindow);
-        
-        printf("NAME = %s\n", (*it).toStdString().c_str());
-    }
-}
-
-void FLWindow::addWinInMenu(QString name){
-    
-    QAction* fifiWindow = new QAction(name, fNavigateMenu);
-    fFrontWindow.push_back(fifiWindow);
-    
-    fifiWindow->setData(QVariant(name));
-    connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
-    
-    fNavigateMenu->addAction(fifiWindow);
-}
-
-void FLWindow::deleteWinInMenu(QString name){
-    
     QList<QAction*>::iterator it;
-    for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
-        if((*it)->data().toString().compare(name) == 0){
-            fNavigateMenu->removeAction(*it);
-            fFrontWindow.removeOne(*it);
-            break;
-        }
+    for(it = wins.begin(); it != wins.end() ; it++){
+        fNavigateMenu->addAction(*it);
     }
+}
+
+void FLWindow::addWinInMenu(QAction* newWin){
+    
+    fNavigateMenu->addAction(newWin);
+}
+
+void FLWindow::deleteWinInMenu(QAction* toDeleteWin){
+
+    fNavigateMenu->removeAction(toDeleteWin);
 }
 
 void FLWindow::frontShowFromMenu(){

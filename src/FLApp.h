@@ -78,7 +78,7 @@ class FLApp : public QApplication
         QAction**           fRrecentSessionAction;
         QAction**           fIrecentSessionAction;
     
-        QList<QString>     fFrontWindow;
+        QList<QAction*>     fFrontWindow;
 
         void                setup_Menu();
         void                redirectMenuToWindow(FLWindow* win);

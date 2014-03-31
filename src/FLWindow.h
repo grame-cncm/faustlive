@@ -169,7 +169,6 @@ class FLWindow : public QMainWindow
         void            open_Recent_File();
         void            recall_Recent_Session();
         void            import_Recent_Session();
-        void            frontShowFromMenu(); 
         void            redirectSwitch(const QString& ip, int port);
 //        void            cancelSwitch();
     
@@ -276,9 +275,9 @@ class FLWindow : public QMainWindow
         void            set_RecentSession(QStringList recents);
         void            update_RecentSessionMenu();
     
-        void            addWinInMenu(QString name);
-        void            deleteWinInMenu(QString name);
-        void            initNavigateMenu(QList<QString> wins);
+        void            addWinInMenu(QAction* newWin);
+        void            deleteWinInMenu(QAction* toDeleteWin);
+        void            initNavigateMenu(QList<QAction*> wins);
     
     public slots :
     //Modification of the compilation options
@@ -289,6 +288,7 @@ class FLWindow : public QMainWindow
         void            exportToPNG();
         void            switchOsc(bool on);
         void            disableOSCInterface();
+        void            frontShowFromMenu(); 
     
     //Raises and shows the window
         void            frontShow();
