@@ -27,7 +27,7 @@
 #include "faust/gui/FUI.h"
 
 #include "FLEffect.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "HTTPWindow.h"
 #endif
 #include "AudioCreator.h"
@@ -75,7 +75,7 @@ class FLWindow : public QMainWindow
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-#ifdef __APPLE__
+#ifndef _WIN
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
         void            allocateHttpInterface();

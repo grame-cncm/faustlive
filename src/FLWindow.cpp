@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/httpdUI.h"
 #endif
@@ -49,7 +49,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     
     fShortcut = false;
     
-#ifdef __APPLE__
+#ifndef _WIN32
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
     fOscInterface = NULL;
@@ -189,7 +189,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
 			printf("Audio started\n");
             frontShow();
             
-#ifdef __APPLE__  
+#ifndef _WIN  
             if(fOscInterface){
                 fOscInterface->run();
                 fPortOsc = fOscInterface->getUDPPort();
@@ -300,7 +300,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 
                 //Step 12 : Launch User Interface
                 fInterface->run();
-#ifdef __APPLE__
+#ifndef _WIN
                 if(fOscInterface){   
                     fOscInterface->run();
                     fPortOsc = fOscInterface->getUDPPort();
@@ -379,7 +379,7 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
         fPortHttp = port;
         
         save_Window();
-#ifdef __APPLE__
+#ifndef _WIN
         delete fHttpInterface;
         fHttpInterface = NULL;
         
@@ -400,7 +400,7 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
         
         save_Window();
         
-#ifdef __APPLE__
+#ifndef _WIN32
         delete fOscInterface;
         fOscInterface = NULL;
         
@@ -466,7 +466,7 @@ QString FLWindow::get_machineName(){
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
@@ -490,7 +490,7 @@ void FLWindow::switchOsc(bool on){
     if(on){
         
         save_Window();
-#ifdef __APPLE__
+#ifndef _WIN32
         allocateOscInterface();
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
@@ -525,7 +525,7 @@ void FLWindow::allocateOscInterface(){
         
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
-#ifdef __APPLE__
+#ifndef WIN32
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
 #endif
     }
@@ -558,7 +558,7 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
             dsp->buildUserInterface(fRCInterface);
             dsp->buildUserInterface(fInterface);
             
-#ifdef __APPLE__
+#ifndef _WIN32
             if(fOscInterface)
                 dsp->buildUserInterface(fOscInterface);
             
@@ -576,7 +576,7 @@ void FLWindow::deleteInterfaces(){
     
     delete fInterface;
     delete fRCInterface;
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fMenu->isOscOn()){
         printf("OSC INTERFACE DELETED\n");
         delete fOscInterface;
@@ -660,7 +660,7 @@ void FLWindow::close_Window(){
     
     deleteInterfaces();
     
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fHttpdWindow){
         delete fHttpdWindow;
         fHttpdWindow = NULL;
@@ -950,7 +950,7 @@ void FLWindow::allocateHttpInterface(){
 void FLWindow::switchHttp(bool on){
         
     if(on){
-#ifdef __APPLE__
+#ifndef _WIN32
         save_Window();
         allocateHttpInterface();
         
@@ -1031,7 +1031,7 @@ void FLWindow::exportToPNG(){
 
 bool FLWindow::is_httpdWindow_active() {
     
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fHttpdWindow)
         return fHttpdWindow->isActiveWindow();
 #endif
@@ -1039,7 +1039,7 @@ bool FLWindow::is_httpdWindow_active() {
 }
 
 void FLWindow::hide_httpdWindow() {
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fHttpdWindow)
         fHttpdWindow->hide();
 #endif
@@ -1047,7 +1047,7 @@ void FLWindow::hide_httpdWindow() {
 
 QString FLWindow::get_HttpUrl() {
 
-#ifdef __APPLE__
+#ifndef _WIN32
     return fInterfaceUrl;
 #else
 	return "";
