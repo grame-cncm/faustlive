@@ -7,7 +7,7 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "FLServerHttp.h"
 #else
 #include <windows.h>
@@ -69,7 +69,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
     
     //Initialiazing Remote Drop Server
-#ifdef __APPLE__
+#ifndef _WIN32
     fServerHttp = NULL;
     launch_Server();
 #endif
@@ -5000,7 +5000,7 @@ void FLApp::StopProgressSlot(){
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
     
-#ifdef __APPLE__
+#ifndef _WIN32
     bool returning = true;
     
     if(fServerHttp == NULL){
@@ -5045,7 +5045,7 @@ void FLApp::launch_Server(){
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fServerHttp != NULL){
         fServerHttp->stop();
         delete fServerHttp;
@@ -5056,7 +5056,7 @@ void FLApp::stop_Server(){
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
-#ifdef __APPLE__   
+#ifndef _WIN32   
   string error("");
 
 	QString source(data);
