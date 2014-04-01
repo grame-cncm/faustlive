@@ -406,7 +406,7 @@ void FLExportManager::saveFileOnDisk(){
     }
     else{
         
-        defaultFilename += ".zip";
+        //s defaultFilename += ".zip";
         
         filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", defaultFilename, tr("(*.zip)"));
     }
