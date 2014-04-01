@@ -79,15 +79,15 @@ LIBS+=-lqrcodelib
 }
 }
 else{
-LIBS+=-lqrencode
-LIBS+=-lHTTPDFaust
-LIBS+=-lOSCFaust -loscpack
-LIBS+=-L/opt/local/lib
-LIBS+=-lmicrohttpd
-#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
-LIBS+= $$LLVMDIR
-LIBS+=-lcurl
-LIBS+=-lcrypto
+	LIBS+=-lqrencode
+	LIBS+=-lHTTPDFaust
+	LIBS+=-lOSCFaust -loscpack
+	LIBS+=-L/opt/local/lib
+	LIBS+=-lmicrohttpd
+	#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
+	LIBS+= $$LLVMDIR
+	LIBS+=-lcurl
+	LIBS+=-lcrypto
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -218,7 +218,7 @@ else{
 	
 	HEADERS +=	        src/FLServerHttp.h \
 						src/HTTPWindow.h \
-						API_FAUSTWEB/Faust_Exporter.h \
+#						API_FAUSTWEB/Faust_Exporter.h \
                         /usr/local/include/faust/gui/faustqt.h
 
 }
@@ -239,7 +239,7 @@ win32{
 }
 else{
 	SOURCES +=	src/FLServerHttp.cpp \
-				API_FAUSTWEB/Faust_Exporter.cpp \
+#				API_FAUSTWEB/Faust_Exporter.cpp \
                 src/HTTPWindow.cpp 
 }
 
