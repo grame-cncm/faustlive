@@ -25,6 +25,7 @@ INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
 INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
 INCLUDEPATH += C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32
 INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
+INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include\curl
 
 LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
 LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
@@ -64,6 +65,7 @@ LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win3
 LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
 }
 
 
@@ -84,6 +86,7 @@ else{
 equals(HTTPDVAR, 1){
 LIBS+=-lHTTPDFaust
 LIBS+=-lqrcodelib
+LIBS+=-llibcurl
 }
 }
 HEADERS += src/utilities.h 
