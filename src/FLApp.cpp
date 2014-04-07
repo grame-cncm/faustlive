@@ -18,6 +18,8 @@
 #include "FLExportManager.h"
 #include "utilities.h"
 
+#include "faust/remote-dsp.h"
+
 #include <sstream>
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
@@ -631,7 +633,7 @@ QString FLApp::renameEffect(const QString& source, const QString& nomEffet, bool
 QString FLApp::nameWithoutSpaces(QString name){
     
     while(name.indexOf(' ') != -1)
-        name.remove(name.indexOf(' '), 1);
+        name.replace(name.indexOf(' '), 1, "_");
     
     return name;
 }
@@ -1183,6 +1185,14 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
         addWinToSessionFile(migratingWin);
         
         deleteEffect(migratingWin->get_Effect(), newEffect);
+        
+//        
+//        vector<pair<string, string> > factories_list;
+//        getRemoteFactoriesAvailable(ip.toStdString(), port, &factories_list);
+//        
+//        for(int i=0; i<factories_list.size(); i++)
+//            printf("FACTORIES = %s\n", factories_list[i].first.c_str(), factories_list[i].second.c_str());
+        
         return true;
     }
     else{
@@ -1417,6 +1427,9 @@ void FLApp::open_Example_Action(){
             QFile file(examplesDir.absoluteFilePath(path));
             
             file.copy(pathInSession);
+            
+            QFile newFile(pathInSession);
+            newFile.setPermissions(QFile::ReadOwner);
             
             fPresWin->hide();
             
@@ -2884,10 +2897,7 @@ void FLApp::edit(FLWindow* win){
         existingNameMessage->setText(mesg);
         
         existingNameMessage->exec();
-        if (existingNameMessage->clickedButton() == cancel_Button) {
-            return;
-        }
-        else{
+        if (existingNameMessage->clickedButton() != cancel_Button){
             QFileDialog* fileDialog = new QFileDialog;
             fileDialog->setConfirmOverwrite(true);
             

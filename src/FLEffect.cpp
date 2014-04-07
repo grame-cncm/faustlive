@@ -55,13 +55,11 @@ void FLEffect::reset(){
     delete fSynchroTimer;
     delete fWatcher;
     
-    if (fIsLocal) {
+    if (fIsLocal)
         deleteDSPFactory(fFactory);
-    }
 #ifdef REMOTE
-    else {
+    else
         deleteRemoteDSPFactory(fRemoteFactory);
-    }
 #endif 
 }
 
