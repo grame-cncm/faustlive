@@ -27,12 +27,13 @@
 #include "faust/gui/FUI.h"
 
 #include "FLEffect.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "HTTPWindow.h"
 #endif
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
+class httpdUI;
 class QTGUI;
 class FLToolBar;
 class OSCUI;
@@ -70,12 +71,17 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
+        
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-#ifdef __APPLE__
+#ifndef _WIN
+        httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        void            allocateHttpInterface();
 #endif
+        QString         fInterfaceUrl;
+        int             fGeneralHttpPort;
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 
@@ -163,7 +169,6 @@ class FLWindow : public QMainWindow
         void            open_Recent_File();
         void            recall_Recent_Session();
         void            import_Recent_Session();
-        void            frontShowFromMenu(); 
         void            redirectSwitch(const QString& ip, int port);
 //        void            cancelSwitch();
     
@@ -238,7 +243,7 @@ class FLWindow : public QMainWindow
         void            recall_Window();
     
     //Functions to create an httpd interface
-        bool            init_Httpd(int generalPortHttp, QString& error);
+        void            viewQrCode();
     
     //Accessors to parameters
         QString         get_nameWindow();
@@ -247,6 +252,7 @@ class FLWindow : public QMainWindow
         int             get_x();
         int             get_y();
         int             get_Port();
+        void            set_GeneralPort(int port);
         int             get_oscPort();
         bool            is_Default();
         QString         get_machineName();
@@ -257,6 +263,7 @@ class FLWindow : public QMainWindow
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
         QString          get_HttpUrl();
+        void            resetHttpInterface();
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -268,15 +275,20 @@ class FLWindow : public QMainWindow
         void            set_RecentSession(QStringList recents);
         void            update_RecentSessionMenu();
     
-        void            addWinInMenu(QString name);
-        void            deleteWinInMenu(QString name);
-        void            initNavigateMenu(QList<QString> wins);
+        void            addWinInMenu(QAction* newWin);
+        void            deleteWinInMenu(QAction* toDeleteWin);
+        void            initNavigateMenu(QList<QAction*> wins);
     
     public slots :
     //Modification of the compilation options
         void            modifiedOptions(QString text, int value, int port, int portOsc);
         void            resizingBig();
         void            resizingSmall();
+        void            switchHttp(bool on);
+        void            exportToPNG();
+        void            switchOsc(bool on);
+        void            disableOSCInterface();
+        void            frontShowFromMenu(); 
     
     //Raises and shows the window
         void            frontShow();

@@ -8,8 +8,9 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 list<GUI*>               GUI::fGuiList;
@@ -48,8 +49,9 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     
     fShortcut = false;
     
-#ifdef __APPLE__
+#ifndef _WIN32
     fHttpdWindow = NULL;
+    fHttpInterface = NULL;
     fOscInterface = NULL;
 #endif
     fRCInterface = NULL;
@@ -57,6 +59,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fMenu = NULL;
     
     fPortHttp = httpdport;
+    fInterfaceUrl = "";
     fPortOsc = oscPort;
     
     fIsLocal = true;
@@ -186,8 +189,20 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
 			printf("Audio started\n");
             frontShow();
             
-#ifdef __APPLE__  
-            fOscInterface->run();
+#ifndef _WIN  
+            if(fOscInterface){
+                fOscInterface->run();
+                fPortOsc = fOscInterface->getUDPPort();
+            }
+            if(fHttpInterface){
+                
+                printf("Does HTTP RUN ? = %i\n", fMenu->isHttpOn());
+                
+                fHttpInterface->run();
+                
+                fPortHttp = fHttpInterface->getTCPPort();
+            }
+                setWindowsOptions();
 #endif
             fInterface->run();
             return true;
@@ -253,7 +268,6 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     if(charging_DSP){
         
         QString newName = newEffect->getName();
-        bool isLocalEffect = newEffect->isLocal();
         
         if(fAudioManager->init_FadeAudio(error, newName.toStdString().c_str(), charging_DSP)){
             
@@ -280,12 +294,23 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 fCurrent_DSP = charging_DSP; 
                 charging_DSP = VecInt;
                 
+                FLEffect* effectInter = fEffect;
                 fEffect = newEffect;
+                newEffect = effectInter;
                 
                 //Step 12 : Launch User Interface
                 fInterface->run();
-#ifdef __APPLE__
-                fOscInterface->run();
+#ifndef _WIN
+                if(fOscInterface){   
+                    fOscInterface->run();
+                    fPortOsc = fOscInterface->getUDPPort();
+                }
+                if(fHttpInterface){
+                    fHttpInterface->run();
+                    fPortHttp = fHttpInterface->getTCPPort();
+                }
+                
+                setWindowsOptions();
 #endif
                 isUpdateSucessfull = true;
             }
@@ -293,15 +318,14 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 error = "Impossible to allocate Interface";
         }
 
-        //-----Delete Charging DSP---PROBLEME ICI ICI ICI
+//-----Delete Charging DSP if update fails || Delete old DSP if update suceeds        
         
-        if(isLocalEffect)
+        if(newEffect->isLocal())
             deleteDSPInstance((llvm_dsp*)charging_DSP);
 #ifdef REMOTE  
         else
             deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
 #endif
-        
     }
     else{
         if(newEffect->isLocal())
@@ -326,6 +350,8 @@ void FLWindow::setToolBar(const QString& machineName){
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fMenu, SIGNAL(switchMachine(const QString&, int)), this, SLOT(redirectSwitch(const QString&, int)));
+    connect(fMenu, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
+    connect(fMenu, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     
 #ifdef REMOTE
     fMenu->setRemoteButtonName(machineName);
@@ -349,22 +375,43 @@ void FLWindow::setWindowsOptions(){
 //Reaction to the modifications of the ToolBar options
 void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
     
-    if(fPortHttp != port)
+    if(fPortHttp != port){
         fPortHttp = port;
+        
+        save_Window();
+#ifndef _WIN
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+        
+        allocateHttpInterface();
+        
+        fCurrent_DSP->buildUserInterface(fHttpInterface);
+        recall_Window();
+        fHttpInterface->run();
+        
+        fPortHttp = fHttpInterface->getTCPPort();
+        setWindowsOptions();
+#endif
+        
+    }
     
     if(fPortOsc != portOsc){
         fPortOsc = portOsc;
         
         save_Window();
         
-#ifdef __APPLE__
+#ifndef _WIN32
         delete fOscInterface;
+        fOscInterface = NULL;
         
         allocateOscInterface();
         
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
         fOscInterface->run();
+        
+        fPortOsc = fOscInterface->getUDPPort();
+        setWindowsOptions();
 #endif
     }
     
@@ -419,9 +466,9 @@ QString FLWindow::get_machineName(){
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifdef __APPLE__
-    if(fHttpdWindow != NULL)
-        return fHttpdWindow->get_Port();
+#ifndef _WIN32
+    if(fHttpInterface != NULL)
+        return fHttpInterface->getTCPPort();
     else
 #endif
         return fPortHttp;
@@ -434,18 +481,54 @@ int FLWindow::get_oscPort(){
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
 
+void FLWindow::disableOSCInterface(){
+    fMenu->switchOsc(false);
+}
+
+void FLWindow::switchOsc(bool on){
+ 
+    if(on){
+        
+        save_Window();
+#ifndef _WIN32
+        allocateOscInterface();
+        fCurrent_DSP->buildUserInterface(fOscInterface);
+        recall_Window();
+        fOscInterface->run();
+        
+        fPortOsc = fOscInterface->getUDPPort();
+        setWindowsOptions();
+#endif
+    }
+    else{
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
+}
+
+void catch_OSCError(void* arg){
+    
+    FLWindow* win = (FLWindow*)(arg);
+    
+    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");    
+    win->disableOSCInterface();
+}
+
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
-    char* argv[3];
-	argv[0] = fWindowName.toLatin1().data();
-    argv[1] = "-port";
-    
-    argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
-    
-#ifdef __APPLE__
-    fOscInterface = new OSCUI(argv[0], 3, argv);
+    if(fOscInterface == NULL){
+        
+        char* argv[3];
+        argv[0] = fWindowName.toLatin1().data();
+        argv[1] = "-port";
+        
+        argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
+        
+#ifndef WIN32
+        fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
 #endif
+    }
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
@@ -456,32 +539,35 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     
     fRCInterface = new FUI;
     
-    allocateOscInterface();
+    if(fMenu->isOscOn())
+        allocateOscInterface();
     
+    if(fMenu->isHttpOn())
+        allocateHttpInterface();
+
     //    printf("OSCINTERFACE = %p\n", fOscInterface);
-#ifdef __APPLE__ 
-    if(fOscInterface){
-#endif
-        if(fRCInterface){
+    if(fRCInterface){
+        
+        //Window tittle is build with the window Name + effect Name
+        QString intermediate = fWindowName + " : " + nameEffect;
+        
+        fInterface = new QTGUI(this, intermediate.toLatin1().data());
+        
+        if(fInterface){
             
-            //Window tittle is build with the window Name + effect Name
-            QString intermediate = fWindowName + " : " + nameEffect;
+            dsp->buildUserInterface(fRCInterface);
+            dsp->buildUserInterface(fInterface);
             
-            fInterface = new QTGUI(this, intermediate.toLatin1().data());
-            
-            if(fInterface){
-                
-                dsp->buildUserInterface(fRCInterface);
-                dsp->buildUserInterface(fInterface);
-#ifdef __APPLE__
+#ifndef _WIN32
+            if(fOscInterface)
                 dsp->buildUserInterface(fOscInterface);
+            
+            if(fHttpInterface)
+                dsp->buildUserInterface(fHttpInterface);
 #endif
-                return true;
-            }
+            return true;
         }
-#ifdef __APPLE__
-    }
-#endif    
+    }  
     return false;
 }
 
@@ -490,10 +576,17 @@ void FLWindow::deleteInterfaces(){
     
     delete fInterface;
     delete fRCInterface;
-#ifdef __APPLE__
-    delete fOscInterface;
-    fOscInterface = NULL;
+#ifndef _WIN32
+    if(fMenu->isOscOn()){
+        printf("OSC INTERFACE DELETED\n");
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
 #endif
+    if(fMenu->isHttpOn()){
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+    }
     fInterface = NULL;
     fRCInterface = NULL;
 }
@@ -567,19 +660,28 @@ void FLWindow::close_Window(){
     
     deleteInterfaces();
     
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fHttpdWindow){
         delete fHttpdWindow;
         fHttpdWindow = NULL;
     }
 #endif
-    //     printf("deleting instance = %p\n", current_DSP);   
-    deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
+    //     printf("deleting instance = %p\n", current_DSP);  
+    
+    if(fEffect->isLocal())
+        deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
+#ifdef REMOTE
+    else
+        deleteRemoteDSPInstance((remote_dsp*)fCurrent_DSP);
+#endif
     
     printf("DELETE AUDIO MANAGER FROM CLOSE WIN\n");
     
-    delete fAudioManager;
-    delete fMenu;
+    if(fAudioManager)
+        delete fAudioManager;
+    
+    if(fMenu)
+        delete fMenu;
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -821,75 +923,139 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-//Initalization of QrCode Window
-//@param : generalPortHttp = port on which remote drop on httpd interface is possible
-//@param : error = in case init fails, the error is filled
-bool FLWindow::init_Httpd(int generalPortHttp, QString& error){
- 
-    printf("PORT HTTPD = %i\n", fPortHttp);
+void FLWindow::resetHttpInterface(){
+
+    fMenu->switchHttp(false);
+    fMenu->switchHttp(true);
+}
+
+void FLWindow::allocateHttpInterface(){
     
-#ifdef __APPLE__ 
-    if(fHttpdWindow == NULL){
-        fHttpdWindow = new HTTPWindow();
-       connect(fHttpdWindow, SIGNAL(closeAll()), this, SLOT(shut_All()));
+    if(fMenu->isHttpOn()){
+        
+        QString optionPort = "-port";
+        QString windowTitle = fWindowName + ":" + fEffect->getName();
+        fPortHttp = fMenu->getPort();
+        
+        char* argv[3];
+        
+        argv[0] = (char*)(windowTitle.toLatin1().data());
+        argv[1] = (char*)(optionPort.toLatin1().data());
+        argv[2] = (char*)(QString::number(fPortHttp).toStdString().c_str());
+        
+        fHttpInterface = new httpdUI(argv[0], 3, argv);
+    }
+}
+
+void FLWindow::switchHttp(bool on){
+        
+    if(on){
+#ifndef _WIN32
+        save_Window();
+        allocateHttpInterface();
+        
+        fCurrent_DSP->buildUserInterface(fHttpInterface);
+        recall_Window();
+        fHttpInterface->run();
+        
+        fPortHttp = fHttpInterface->getTCPPort();
+        setWindowsOptions();
+#endif
+    }
+    else{
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+    } 
+}
+
+void FLWindow::viewQrCode(){
+    
+    if(fHttpInterface == NULL){
+        allocateHttpInterface();
     }
     
     if(fHttpdWindow != NULL){
-        fHttpdWindow->search_IPadress();
+        delete fHttpdWindow;
+        fHttpdWindow = NULL;
+    }
+    
+    fHttpdWindow = new HTTPWindow();
+    connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
+
+    if(fHttpdWindow){
         
-        //HttpdInterface reset the parameters when build. So we have to save the parameters before
+        QString fullUrl("");
         
-        save_Window();
+        fInterfaceUrl = "http://";
+        fInterfaceUrl += searchLocalIP();
+        fInterfaceUrl += ":";
+        
+        fullUrl = fInterfaceUrl;
+        
+        fullUrl += QString::number(fGeneralHttpPort);
+        fullUrl += "/";
+        fInterfaceUrl += QString::number(fHttpInterface->getTCPPort());
+        fullUrl += QString::number(fHttpInterface->getTCPPort());
+        
+        fInterface->displayQRCode(fullUrl, fHttpdWindow);
+        fHttpdWindow->move(calculate_Coef()*10, 0);
         
         QString windowTitle = fWindowName + ":" + fEffect->getName();
-        fPortHttp = fMenu->getPort();
-        if(fHttpdWindow->build_httpdInterface(error, windowTitle, fCurrent_DSP, fPortHttp)){
-            
-            //recall parameters to run them properly
-            //For a second, the initial parameters are reinitialize : it can sound weird
-            recall_Window();
-            
-            fHttpdWindow->launch_httpdInterface();
-            fHttpdWindow->display_HttpdWindow(calculate_Coef()*10, 0, generalPortHttp);
-           
-            fPortHttp = fHttpdWindow->get_Port();
-            setWindowsOptions();
-            return true;
-        }
-        else
-            return false;
+        
+        fHttpdWindow->setWindowTitle(windowTitle);
+        fHttpdWindow->raise();
+        fHttpdWindow->show();
+        fHttpdWindow->adjustSize();
     }
-    else{
-        error = "Httpd Window could not be allocated!"; 
-        return false;
-    }
-#endif
-	return false;
+    else
+        emit error("Enable Http Before Asking for Qr Code");
+}
+
+void FLWindow::exportToPNG(){
+    
+    printf("Export to PNG\n");
+    
+    QFileDialog* fileDialog = new QFileDialog;
+    fileDialog->setConfirmOverwrite(true);
+    
+    QString filename;
+    
+    filename = fileDialog->getSaveFileName(NULL, "PNG Name", tr(""), tr("(*.png)"));
+    
+    QString errorMsg;
+    
+    if(!fInterface->toPNG(filename, errorMsg))
+        emit error(errorMsg.toStdString().c_str());
+    
 }
 
 bool FLWindow::is_httpdWindow_active() {
     
-#ifdef __APPLE__
-    return fHttpdWindow->isActiveWindow();    
-#else
-	return false;
+#ifndef _WIN32
+    if(fHttpdWindow)
+        return fHttpdWindow->isActiveWindow();
 #endif
-
+	return false;
 }
 
 void FLWindow::hide_httpdWindow() {
-#ifdef __APPLE__
-    fHttpdWindow->hide();
+#ifndef _WIN32
+    if(fHttpdWindow)
+        fHttpdWindow->hide();
 #endif
 }
 
 QString FLWindow::get_HttpUrl() {
 
-#ifdef __APPLE__
-    return fHttpdWindow->getUrl();
+#ifndef _WIN32
+    return fInterfaceUrl;
 #else
 	return "";
 #endif
+}
+
+void FLWindow::set_GeneralPort(int port){
+    fGeneralHttpPort = port;
 }
 
 //------------------------Right Click Reaction
@@ -1164,7 +1330,9 @@ void FLWindow::duplicate(){
 }
 
 void FLWindow::httpd_View(){
-    emit httpd_View_Window();
+
+    fMenu->switchHttp(true);    
+    viewQrCode();
 }
 
 void FLWindow::svg_View(){
@@ -1274,44 +1442,22 @@ void FLWindow::import_Recent_Session(){
     emit recall_Snapshot(toto, true);
 }
 
-void FLWindow::initNavigateMenu(QList<QString> wins){
+void FLWindow::initNavigateMenu(QList<QAction*> wins){
         
-    QList<QString>::iterator it;
-    for(it = wins.begin(); it != wins.end() ; it++){
-
-        QAction* fifiWindow = new QAction(*it, fNavigateMenu);
-        fFrontWindow.push_back(fifiWindow);
-        
-        fifiWindow->setData(QVariant(*it));
-        connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
-        
-        fNavigateMenu->addAction(fifiWindow);
-        
-        printf("NAME = %s\n", (*it).toStdString().c_str());
-    }
-}
-
-void FLWindow::addWinInMenu(QString name){
-    
-    QAction* fifiWindow = new QAction(name, fNavigateMenu);
-    fFrontWindow.push_back(fifiWindow);
-    
-    fifiWindow->setData(QVariant(name));
-    connect(fifiWindow, SIGNAL(triggered()), this, SLOT(frontShowFromMenu()));
-    
-    fNavigateMenu->addAction(fifiWindow);
-}
-
-void FLWindow::deleteWinInMenu(QString name){
-    
     QList<QAction*>::iterator it;
-    for(it = fFrontWindow.begin(); it != fFrontWindow.end() ; it++){
-        if((*it)->data().toString().compare(name) == 0){
-            fNavigateMenu->removeAction(*it);
-            fFrontWindow.removeOne(*it);
-            break;
-        }
+    for(it = wins.begin(); it != wins.end() ; it++){
+        fNavigateMenu->addAction(*it);
     }
+}
+
+void FLWindow::addWinInMenu(QAction* newWin){
+    
+    fNavigateMenu->addAction(newWin);
+}
+
+void FLWindow::deleteWinInMenu(QAction* toDeleteWin){
+
+    fNavigateMenu->removeAction(toDeleteWin);
 }
 
 void FLWindow::frontShowFromMenu(){
@@ -1327,7 +1473,7 @@ void FLWindow::errorPrint(const char* msg){
 }
 
 int FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
-
+    
 #ifdef REMOTE
     QDateTime currentTime(QDateTime::currentDateTime());
     

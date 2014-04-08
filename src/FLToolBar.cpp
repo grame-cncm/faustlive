@@ -62,15 +62,39 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
 #ifndef _WIN32 || HTTPDVAR
+    
+    fHttpBox = new QGroupBox(tr("Enable Http Remote Interface"));
+    fHttpBox->setCheckable(true);
+    QVBoxLayout* httpLayout = new QVBoxLayout();
+    
+    connect(fHttpBox, SIGNAL(toggled(bool)), this, SLOT(redirectHttp(bool)));
+    
+    fHttpBox->setChecked(false);
+    
     fPortLine = new QLineEdit(tr(""), fWidget1);
-    fLayout1->addWidget(new QLabel(tr("HTTPD Port"), fWidget1));
-    fLayout1->addWidget(fPortLine);
+    httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
+    httpLayout->addWidget(fPortLine);
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
+    fHttpBox->setLayout(httpLayout);
+    fLayout1->addWidget(fHttpBox);
+    
+    fOscBox = new QGroupBox(tr("Enable Osc Remote Interface"));
+    fOscBox->setCheckable(true);
+    
+    QVBoxLayout* oscLayout = new QVBoxLayout();
+    
+    connect(fOscBox, SIGNAL(toggled(bool)), this, SLOT(redirectOsc(bool)));
+    
+    fOscBox->setChecked(false);
+    
     fPortOscLine = new QLineEdit(tr(""), fWidget1);
-    fLayout1->addWidget(new QLabel(tr("OSC Port"), fWidget1));
-    fLayout1->addWidget(fPortOscLine);
+    oscLayout->addWidget(new QLabel(tr("Osc Port"), fWidget1));
+    oscLayout->addWidget(fPortOscLine);
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+    fOscBox->setLayout(oscLayout);
+    fLayout1->addWidget(fOscBox);
 #endif
 
 
@@ -314,6 +338,38 @@ void FLToolBar::update_remoteMachine(){
 #endif
 }
 
+void FLToolBar::redirectHttp(bool on){
+    emit switch_http(on);
+}
 
+void FLToolBar::switchHttp(bool on){
+#ifndef _WIN32 || HTTPDVAR
+    fHttpBox->setChecked(on);
+#endif
+}
 
+bool FLToolBar::isHttpOn(){
+#ifndef _WIN32 || HTTPDVAR
+    return fHttpBox->isChecked();
+#else
+    return false;
+#endif
+}
 
+bool FLToolBar::isOscOn(){
+#ifndef _WIN32 || OSCVAR
+    return fOscBox->isChecked();
+#else
+    return false;
+#endif
+}
+
+void FLToolBar::redirectOsc(bool on){
+    emit switch_osc(on);
+}
+
+void FLToolBar::switchOsc(bool on){
+#ifndef _WIN32 || OSCVAR
+    fOscBox->setChecked(on);
+#endif
+}

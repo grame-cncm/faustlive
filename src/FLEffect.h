@@ -132,6 +132,7 @@ class FLEffect : public QObject
     //Accessors to source, name, watcher, ...
         QString      getSource();
         void        setSource(QString file);
+        string       get_expandedVersion();
     
         QDateTime   get_creationDate();
         

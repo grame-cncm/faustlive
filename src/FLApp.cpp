@@ -7,7 +7,7 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#ifdef __APPLE__
+#ifndef _WIN32
 #include "FLServerHttp.h"
 #else
 #include <windows.h>
@@ -69,7 +69,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
     
     //Initialiazing Remote Drop Server
-#ifdef __APPLE__
+#ifndef _WIN32
     fServerHttp = NULL;
     launch_Server();
 #endif
@@ -248,6 +248,7 @@ void FLApp::setup_Menu(){
     //----------------FILE
     
     QMenu* fileMenu = new QMenu;
+    fNavigateMenu = new QMenu;
     QMenu* helpMenu = new QMenu;
     
     QAction* newAction = new QAction(tr("&New Default Window"), this);
@@ -325,6 +326,18 @@ void FLApp::setup_Menu(){
     importSnapshotAction->setToolTip(tr("Import your snapshot in the current session"));
     connect(importSnapshotAction, SIGNAL(triggered()), this, SLOT(importSnapshotFromMenu()));
     
+    //SHUT
+    
+    QAction* shutAction = new QAction(tr("&Close Window"),this);
+    shutAction->setShortcut(tr("Ctrl+W"));
+    shutAction->setToolTip(tr("Close the current Window"));
+    connect(shutAction, SIGNAL(triggered()), this, SLOT(shut_Window()));
+    
+    QAction* shutAllAction = new QAction(tr("&Close All Windows"),this);
+    shutAllAction->setShortcut(tr("Ctrl+Alt+W"));
+    shutAllAction->setToolTip(tr("Close all the Windows"));
+    connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows()));
+    
     QAction* closeAllAction = new QAction(tr("&Closing"),this);
     closeAllAction->setShortcut(tr("Ctrl+Q"));
     closeAllAction = new QAction(tr("&Quit FaustLive"),this);
@@ -344,10 +357,18 @@ void FLApp::setup_Menu(){
     fileMenu->addAction(importSnapshotAction);
     fileMenu->addAction(importRecentAction->menuAction());
     fileMenu->addSeparator();
+    fileMenu->addAction(shutAction);
+    fileMenu->addAction(shutAllAction);
+    fileMenu->addSeparator();
     fileMenu->addAction(closeAllAction);
     
     fMenuBar->addSeparator();
-        
+    
+    //---------------------NAVIGATE MENU
+    
+    fNavigateMenu = fMenuBar->addMenu(tr("&Navigate"));    
+    fMenuBar->addSeparator();
+    
     //---------------------MAIN MENU
     
     QAction* aboutQtAction = new QAction(tr("&About Qt"), this);
@@ -399,7 +420,7 @@ void FLApp::setup_Menu(){
     
 //    EXPORT MANAGER
     
-    fExportDialog = new FLExportManager(fServerUrl, fSettingsFolder);
+    fExportDialog = new FLExportManager(fServerUrl, fSessionFolder);
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
@@ -541,7 +562,7 @@ QString FLApp::find_smallest_defaultName(QList<QString> currentDefault){
         ss = QString::number(index);
         
         nomEffet = DEFAULTNAME;
-        nomEffet += "-";
+        nomEffet += "_";
 		nomEffet += ss;
         
         QList<QString>::iterator it;
@@ -1026,10 +1047,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
                     else{
                         
                         deleteWinFromSessionFile(*it2);
-                        QString name = (*it2)->get_nameWindow();
-                        name+=" : ";
-                        name+= (*it2)->get_Effect()->getName();
-                        (*it2)->deleteWinInMenu(name);
                         addWinToSessionFile(*it2);
                         
                         QString oldSource = modifiedEffect->getSource();
@@ -1086,12 +1103,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
     FLEffect* leavingEffect = win->get_Effect();
     leavingEffect->stop_Watcher();
     deleteWinFromSessionFile(win);
-    
-    QString name = win->get_nameWindow();
-    name+=" : ";
-    name+= win->get_Effect()->getName();
-    
-    win->deleteWinInMenu(name);
+
     
     FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_Effect()->getRemoteIP(), win->get_Effect()->getRemotePort());
 
@@ -1189,6 +1201,8 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
 
 void FLApp::redirectMenuToWindow(FLWindow* win){
     
+    win->set_GeneralPort(fPort);
+    
     win->set_RecentFile(fRecentFiles);
     win->update_RecentFileMenu();
     
@@ -1226,6 +1240,11 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
 
 //--Creation of a new window
 FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
+    
+    if(FLW_List.size() >= numberWindows){
+        error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
+        return NULL;
+    }
     
     bool init = false;
     
@@ -1521,11 +1540,13 @@ void FLApp::open_Recent_File(const QString& toto){
         create_New_Window(toto);
 }
 
-//--------------------------------SESSION----------------------------------------
+//--------------------------------SESSION
 
 //Write Current Session Properties into a File
-void FLApp::sessionContentToFile(const QString& filename){
+void FLApp::sessionContentToFile(){
 
+    QString filename = fSessionFile;
+    
     QFile f(filename);
     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
@@ -1734,21 +1755,29 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     intermediate->portHttpd = win->get_Port();
     intermediate->isLocal = win->get_Effect()->isLocal();
     
+    fSessionContent.push_back(intermediate);
+    
     QString name = win->get_nameWindow();
     name+=" : ";
     name+= win->get_Effect()->getName();
     
-    fFrontWindow.push_back(name);
+    printf("ADD = %s\n", name.toStdString().c_str());
     
-    fSessionContent.push_back(intermediate);
+    QAction* newWin = new QAction(name, fNavigateMenu);
+    fFrontWindow.push_back(newWin);
+    
+    newWin->setData(QVariant(name));
+    connect(newWin, SIGNAL(triggered()), win, SLOT(frontShowFromMenu()));
+    
+    fNavigateMenu->addAction(newWin);
     
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->addWinInMenu(name);
+        (*it)->addWinInMenu(newWin);
 }
 
-//Add window from Current Session Structure
+//Delete window from Current Session Structure
 void FLApp::deleteWinFromSessionFile(FLWindow* win){
     
     QList<WinInSession*>::iterator it;
@@ -1756,33 +1785,30 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it++){
         
         if((*it)->ID == win->get_indexWindow()){
-            //            printf("REMOVING = %i\n", win->get_indexWindow());
+            
             fSessionContent.removeOne(*it);
             
-            //            QAction* toRemove = NULL;
-            
-            QList<QString>::iterator it2;
+            QList<QAction*>::iterator it2;
             for(it2 = fFrontWindow.begin(); it2 != fFrontWindow.end() ; it2++){
                 
                 QString name = win->get_nameWindow();
                 name+=" : ";
                 name+= win->get_Effect()->getName();
                 
-                if((*it2).compare(name) == 0){
+                printf("DELETE = %s\n", name.toStdString().c_str());
+                
+                if((*it2)->text().compare(name) == 0){
                     fFrontWindow.removeOne(*it2);
+                    
+                    fNavigateMenu->removeAction(*it2);
                     
                     QList<FLWindow*>::iterator it3;
                     
-                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++){
-                     
-                        if(win != *it3)
-                            (*it3)->deleteWinInMenu(name);
-                    }
-                    //                    toRemove = *it;
+                    for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++)
+                            (*it3)->deleteWinInMenu(*it2);
                     break;
                 }
             }
-            //            delete toRemove;
             break;
         }
     }
@@ -1872,7 +1898,7 @@ void FLApp::take_Snapshot(){
             filename = filename.mid(0, pos);
         
         update_CurrentSession();
-        sessionContentToFile(fSessionFile);
+        sessionContentToFile();
         
         //Copy of current Session under a new name, at a different location
         cpDir(fSessionFolder, filename);
@@ -2247,6 +2273,11 @@ void FLApp::recall_Session(const QString& filename){
                 fErrorWindow->print_Error(error);
             }
             
+            if(FLW_List.size() >= numberWindows){
+                fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
+                return;
+            }
+            
             FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->oscPort, (*it)->portHttpd);
             
             redirectMenuToWindow(win);
@@ -2615,7 +2646,7 @@ void FLApp::closeAllWindows(){
     display_Progress();
     
     update_CurrentSession();
-    sessionContentToFile(fSessionFile);
+    sessionContentToFile();
     
     QList<FLWindow*>::iterator it;
     
@@ -2704,7 +2735,7 @@ void FLApp::common_shutAction(FLWindow* win){
         set_Current_File(toto, tutu);
     
     deleteWinFromSessionFile(win);
-    sessionContentToFile(fSessionFile);
+    sessionContentToFile();
     
     win->shut_Window();
     
@@ -2718,7 +2749,7 @@ void FLApp::common_shutAction(FLWindow* win){
         else
             fRemoteEffects.removeOne(win->get_Effect());
 
-        removeFilesOfWin((win)->get_Effect()->getSource(), (win)->get_Effect()->getName());
+        removeFilesOfWin(toto, tutu);
         toDelete = (win)->get_Effect();
     }
     else if(!isSourceInCurrentSession((win)->get_Effect()->getSource())){
@@ -2809,7 +2840,7 @@ void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
     
 }
 
-//--------------------------------Navigate----------
+//--------------------------------Navigate---------------------------------
 
 void FLApp::frontShow(QString name){
     
@@ -2902,6 +2933,13 @@ void FLApp::edit_Action(){
 //Duplicate a specific window
 void FLApp::duplicate(FLWindow* window){
     
+    printf("SIZE OF LIST = %i\n", FLW_List.size());
+    
+    if(FLW_List.size() == numberWindows){
+        fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
+        return;
+    }
+    
     FLEffect* commonEffect = window->get_Effect();
     //To avoid flicker of the original window, the watcher is stopped during operation
     commonEffect->stop_Watcher();
@@ -2992,10 +3030,7 @@ void FLApp::paste_Text(){
 //View Httpd Window
 void FLApp::viewHttpd(FLWindow* win){
     
-    QString error("");
-    
-    if(!win->init_Httpd(fPort, error))
-        fErrorWindow->print_Error(error);
+    win->viewQrCode();
 }
 
 //View Httpd From Menu
@@ -3040,7 +3075,9 @@ void FLApp::svg_View_Action(){
 //Open ExportManager for a specific Window
 void FLApp::export_Win(FLWindow* win){
     
-    fExportDialog->exportFile(win->get_Effect()->getSource());
+    QString expanded_code = win->get_Effect()->get_expandedVersion().c_str();
+    
+    fExportDialog->exportFile(win->get_Effect()->getSource(), expanded_code);
 }
 
 //Export From Menu
@@ -3074,7 +3111,13 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QProcess myCmd;
     QByteArray error;
     
-    QString systemInstruct("sound2faust.exe ");
+    QString systemInstruct;
+#ifdef _WIN32
+    systemInstruct = "sound2faust.exe ";
+#else
+    systemInstruct = "sound2faust ";
+#endif
+    
     systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
@@ -3158,11 +3201,13 @@ void FLApp::setToolText(const QString & currentText){
         fToolText->setHtml("<br>Libqrencode is a C library for encoding data in a QR Code symbol, a kind of 2D symbology that can be scanned by handy terminals such as a mobile phone with CCD.<br><br>""LEARN MORE ABOUT LIB QRENCODE : <a href = http://fukuchi.org/works/qrencode> fukuchi.org/works/qrencode</a>\n");
     else if(currentText.compare("LIB MICROHTTPD") == 0)
         fToolText->setHtml("<br>GNU libmicrohttpd is a small C library that allows running an HTTP server as part of an application.<br><br>""LEARN MORE ABOUT LIB MICROHTTPD : <a href = http://www.gnu.org/software/libmicrohttpd> gnu.org/software/libmicrohttpd</a>\n");
+    else if(currentText.compare("OSC PACK") == 0)
+        fToolText->setHtml("<br>Oscpack is simply a set of C++ classes for packing and unpacking OSC packets. Oscpack includes a minimal set of UDP networking classes for Windows and POSIX.<br><br>""LEARN MORE ABOUTOSC PACK : <a href = http://code.google.com/p/oscpack/> code.google.com/p/oscpack/</a>\n");
 }
 
 //Set Text in Application Properties Menu of HELP
 void FLApp::setAppPropertiesText(const QString& currentText){
-    
+     
     if(currentText.compare("New Default Window")==0)
         fAppText->setPlainText("\nCreates a new window containing a simple Faust process.\n\n process = !,!:0,0; ");
     
@@ -3220,6 +3265,9 @@ void FLApp::setWinPropertiesText(const QString& currentText){
         QString text = "\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.";
 #ifndef _WIN || HTTPDVAR 
         text+="\n\nThe Httpd Port corresponds to the connection port for remote http control of the interface.\n\n The Httpd Port corresponds to the connection port for remote osc control of the interface.";
+#endif
+#ifndef _WIN || OSCVAR 
+        text+="\n\nThe OSC Port corresponds to the UDP port used for OSC control. \nWARNING : a port needs a few seconds to be released once a window is closed. Moreover, only 30 OSC ports can be opened at the same time.";
 #endif
         fWinText->setPlainText(text);
     }
@@ -3307,6 +3355,7 @@ void FLApp::init_HelpWindow(){
 #ifndef _WIN32 || HTTPDVAR 
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
+    vue->addItem(QString(tr("OSC PACK")));
 #endif
     
     vue->setMaximumWidth(150);
@@ -4704,6 +4753,11 @@ void FLApp::save_Mode(){
 #endif
         fPort = 7777;
     
+    QList<FLWindow*>::iterator it;
+    
+    for(it = FLW_List.begin(); it!= FLW_List.end(); it++)
+        (*it)->set_GeneralPort(fPort);
+    
     fPrefDialog->hide();
 
     if(fAudioCreator->didSettingChanged()){
@@ -4946,7 +5000,7 @@ void FLApp::StopProgressSlot(){
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
     
-#ifdef __APPLE__
+#ifndef _WIN32
     bool returning = true;
     
     if(fServerHttp == NULL){
@@ -4991,7 +5045,7 @@ void FLApp::launch_Server(){
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-#ifdef __APPLE__
+#ifndef _WIN32
     if(fServerHttp != NULL){
         fServerHttp->stop();
         delete fServerHttp;
@@ -5002,7 +5056,7 @@ void FLApp::stop_Server(){
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
-#ifdef __APPLE__   
+#ifndef _WIN32   
   string error("");
 
 	QString source(data);
@@ -5012,8 +5066,8 @@ void FLApp::compile_HttpData(const char* data, int port){
     if(win != NULL){
     
        update_SourceInWin(win, source);
-   
-       viewHttpd(win);
+        
+        win->resetHttpInterface();
        
        string url = win->get_HttpUrl().toStdString();
        

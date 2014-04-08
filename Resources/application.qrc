@@ -39,6 +39,5 @@
 <file>Libs/music.lib</file>
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
-<file>Libs/llvm_math.ll</file>
 </qresource>
 </RCC>

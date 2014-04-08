@@ -8,24 +8,27 @@
 
 #include "FLExportManager.h"
 
+#include <unistd.h>
 #include <fstream>
 #include <map>
 #include <vector>
 #include <string>
 #include <ctype.h>
 #include "SimpleParser.h"
-#include "../API_FAUSTWEB/Faust_Exporter.h"
+
+#include "utilities.h"
+#include "faust/llvm-dsp.h"
 
 #define JSON_ONLY
 
 using namespace std;
 
 //Init graphical elements of Export Manager Menu
-void FLExportManager::init()
+void FLExportManager::init_DialogWindow()
 {
     QFormLayout* exportLayout = new QFormLayout;
     
-    QString title("<h2>EXPORT MANAGER</2>");
+    QString title("<h2>Export Manager</2>");
     
     QLabel* dialogTitle = new QLabel(title);
     dialogTitle->setStyleSheet("*{color : black}");
@@ -34,7 +37,7 @@ void FLExportManager::init()
     exportLayout->addRow(dialogTitle);
     
     fMenu2Export = new QGroupBox(fDialogWindow);
-    fMenu2Layout = new QFormLayout;
+    fMenu2Layout = new QGridLayout;
     
     fExportPlatform = new QComboBox(fMenu2Export);
     connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
@@ -45,19 +48,15 @@ void FLExportManager::init()
     fExportChoice->addItem("binary.zip");
     fExportChoice->addItem("src.cpp");
     
-    fMenu2Layout->addRow(new QLabel("Platform"), fExportPlatform);
-    fMenu2Layout->addRow(new QLabel("Architecture"), fExportArchi);
-    fMenu2Layout->addRow(new QLabel("source or binary"), fExportChoice);
+    fMenu2Layout->addWidget(new QLabel("Platform"), 0, 0);
+    fMenu2Layout->addWidget(fExportPlatform, 0, 1);
+    fMenu2Layout->addWidget(new QLabel("Architecture"), 1, 0);
+    fMenu2Layout->addWidget(fExportArchi, 1, 1);
+    fMenu2Layout->addWidget(new QLabel("source or binary"), 2, 0);
+    fMenu2Layout->addWidget(fExportChoice, 2, 1);
     
-    QPushButton* updateButton = new QPushButton(tr("\n Refresh Targets \n"));
-    connect(updateButton, SIGNAL(released()), this, SLOT(targetsDescriptionReceived()));
-    
-//    fMenu2Layout->addRow(updateButton, new QLabel(""));
-//    fMenu2Layout->addRow(new QLabel(""));
-    
-    fErrorText = new QLabel;
-    fMenu2Layout->addRow(fErrorText);
-    
+    fErrorText = new QLabel("");
+    fMenu2Layout->addWidget(fErrorText, 3, 0, 1, 3);
     
     fMenu2Export->setLayout(fMenu2Layout);
     exportLayout->addRow(fMenu2Export);
@@ -72,7 +71,7 @@ void FLExportManager::init()
     saveButton->setDefault(true);
     
     connect(saveButton, SIGNAL(released()), this, SLOT(postExport()));
-    connect(cancel, SIGNAL(released()), fDialogWindow, SLOT(hide()));
+    connect(cancel, SIGNAL(released()), this, SLOT(setLastState()));
     
     intermediateLayout->addWidget(cancel);
     intermediateLayout->addWidget(new QLabel(tr("")));
@@ -84,244 +83,421 @@ void FLExportManager::init()
     fDialogWindow->setLayout(exportLayout);
 }
 
+void FLExportManager::setLastState(){
+    
+    fDialogWindow->hide();
+    
+    fLastPlatform = fExportPlatform->currentText();
+    fLastArchi = fExportArchi->currentText();
+    fLastChoice = fExportArchi->currentText();
+}
+
+//Displaying the progress of remote compilation
+void FLExportManager::init_MessageWindow(){
+    
+    QLabel* title = new QLabel(tr("<h2>Export Manager</h2>"));
+    title->setAlignment(Qt::AlignCenter);
+    
+    fMsgLayout = new QGridLayout;
+    
+    //    fMsgLayout->setFormAlignment(Qt::AlignLeft);
+    
+    fCheck1 = new QLabel("");
+    fConnectionLabel = new QLabel(tr("Connection to Server"));
+    
+    fCheck2 = new QLabel("");
+    fCompilationLabel = new QLabel(tr("Remote Compilation"));
+    
+    fCloseB = new QPushButton(tr("Cancel"), fDialogWindow);
+    fSaveB = new QPushButton(tr("Save"), fDialogWindow);
+    fOkB = new QPushButton(tr("Ok"), fDialogWindow);
+    
+    fPrgBar = new QProgressDialog;
+    fPrgBar->setRange(0,0);
+    fPrgBar->setCancelButton(false);
+    
+    fTextZone = new QTextEdit;
+    fTextZone->setReadOnly(true);
+    
+    fMsgLayout->addWidget(title, 0, 0, 1, 0, Qt::AlignCenter);
+    fMsgLayout->addWidget(new QLabel(tr("")), 1, 0, 1, 1, Qt::AlignCenter);
+    fMsgLayout->addWidget(fConnectionLabel, 2, 0, Qt::AlignCenter); 
+    fMsgLayout->addWidget(fCheck1, 2, 1, Qt::AlignCenter);
+    fMsgLayout->addWidget(fCompilationLabel, 3, 0, Qt::AlignCenter);
+    fMsgLayout->addWidget(fCheck2, 3, 1, Qt::AlignCenter);
+    fMsgLayout->addWidget(new QLabel(tr("")), 4, 0, 1, 4, Qt::AlignCenter);
+    fMsgLayout->addWidget(fPrgBar, 5, 0, 1, 5, Qt::AlignCenter);
+    fMsgLayout->addWidget(fTextZone, 5, 0, 1, 5, Qt::AlignCenter);
+    fMsgLayout->addWidget(new QLabel(tr("")), 6, 0, 1, 6, Qt::AlignCenter);
+    fMsgLayout->addWidget(fCloseB, 7, 0, Qt::AlignCenter);
+    fMsgLayout->addWidget(fSaveB, 7, 1, Qt::AlignCenter);
+    fMsgLayout->addWidget(fOkB, 7, 0, 1, 7, Qt::AlignCenter);
+    
+    connect(fCloseB, SIGNAL(released()), fMessageWindow, SLOT(hide()));
+    connect(fSaveB, SIGNAL(released()), this, SLOT(saveFileOnDisk()));
+    connect(fOkB, SIGNAL(released()), fMessageWindow, SLOT(hide()));
+    
+    fMessageWindow->setLayout(fMsgLayout);
+    fMessageWindow->adjustSize();
+    fMessageWindow->hide();
+}
+
 FLExportManager::FLExportManager(QString url, QString sessionHome)
 {
     std::cerr << "FLExportManager::FLExportManager(...)" << std::endl;
-
+    
     fHome = sessionHome;
-
+    
+    fLastPlatform = "";
+    fLastArchi = "";
+    fLastChoice = "";
+    
     fDialogWindow = new QDialog;
     fDialogWindow->setWindowFlags(Qt::FramelessWindowHint);
     
     fMessageWindow = new QDialog();
-    fMessageWindow ->setWindowFlags(Qt::FramelessWindowHint);
+    fMessageWindow->setWindowFlags(Qt::FramelessWindowHint);
     
     fTextZone = NULL;
     
     fServerUrl = QUrl(url);
-    init();
+    init_DialogWindow();
+    init_MessageWindow();
     
     QDir ImagesDir(":/");
     ImagesDir.cd("Images");
     
     fCheckImg = QPixmap(ImagesDir.absoluteFilePath("Check.png")); 
     fNotCheckImg = QPixmap(ImagesDir.absoluteFilePath("NotCheck.png"));
+    
 }
 
 FLExportManager::~FLExportManager()
 {
     delete fDialogWindow;
     delete fMessageWindow ;
-
+    
 }
 
 //Access Point for FaustLive to export a file
-void FLExportManager::exportFile(QString file){
-
+void FLExportManager::exportFile(QString file, QString faustCode){
+    
+    fCodeToSend = faustCode;
+    
+//    Reset message dialog graphical elements
+    fStep = 0;
+    fTextZone->clear();
+    fSaveB->hide();
+    fOkB->hide();
+    fCheck1->hide();
+    fConnectionLabel->hide();
+    fCheck2->hide();
+    fCompilationLabel->hide();
+    fTextZone->hide();
+    
     fFileToExport = file;
     
-    if(fPlatforms.size() == 0)
-        targetsDescriptionReceived();
+    fFilenameToSave = QFileInfo(file).baseName() + "_";
+    
+    fErrorText->setText("Searching for available targets...");
+    
+    QString targetUrl= fServerUrl.toString();
+    targetUrl += "/targets";
+    
+    //    Reset available targets
+    QNetworkRequest request(targetUrl);
+    QNetworkAccessManager *manager = new QNetworkAccessManager;
+    
+    QNetworkReply *targetReply = manager->get(request);
+    connect(targetReply, SIGNAL(finished()), this, SLOT(targetsDescriptionReceived()));
     
     fDialogWindow->setVisible(true);
-}
-
-void FLExportManager::set_URL(const QString& url){
-    fServerUrl = QUrl(url);
-    targetsDescriptionReceived();
 }
 
 //Build Graphical lists of OS and Platforms received from the server
 void FLExportManager::targetsDescriptionReceived()
 {
-    QString targetUrl= fServerUrl.toString();
-
-    string error("");
-    
+    fErrorText->setText("");
+    // prepare plaform menu
     fPlatforms.clear();
     fTargets.clear();
-    
     fExportPlatform->clear();
     fExportArchi->clear();
-
-    if(get_available_targets(targetUrl.toStdString(), fPlatforms, fTargets, error)){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    if(response->error() == QNetworkReply::NoError){
         
-        fErrorText->setText("");
+        QByteArray key = response->readAll();
+        const char* p = key.data();
         
-        // prepare plaform menu
-        for (size_t i=0; i<fPlatforms.size();i++) 
-            fExportPlatform->addItem(fPlatforms[i].c_str());
-        
-        fExportPlatform->show();
-        
-        // prepare architecture menu
-
-        vector<string> archs = fTargets[fPlatforms[0]];
-        
-        for (size_t i=0; i<archs.size();i++) 
-            fExportArchi->addItem(archs[i].c_str());
-        
-        fExportArchi->show();
-    }    
-    else{
-        fErrorText->setText(error.c_str());
+        if (parseOperatingSystemsList(p, fPlatforms, fTargets)) {
+            
+            printf("fExportPlatform SIZE = %i\n", fExportPlatform->count());
+            
+            for (size_t i=0; i<fPlatforms.size();i++) 
+                fExportPlatform->addItem(fPlatforms[i].c_str());
+            
+            fExportPlatform->show();
+            
+            // prepare architecture menu
+            vector<string> archs = fTargets[fPlatforms[0]];
+            
+            for (size_t i=0; i<archs.size();i++) 
+                fExportArchi->addItem(archs[i].c_str());
+            
+            fExportArchi->show();
+            
+            //    Recall last target choices
+            int index = fExportPlatform->findText(fLastPlatform);
+            if(index != -1)
+                fExportPlatform->setCurrentIndex(index);
+            
+            index = fExportArchi->findText(fLastArchi);
+            if(index != -1)
+                fExportArchi->setCurrentIndex(index);
+            
+            index = fExportChoice->findText(fLastChoice);
+            if(index != -1)
+                fExportChoice->setCurrentIndex(index);
+        } 
+        else {
+           
+            fErrorText->setText("Targets Could not be parsed.");
+        }
     }
+    else{
+        fErrorText->setText("Web Service is not available.\nVerify the web service URL in the preferences.");
+    }
+    
 }
-
 //Upload the file to the server with a post request
 void FLExportManager::postExport(){
     
-    fDialogWindow->hide();
+    setLastState();
     
-    display_progress();
-
-    string key("");
-    string error("");
-    string ip(fServerUrl.toString().toStdString());
+    fConnectionLabel->show();
+    fPrgBar->show();    
+    fMessageWindow->adjustSize();
+    fMessageWindow->show();
     
-    if(get_shaKey(ip, fFileToExport.toStdString(), key, error)){
+    printf("SERVER URL = %s\n", fServerUrl.toString().toStdString().c_str());
+    
+    QNetworkRequest requete(fServerUrl);
+    QNetworkAccessManager *m = new QNetworkAccessManager;
+    
+    //The boundary to recognize the end of the file. It should be random.
+    QByteArray boundary = "87142694621188";
+    QByteArray data;
+    
+    // Open the file to send
+    QFile file(fFileToExport);
+    if(file.open( QIODevice::ReadOnly)){
         
-        fCheck1->setPixmap(fCheckImg);
-        
-        fMsgLayout->insertRow(3, new QLabel(tr("Remote Compilation")), fCheck2);
-        
-        getFileFromKey(key.c_str());
+        data = "--" + boundary + "\r\n";
+        data += "Content-Disposition: form-data; name=\"file\"; filename=\"";
+        data += QFileInfo(fFileToExport).baseName();
+        data += ".dsp\";\r\nContent-Type: text/plain\r\n\r\n";
+        data += fCodeToSend;
+        data += "\r\n--" + boundary + "--\r\n";
     }
-    else{
-        fCheck1->setPixmap(fNotCheckImg);    
+    printf("DATA TO SEND = %s\n", data.data());
+    
+    requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+    requete.setRawHeader("Content-Length", QString::number(data.size()).toAscii());
+    
+    QNetworkReply *r = m->post(requete, data);
+    
+    connect(r, SIGNAL(finished()), this, SLOT(readKey()));
+    connect(r, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+}
 
-        showMsg(error.c_str());
+//Receiving the key generated by the server, responding to the post request
+void FLExportManager::readKey(){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    if(response->error() == QNetworkReply::NoError){
+        
+        fStep++;
+    
+        fCheck1->setPixmap(fCheckImg);
+        fCheck1->show();
+        
+        fCompilationLabel->show();
+        
+        QByteArray key = response->readAll();
+        
+        getFileFromKey(key.data());
     }
 }
 
-//Get File
+//When the Server sends back an error
+void FLExportManager::networkError(QNetworkReply::NetworkError /*msg*/){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    if(fStep == 0){
+        fCheck1->setPixmap(fNotCheckImg);
+        fCheck1->show();
+    }
+    else{
+        fCheck2->setPixmap(fNotCheckImg);
+        fCheck2->show();
+    }
+    fPrgBar->hide();
+    
+    fTextZone->setText(response->errorString());
+    fTextZone->show();
+}
+
+//Send new request : urlServer/SHA1Key/Platform/Architecture/BinaryOrSource
 void FLExportManager::getFileFromKey(const char* key){
     
     printf("Getting file from SHA1 Key...\n");
+    
+    QString urlString(fServerUrl.toString());
+    urlString += ("/");
+    urlString += key;
+    urlString += "/";
+    
+    urlString += fExportPlatform->currentText();
+    fFilenameToSave += fExportPlatform->currentText();
+    urlString += "/";
+    fFilenameToSave += "_";
+    urlString += fExportArchi->currentText();
+    fFilenameToSave += fExportArchi->currentText();
+    urlString += "/";
+    fFilenameToSave += "_";
+    urlString += fExportChoice->currentText();
+    fFilenameToSave += fExportChoice->currentText();
+    
+    printf("urlRequest = %s\n", urlString.toStdString().c_str());
+    const QUrl url = QUrl(urlString);
+    QNetworkRequest requete(url);
+    QNetworkAccessManager *m = new QNetworkAccessManager;
+    
+    QNetworkReply *r = m->get(requete);
+    
+    connect(r, SIGNAL(finished()), this, SLOT(showSaveB()));
+    connect(r, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));    
+    
+}
+
+//Manage the file received from server
+void FLExportManager::saveFileOnDisk(){
     
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
     
     QString filenameToSave;
-	
-    if(fExportChoice->currentText().compare("src.cpp") == 0)
-        filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", tr(""), tr("(*.cpp)"));
-    else
-        filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", tr(""), tr("(*.zip)"));
     
-    string output_file = filenameToSave.toStdString();
-    string error("");
-    QString msg("");
+    //     nom par défaut dans le dialogue
     
-    if(filenameToSave.compare("") == 0){
-        stopProgressSlot();
-        return;
-    }
+    QString defaultFilename = getenv("HOME");
+    defaultFilename += "/Desktop/" + fFilenameToSave;
     
-    if(get_file_from_key(fServerUrl.toString().toStdString(), key, fExportPlatform->currentText().toStdString(), fExportArchi->currentText().toStdString(), fExportChoice->currentText().toStdString(), output_file, error)){
+    printf("DEFAULT FILENAME = %s\n", defaultFilename.toStdString().c_str());
+    
+    if(fExportChoice->currentText().compare("src.cpp") == 0){
+        defaultFilename += ".cpp";
         
-        fCheck2->setPixmap(fCheckImg);
-        msg = filenameToSave + " was successfully exported";
-        
+        filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", defaultFilename, tr("(*.cpp)"));
     }
     else{
-        fCheck2->setPixmap(fNotCheckImg);
-        msg = error.c_str();
+        
+        //s defaultFilename += ".zip";
+        
+        filenameToSave = fileDialog->getSaveFileName(NULL, "Save File", defaultFilename, tr("(*.zip)"));
     }
     
-    showMsg(msg);
+    if(filenameToSave != ""){
+        
+        QFile f(filenameToSave); //On ouvre le fichier
+        
+        if ( f.open(QIODevice::WriteOnly) )
+        {
+            f.write(fDataReceived); ////On lit la réponse du serveur que l'on met dans un fichier
+            f.close(); //On ferme le fichier
+        }
+    }
+        fMessageWindow->hide();
 }
 
 //Dynamic changes of the available architectures depending on platform
 void FLExportManager::platformChanged(const QString& index)
 {
+    printf("INDEX = %s\n", index.toStdString().c_str());
+    
     fExportArchi->hide();
     fExportArchi->clear();
-
-	vector<string> architectures = fTargets[index.toStdString()];
-    vector<string>::iterator it; 
+    
+    vector<string> architectures = fTargets[index.toStdString()];
+    vector<string>::iterator it;
     
     for (it = architectures.begin(); it!=architectures.end(); it++) {
-		fExportArchi->addItem((*it).c_str());
+        fExportArchi->addItem((*it).c_str());
     }
     fExportArchi->show();
 }
 
-//Displaying the progress of remote compilation
-void FLExportManager::display_progress(){
+void FLExportManager::showSaveB(){
     
-    QLabel* title = new QLabel(tr("<h2>Export Manager</h2>"));
-    title->setAlignment(Qt::AlignCenter);
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
     
-    fMsgLayout = new QFormLayout;
-    fMsgLayout->setFormAlignment(Qt::AlignLeft);
+    if(response->error() == QNetworkReply::NoError){
+        
+        fDataReceived = response->readAll();
+        
+        fCheck2->setPixmap(fCheckImg);
+        fCheck2->show();
+        
+        fPrgBar->hide();
+        
+        QString sucessMsg = fFilenameToSave;
+        sucessMsg += " was successfully exported";
+        
+        fTextZone->setText(sucessMsg);
+        fTextZone->show();
+        
+        fSaveB->show();
+        
+        response->deleteLater(); //IMPORTANT : on emploie la fonction deleteLater() pour supprimer la réponse du serveur.
+        //Si vous ne le faites pas, vous risquez des fuites de mémoire ou autre.
+    } 
     
-    fCheck1 = new QLabel("");
-    fCheck2 = new QLabel("");
-    
-    QWidget* intermediateWidget = new QWidget(fDialogWindow);
-    QHBoxLayout* intermediateLayout = new QHBoxLayout;
-    
-    fCloseB = new QPushButton(tr("Ok"), intermediateWidget);
-    
-    intermediateLayout->addWidget(fCloseB);
-    
-    intermediateWidget->setLayout(intermediateLayout);
-    
-    fPrgBar = new QProgressDialog;
-    fPrgBar->setRange(0,0);
-    fPrgBar->setCancelButton(false);
-    
-    fMsgLayout->addRow(title);
-    fMsgLayout->addRow(new QLabel(tr("")));
-    fMsgLayout->addRow(new QLabel(tr("Connection to Server")), fCheck1);
-    fMsgLayout->addRow(new QLabel(tr("")));
-    fMsgLayout->addRow(fPrgBar);
-    fMsgLayout->addRow(new QLabel(tr("")));
-    fMsgLayout->addRow(intermediateWidget);
-    
-    connect(fCloseB, SIGNAL(released()), this, SLOT(stopProgressSlot()));
-    
-    fCloseB->hide();
-    
-    fMessageWindow->setLayout(fMsgLayout);
-
-    fMessageWindow->adjustSize();
-    fMessageWindow->show();
-    fMessageWindow->raise();
 }
 
-void FLExportManager::showMsg(const QString& msg){
+void FLExportManager::set_URL(const QString& url){
     
-    delete fPrgBar;
+    bool isVisible = true;
     
-    fTextZone = new QTextEdit;
-    fTextZone->setPlainText(msg);
-    fTextZone->setReadOnly(true);
+    if(fDialogWindow->isVisible())
+        isVisible = false;
     
-    fMsgLayout->insertRow(5, fTextZone);
+    setLastState();
     
-    fCloseB->show();
+    if(!isVisible)
+        fDialogWindow->show();
+
+//    DO SOMETHING ABOUT THIS
+    
+//    if(url.indexOf("http://") != 0){
+//        QString fullUrl = "http://" + url;
+//        fServerUrl = QUrl(fullUrl);
+//    }
+//    else
+        fServerUrl = QUrl(url);
+    
+    QString targetUrl= fServerUrl.toString();
+    targetUrl += "/targets";
+    
+    //    Reset available targets
+    QNetworkRequest request(targetUrl);
+    QNetworkAccessManager *manager = new QNetworkAccessManager;
+    
+    QNetworkReply *targetReply = manager->get(request);
+    connect(targetReply, SIGNAL(finished()), this, SLOT(targetsDescriptionReceived()));   
 }
-
-//Stop displaying the message
-void FLExportManager::stopProgressSlot(){
-    fMessageWindow->hide();
-    
-    delete fCheck1;
-    delete fCheck2;
-
-//    In case the save dialog is canceled, the textzone has been created yet 
-//    and the progress bar has not been deleted
-    if(fTextZone)
-        delete fTextZone;
-    else
-        delete fPrgBar;
-    
-    delete fCloseB;
-    delete fMsgLayout;
-}
-
-
 
 

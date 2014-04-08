@@ -23,7 +23,8 @@ class CA_audioManager : public AudioManager{
     //Settings are common to the 2 audioFader that can co-exist during a crossfade    
         int                 fBufferSize;
         const char*         fName;
-        bool                fInit;
+        bool                fInit; //To know which way the audio was initialized
+        bool                fStopped;  //If CoreAudio stops for some reason ...
     
         CA_audioFader*      fCurrentAudio;
         CA_audioFader*      fFadeInAudio;

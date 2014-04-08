@@ -55,11 +55,8 @@ QT+=core
 QT+=gui
 QT+=network
 
-macx{
-LIBS+=-L/usr/local/lib/faust
-LIBS+= $$LLVMDIR
-}
-else{
+
+win32{
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
@@ -67,28 +64,39 @@ LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
 LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
 }
+else{
+LIBS+=-L/usr/local/lib/faust
+LIBS+= $$LLVMDIR
+}
 
 
 LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
 
-macx{
-LIBS+=-lqrencode
-LIBS+=-lHTTPDFaust
-LIBS+=-lOSCFaust -loscpack
-LIBS+=-L/opt/local/lib
-LIBS+=-lmicrohttpd
-#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
-LIBS+= $$LLVMDIR
-LIBS+=-lcurl
-}
-else{
+
+win32{
 equals(HTTPDVAR, 1){
 LIBS+=-lHTTPDFaust
 LIBS+=-lqrcodelib
 LIBS+=-llibcurl
 }
 }
+else{
+	LIBS+=-lqrencode
+	LIBS+=-lHTTPDFaust
+	LIBS+=-lOSCFaust -loscpack
+	LIBS+=-L/opt/local/lib
+	LIBS+=-lmicrohttpd
+	#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
+	LIBS+= $$LLVMDIR
+	LIBS+=-lcurl
+	LIBS+=-lcrypto
+
+DEFINES += HTTPCTRL
+DEFINES += QRCODECTRL
+}
+
+
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
 
@@ -168,11 +176,11 @@ equals(ALVAR, 1){
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
-macx{
-	LIBS += -lportaudio
+win32{
+	LIBS += -lportaudio_x86
 }
 else{
-        LIBS += -lportaudio_x86
+	LIBS += -lportaudio
 }
 	DEFINES += PORTAUDIO
 	HEADERS += 	src/PA_audioFactory.h \
@@ -203,17 +211,19 @@ HEADERS +=              src/AudioSettings.h \
                         src/FLWindow.h \
                         src/FLApp.h \
                         src/SimpleParser.h
-macx{
-HEADERS +=	        src/FLServerHttp.h \
-					src/HTTPWindow.h \
-					API_FAUSTWEB/Faust_Exporter.h \
-                        /usr/local/include/faust/gui/faustqt.h
+win32{
+	equals(HTTPDVAR, 1){
+			HEADERS +=		src/HTTPWindow.h 
+	}
+	HEADERS +=      C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h
 }
 else{
-equals(HTTPDVAR, 1){
-HEADERS +=		src/HTTPWindow.h 
-}
-HEADERS +=      C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h
+	
+	HEADERS +=	        src/FLServerHttp.h \
+						src/HTTPWindow.h \
+#						API_FAUSTWEB/Faust_Exporter.h \
+                        /usr/local/include/faust/gui/faustqt.h
+
 }
 
 SOURCES += 	src/AudioCreator.cpp \
@@ -225,21 +235,22 @@ SOURCES += 	src/AudioCreator.cpp \
                 src/FLEffect.cpp \
                 src/FLWindow.cpp \
                 src/FLApp.cpp
-macx{
-SOURCES +=	src/FLServerHttp.cpp \
-			API_FAUSTWEB/Faust_Exporter.cpp \
-                src/HTTPWindow.cpp 
+win32{
+	equals(HTTPDVAR, 1){
+		SOURCES +=	src/HTTPWindow.cpp
+	}
 }
 else{
-equals(HTTPDVAR, 1){
-SOURCES +=	src/HTTPWindow.cpp
-}
+	SOURCES +=	src/FLServerHttp.cpp \
+#				API_FAUSTWEB/Faust_Exporter.cpp \
+                src/HTTPWindow.cpp 
 }
 
 SOURCES +=      src/SimpleParser.cpp \
                 src/main.cpp
 
 RESOURCES     = Resources/application.qrc
+win32:RESOURCES += Resources/windows.qrc
 
 
 

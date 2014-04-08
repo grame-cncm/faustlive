@@ -18,6 +18,8 @@
 #include <QtWidgets>
 #endif
 
+#define numberWindows 60
+
 class FLServerHttp;
 class FLExportManager;
 class FLErrorWindow;
@@ -70,12 +72,13 @@ class FLApp : public QApplication
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
+        QMenu*              fNavigateMenu;
     
         QAction**           fRecentFileAction;
         QAction**           fRrecentSessionAction;
         QAction**           fIrecentSessionAction;
     
-        QList<QString>     fFrontWindow;
+        QList<QAction*>     fFrontWindow;
 
         void                setup_Menu();
         void                redirectMenuToWindow(FLWindow* win);
@@ -186,7 +189,6 @@ class FLApp : public QApplication
         void                recall_Session(const QString& filename);
         void                addWinToSessionFile(FLWindow* win);
         void                deleteWinFromSessionFile(FLWindow* win);
-        void                update_CurrentSession();
     
     //In case of an import, those steps are necessary to modify the session before opening it
         QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);
@@ -205,7 +207,6 @@ class FLApp : public QApplication
     
     //Functions of read/write of a session description file
         QString             parseNextOption(QString& optionsCompilation);
-        void                sessionContentToFile(const QString& filename);
         void                fileToSessionContent(const QString& filename, QList<WinInSession*>* session);
     
     //Reset of the Folders contained in the current Session Folder
@@ -293,9 +294,6 @@ class FLApp : public QApplication
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
-        void                shut_Window(); 
-        void                shut_AllWindows();
-        virtual void        closeAllWindows();
         void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();
@@ -358,9 +356,6 @@ class FLApp : public QApplication
         void                display_CompilingProgress(const QString& msg);
         void                StopProgressSlot(); 
     
-    //--------Error received
-        void                errorPrinting(const char* msg);
-    
     //--------Server Response
         void                compile_HttpData(const char* data, int port);
         void                stop_Server();
@@ -371,6 +366,17 @@ class FLApp : public QApplication
         virtual             ~FLApp();
     
         void                create_New_Window(const QString& name);
+    
+    public slots :
+    
+        virtual void        closeAllWindows();
+        void                shut_AllWindows();
+        void                shut_Window(); 
+        void                update_CurrentSession();
+        void                sessionContentToFile();
+
+    //--------Error received
+    void                errorPrinting(const char* msg);
 
 };
 
