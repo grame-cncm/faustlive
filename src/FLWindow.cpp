@@ -494,9 +494,11 @@ void FLWindow::switchOsc(bool on){
         allocateOscInterface();
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
+        printf("Before Run\n");
         fOscInterface->run();
-        
+        printf("After Run\n");
         fPortOsc = fOscInterface->getUDPPort();
+        printf("Before getPort\n");
         setWindowsOptions();
 #endif
     }
@@ -520,13 +522,15 @@ void FLWindow::allocateOscInterface(){
     if(fOscInterface == NULL){
         
         char* argv[3];
-        argv[0] = fWindowName.toLatin1().data();
+        argv[0] = (char*)(fWindowName.toStdString().c_str());
         argv[1] = "-port";
         
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
 #ifndef WIN32
+        printf("Before New OSCUI\n");
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
+        printf("After New OSCUI\n");
 #endif
     }
 }
