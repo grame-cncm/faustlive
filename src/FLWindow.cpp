@@ -89,7 +89,11 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fLastMigration = QDateTime::currentDateTime();
 }
 
-FLWindow::~FLWindow(){}
+FLWindow::~FLWindow(){
+
+    printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
+
+}
 
 //------------------------WINDOW ACTIONS
 
@@ -627,9 +631,10 @@ void FLWindow::print_initWindow(){
 //Reaction to click an x button
 void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
-    if(!fShortcut)
+    if(!fShortcut){
+        printf("EMIT closeWIn from closeEvent = %s\n", fWindowName.toStdString().c_str());
         emit closeWin();
-    else
+    }else
         emit shut_AllWindows();
 }
 
@@ -656,6 +661,8 @@ void FLWindow::shut_Window(){
 
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
+    
+    printf("FLWindow::close_Window %s\n", fWindowName.toStdString().c_str());
     
     hide();
     
@@ -1310,6 +1317,7 @@ void FLWindow::importSnapshot(){
 
 void FLWindow::shut(){
     
+    printf("Close Win from shut WindowAction\n");
     emit closeWin();
 }
 
