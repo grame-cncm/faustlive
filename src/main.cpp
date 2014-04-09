@@ -42,21 +42,6 @@ FLApp* app;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-#if defined(WIN32) && !defined(_DEBUG)
-# define USEWINMAIN
-#endif
-//_______________________________________________________________________
-#ifdef USEWINMAIN
-#include <windows.h>
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow)
-#else
-int main( int argc, char **argv )
-#endif
-{
-#ifdef USEWINMAIN
-int argc = __argc;
-char **argv = __argv;
-#endif
 
 #ifndef _WIN32
 void myMessageOutput(QtMsgType type, const char *msg)
@@ -107,6 +92,23 @@ static bool GetMaximumFiles(int& filecount)
 }
 
 #endif
+
+
+#if defined(WIN32) && !defined(_DEBUG)
+# define USEWINMAIN
+#endif
+//_______________________________________________________________________
+#ifdef USEWINMAIN
+#include <windows.h>
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow){
+#else
+int main( int argc, char **argv ){
+#endif
+#ifdef USEWINMAIN
+int argc = __argc;
+char **argv = __argv;
+#endif
+
 #ifndef _WIN32
     qInstallMsgHandler(myMessageOutput);
     
