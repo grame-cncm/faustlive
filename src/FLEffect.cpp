@@ -9,9 +9,6 @@
 // An Effect takes care of the compilation of a DSP. Moreover, it is notify in case, the DSP has been modified. 
 
 #include "FLEffect.h"
-
-#define LIBRARY_PATH "\\Resources\\Libs\\"
-
 #include "faust/llvm-dsp.h"
 #include "utilities.h"
 

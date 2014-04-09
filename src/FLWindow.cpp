@@ -193,7 +193,7 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
 			printf("Audio started\n");
             frontShow();
             
-#ifndef _WIN  
+#ifndef _WIN32  
             if(fOscInterface){
                 fOscInterface->run();
                 fPortOsc = fOscInterface->getUDPPort();
@@ -304,7 +304,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 
                 //Step 12 : Launch User Interface
                 fInterface->run();
-#ifndef _WIN
+#ifndef _WIN32
                 if(fOscInterface){   
                     fOscInterface->run();
                     fPortOsc = fOscInterface->getUDPPort();
@@ -383,7 +383,7 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
         fPortHttp = port;
         
         save_Window();
-#ifndef _WIN
+#ifndef _WIN32
         delete fHttpInterface;
         fHttpInterface = NULL;
         
@@ -590,11 +590,11 @@ void FLWindow::deleteInterfaces(){
         delete fOscInterface;
         fOscInterface = NULL;
     }
-#endif
     if(fMenu->isHttpOn()){
         delete fHttpInterface;
         fHttpInterface = NULL;
     }
+#endif
     fInterface = NULL;
     fRCInterface = NULL;
 }
@@ -941,7 +941,8 @@ void FLWindow::resetHttpInterface(){
 }
 
 void FLWindow::allocateHttpInterface(){
-    
+   
+#ifndef _WIN32
     if(fMenu->isHttpOn()){
         
         QString optionPort = "-port";
@@ -956,12 +957,13 @@ void FLWindow::allocateHttpInterface(){
         
         fHttpInterface = new httpdUI(argv[0], 3, argv);
     }
+#endif
 }
 
 void FLWindow::switchHttp(bool on){
-        
+
+#ifndef _WIN32        
     if(on){
-#ifndef _WIN32
         save_Window();
         allocateHttpInterface();
         
@@ -971,16 +973,17 @@ void FLWindow::switchHttp(bool on){
         
         fPortHttp = fHttpInterface->getTCPPort();
         setWindowsOptions();
-#endif
+
     }
     else{
         delete fHttpInterface;
         fHttpInterface = NULL;
     } 
+#endif
 }
 
 void FLWindow::viewQrCode(){
-    
+#ifndef _WIN32
     if(fHttpInterface == NULL){
         allocateHttpInterface();
     }
@@ -1020,10 +1023,11 @@ void FLWindow::viewQrCode(){
     }
     else
         emit error("Enable Http Before Asking for Qr Code");
+#endif
 }
 
 void FLWindow::exportToPNG(){
-    
+#ifndef _WIN32
     printf("Export to PNG\n");
     
     QFileDialog* fileDialog = new QFileDialog;
@@ -1037,7 +1041,7 @@ void FLWindow::exportToPNG(){
     
     if(!fInterface->toPNG(filename, errorMsg))
         emit error(errorMsg.toStdString().c_str());
-    
+#endif
 }
 
 bool FLWindow::is_httpdWindow_active() {

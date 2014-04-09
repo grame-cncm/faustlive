@@ -30,18 +30,35 @@ using namespace std;
 #include <windows.h>
 #endif
 
-#include <sys/time.h>
-#include <sys/resource.h>
-
-//-------------------------------------------------------------------------
-// 									MAIN
-//-------------------------------------------------------------------------
+//#include <sys/time.h>
+//#include <sys/resource.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
 FLApp* app;
 
+//-------------------------------------------------------------------------
+// 									MAIN
+//-------------------------------------------------------------------------
+
+#if defined(WIN32) && !defined(_DEBUG)
+# define USEWINMAIN
+#endif
+//_______________________________________________________________________
+#ifdef USEWINMAIN
+#include <windows.h>
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow)
+#else
+int main( int argc, char **argv )
+#endif
+{
+#ifdef USEWINMAIN
+int argc = __argc;
+char **argv = __argv;
+#endif
+
+#ifndef _WIN32
 void myMessageOutput(QtMsgType type, const char *msg)
 {
     switch (type) {
@@ -89,23 +106,21 @@ static bool GetMaximumFiles(int& filecount)
 	}
 }
 
-
-int main(int argc, char *argv[])
-{
+#endif
+#ifndef _WIN32
     qInstallMsgHandler(myMessageOutput);
     
     int filecount = 0;
     if(GetMaximumFiles(filecount)){
         
         cout<<filecount<<endl;
-        
+      
         if(SetMaximumFiles(4096)){
-        
             filecount = 0;
             GetMaximumFiles(filecount);
             
             cout<<filecount<<endl;
-            
+#endif 
             app = new FLApp(argc, argv);
             
             //    If app was executed with DSP as arguments
@@ -119,8 +134,9 @@ int main(int argc, char *argv[])
             app->exec();
             
             delete app;
+#ifndef _WIN32
         }
     }
+#endif
     return 0;
 }
-
