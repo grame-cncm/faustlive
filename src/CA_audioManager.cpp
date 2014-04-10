@@ -20,7 +20,7 @@ CA_audioManager::CA_audioManager(AudioSettings* as) : AudioManager(as){
     
     fCurrentAudio = new CA_audioFader(fBufferSize);
     
-    fStopped = false;
+//    fStopped = false;
     
 }
 
@@ -75,7 +75,7 @@ bool CA_audioManager::start(){
 
 void CA_audioManager::stop(){
     
-    if(!fStopped)
+//    if(!fStopped)
         fCurrentAudio->stop();
 }
 
@@ -111,7 +111,7 @@ void CA_audioManager::start_Fade(){
 //When the crossfade ends, FadeInAudio becomes the current audio 
 void CA_audioManager::wait_EndFade(){
     
-    fStopped = false;
+//    fStopped = false;
     
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
     QDateTime currentTime(QDateTime::currentDateTime());
@@ -125,7 +125,7 @@ void CA_audioManager::wait_EndFade(){
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();
             
-            fStopped = true;
+//            fStopped = true;
 //            break;
         }
     }

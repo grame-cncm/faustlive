@@ -39,6 +39,9 @@ class FLExportManager : public QObject{
     QString              fCodeToSend;
     
     //Export graphical parameters 
+    QNetworkReply*      fTargetReply;
+    QNetworkReply *     fPostReply;
+    QNetworkReply*      fGetKeyReply;
     
     QDialog*        fDialogWindow;  //Export Manager to choose your export parameters
     QDialog*        fMessageWindow; //Window that displays the progress of the export process
@@ -80,6 +83,7 @@ class FLExportManager : public QObject{
     
     void                init_MessageWindow();
     void                init_DialogWindow();
+    void                abortReply(QNetworkReply* reply);
     
     public :
     
@@ -101,6 +105,7 @@ class FLExportManager : public QObject{
     void            platformChanged(const QString& index);
     void            showSaveB();
     void            setLastState();
+    void            redirectAbort();
 };
 
 #endif

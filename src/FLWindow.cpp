@@ -631,10 +631,9 @@ void FLWindow::print_initWindow(){
 //Reaction to click an x button
 void FLWindow::closeEvent(QCloseEvent* /*event*/){
     
-    if(!fShortcut){
-        printf("EMIT closeWIn from closeEvent = %s\n", fWindowName.toStdString().c_str());
+    if(!fShortcut)
         emit closeWin();
-    }else
+    else
         emit shut_AllWindows();
 }
 
@@ -693,6 +692,8 @@ void FLWindow::close_Window(){
     
     if(fMenu)
         delete fMenu;
+    
+    blockSignals(true);
 }
 
 //------------------------DRAG AND DROP ACTIONS
