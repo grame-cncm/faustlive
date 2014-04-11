@@ -48,13 +48,13 @@ void myMessageOutput(QtMsgType type, const char *msg)
 {
     switch (type) {
         case QtDebugMsg:
-            printf("DEBUG MESAGE\n");
+            printf("DEBUG MESSAGE\n");
             break;
         case QtWarningMsg:
-            printf("WARNING MESAGE\n");
+            printf("WARNING MESSAGE\n");
             break;
         case QtCriticalMsg:
-            printf("CRITICAL MESAGE\n");
+            printf("CRITICAL MESSAGE\n");
             break;
         case QtFatalMsg:
             printf("FATAL\n");
