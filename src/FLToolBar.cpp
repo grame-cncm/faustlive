@@ -166,9 +166,10 @@ void FLToolBar::openRemoteBox(){
 #endif
 }
 
-void FLToolBar::setRemoteButtonName(const QString& name){
+void FLToolBar::setRemoteButtonName(const QString& name, const QString& ipServer){
     
     fRemoteButton->setText(name);
+    fIpRemoteServer = ipServer;
 }
 
 //Reaction to a click cancellation
@@ -179,7 +180,7 @@ void FLToolBar::remoteFailed(){
 }
 
 void FLToolBar::remoteSuccessfull(){
-    setRemoteButtonName(fNewName);
+    setRemoteButtonName(fNewName, fIpRemoteServer);
 }
 
 void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
@@ -311,6 +312,14 @@ QString FLToolBar::machineName(){
 	return "";
 #endif
 
+}
+
+QString FLToolBar::ipServer(){
+#ifdef REMOTE
+    return fIpRemoteServer;
+#else
+	return "";
+#endif
 }
 
 //--- Update when new processing machine is chosen

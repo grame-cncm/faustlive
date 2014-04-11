@@ -788,10 +788,16 @@ FLEffect* FLApp::getCompiledEffect(bool isLocal, QString source, const QString& 
                 return *it;
             
 //Effect kept but potentially its name is used by another effect in the current session
+//            Potentially the code has to be recompiled (code has been modified in remote or before being reused)
             else{
                 (*it)->setName(renameEffect(source, (*it)->getName(), false));
                 
-                if((*it)->hasToBeRecompiled())
+                QString copyFile = fSourcesFolder + "/" + (*it)->getName() + ".dsp";
+                
+                QString contentSaved = pathToContent(source);
+                QString contentInSource = pathToContent(copyFile);
+                
+                if((*it)->hasToBeRecompiled() || contentSaved.compare(contentInSource) != 0)
                     synchronize_Window(*it);
                 
                 return *it;
@@ -1107,7 +1113,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
         
         setRecompileEffects(modifiedEffect);
         
-        
         modifiedEffect->erase_OldFactory();
         modifiedEffect->launch_Watcher();
         printf("modifiedEffect OPT = %i\n", modifiedEffect->getOptValue());
@@ -1299,7 +1304,7 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         return NULL;
     }
     
-    bool init = false;
+    int init = kNoInit;
     
     QString source(mySource);
     
@@ -1307,7 +1312,11 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
     if(source.compare("") == 0){
         
         source = "process = !,!:0,0;";
-        init = true;
+        
+        if(fStyleChoice == "Blue" || fStyleChoice == "Grey")
+            init = kInitWhite;
+        else
+            init = kInitBlue;
     }
     
     //Choice of new Window's index
@@ -1865,6 +1874,62 @@ void FLApp::update_CurrentSession(){
     }
 }
 
+//Sorting out the element of the Current Session that have to be copied in the snapshot
+void FLApp::createSnapshotFolder(const QString& snapshotFolder){
+ 
+    QFile descriptionFile(fSessionFile);
+    QString descFileCpy = snapshotFolder + "/" + "Description.sffx";
+    descriptionFile.copy(descFileCpy);
+    
+    
+    QDir nv(snapshotFolder);
+    nv.mkdir(snapshotFolder);
+    
+    QString ss(snapshotFolder);
+    ss += "/Sources";
+    nv.mkdir(ss);
+    
+    QString svg(snapshotFolder);
+    svg += "/SVG";
+    nv.mkdir(svg);
+    
+    QString ir(snapshotFolder);
+    ir += "/IR";
+    nv.mkdir(ir);
+    
+    
+    for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
+        if(isSourceInCurrentSession((*it)->get_Effect()->getSource())){
+        
+//            COPY WINDOW FOLDER
+            QString winFolder = fSessionFolder + "/" + (*it)->get_nameWindow();
+            QString winFolderCpy = snapshotFolder + "/" + (*it)->get_nameWindow();
+            
+            cpDir(winFolder, winFolderCpy);
+            
+//            COPY IR FILE
+            QString irFile = fIRFolder + "/" + (*it)->get_Effect()->getName();
+            QString irFileCpy = ir + "/" + (*it)->get_Effect()->getName();
+            
+            QFile irF(irFile);
+            irF.copy(irFileCpy);
+            
+//            COPY SOURCE SAVED
+            QString sourceFile = fSourcesFolder + "/" + (*it)->get_Effect()->getName() + ".dsp";
+            QString sourceFileCpy = ss + "/" + (*it)->get_Effect()->getName() + ".dsp";
+            
+            QFile sourceF(sourceFile);
+            sourceF.copy(sourceFileCpy);
+            
+//            COPY SVG
+            QString svgFolder = fSVGFolder + "/" + (*it)->get_Effect()->getName() + "-svg";
+            QString svgFolderCpy = svg + "/" + (*it)->get_Effect()->getName() + "-svg";
+            
+            cpDir(svgFolder, svgFolderCpy);
+        }
+    }
+}
+
 //Reset Current Session Folder
 void FLApp::reset_CurrentSession(){
     
@@ -1924,7 +1989,7 @@ void FLApp::take_Snapshot(){
 #else
 	filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""));
 #endif
-	printf("filename = %s\n", filename.toStdString().c_str());
+
     
     //If no name is placed, nothing happens
     if(filename.compare("") != 0){
@@ -1937,10 +2002,14 @@ void FLApp::take_Snapshot(){
         update_CurrentSession();
         sessionContentToFile();
         
-        //Copy of current Session under a new name, at a different location
-        cpDir(fSessionFolder, filename);
+//------ Copy of current Session under a new name, at a different location
+//----------- Not everything has to be copied, because some resources are kept for recycling
+//----------- but are not usefull in Snapshot
         
-        //        QString descriptionFile = filename + "/Description.sffx";
+    	printf("filename = %s\n", filename.toStdString().c_str());    
+        createSnapshotFolder(filename);
+        
+//        cpDir(fSessionFolder, filename);
         
 #ifndef _WIN32
         
@@ -2332,7 +2401,7 @@ void FLApp::recall_Session(const QString& filename){
             }
             
             if(FLW_List.size() >= numberWindows){
-                fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
+                fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com");
                 return;
             }
             
@@ -2345,7 +2414,7 @@ void FLApp::recall_Session(const QString& filename){
             win->update_ConnectionFile(windowNameChanges);
             win->update_ConnectionFile(nameChanges);
             
-            if(win->init_Window(false, error)){
+            if(win->init_Window(kNoInit, error)){
                 
                 FLW_List.push_back(win);
                 newEffect->launch_Watcher();
@@ -2706,6 +2775,16 @@ void FLApp::closeAllWindows(){
     update_CurrentSession();
     sessionContentToFile();
     
+//    ICI, IL FAUT SUPPRIMER LES RESSOURCES LIEES AUX EFFETS NON UTILISÉS à la fin de la session.
+
+    QList<FLEffect*>::iterator it2;
+    for(it2 = fExecutedEffects.begin() ;it2 != fExecutedEffects.end(); it2++){
+        if(!isSourceInCurrentSession((*it2)->getSource())){
+            QString toErase = fSourcesFolder + "/" + (*it2)->getName() + ".dsp";
+            removeFilesOfWin(toErase, (*it2)->getName());
+        }
+    }
+    
     QList<FLWindow*>::iterator it;
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++){
@@ -2721,7 +2800,7 @@ void FLApp::closeAllWindows(){
     }
     FLW_List.clear();
     
-    QList<FLEffect*>::iterator it2;
+    
     for(it2 = fExecutedEffects.begin() ;it2 != fExecutedEffects.end(); it2++)
         delete (*it2);
     for(it2 = fRemoteEffects.begin() ;it2 != fRemoteEffects.end(); it2++)
@@ -2816,11 +2895,8 @@ void FLApp::common_shutAction(FLWindow* win){
         removeFilesOfWin(toto, tutu);
         toDelete = (win)->get_Effect();
     }
-    else if(!isSourceInCurrentSession((win)->get_Effect()->getSource())){
+    else if(!isSourceInCurrentSession((win)->get_Effect()->getSource()))
         (win)->get_Effect()->stop_Watcher();
-        QString toErase = fSourcesFolder + "/" + (win)->get_Effect()->getName() + ".dsp";
-        removeFilesOfWin(toErase, (win)->get_Effect()->getName());
-    }
     
     FLW_List.removeOne(win);
     win->deleteLater();
@@ -3014,7 +3090,7 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName());
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName(), window->get_ipMachine());
     
     redirectMenuToWindow(win);
     
@@ -3041,7 +3117,7 @@ void FLApp::duplicate(FLWindow* window){
     
     QString error;
     
-    if(win->init_Window(false, error)){
+    if(win->init_Window(kNoInit, error)){
         FLW_List.push_back(win);
         addWinToSessionFile(win);
     }

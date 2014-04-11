@@ -189,6 +189,7 @@ class FLApp : public QApplication
         void                recall_Session(const QString& filename);
         void                addWinToSessionFile(FLWindow* win);
         void                deleteWinFromSessionFile(FLWindow* win);
+        void                createSnapshotFolder(const QString& snapshotFolder);
     
     //In case of an import, those steps are necessary to modify the session before opening it
         QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);

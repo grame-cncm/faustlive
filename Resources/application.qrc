@@ -11,7 +11,8 @@
 <file>Images/FaustLiveIcon.ico</file>
 <file>Images/FaustLiveIcon.icns</file>
 	<file>Images/Preferences.png</file>
-	<file>Images/DropYourFaustLife.png</file>
+	<file>Images/DropYourFaustLife_Blue.png</file>
+	<file>Images/DropYourFaustLife_White.png</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>
