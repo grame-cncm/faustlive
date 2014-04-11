@@ -1334,8 +1334,6 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    
-    printf("Close Win from shut WindowAction\n");
     emit closeWin();
 }
 

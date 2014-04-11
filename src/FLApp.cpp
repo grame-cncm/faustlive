@@ -3062,7 +3062,8 @@ void FLApp::edit(FLWindow* win){
 //Edit Source from Menu
 void FLApp::edit_Action(){
     
-    FLWindow* win = getActiveWin();
+     FLWindow* win = (FLWindow*)QObject::sender();
+
     if(win != NULL)
         edit(win);
 }
@@ -3135,8 +3136,8 @@ void FLApp::duplicate(FLWindow* window){
 //Duplication window from Menu
 void FLApp::duplicate_Window(){ 
     
-    //copy parameters of previous window
-    FLWindow* win = getActiveWin();
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
     if(win != NULL)
         duplicate(win);
 }
@@ -3159,7 +3160,8 @@ void FLApp::paste(FLWindow* win){
 //Paste from Menu
 void FLApp::paste_Text(){
     
-    FLWindow* win = getActiveWin();
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
     if(win != NULL)
         paste(win);
 } 
@@ -3173,8 +3175,9 @@ void FLApp::viewHttpd(FLWindow* win){
 //View Httpd From Menu
 void FLApp::httpd_View_Window(){
     
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
     //Searching the active Window to show its QRcode
-    FLWindow* win = getActiveWin();
     if(win != NULL)
         viewHttpd(win);
     else
@@ -3200,8 +3203,9 @@ void FLApp::viewSvg(FLWindow* win){
 //View SVG from Menu
 void FLApp::svg_View_Action(){
     
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
     //Searching the active Window to show its SVG Diagramm
-    FLWindow* win = getActiveWin();
     if(win != NULL)
         viewSvg(win);
     
@@ -3220,7 +3224,7 @@ void FLApp::export_Win(FLWindow* win){
 //Export From Menu
 void FLApp::export_Action(){ 
     
-    FLWindow* win = getActiveWin();
+    FLWindow* win = (FLWindow*)QObject::sender();
     
     if(win != NULL)
         export_Win(win);
