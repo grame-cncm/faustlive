@@ -156,7 +156,7 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fSessionFolder);
     }
     
-	fSessionFile = fSessionFolder + separationChar + "Description.sffx";
+	fSessionFile = fSessionFolder + separationChar + "Description.txt";
     if(!QFileInfo(fSessionFile).exists()){
         QFile f(fSessionFile);
         f.open(QFile::ReadOnly);
@@ -1876,14 +1876,16 @@ void FLApp::update_CurrentSession(){
 
 //Sorting out the element of the Current Session that have to be copied in the snapshot
 void FLApp::createSnapshotFolder(const QString& snapshotFolder){
- 
-    QFile descriptionFile(fSessionFile);
-    QString descFileCpy = snapshotFolder + "/" + "Description.sffx";
-    descriptionFile.copy(descFileCpy);
-    
     
     QDir nv(snapshotFolder);
     nv.mkdir(snapshotFolder);
+    
+    QFile descriptionFile(fSessionFile);
+    QString descFileCpy = snapshotFolder + "/Description.txt";
+    
+    printf("Description File saved = %s || Original = %s\n", descFileCpy.toStdString().c_str(), fSessionFile.toStdString().c_str());
+    
+    descriptionFile.copy(descFileCpy);
     
     QString ss(snapshotFolder);
     ss += "/Sources";
@@ -1896,7 +1898,6 @@ void FLApp::createSnapshotFolder(const QString& snapshotFolder){
     QString ir(snapshotFolder);
     ir += "/IR";
     nv.mkdir(ir);
-    
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
         if(isSourceInCurrentSession((*it)->get_Effect()->getSource())){
@@ -2066,7 +2067,6 @@ void FLApp::snapshotRestoration(const QString& file, QList<WinInSession*>* sessi
     QList<WinInSession*>::iterator it;
     for(it = session->begin() ; it != session->end() ; it++){
         
-       
         QFileInfo infoSource((*it)->source);
         
         QString contentOrigin("");
@@ -2290,7 +2290,7 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     QString finalFile = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
-    QString finalFilename = finalFile + "/Description.sffx";
+    QString finalFilename = finalFile + "/Description.txt";
     
     recall_Session(finalFilename);
     
@@ -2322,10 +2322,13 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
 //@param : filename = snapshot that is loaded
 void FLApp::recall_Session(const QString& filename){
     
+    printf("FOlder recalled = %s\n", filename.toStdString().c_str());
+    
     //Temporary copies of the description files in which all the modifications due to conflicts will be saved
     QList<WinInSession*>  snapshotContent;
     
     fileToSessionContent(filename, &snapshotContent);
+    printf("SIZE OF SNAPSHOT CONTENT = %i\n", snapshotContent.size());
     
     if(filename.compare(fSessionFile) == 0){
         
@@ -3302,22 +3305,30 @@ void FLApp::drop_Action(QList<QString> sources){
 //    The sound files are transformated into faust files
     for(it = sources.begin(); it != sources.end(); it++){
 
-        if(QFileInfo(*it).completeSuffix().compare("wav") == 0)
+        if((*it).indexOf(' ') != -1){
+            sources.removeOne(*it);
+            fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
+            
+        }
+        else if(QFileInfo(*it).completeSuffix().compare("wav") == 0)
             *it = soundFileToFaust(*it);
     }
     
     it = sources.begin();
     
-    //The first source dropped is updated in the dropped Window
-    update_SourceInWin(win, *it);
-    
-    //The other source are opened in new Windows
-    it++;
-    while(it!=sources.end()){
+    if(it != sources.end()){
         
-        create_New_Window(*it);
+        //The first source dropped is updated in the dropped Window
+        update_SourceInWin(win, *it);
+        
+        //The other source are opened in new Windows
         it++;
-        
+        while(it!=sources.end()){
+            
+            create_New_Window(*it);
+            it++;
+            
+        }
     }
 }
 

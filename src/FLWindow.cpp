@@ -304,24 +304,29 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 fEffect = newEffect;
                 newEffect = effectInter;
                 
-                //Step 12 : Launch User Interface
-                fInterface->run();
-#ifndef _WIN32
-                if(fOscInterface){   
-                    fOscInterface->run();
-                    fPortOsc = fOscInterface->getUDPPort();
-                }
-                if(fHttpInterface){
-                    fHttpInterface->run();
-                    fPortHttp = fHttpInterface->getTCPPort();
-                }
-                
-                setWindowsOptions();
-#endif
                 isUpdateSucessfull = true;
             }
-            else
-                error = "Impossible to allocate Interface";
+            else{
+                buildInterfaces(fCurrent_DSP, fEffect->getName());
+                recall_Window();
+
+                error = "Impossible to allocate new interface";
+            }
+            
+            //Step 12 : Launch User Interface
+            fInterface->run();
+#ifndef _WIN32
+            if(fOscInterface){   
+                fOscInterface->run();
+                fPortOsc = fOscInterface->getUDPPort();
+            }
+            if(fHttpInterface){
+                fHttpInterface->run();
+                fPortHttp = fHttpInterface->getTCPPort();
+            }
+            
+            setWindowsOptions();
+#endif
         }
 
 //-----Delete Charging DSP if update fails || Delete old DSP if update suceeds        
@@ -566,7 +571,7 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
         //Window tittle is build with the window Name + effect Name
         QString intermediate = fWindowName + " : " + nameEffect;
         
-        fInterface = new QTGUI(this, intermediate.toLatin1().data());
+        fInterface = new QTGUI(this, intermediate.toStdString().c_str());
         
         if(fInterface){
             
