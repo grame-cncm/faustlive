@@ -35,7 +35,9 @@ list<GUI*>               GUI::fGuiList;
 //@param : home = current Session folder
 //@param : osc/httpd port = port on which remote interface will be built 
 //@param : machineName = in case of remote processing, the name of remote machine
-FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport, const QString& machineName){
+FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport, const QString& machineName, const QString& ipMachine){
+    
+    printf("Machine Name = %s\n", machineName.toStdString().c_str());
     
 //    Enable Drag & Drop on window
     setAcceptDrops(true);
@@ -84,12 +86,16 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 //    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);
     
 //    Set Menu & ToolBar
-    setToolBar(machineName);
-    set_MenuBar();
     fLastMigration = QDateTime::currentDateTime();
+    setToolBar(machineName, ipMachine);
+    set_MenuBar();
 }
 
-FLWindow::~FLWindow(){}
+FLWindow::~FLWindow(){
+
+    printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
+
+}
 
 //------------------------WINDOW ACTIONS
 
@@ -130,7 +136,7 @@ QString FLWindow::getErrorFromCode(int code){
 //Initialization of User Interface + StartUp of Audio Client
 //@param : init = if the window created is a default window.
 //@param : error = in case init fails, the error is filled
-bool FLWindow::init_Window(bool init, QString& errorMsg){
+bool FLWindow::init_Window(int init, QString& errorMsg){
     
     if(fEffect->isLocal()){
         if(!init_audioClient(errorMsg))
@@ -180,8 +186,8 @@ bool FLWindow::init_Window(bool init, QString& errorMsg){
     
     if(buildInterfaces(fCurrent_DSP, fEffect->getName())){
         
-        if(init)
-            print_initWindow();        
+        if(init != kNoInit)
+            print_initWindow(init);        
         
         if(setDSP(errorMsg)){
             
@@ -298,24 +304,29 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 fEffect = newEffect;
                 newEffect = effectInter;
                 
-                //Step 12 : Launch User Interface
-                fInterface->run();
-#ifndef _WIN32
-                if(fOscInterface){   
-                    fOscInterface->run();
-                    fPortOsc = fOscInterface->getUDPPort();
-                }
-                if(fHttpInterface){
-                    fHttpInterface->run();
-                    fPortHttp = fHttpInterface->getTCPPort();
-                }
-                
-                setWindowsOptions();
-#endif
                 isUpdateSucessfull = true;
             }
-            else
-                error = "Impossible to allocate Interface";
+            else{
+                buildInterfaces(fCurrent_DSP, fEffect->getName());
+                recall_Window();
+
+                error = "Impossible to allocate new interface";
+            }
+            
+            //Step 12 : Launch User Interface
+            fInterface->run();
+#ifndef _WIN32
+            if(fOscInterface){   
+                fOscInterface->run();
+                fPortOsc = fOscInterface->getUDPPort();
+            }
+            if(fHttpInterface){
+                fHttpInterface->run();
+                fPortHttp = fHttpInterface->getTCPPort();
+            }
+            
+            setWindowsOptions();
+#endif
         }
 
 //-----Delete Charging DSP if update fails || Delete old DSP if update suceeds        
@@ -340,7 +351,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
 //------------TOOLBAR RELATED ACTIONS
 
 //Set up of the Window ToolBar
-void FLWindow::setToolBar(const QString& machineName){
+void FLWindow::setToolBar(const QString& machineName, const QString& ipMachine){
     
     fMenu = new FLToolBar(this);
     
@@ -354,7 +365,7 @@ void FLWindow::setToolBar(const QString& machineName){
     connect(fMenu, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     
 #ifdef REMOTE
-    fMenu->setRemoteButtonName(machineName);
+    fMenu->setRemoteButtonName(machineName, ipMachine);
 #endif
     
 }
@@ -463,6 +474,11 @@ QString FLWindow::get_machineName(){
     return fMenu->machineName();
 }
 
+//Accessor to processing machine ip
+QString FLWindow::get_ipMachine(){
+    return fMenu->ipServer();
+}
+
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
@@ -555,7 +571,7 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
         //Window tittle is build with the window Name + effect Name
         QString intermediate = fWindowName + " : " + nameEffect;
         
-        fInterface = new QTGUI(this, intermediate.toLatin1().data());
+        fInterface = new QTGUI(this, intermediate.toStdString().c_str());
         
         if(fInterface){
             
@@ -609,9 +625,15 @@ bool FLWindow::is_Default(){
 }
 
 //Artificial content of a default window
-void FLWindow::print_initWindow(){
+void FLWindow::print_initWindow(int typeInit){
     
-    QPixmap dropImage(":/Images/DropYourFaustLife.png");
+    QPixmap dropImage;
+    
+    if(typeInit == kInitBlue)
+        dropImage.load(":/Images/DropYourFaustLife_Blue.png");
+    else if(typeInit == kInitWhite)
+        dropImage.load(":/Images/DropYourFaustLife_White.png");
+        
     dropImage.scaledToHeight(10, Qt::SmoothTransformation);
     
     QLabel *image = new QLabel();
@@ -657,6 +679,8 @@ void FLWindow::shut_Window(){
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
     
+    printf("FLWindow::close_Window %s\n", fWindowName.toStdString().c_str());
+    
     hide();
     
     if(fClientOpen && fAudioManager)
@@ -686,6 +710,8 @@ void FLWindow::close_Window(){
     
     if(fMenu)
         delete fMenu;
+    
+    blockSignals(true);
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -1313,7 +1339,6 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    
     emit closeWin();
 }
 

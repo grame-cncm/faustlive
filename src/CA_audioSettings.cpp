@@ -80,6 +80,8 @@ void CA_audioSettings::storeVisualSettings(){
     }
     else
             fBufferSize = 512;
+    
+//    printf("fBufferSize = %i\n", fBufferSize);
 }
 
 //Write or Read Settings in a File

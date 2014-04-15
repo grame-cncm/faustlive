@@ -24,7 +24,7 @@ class CA_audioManager : public AudioManager{
         int                 fBufferSize;
         const char*         fName;
         bool                fInit; //To know which way the audio was initialized
-        bool                fStopped;  //If CoreAudio stops for some reason ...
+//        bool                fStopped;  //If CoreAudio stops for some reason ...
     
         CA_audioFader*      fCurrentAudio;
         CA_audioFader*      fFadeInAudio;

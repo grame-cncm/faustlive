@@ -42,6 +42,11 @@ class remote_dsp_factory;
 
 using namespace std;
 
+enum initType{
+    kNoInit,
+    kInitBlue,
+    kInitWhite
+};
 
 class FLWindow : public QMainWindow
 {
@@ -57,7 +62,7 @@ class FLWindow : public QMainWindow
         QString          fSettingsFolder;
     
         FLToolBar*      fMenu;
-        void            setToolBar(const QString& machineName);
+        void            setToolBar(const QString& machineName, const QString& ipMachine);
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -109,7 +114,7 @@ class FLWindow : public QMainWindow
         void            deleteInterfaces();
         
     //Diplays the default interface with Message : Drop a DSP or Edit Me
-        void            print_initWindow();
+        void            print_initWindow(int typeInit);
     
     
         QList<std::pair<QString, QString> > fRecentFiles;
@@ -184,7 +189,7 @@ class FLWindow : public QMainWindow
     //@param : osc/httpd port = port on which remote interface will be built 
     //@param : machineName = in case of remote processing, the name of remote machine
 
-        FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing");
+        FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing", const QString& ipMachine = "localhost");
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -212,7 +217,7 @@ class FLWindow : public QMainWindow
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
     //@param : error = in case init fails, the error is filled
-        bool            init_Window(bool init, QString& errorMsg);
+        bool            init_Window(int typeInit, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
@@ -257,6 +262,7 @@ class FLWindow : public QMainWindow
         int             get_oscPort();
         bool            is_Default();
         QString         get_machineName();
+        QString         get_ipMachine();
         void            migrationFailed();
         void            migrationSuccessfull();
     

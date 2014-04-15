@@ -42,34 +42,19 @@ FLApp* app;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-#if defined(WIN32) && !defined(_DEBUG)
-# define USEWINMAIN
-#endif
-//_______________________________________________________________________
-#ifdef USEWINMAIN
-#include <windows.h>
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow)
-#else
-int main( int argc, char **argv )
-#endif
-{
-#ifdef USEWINMAIN
-int argc = __argc;
-char **argv = __argv;
-#endif
 
 #ifndef _WIN32
 void myMessageOutput(QtMsgType type, const char *msg)
 {
     switch (type) {
         case QtDebugMsg:
-            printf("DEBUG MESAGE\n");
+            printf("DEBUG MESSAGE\n");
             break;
         case QtWarningMsg:
-            printf("WARNING MESAGE\n");
+            printf("WARNING MESSAGE\n");
             break;
         case QtCriticalMsg:
-            printf("CRITICAL MESAGE\n");
+            printf("CRITICAL MESSAGE\n");
             break;
         case QtFatalMsg:
             printf("FATAL\n");
@@ -107,6 +92,23 @@ static bool GetMaximumFiles(int& filecount)
 }
 
 #endif
+
+
+#if defined(WIN32) && !defined(_DEBUG)
+# define USEWINMAIN
+#endif
+//_______________________________________________________________________
+#ifdef USEWINMAIN
+#include <windows.h>
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow){
+#else
+int main( int argc, char **argv ){
+#endif
+#ifdef USEWINMAIN
+int argc = __argc;
+char **argv = __argv;
+#endif
+
 #ifndef _WIN32
     qInstallMsgHandler(myMessageOutput);
     

@@ -46,9 +46,15 @@ math_lib : $(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/llvm_m
 
 ####### Packages
 
+# Solve FaustLive's dependencies
+deploy: 
+	macdeployqt FaustLive.app
+
 # make a binary distribution .dmg file for OSX
-dmg :
-	macdeployqt FaustLive.app -dmg
+dmg : 
+	cp -R FaustLive.app Distribution_OSX
+	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
+
 	
 # make a source distribution .zip file
 dist :

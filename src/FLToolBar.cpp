@@ -12,7 +12,7 @@
 #include "utilities.h"
 
 #ifdef REMOTE
-#include "faust/remote-dsp.h"
+    #include "faust/remote-dsp.h"
 #endif
 
 //--------------------------FLToolBar
@@ -60,6 +60,10 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fLayout1->addWidget(new QLabel(tr("LLVM Optimization"), fWidget1));
     fLayout1->addWidget(fOptValLine);    
     connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+//    fPublishBox = new QCheckBox(tr("Publish Faust Application"));
+//    fLayout1->addWidget(fPublishBox);
+//    connect(fPublishBox, SIGNAL(checkStateSet()), this, SLOT());
     
 #ifndef _WIN32 || HTTPDVAR
     
@@ -162,9 +166,10 @@ void FLToolBar::openRemoteBox(){
 #endif
 }
 
-void FLToolBar::setRemoteButtonName(const QString& name){
+void FLToolBar::setRemoteButtonName(const QString& name, const QString& ipServer){
     
     fRemoteButton->setText(name);
+    fIpRemoteServer = ipServer;
 }
 
 //Reaction to a click cancellation
@@ -175,7 +180,7 @@ void FLToolBar::remoteFailed(){
 }
 
 void FLToolBar::remoteSuccessfull(){
-    setRemoteButtonName(fNewName);
+    setRemoteButtonName(fNewName, fIpRemoteServer);
 }
 
 void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
@@ -307,6 +312,14 @@ QString FLToolBar::machineName(){
 	return "";
 #endif
 
+}
+
+QString FLToolBar::ipServer(){
+#ifdef REMOTE
+    return fIpRemoteServer;
+#else
+	return "";
+#endif
 }
 
 //--- Update when new processing machine is chosen

@@ -73,8 +73,9 @@ class FLToolBar : public QToolBar{
     
     void    remoteFailed();
     void    remoteSuccessfull();
-    void    setRemoteButtonName(const QString& name);
+    void    setRemoteButtonName(const QString& name, const QString& ipServer);
     QString  machineName();
+    QString ipServer();
     
     bool    isHttpOn();
     bool    isOscOn();
