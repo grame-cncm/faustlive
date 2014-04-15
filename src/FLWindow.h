@@ -75,11 +75,12 @@ class FLWindow : public QMainWindow
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-#ifndef _WIN
+#ifndef _WIN32
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-        void            allocateHttpInterface();
 #endif
+		void            allocateHttpInterface();
+
         QString         fInterfaceUrl;
         int             fGeneralHttpPort;
         int             fPortHttp;

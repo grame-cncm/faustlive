@@ -9,6 +9,7 @@
 #include "FLrenameDialog.h"
 #ifndef _WIN32
 #include "FLServerHttp.h"
+#include "faust/remote-dsp.h"
 #else
 #include <windows.h>
 #include <shlobj.h>
@@ -17,8 +18,6 @@
 #include "FLErrorWindow.h"
 #include "FLExportManager.h"
 #include "utilities.h"
-
-#include "faust/remote-dsp.h"
 
 #include <sstream>
 

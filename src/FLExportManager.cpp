@@ -8,7 +8,9 @@
 
 #include "FLExportManager.h"
 
-#include <unistd.h>
+#ifndef _WIN32
+	#include <unistd.h>
+#endif
 #include <fstream>
 #include <map>
 #include <vector>
@@ -304,7 +306,7 @@ void FLExportManager::postExport(){
     printf("DATA TO SEND = %s\n", data.data());
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-    requete.setRawHeader("Content-Length", QString::number(data.size()).toAscii());
+    requete.setRawHeader("Content-Length", QString::number(data.size()).toLatin1());
     
     QNetworkReply *r = m->post(requete, data);
     
