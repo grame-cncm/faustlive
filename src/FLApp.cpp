@@ -3379,7 +3379,7 @@ void FLApp::setAppPropertiesText(const QString& currentText){
     else if(currentText.compare("Preferences")==0){
         
         QString text = "\nWINDOW PREFERENCES : You can choose default compilation options for new windows. (Faust & LLVM options)\n\nAUDIO PREFERENCES : If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\nNETWORK PREFERENCES : The compilation web service URL can be modified.";
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
       text += "The port of remote drop (on html interface) can be modified.";  
 #endif
         
@@ -3413,10 +3413,10 @@ void FLApp::setWinPropertiesText(const QString& currentText){
     else if(currentText.compare("Window Options")==0){
         
         QString text = "\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.";
-#ifndef _WIN || HTTPDVAR 
+#ifdef HTTPDVAR
         text+="\n\nThe HTTPD Port corresponds to the TCP port used for remote HTTP control of the interface.\n";
 #endif
-#ifndef _WIN || OSCVAR 
+#ifdef OSCVAR
         text+="\n\nThe OSC Port corresponds to the UDP port used for OSC control. \nWARNING : a port needs a few seconds to be released once a window is closed. Moreover, only 30 OSC ports can be opened at the same time.";
 #endif
         fWinText->setPlainText(text);
@@ -3502,7 +3502,7 @@ void FLApp::init_HelpWindow(){
     vue->addItem(QString(tr("PORTAUDIO")));
 #endif
     
-#ifndef _WIN32 || HTTPDVAR 
+#ifdef HTTPDVAR
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
     vue->addItem(QString(tr("OSC PACK")));
@@ -3615,7 +3615,7 @@ void FLApp::init_HelpWindow(){
     vue3->addItem(QString(tr("Edit Source")));    
     vue3->addItem(QString(tr("Drag and Drop / Paste")));
     vue3->addItem(QString(tr("Duplicate")));
-#ifndef _WIN32 || HTTPDVAR 
+#ifdef HTTPDVAR
     vue3->addItem(QString(tr("View QrCode")));
 #endif
     
@@ -4776,7 +4776,7 @@ void FLApp::init_PreferenceWindow(){
     fServerLine = new QLineEdit(menu4);
     fServerLine->setText(fServerUrl);
     
-#ifndef _WIN32 || HTTPDVAR
+#ifdef  HTTPDVAR
     fPortLine = new QLineEdit(menu4);
     QString p =  QString::number(fPort);
     fPortLine->setText(p);
@@ -4784,7 +4784,7 @@ void FLApp::init_PreferenceWindow(){
     myTab->addTab(menu4, tr("Network"));
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 #endif
@@ -4889,7 +4889,7 @@ void FLApp::save_Mode(){
     else
         fOpt_level = 3;
     
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     if(isStringInt(fPortLine->text().toLatin1().data())){
         
         if(fPort != atoi(fPortLine->text().toLatin1().data())){
