@@ -90,7 +90,7 @@ clean : Makefile.qt4
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
 	rm -f Makefile.qt4
-	rm -f Resources/Libs/llvm_math.ll
 
 Makefile.qt4: 
 	$(qm) $(SPEC) -o Makefile.qt4 $(QM-DEFS)
+
