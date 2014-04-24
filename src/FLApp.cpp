@@ -20,8 +20,6 @@
 
 #include "faust/remote-dsp.h"
 
-#include "CoreFoundation/CoreFoundation.h"
-
 #include <sstream>
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
