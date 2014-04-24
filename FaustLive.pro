@@ -14,6 +14,14 @@ OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
 
+# currently no support for httpd and osc on windows version
+win32 {
+
+} else {
+DEFINES += HTTPDVAR
+DEFINES += OSCVAR
+}
+
 win32{
 
 RC_FILE = FaustLive.rc

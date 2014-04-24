@@ -65,8 +65,9 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
 //    fLayout1->addWidget(fPublishBox);
 //    connect(fPublishBox, SIGNAL(checkStateSet()), this, SLOT());
     
-#ifndef _WIN32 || HTTPDVAR
-    
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
+
     fHttpBox = new QGroupBox(tr("Enable Http Remote Interface"));
     fHttpBox->setCheckable(true);
     QVBoxLayout* httpLayout = new QVBoxLayout();
@@ -221,12 +222,13 @@ void FLToolBar::modifiedOptions(){
 	int port = 5510;    
     int portOsc = 5510;
     
-#ifndef _WIN32 || HTTPDVAR
-    
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     QString portText = fPortLine->text();
 	if(isStringInt(portText.toStdString().c_str()))
 		port = atoi(portText.toStdString().c_str());
-
+#endif
+#ifdef OSCVAR
     QString portOscText = fPortOscLine->text();
 	if(isStringInt(portOscText.toStdString().c_str()))
 		portOsc = atoi(portOscText.toStdString().c_str());
@@ -265,7 +267,8 @@ int FLToolBar::getVal(){
 
 int FLToolBar::getPort(){
 
-#ifndef _WIN32 || HTTPDVAR
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     QString val = fPortLine->text();
 	if(isStringInt(val.toStdString().c_str()))
 		return atoi(val.toStdString().c_str());
@@ -275,7 +278,8 @@ int FLToolBar::getPort(){
 }
 
 void FLToolBar::setPort(int port){
-#ifndef _WIN32 || HTTPDVAR
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     stringstream ss;
     ss<<port;
     
@@ -285,7 +289,8 @@ void FLToolBar::setPort(int port){
 
 int FLToolBar::getPortOsc(){
     
-#ifndef _WIN32 || OSCVAR    
+//#ifndef _WIN32 || OSCVAR
+#ifdef OSCVAR
     QString val = fPortOscLine->text();
 	if(isStringInt(val.toStdString().c_str()))
 		return atoi(val.toStdString().c_str());
@@ -296,7 +301,8 @@ int FLToolBar::getPortOsc(){
 
 void FLToolBar::setPortOsc(int port){
     
-#ifndef _WIN32 || OSCVAR
+//#ifndef _WIN32 || OSCVAR
+#ifdef OSCVAR
     stringstream ss;
     ss<<port;
     
@@ -356,13 +362,15 @@ void FLToolBar::redirectHttp(bool on){
 }
 
 void FLToolBar::switchHttp(bool on){
-#ifndef _WIN32 || HTTPDVAR
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     fHttpBox->setChecked(on);
 #endif
 }
 
 bool FLToolBar::isHttpOn(){
-#ifndef _WIN32 || HTTPDVAR
+//#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPDVAR
     return fHttpBox->isChecked();
 #else
     return false;
@@ -370,7 +378,9 @@ bool FLToolBar::isHttpOn(){
 }
 
 bool FLToolBar::isOscOn(){
-#ifndef _WIN32 || OSCVAR
+//#ifndef _WIN32 || OSCVAR
+#ifdef OSCVAR
+
     return fOscBox->isChecked();
 #else
     return false;
@@ -382,7 +392,8 @@ void FLToolBar::redirectOsc(bool on){
 }
 
 void FLToolBar::switchOsc(bool on){
-#ifndef _WIN32 || OSCVAR
+//#ifndef _WIN32 || OSCVAR
+#ifdef OSCVAR
     fOscBox->setChecked(on);
 #endif
 }
