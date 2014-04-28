@@ -185,9 +185,12 @@ FLExportManager::~FLExportManager()
     delete fMessageWindow ;
     
 //    In case the export is aborted during its execution
-    abortReply(fTargetReply);
-    abortReply(fPostReply);
-    abortReply(fGetKeyReply);
+    if(fTargetReply)
+        abortReply(fTargetReply);
+    if(fPostReply)
+        abortReply(fPostReply);
+    if(fGetKeyReply)
+        abortReply(fGetKeyReply);
 }
 
 //When Cancel is pressed, the request is aborted
