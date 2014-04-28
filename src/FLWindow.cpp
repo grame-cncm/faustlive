@@ -151,12 +151,16 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
             return false;
         
         // Sending local IP for NetJack Connection
-        int argc = 2;
-        const char* argv[2];
+        int argc = 6;
+        const char* argv[6];
         
         argv[0] = "--NJ_ip";
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
+        argv[2] = "--NJ_latency";
+        argv[3] = "10";
+        argv[4] = "--NJ_compression";
+        argv[5] = "64";
         
         int error;
         
@@ -243,12 +247,16 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         charging_DSP = createDSPInstance(newEffect->getFactory());
 #ifdef REMOTE
     else{
-        int argc = 2;
-        const char* argv[2];
+        int argc = 6;
+        const char* argv[6];
         
         argv[0] = "--NJ_ip";
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
+        argv[2] = "--NJ_latency";
+        argv[3] = "10";
+        argv[4] = "--NJ_compression";
+        argv[5] = "64";
         
         int errorMsg;
         
