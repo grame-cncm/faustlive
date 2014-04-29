@@ -28,7 +28,7 @@ color: #CECECE;\n\
 border: 8px dashed #CECECE;\n\
 border-radius: 7px;\n\
 cursor: default;\n\
-font-size : 40px;\n\
+font-size : 20px;\n\
 }\n\
 \n\
 #filedrag.hover{\n\
