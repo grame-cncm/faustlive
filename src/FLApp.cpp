@@ -39,7 +39,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initializing preference
     fOpt_level = 3;
-    fServerUrl = "http://faust.grame.fr:8888";
+    fServerUrl = "http://faustservice.grame.fr";
     fPort = 7777;
     fStyleChoice = "Default";
     recall_Settings(fSettingsFolder);
@@ -3258,13 +3258,24 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     printf("FLAPP::destinationFile = %s\n", destinationFile.toStdString().c_str());
     
     QProcess myCmd;
+//    myCmd.setProcessEnvironment(env);
+//    printf("IS ENV EMPTY?? = %i\n", env.isEmpty());
     QByteArray error;
     
     QString systemInstruct;
 #ifdef _WIN32
-    systemInstruct = "sound2faust.exe ";
+    systemInstruct += "/sound2faust.exe ";
+#endif
+#ifdef __linux__
+    systemInstruct += "./sound2faust ";
 #else
-    systemInstruct = "sound2faust ";
+    
+    QDir base;
+    
+    if(base.absolutePath().indexOf("Contents/MacOS") != -1)
+        systemInstruct += "./sound2faust ";
+    else
+        systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";
 #endif
     
     systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
@@ -5017,7 +5028,7 @@ void FLApp::recall_Settings(const QString& home){
     }
     
     if(fServerUrl.compare("") == 0){
-        fServerUrl = "http://faust.grame.fr:8888";
+        fServerUrl = "http://faustservice.grame.fr";
     }
     
     if(port.compare("") == 0){
