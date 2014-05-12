@@ -2128,11 +2128,18 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>& session){
         QString sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
         contentSaved = pathToContent(sourceSaved);
         
+//        Original source 
         QFileInfo infoSource((*it)->source);
-
-        //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
-        //If the copy was not correctly saved OR deleted; this message should not appear
-        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) != 0 && (!infoSource.exists() || (contentSaved.compare(contentOrigin) != 0) && QFileInfo(sourceSaved).exists())){
+        
+        //If the source lose was NOT already handled &&
+        //If the source is NOT in the Source folder &&
+        //If this source could NOT be found or that its content was modified &&
+        //If the copied file exists
+        // THEN the user is asked if he wants to reload his effect from original or copied file
+        if(updated.find((*it)->source) == updated.end() && 
+           (infoSource.absolutePath().compare(fSourcesFolder) != 0 && 
+           ((!infoSource.exists() || (contentSaved.compare(contentOrigin) != 0)) &&
+            QFileInfo(sourceSaved).exists()))){
             
             QString mesg;
             bool contentModif = false;
