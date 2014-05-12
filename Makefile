@@ -65,6 +65,7 @@ dist :
 ####### Install
 
 install-Darwin: 
+	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
 	cp -r FaustLive.app /Applications
 	
 uninstall-Darwin: 
