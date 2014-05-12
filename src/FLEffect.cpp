@@ -104,6 +104,7 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 
 //---------------FACTORY ACTIONS
 
+//Force Recompilation ensures 
 void FLEffect::forceRecompilation(bool val){
     fRecompilation = val;
 }
