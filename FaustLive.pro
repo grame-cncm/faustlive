@@ -102,7 +102,6 @@ DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 }
 
-
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
 
@@ -110,15 +109,16 @@ equals(REMVAR, 1){
 	DEFINES += REMOTE
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
-	LIBS+=-lcrypto
 
+linux{
 		LIBS += -ldl
 		LIBS += -ldbus-1
 		LIBS += -lpthread
 		LIBS += -lrt
-		LIBS += -ldaemon
-
 }
+}
+
+LIBS+=-lcrypto
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
