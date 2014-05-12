@@ -1021,8 +1021,8 @@ bool FLApp::isEffectNameInCurrentSession(const QString& sourceToCompare , const 
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
         if((*it)->name.compare(nom)==0 && 
-           ((*it)->source.compare(sourceToCompare) != 0 || 
-            (*it)->name.contains(DEFAULTNAME) != string::npos && isRecalledEffect)
+           (((*it)->source.compare(sourceToCompare) != 0 || 
+            ((*it)->name.contains(DEFAULTNAME) != string::npos && isRecalledEffect)))
            )
             return true;
     }
