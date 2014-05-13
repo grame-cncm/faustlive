@@ -108,13 +108,7 @@ equals(REMVAR, 1){
 	DEFINES += REMOTE
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
-
-linux{
-		LIBS += -ldl
-		LIBS += -ldbus-1
-		LIBS += -lpthread
-		LIBS += -lrt
-}
+	LIBS+=-llo
 }
 
 LIBS+=-lcrypto
