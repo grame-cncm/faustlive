@@ -55,8 +55,12 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     
+#ifndef __APPLE__
     //For the application not to quit when the last window is closed
+    setQuitOnLastWindowClosed(true);
+#else
     setQuitOnLastWindowClosed(false);
+#endif
     
     fMenuBar = new QMenuBar;
     setup_Menu();
@@ -2921,10 +2925,10 @@ void FLApp::common_shutAction(FLWindow* win){
         (*it)->update_RecentFileMenu();
     }
 
-#ifndef __APPLE__
-    if(FLW_List.size() == 0 && !fRecalling)
-        exit();
-#endif
+//#ifndef __APPLE__
+//    if(FLW_List.size() == 0 && !fRecalling)
+//        exit();
+//#endif
 }
 
 //--------------DELETION

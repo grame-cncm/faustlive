@@ -1347,7 +1347,8 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    emit closeWin();
+    emit close();
+//    emit closeWin();
 }
 
 void FLWindow::shut_All(){

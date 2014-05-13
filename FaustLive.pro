@@ -47,9 +47,8 @@ INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
-LLVMLIBS = $$system(llvm-config --libs)
-LLVMDIR = $$system(llvm-config --ldflags)
-
+LLVMLIBS = $$system($$system(which llvm-config) --libs)
+LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 }
 
 #QMAKE_CXXFLAGS += -Wno-unused-variable -g

@@ -24,6 +24,7 @@ void FLErrorWindow::init_Window(){
     fWidget = new QWidget(this);
     fButton = new QPushButton(tr("OK"), this);
     connect(fButton, SIGNAL(clicked()), this, SLOT(hideWin()));
+    connect(fButton, SIGNAL(clicked()), this, SLOT(redirectClose()));
     fLayout = new QVBoxLayout();
     
     QFont font;
@@ -41,6 +42,10 @@ void FLErrorWindow::init_Window(){
     fLayout->addWidget(fButton);
     
     fWidget->setLayout(fLayout);
+}
+
+void FLErrorWindow::redirectClose(){
+    emit close();
 }
 
 void FLErrorWindow::closeEvent(QCloseEvent* /*event*/){
