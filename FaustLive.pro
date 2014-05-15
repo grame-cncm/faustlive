@@ -9,6 +9,8 @@
 
 FAUSTDIR = /usr/local/lib/faust
 TARGET = FaustLive
+VERSION = 1.1
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 OBJECTS_DIR += src
 MOC_DIR += src
