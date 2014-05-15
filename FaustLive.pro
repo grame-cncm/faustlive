@@ -259,6 +259,7 @@ SOURCES +=      src/SimpleParser.cpp \
 
 RESOURCES     = Resources/application.qrc
 win32:RESOURCES += Resources/windows.qrc
+unix:RESOURCES += Resources/unix.qrc
 
 
 
