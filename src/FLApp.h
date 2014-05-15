@@ -29,7 +29,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.1"
+#define FLVERSION APP_VERSION
 #define DEFAULTNAME "DefaultName"
 
 //Setting Files

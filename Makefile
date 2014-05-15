@@ -53,7 +53,7 @@ deploy:
 
 # make a binary distribution .dmg file for OSX
 dmg : 
-	cp -R FaustLive.app Distribution_OSX
+	cp -R FaustLive.app Distribution_OSX/FaustLive
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
 
 	
