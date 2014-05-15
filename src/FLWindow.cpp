@@ -1492,14 +1492,10 @@ void FLWindow::initNavigateMenu(QList<QAction*> wins){
     }
 }
 
-void FLWindow::addWinInMenu(QAction* newWin){
+void FLWindow::updateNavigateMenu(QList<QAction*> wins){
     
-    fNavigateMenu->addAction(newWin);
-}
-
-void FLWindow::deleteWinInMenu(QAction* toDeleteWin){
-
-    fNavigateMenu->removeAction(toDeleteWin);
+    fNavigateMenu->clear();
+    initNavigateMenu(wins);
 }
 
 void FLWindow::frontShowFromMenu(){

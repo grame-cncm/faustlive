@@ -281,8 +281,7 @@ class FLWindow : public QMainWindow
         void            set_RecentSession(QStringList recents);
         void            update_RecentSessionMenu();
     
-        void            addWinInMenu(QAction* newWin);
-        void            deleteWinInMenu(QAction* toDeleteWin);
+        void            updateNavigateMenu(QList<QAction*> wins);
         void            initNavigateMenu(QList<QAction*> wins);
     
     public slots :

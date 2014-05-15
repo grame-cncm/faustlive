@@ -29,7 +29,7 @@ class AudioCreator;
 
 using namespace std;
 
-#define FLVERSION   "1.0"
+#define FLVERSION   "1.1"
 #define DEFAULTNAME "DefaultName"
 
 //Setting Files
@@ -256,7 +256,7 @@ class FLApp : public QApplication
         bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name, bool isRecalledEffect);
         QList<QString>        getNameRunningEffects();
         QList<int>           WindowCorrespondingToEffect(FLEffect* effect);
-        void                removeFilesOfWin(const QString& sourceName, const QString& effName);
+        void                removeFilesOfEffect(const QString& sourceName, const QString& effName);
 
         FLWindow*           getActiveWin();
         FLWindow*           getWinFromHttp(int port);
