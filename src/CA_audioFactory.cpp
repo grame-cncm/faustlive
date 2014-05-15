@@ -25,9 +25,9 @@ AudioSettings* CA_audioFactory::createAudioSettings(QString homeFolder, QGroupBo
 
 }
 //Creates an AudioManager, corresponding to a CoreAudio object
-AudioManager* CA_audioFactory::createAudioManager(AudioSettings* audioParameters){
+AudioManager* CA_audioFactory::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
 
-    return new CA_audioManager(audioParameters);
+    return new CA_audioManager(audioParameters, cb, arg);
 
 }
 

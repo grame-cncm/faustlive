@@ -80,6 +80,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     launch_Server();
 #endif
     fCompilingMessage = NULL;
+
+    fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
     
     //If no event opened a window half a second after the application was created, a initialized window is created
     fInitTimer = new QTimer(this);
@@ -378,16 +380,16 @@ void FLApp::setup_Menu(){
     
     fPrefDialog = new QDialog;
     fPrefDialog->setWindowFlags(Qt::FramelessWindowHint);
-    
     init_PreferenceWindow();
+    fPrefDialog->move((fScreenWidth-fPrefDialog->width())/2, (fScreenHeight-fPrefDialog->height())/2);
     
     //--------------------HELP
     
     fHelpWindow = new QMainWindow;
     fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
     
-    this->init_HelpWindow();
-    fHelpWindow->move(fScreenWidth/3, fScreenHeight/3);
+    init_HelpWindow();
+    fHelpWindow->move((fScreenWidth-fHelpWindow->width())/2, (fScreenHeight-fHelpWindow->height())/2);
     
     QAction* aboutAction = new QAction(tr("&Help..."), this);
     aboutAction->setToolTip(tr("Show the library's About Box"));
@@ -1253,6 +1255,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
     connect(win, SIGNAL(recall_Snapshot(QString, bool)), this, SLOT(recall_Snapshot(QString, bool)));
     connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+    connect(win, SIGNAL(savePrefs()), this, SLOT(save_Mode()));
 }
 
 //--Creation of a new window
@@ -2732,6 +2735,7 @@ void FLApp::display_Progress(){
         layoutSave->addWidget(fPBar);
         savingMessage->setLayout(layoutSave);
         
+        savingMessage->move((fScreenWidth-savingMessage->width())/2, (fScreenHeight-savingMessage->height())/2);
         savingMessage->adjustSize();
         savingMessage->show();
         
@@ -5202,6 +5206,7 @@ void FLApp::display_CompilingProgress(const QString& msg){
     layoutSave->addWidget(new QLabel(tr("")));
     fCompilingMessage->setLayout(layoutSave);
     
+    fCompilingMessage->move((fScreenWidth-fCompilingMessage->width())/2, (fScreenHeight-fCompilingMessage->height())/2);
     fCompilingMessage->adjustSize();
     fCompilingMessage->show();
     fCompilingMessage->raise();

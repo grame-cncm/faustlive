@@ -151,6 +151,8 @@ class FLWindow : public QMainWindow
         void            open_Ex(QString);
         void            migrate(const QString& ip, int port);
     
+        void            savePrefs();
+    
     private slots :
         void            create_Empty();
         void            open_New();
@@ -229,6 +231,11 @@ class FLWindow : public QMainWindow
     //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
         void            stop_Audio();
         void            start_Audio();
+    
+//    In case audio architecture collapses
+        static void            audioShutDown(const char* msg, void* arg);
+        void                    audioShutDown(const char* msg);
+    
     
         bool            init_audioClient(QString& error);
         bool            init_audioClient(QString& error, int numInputs, int numOutputs);

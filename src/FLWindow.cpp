@@ -79,7 +79,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 //    Creating Audio Manager
     AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
     
-    fAudioManager = creator->createAudioManager(creator->getCurrentSettings());
+    fAudioManager = creator->createAudioManager(creator->getCurrentSettings(), FLWindow::audioShutDown, this);
     fClientOpen = false;
     
 //    Not Sure It Is UseFull
@@ -495,7 +495,8 @@ int FLWindow::get_Port(){
         return fHttpInterface->getTCPPort();
     else
 #endif
-        return fPortHttp;
+// If the interface is not enabled, it's not running on any port
+        return 0;
 }
 
 int FLWindow::get_oscPort(){
@@ -841,6 +842,21 @@ void FLWindow::start_Audio(){
         currentDSP->startAudio();
     }
 #endif
+}
+
+
+//In case audio clients collapse, the architecture has to be changed
+void FLWindow::audioShutDown(const char* msg, void* arg){
+
+    ((FLWindow*)arg)->audioShutDown(msg);
+}
+
+void FLWindow::audioShutDown(const char* msg){
+    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
+    
+//    creator->change_Architecture();
+    emit errorPrint(msg);
+//    emit savePrefs();
 }
 
 //Switch of Audio architecture

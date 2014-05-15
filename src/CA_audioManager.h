@@ -30,7 +30,7 @@ class CA_audioManager : public AudioManager{
         CA_audioFader*      fFadeInAudio;
     
     public :
-        CA_audioManager(AudioSettings* as);
+        CA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg);
         virtual ~CA_audioManager();
     
         virtual bool init(const char*, dsp* DSP);

@@ -24,8 +24,8 @@ AudioSettings* NJ_audioFactory::createAudioSettings(QString homeFolder, QGroupBo
 }
 
 //Creates an AudioManager, corresponding to a NetJack object
-AudioManager* NJ_audioFactory::createAudioManager(AudioSettings* audioParameters){
+AudioManager* NJ_audioFactory::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
     
-    return new NJ_audioManager(audioParameters);
+    return new NJ_audioManager(audioParameters, cb, arg);
 }
 

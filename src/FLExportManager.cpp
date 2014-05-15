@@ -82,6 +82,7 @@ void FLExportManager::init_DialogWindow()
     exportLayout->addRow(intermediateWidget);
     
     fDialogWindow->setLayout(exportLayout);
+    fDialogWindow->move((QApplication::desktop()->geometry().size().width() - fDialogWindow->width())/2, (QApplication::desktop()->geometry().size().height()- fDialogWindow->height())/2);
 }
 
 void FLExportManager::setLastState(){
@@ -142,6 +143,7 @@ void FLExportManager::init_MessageWindow(){
     fMessageWindow->setLayout(fMsgLayout);
     fMessageWindow->adjustSize();
     fMessageWindow->hide();
+    fMessageWindow->move((QApplication::desktop()->geometry().size().width() - fMessageWindow->width())/2, (QApplication::desktop()->geometry().size().height()- fMessageWindow->height())/2);
 }
 
 FLExportManager::FLExportManager(QString url, QString sessionHome){
@@ -158,7 +160,7 @@ FLExportManager::FLExportManager(QString url, QString sessionHome){
     fLastArchi = "";
     fLastChoice = "";
     
-    fDialogWindow = new QDialog;
+    fDialogWindow = new QDialog();
     fDialogWindow->setWindowFlags(Qt::FramelessWindowHint);
     
     fMessageWindow = new QDialog();

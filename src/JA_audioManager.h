@@ -28,7 +28,10 @@ class JA_audioManager : public AudioManager{
     JA_audioFader*          fCurrentAudio;
     
     public :
-        JA_audioManager(AudioSettings* as);
+    
+    static void        shutdown_message(const char * msg, void* arg);
+    
+    JA_audioManager(AudioSettings* as, shutdown_callback cb, void* arg);
         virtual ~JA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);

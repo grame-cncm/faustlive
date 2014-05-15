@@ -21,7 +21,7 @@ class JA_audioFactory : public AudioFactory{
     ~JA_audioFactory();
     
     virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent);
-    virtual AudioManager* createAudioManager(AudioSettings* audioParameters);
+    virtual AudioManager* createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg);
 };
 
 #endif

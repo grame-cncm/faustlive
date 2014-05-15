@@ -161,8 +161,20 @@ void AudioCreator::saveCurrentSettings(){
     fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
 }
 
+void AudioCreator::change_Architecture(){
+    
+    for(int i =0; i<fAudioArchi->count(); i++){
+        if(i != fAudioArchi->currentIndex()){
+            indexChanged(i);
+            return;
+        }
+    }
+    
+}
+
 //Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index){
+ 
     
     printf("AudioCreator::indexChanged\n");
     
@@ -235,11 +247,11 @@ AudioSettings* AudioCreator::createAudioSettings(QString homeFolder, QGroupBox* 
     
 }
 
-AudioManager* AudioCreator::createAudioManager(AudioSettings* audioParameters){
+AudioManager* AudioCreator::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
 
 //        printf("AudioCreator::createAudioManager\n");
     
-    return fFactory->createAudioManager(audioParameters);
+    return fFactory->createAudioManager(audioParameters, cb, arg);
 }
 
 //Save and read settings in the saving file

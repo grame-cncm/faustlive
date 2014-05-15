@@ -37,7 +37,7 @@ class NJ_audioManager : public AudioManager{
     NJ_audioFader*          fFadeInAudio;
     
     public :
-        NJ_audioManager(AudioSettings* as);
+        NJ_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg);
         virtual ~NJ_audioManager();
     
         virtual bool init(const char*, dsp* DSP);
