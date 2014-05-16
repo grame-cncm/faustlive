@@ -687,7 +687,7 @@ void FLWindow::shut_Window(){
 
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
-    
+
     printf("FLWindow::close_Window %s\n", fWindowName.toStdString().c_str());
     
     hide();
@@ -699,8 +699,8 @@ void FLWindow::close_Window(){
     
 #ifndef _WIN32
     if(fHttpdWindow){
-        delete fHttpdWindow;
-        fHttpdWindow = NULL;
+        fHttpdWindow->deleteLater();
+        //fHttpdWindow = NULL;
     }
 #endif
     //     printf("deleting instance = %p\n", current_DSP);  
