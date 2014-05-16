@@ -537,7 +537,7 @@ void catch_OSCError(void* arg){
     
     FLWindow* win = (FLWindow*)(arg);
     
-    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");    
+    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");
     win->disableOSCInterface();
 }
 
@@ -553,9 +553,9 @@ void FLWindow::allocateOscInterface(){
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
 #ifndef WIN32
-        printf("Before New OSCUI\n");
+//        printf("Before New OSCUI\n");
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
-        printf("After New OSCUI\n");
+//        printf("After New OSCUI\n");
 #endif
     }
 }
@@ -734,27 +734,8 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     QList<QString>    sourceList;    
     
     //The event is not entirely handled by the window, it is redirected to the application through the drop signal
-    if (event->mimeData()->hasUrls()) {
+    if (event->mimeData()->hasText()){
         
-        QList<QString>    sourceList;
-        QList<QUrl> urls = event->mimeData()->urls();
-        QList<QUrl>::iterator i;
-        
-        for (i = urls.begin(); i != urls.end(); i++) {
-            
-            QString fileName = i->toLocalFile();
-            QString dsp = fileName;
-            
-			printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
-
-            event->accept();
-            
-            sourceList.push_back(dsp);
-        }   
-        emit drop(sourceList);
-    }
-    else if (event->mimeData()->hasText()){
-
         printf("TEXT DROPPED= %s\n", event->mimeData()->text().toStdString().c_str());
         
 		event->accept();
@@ -762,6 +743,27 @@ void FLWindow::dropEvent ( QDropEvent * event ){
         QString TextContent = event->mimeData()->text();
         sourceList.push_back(TextContent);
         
+        emit drop(sourceList);
+    }
+    else if (event->mimeData()->hasUrls()) {
+        
+        QList<QString>    sourceList;
+        QList<QUrl> urls = event->mimeData()->urls();
+        QList<QUrl>::iterator i;
+        
+        for (i = urls.begin(); i != urls.end(); i++) {
+            
+            if(i->isLocalFile()){
+                QString fileName = i->toLocalFile();
+                QString dsp = fileName;
+                
+                printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
+                
+                event->accept();
+                
+                sourceList.push_back(dsp);
+            }
+        }   
         emit drop(sourceList);
     }
 }
@@ -778,14 +780,20 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
-                QString fileName = i->toLocalFile();
-                QString dsp = fileName;
-                
-                if(QFileInfo(dsp).completeSuffix().compare("dsp") == 0 || QFileInfo(dsp).completeSuffix().compare("wav") == 0){
+//                if(i->isLocalFile()){
+//                    QString fileName = i->toLocalFile();
+//                    QString dsp = fileName;
                     
-                    centralWidget()->hide();
-                    event->acceptProposedAction();   
-                }
+                    if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
+                        
+                        centralWidget()->hide();
+                        event->acceptProposedAction();   
+                    }
+//                }
+//                else if(i->toString().indexOf("http://")!=-1){
+//                    centralWidget()->hide();
+//                    event->acceptProposedAction();
+//                }
             }
             
         }

@@ -237,7 +237,13 @@ void FLApp::create_Session_Hierarchy(){
         }
     }
     
-    
+    QString sched(":/usr/local/lib/faust/scheduler.ll");
+    if(QFileInfo(sched).exists()){
+        QString newScheduler = fLibsFolder + "/scheduler.ll";
+        
+        QFile f(sched);
+        f.copy(newScheduler);
+    }
     QDir direc(fSessionFile);
 }
 
@@ -916,6 +922,7 @@ QString FLApp::ifUrlToText(const QString& source){
     
     printf("pos of http:// = %i\n", pos);
     
+//    Has to be at the beginning, otherwise, it can be a component containing an URL.
     if(pos == 0){
         UrlText = "process = component(\"";
         UrlText += source;
