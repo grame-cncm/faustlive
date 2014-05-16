@@ -57,7 +57,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
-    setQuitOnLastWindowClosed(true);
+	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));    
+	//setQuitOnLastWindowClosed(true);
 #else
     setQuitOnLastWindowClosed(false);
 #endif
@@ -236,7 +237,6 @@ void FLApp::create_Session_Hierarchy(){
             }
         }
     }
-    
     
     QDir direc(fSessionFile);
 }
@@ -2766,7 +2766,7 @@ void FLApp::update_ProgressBar(){
 //Quit FaustLive
 void FLApp::closeAllWindows(){
     
-    //    printf("CLOSE ALL WINDOWS\n");
+    printf("Quit FaustLive\n");
     
     display_Progress();
     
