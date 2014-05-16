@@ -238,6 +238,13 @@ void FLApp::create_Session_Hierarchy(){
         }
     }
     
+    QString sched(":/usr/local/lib/faust/scheduler.ll");
+    if(QFileInfo(sched).exists()){
+        QString newScheduler = fLibsFolder + "/scheduler.ll";
+        
+        QFile f(sched);
+        f.copy(newScheduler);
+    }
     QDir direc(fSessionFile);
 }
 
@@ -914,11 +921,13 @@ QString FLApp::ifUrlToText(const QString& source){
     
     QString UrlText(source);
     
-    if(pos != -1){
+    printf("pos of http:// = %i\n", pos);
+    
+//    Has to be at the beginning, otherwise, it can be a component containing an URL.
+    if(pos == 0){
         UrlText = "process = component(\"";
         UrlText += source;
         UrlText +="\");";
-//        source = UrlText;
     }
     
     return UrlText;
@@ -5178,8 +5187,11 @@ void FLApp::update_AudioArchitecture(){
             (*it)->start_Audio();
         fAudioCreator->saveCurrentSettings();
         
-        errorToPrint = "Update successfull";
-        fErrorWindow->print_Error(errorToPrint);
+//        If there is no current window, it is strange to show that msg
+        if(FLW_List.size() != 0){
+            errorToPrint = "Update successfull";
+            fErrorWindow->print_Error(errorToPrint);
+        }
     }
     
     StopProgressSlot();
