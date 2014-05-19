@@ -283,6 +283,7 @@ class FLApp : public QApplication
         void                new_Window_pres();
         void                open_Window_pres();
         void                open_Session_pres();
+        void		    hidePresWin();
 
     //---------Click On an example
         void                itemClick(QListWidgetItem *item);

@@ -160,7 +160,6 @@ class FLWindow : public QMainWindow
         void            take_Snapshot();
         void            recallSnapshot();
         void            importSnapshot();
-        void            shut();
         void            shut_All();
         void            closeAll();
         void            edit();
@@ -301,6 +300,7 @@ class FLWindow : public QMainWindow
         void            switchOsc(bool on);
         void            disableOSCInterface();
         void            frontShowFromMenu(); 
+        void            shut();
     
     //Raises and shows the window
         void            frontShow();

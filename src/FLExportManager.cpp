@@ -94,6 +94,16 @@ void FLExportManager::setLastState(){
     fLastChoice = fExportArchi->currentText();
 }
 
+bool FLExportManager::isDialogVisible(){
+
+	if(fDialogWindow->isVisible())
+		return true;
+	else if(fMessageWindow->isVisible())
+		return true;
+	else
+		return false;
+}
+
 //Displaying the progress of remote compilation
 void FLExportManager::init_MessageWindow(){
     

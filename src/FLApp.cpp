@@ -2832,6 +2832,9 @@ void FLApp::shut_AllWindows(){
         
         printf(" FLApp::shut_AllWindows() || NB WIN = %i\n", FLW_List.size());
     }
+#ifndef __APPLE__
+    closeAllWindows();
+#endif   
 }
 
 //Close Window from Menu
@@ -2920,10 +2923,14 @@ void FLApp::common_shutAction(FLWindow* win){
         (*it2)->update_RecentFileMenu();
     }
 
-//#ifndef __APPLE__
-//    if(FLW_List.size() == 0 && !fRecalling)
-//        exit();
-//#endif
+
+#ifndef __APPLE__
+    if(FLW_List.size() == 0 && fExportDialog->isDialogVisible() && !fPresWin->isVisible()){
+    printf("CLOSE ALL WINDOWS FROM COMMON SHUT WIN \n");
+    	closeAllWindows();
+    }
+
+#endif
 }
 
 //--------------DELETION
@@ -3738,7 +3745,9 @@ void FLApp::apropos(){
 }
 
 void FLApp::end_apropos(){
-    fHelpWindow->hide(); 
+    fHelpWindow->hide();
+    if(!fPresWin->isVisible() && FLW_List.size() == 0)
+    	closeAllWindows();
 }
 
 //Not Active Window containing version of all the librairies
@@ -3957,7 +3966,7 @@ void FLApp::init_presentationWindow(){
     
     QPushButton* cancel = new QPushButton("Cancel");
     //    cancel->setStyleSheet("*{background-color: transparent;}");
-    connect(cancel, SIGNAL(clicked()), fPresWin, SLOT(hide()));
+    connect(cancel, SIGNAL(clicked()), this, SLOT(hidePresWin()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
@@ -4039,6 +4048,19 @@ void FLApp::show_presentation_Action(){
     
     fPresWin->show();
     fPresWin->raise();
+}
+
+void FLApp::hidePresWin(){
+
+    if(FLW_List.size() != 0){
+    	printf("Hide presentation win\n");
+    	fPresWin->hide();
+    }
+    else{
+    	printf("Close All from presentation Win\n");
+    	fPresWin->hide();
+    	closeAllWindows();
+    }
 }
 
 //--------------------------------PREFERENCES---------------------------------------
