@@ -13,10 +13,12 @@ bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<s
 bool parseOperatingSystem (const char*& p, string& os, vector<string>& al);
 bool parseArchitecturesList (const char*& p, vector<string>& v);
 
+/*
 void skipBlank(const char*& p);
 bool parseError(const char*& p, const char* errmsg );
 bool tryChar(const char*& p, char x);
 bool parseChar(const char*& p, char x);
 bool parseString(const char*& p, string& s);
+ */
 
 #endif // SIMPLEPARSER_H

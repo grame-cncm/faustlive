@@ -3,6 +3,71 @@
 #include <ctype.h>
 #include "SimpleParser.h"
 
+// ---------------------------------------------------------------------
+//                          Elementary parsers
+// ---------------------------------------------------------------------
+
+// Advance pointer p to the first non blank character
+static void skipBlank(const char*& p)
+{
+    while (isspace(*p)) { p++; }
+}
+
+// Report a parsing error
+static bool parseError(const char*& p, const char* errmsg )
+{
+    cerr << "Parse error : " << errmsg << " here : " << p << endl;
+    return true;
+}
+
+// Parse character x, but don't report error if fails
+static bool tryChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//Parse character x, reports an error if it fails
+static bool parseChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        cerr << "parsing error : expoected character '" << x << "'" << ", instead got : " << p << endl;
+        return false;
+    }
+}
+
+// Parse a quoted string "..." and store the result in s, reports an error if it fails
+static bool parseString(const char*& p, string& s)
+{
+    string str;
+
+    skipBlank(p);
+
+    const char* saved = p;
+
+    if (*p++ == '"') {
+        while ((*p != 0) && (*p != '"')) {
+            str += *p++;
+        }
+        if (*p++=='"') {
+            s = str;
+            return true;
+        }
+    }
+    p = saved;
+    std::cerr << "parsing error : expected quoted string, instead got : "<< p << std::endl;
+    return false;
+}
+
 
 // ---------------------------------------------------------------------
 // Parse full json record describing available operating systems and
@@ -37,9 +102,9 @@ bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<s
 bool parseOperatingSystem (const char*& p, string& os, vector<string>& al)
 {
     return  parseString(p,os) && parseChar(p,':')
-            && parseChar(p,'[')
-            && parseArchitecturesList(p,al)
-            && parseChar(p,']');
+    && parseChar(p,'[')
+    && parseArchitecturesList(p,al)
+    && parseChar(p,']');
 }
 
 
@@ -52,82 +117,15 @@ bool parseArchitecturesList (const char*& p, vector<string>& v)
 {
     string s;
     do {
-
+        
         if (parseString(p,s)) {
             v.push_back(s);
         } else {
             return false;
         }
-
+        
     } while ( tryChar(p,','));
     return true;
-}
-
-
-// ---------------------------------------------------------------------
-//                          Elementary parsers
-// ---------------------------------------------------------------------
-
-
-// Advance pointer p to the first non blank character
-void skipBlank(const char*& p)
-{
-    while (isspace(*p)) { p++; }
-}
-
-// Report a parsing error
-bool parseError(const char*& p, const char* errmsg )
-{
-    cerr << "Parse error : " << errmsg << " here : " << p << endl;
-    return true;
-}
-
-// Parse character x, but don't report error if fails
-bool tryChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-//Parse character x, reports an error if it fails
-bool parseChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-        cerr << "parsing error : expoected character '" << x << "'" << ", instead got : " << p << endl;
-        return false;
-    }
-}
-
-// Parse a quoted string "..." and store the result in s, reports an error if it fails
-bool parseString(const char*& p, string& s)
-{
-    string str;
-
-    skipBlank(p);
-
-    const char* saved = p;
-
-    if (*p++ == '"') {
-        while ((*p != 0) && (*p != '"')) {
-            str += *p++;
-        }
-        if (*p++=='"') {
-            s = str;
-            return true;
-        }
-    }
-    p = saved;
-    std::cerr << "parsing error : expected quoted string, instead got : "<< p << std::endl;
-    return false;
 }
 
 
