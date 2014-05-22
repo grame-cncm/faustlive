@@ -7,6 +7,8 @@
 //                          Elementary parsers
 // ---------------------------------------------------------------------
 
+static bool parseArchitecturesList(const char*& p, vector<string>& v);
+
 // Advance pointer p to the first non blank character
 static void skipBlank(const char*& p)
 {
@@ -14,7 +16,7 @@ static void skipBlank(const char*& p)
 }
 
 // Report a parsing error
-static bool parseError(const char*& p, const char* errmsg )
+static bool parseError(const char*& p, const char* errmsg)
 {
     cerr << "Parse error : " << errmsg << " here : " << p << endl;
     return true;
@@ -68,6 +70,38 @@ static bool parseString(const char*& p, string& s)
     return false;
 }
 
+// ---------------------------------------------------------------------
+// Parse operating system record :
+//  "os" : ["arch1, "arch2",...]
+// and store the result in os and al
+//
+static bool parseOperatingSystem(const char*& p, string& os, vector<string>& al)
+{
+    return  parseString(p,os) && parseChar(p,':')
+    && parseChar(p,'[')
+    && parseArchitecturesList(p,al)
+    && parseChar(p,']');
+}
+
+// ---------------------------------------------------------------------
+// Parse an architecture list
+//  "arch1, "arch2",...
+// and store the result in a vector v
+//
+static bool parseArchitecturesList(const char*& p, vector<string>& v)
+{
+    string s;
+    do {
+        
+        if (parseString(p,s)) {
+            v.push_back(s);
+        } else {
+            return false;
+        }
+        
+    } while (tryChar(p,','));
+    return true;
+}
 
 // ---------------------------------------------------------------------
 // Parse full json record describing available operating systems and
@@ -77,7 +111,7 @@ static bool parseString(const char*& p, string& s)
 // This function is used by targetsDescriptionReceived() to parse the JSON
 // record sent by the webservice.
 //
-bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<string, vector<string> >& M)
+bool parseOperatingSystemsList(const char*& p, vector<string>& platforms, map<string, vector<string> >& M)
 {
     parseChar(p, '{');
     do {
@@ -91,41 +125,6 @@ bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<s
         }
     } while (tryChar(p,','));
     return parseChar(p, '}');
-}
-
-
-// ---------------------------------------------------------------------
-// Parse operating system record :
-//  "os" : ["arch1, "arch2",...]
-// and store the result in os and al
-//
-bool parseOperatingSystem (const char*& p, string& os, vector<string>& al)
-{
-    return  parseString(p,os) && parseChar(p,':')
-    && parseChar(p,'[')
-    && parseArchitecturesList(p,al)
-    && parseChar(p,']');
-}
-
-
-// ---------------------------------------------------------------------
-// Parse an architecture list
-//  "arch1, "arch2",...
-// and store the result in a vector v
-//
-bool parseArchitecturesList (const char*& p, vector<string>& v)
-{
-    string s;
-    do {
-        
-        if (parseString(p,s)) {
-            v.push_back(s);
-        } else {
-            return false;
-        }
-        
-    } while ( tryChar(p,','));
-    return true;
 }
 
 
