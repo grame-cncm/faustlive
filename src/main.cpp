@@ -28,10 +28,11 @@ using namespace std;
 
 #ifdef _WIN32
 #include <windows.h>
-#endif
+#else
 
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,6 +107,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdPara
 int main( int argc, char **argv ){
 #endif
 #ifdef USEWINMAIN
+	printf("USEWINMAIN\n");
 int argc = __argc;
 char **argv = __argv;
 #endif

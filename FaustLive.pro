@@ -9,8 +9,8 @@
 
 FAUSTDIR = /usr/local/lib/faust
 TARGET = FaustLive
-VERSION = 1.1
-DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+#VERSION = 1.1
+DEFINES += APP_VERSION=\\\"1.1\\\"
 
 OBJECTS_DIR += src
 MOC_DIR += src
@@ -39,7 +39,7 @@ INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include\curl
 
 LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
 LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
-CONFIG += console
+
 } else{
 
 ICON = Resources/Images/FaustLiveIcon.icns
@@ -66,12 +66,23 @@ QT+=network
 
 
 win32{
+Debug{
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
 LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
 LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
 LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
+CONFIG += console
+}
+Release{
+LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libfaust_vs2012\Release
+LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Release
+LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Release
+LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Release
+LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
+}
 }
 else{
 LIBS+=-L/usr/local/lib/faust
@@ -88,6 +99,8 @@ equals(HTTPDVAR, 1){
 LIBS+=-lHTTPDFaust
 LIBS+=-lqrcodelib
 LIBS+=-llibcurl
+DEFINES += HTTPCTRL
+#DEFINES += QRCODECTRL
 }
 }
 else{
@@ -113,8 +126,11 @@ equals(REMVAR, 1){
 	LIBS+=-llo
 }
 
+win32{
+}
+else{
 LIBS+=-lcrypto
-
+}
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
