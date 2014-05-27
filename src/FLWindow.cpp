@@ -742,26 +742,9 @@ void FLWindow::dropEvent ( QDropEvent * event ){
 	numberCharToErase = 7;
 #endif
 	
-    //The event is not entirely handled by the window, it is redirected to the application through the drop signal
-    if (event->mimeData()->hasText()){
+    if (event->mimeData()->hasUrls()) {
         
-        QString TextContent;
-
-        if(event->mimeData()->text().indexOf("file://") == 0){
-        	printf("is file detected ??\n");
-        	TextContent = QString(event->mimeData()->text()).right(event->mimeData()->text().size()-numberCharToErase);
-       	}
-        else
-         	TextContent = event->mimeData()->text();
-         	
-        printf("TEXT DROPPED= %s\n", TextContent.toStdString().c_str());
-        
-        sourceList.push_back(TextContent);
-                
-	event->accept();
-        emit drop(sourceList);
-    }
-    else if (event->mimeData()->hasUrls()) {
+        printf("URLS\n");
         
         QList<QString>    sourceList;
         QList<QUrl> urls = event->mimeData()->urls();
@@ -774,15 +757,42 @@ void FLWindow::dropEvent ( QDropEvent * event ){
                 QString dsp;
                 
                 event->accept();
-                if(fileName.indexOf("file://") == 0)
+                /*if(fileName.indexOf("file://") == 0)
          		dsp = QString(fileName).right(fileName.size()-numberCharToErase);      
-         	else
+         	else*/
          		dsp = fileName;	
                                
                 printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
                 sourceList.push_back(dsp);
+                
+            }
+            else{
+            	QString dsp = event->mimeData()->text();
+            	sourceList.push_back(dsp);
             }
         }   
+        emit drop(sourceList);
+    }
+        //The event is not entirely handled by the window, it is redirected to the application through the drop signal
+    else if (event->mimeData()->hasText()){
+        
+        printf("TEXTE\n");
+        
+        event->accept();
+        
+        QString TextContent;
+
+        /*if(event->mimeData()->text().indexOf("file://") == 0){
+        	printf("is file detected ??\n");
+        	TextContent = QString(event->mimeData()->text()).right(event->mimeData()->text().size()-numberCharToErase);
+       	}
+        else*/
+         	TextContent = event->mimeData()->text();
+         	
+        printf("TEXT DROPPED= %s\n", TextContent.toStdString().c_str());
+        
+        sourceList.push_back(TextContent);
+                
         emit drop(sourceList);
     }
 }
@@ -799,26 +809,16 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
-//                if(i->isLocalFile()){
-//                    QString fileName = i->toLocalFile();
-//                    QString dsp = fileName;
-                    
                     if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
                         
                         centralWidget()->hide();
                         event->acceptProposedAction();   
                     }
-//                }
-//                else if(i->toString().indexOf("http://")!=-1){
-//                    centralWidget()->hide();
-//                    event->acceptProposedAction();
-//                }
             }
             
         }
         else if(event->mimeData()->hasFormat("text/plain")){
             centralWidget()->hide();
-            //            setWindowFlags(Qt::FramelessWindowHint);
             event->acceptProposedAction();      
         }
     }
@@ -1098,8 +1098,7 @@ void FLWindow::viewQrCode(){
 
 void FLWindow::exportToPNG(){
 #ifndef _WIN32
-    printf("Export to PNG\n");
-    
+
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
     
@@ -1400,7 +1399,7 @@ void FLWindow::shut_All(){
 }
 
 void FLWindow::closeAll(){
-	printf("WE WILL CLOSE ALL\n");
+
     emit close_AllWindows();
 }
 

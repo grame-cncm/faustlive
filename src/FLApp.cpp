@@ -10,7 +10,6 @@
 #ifndef _WIN32
 #include "FLServerHttp.h"
 #include "faust/remote-dsp.h"
-#include "CoreFoundation/CoreFoundation.h"
 #else
 #include <windows.h>
 #include <shlobj.h>
@@ -801,8 +800,8 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     source = ifUrlToText(source);
     
     //SOURCE = FILE.DSP    
-    if(QFileInfo(source).completeSuffix().compare("dsp") == 0){
-        
+    if(QFileInfo(source).exists() && QFileInfo(source).completeSuffix().indexOf("dsp") == 0){
+
 //        If the effect was already compiled, it is recycled
         FLEffect* effectRecycled = getCompiledEffect(isLocal, source, ip, port);
         
@@ -815,7 +814,7 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
         fileSource = source;
         
 //        NOT RECALLING
-        if(!recall && nameEffect.compare("") == 0){
+        if(!recall && QString::compare(nameEffect,"") == 0){
 
             nameEffect = QFileInfo(fileSource).baseName();
             nameEffect = renameEffect(fileSource, nameEffect, false);
@@ -825,10 +824,11 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     
     //SOURCE = TEXT
     else{
+    
 //        Naming Effect from its declare name or a default name
         QString name = getDeclareName(source);
         
-        if(name.compare("") == 0){
+        if(QString::compare(name,"") == 0){
             QString defaultName = find_smallest_defaultName(get_currentDefault());
             name = defaultName;
         }
@@ -845,7 +845,6 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
     }
     
     display_CompilingProgress("Compiling your DSP...");
-    
     FLEffect* myNewEffect = new FLEffect(recall, fileSource, nameEffect, isLocal);
     
     if(myNewEffect && myNewEffect->init(fSVGFolder, fIRFolder, fLibsFolder, compilationOptions, opt_Val, error, ip, port)){
@@ -867,7 +866,7 @@ FLEffect* FLApp::getEffectFromSource(QString source, QString nameEffect, const Q
         if(!fileSourceMark){
             
             // If file did not exist, it is removed
-            if(content.compare("") == 0)
+            if(QString::compare(content,"") == 0)
                 QFile(fileSource).remove();
             // Otherwise, its previous content is restored
             else
@@ -927,8 +926,6 @@ QString FLApp::ifUrlToText(const QString& source){
     int pos = source.indexOf("http://");
     
     QString UrlText(source);
-    
-    printf("pos of http:// = %i\n", pos);
     
 //    Has to be at the beginning, otherwise, it can be a component containing an URL.
     if(pos == 0){
@@ -1060,7 +1057,7 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
                     
-                    printf("UPDATE_FACTORY\n");
+                    //printf("UPDATE_FACTORY\n");
                     
                     if(!(*it2)->update_Window(modifiedEffect, error)){
                         
@@ -1087,7 +1084,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
         
         modifiedEffect->erase_OldFactory();
         modifiedEffect->launch_Watcher();
-        printf("modifiedEffect OPT = %i\n", modifiedEffect->getOptValue());
     }
     //In case the file is erased during the execution
     else if(!QFileInfo(modifiedSource).exists()){
@@ -1169,7 +1165,7 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
         //Forcing the update of compilation parameters for a recycled effect
         if(optionChanged){
             newEffect->update_compilationOptions(winOptions,  winOptValue);
-            printf("update_compilationOptions\n");
+            //printf("update_compilationOptions\n");
         }
     }
     
@@ -1317,8 +1313,6 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         
         update_Source(toCopy, copySource);
         
-        printf("Update Source\n");
-        
         if(error.compare("") != 0){
             fErrorWindow->print_Error(error);
         }
@@ -1331,8 +1325,6 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         redirectMenuToWindow(win);
 		
 		if(win->init_Window(init, error)){
-            
-            printf("INIT\n");
             
             FLW_List.push_back(win);
             addWinToSessionFile(win);
@@ -1363,7 +1355,6 @@ void FLApp::create_New_Window(const QString& source){
     
     if(new_Window(source, error) == NULL){
         fErrorWindow->print_Error(error);
-        printf("NULLLLLLLLLL\n");
     }
     
 }
@@ -1801,8 +1792,6 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
         (*it)->updateNavigateMenu(fFrontWindow);
-	
-	printf("addWinToSession ended\n");
 }
 
 //Delete window from Current Session Structure
