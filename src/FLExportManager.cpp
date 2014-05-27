@@ -88,7 +88,6 @@ void FLExportManager::init_DialogWindow()
 void FLExportManager::setLastState(){
     
     fDialogWindow->hide();
-    
     fLastPlatform = fExportPlatform->currentText();
     fLastArchi = fExportArchi->currentText();
     fLastChoice = fExportArchi->currentText();

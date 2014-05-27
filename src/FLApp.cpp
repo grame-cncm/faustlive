@@ -3046,8 +3046,11 @@ void FLApp::edit(FLWindow* win){
             
             filename = fileDialog->getSaveFileName(NULL, "Rename File", tr(""), tr("(*.dsp)"));
             
-            QFile f(filename); 
+            if(QFileInfo(filename).suffix().indexOf("dsp") == -1)
+            	filename += ".dsp";
             
+            QFile f(filename); 
+           
             if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
                 
                 QTextStream textWriting(&f);
@@ -3314,6 +3317,8 @@ void FLApp::export_Action(){
 //For sound files, a pass transforms them into faust code through the waveforms
 QString FLApp::soundFileToFaust(const QString& soundFile){
     
+    printf("FLApp::soundFileToFaust\n");   
+ 
     QString soundFileName = QFileInfo(soundFile).baseName();
     soundFileName = nameWithoutSpaces(soundFileName);
     
@@ -3335,10 +3340,16 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     
     QString systemInstruct;
 #ifdef _WIN32
-    systemInstruct += "/sound2faust.exe ";
+    systemInstruct += "/sound2faust.exe " + "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
 #ifdef __linux__
-    systemInstruct += "./sound2faust ";
+	printf("LINUX SOUND2FAUST\n");
+	if(QFileInfo("/usr/local/bin/sound2faust").exists())
+	    systemInstruct += "/usr/local/bin/sound2faust ";
+	else
+	    systemInstruct += "./sound2faust ";
+	    
+	systemInstruct += soundFile  + " -o " + waveFile;		    
 #else
     
     QDir base;
@@ -3347,9 +3358,9 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
         systemInstruct += "./sound2faust ";
     else
         systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";
+        
+   systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
-    
-    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
     
@@ -3392,13 +3403,17 @@ void FLApp::drop_Action(QList<QString> sources){
 //    The sound files are transformated into faust files
     for(it = sources.begin(); it != sources.end(); it++){
 
-        if((QFileInfo(*it).completeSuffix().compare("dsp") == 0) && (*it).indexOf(' ') != -1){
+	printf("SOURCE DROOOOOOOPPPPEDDDD = %s\n", (*it).toStdString().c_str());
+	QString suffix = QFileInfo(*it).suffix();
+
+        if((suffix.indexOf("dsp") == 0) && (*it).indexOf(' ') != -1){
             sources.removeOne(*it);
             fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
-            
         }
-        else if(QFileInfo(*it).completeSuffix().compare("wav") == 0)
-            *it = soundFileToFaust(*it);
+        else if(suffix.indexOf("wav") == 0)
+           *it = soundFileToFaust(*it);
+        else if(suffix.indexOf(".wav") == 0)
+       	   *it = soundFileToFaust(*it);
     }
     
     it = sources.begin();
