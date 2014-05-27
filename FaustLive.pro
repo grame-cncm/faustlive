@@ -171,15 +171,12 @@ equals(NJVAR, 1){
 	HEADERS += 	src/NJ_audioFactory.h \
 				src/NJ_audioSettings.h \
 				src/NJ_audioManager.h \
-				src/NJ_audioFader.h \
-				src/JsonParser.h \
-							
+				src/NJ_audioFader.h 
 	
 	SOURCES += 	src/NJ_audioFactory.cpp \
 				src/NJ_audioSettings.cpp \
 				src/NJ_audioManager.cpp \
-				src/NJ_audioFader.cpp \
-				src/JsonParser.cpp 
+				src/NJ_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		
