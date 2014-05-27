@@ -10,7 +10,6 @@
 #ifndef _WIN32
 #include "FLServerHttp.h"
 #include "faust/remote-dsp.h"
-#include "CoreFoundation/CoreFoundation.h"
 #else
 #include <windows.h>
 #include <shlobj.h>
