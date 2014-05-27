@@ -3352,15 +3352,8 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     
     QString systemInstruct;
 #ifdef _WIN32
-<<<<<<< HEAD
     systemInstruct += "sound2faust.exe ";
-#endif
-#ifdef __linux__
-    systemInstruct += "./sound2faust ";
-#endif
-#ifdef __APPLE__
-=======
-    systemInstruct += "/sound2faust.exe " + "\"" + soundFile + "\"" + " -o " + waveFile;
+    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
 #ifdef __linux__
 	printf("LINUX SOUND2FAUST\n");
@@ -3369,9 +3362,9 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
 	else
 	    systemInstruct += "./sound2faust ";
 	    
-	systemInstruct += soundFile  + " -o " + waveFile;		    
-#else
->>>>>>> 6ebdcb2771475825e82b03c099f77cc114d8aa1f
+	systemInstruct += soundFile  + " -o " + waveFile;	
+#endif
+#ifdef __APPLE__
     
     QDir base;
     
@@ -3383,11 +3376,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
     
-<<<<<<< HEAD
-    systemInstruct += "\"" + fileSound + "\"" + " -o " + waveFile;
-    
-=======
->>>>>>> 6ebdcb2771475825e82b03c099f77cc114d8aa1f
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
     
     myCmd.start(systemInstruct);
@@ -3401,7 +3389,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QString finalFileContent = "import(\"";
     finalFileContent += soundFileName + "_waveform.dsp";
     finalFileContent += "\");\nprocess=";
-    finalFileContent += QFileInfo(fileSound).baseName();
+    finalFileContent += QFileInfo(soundFile).baseName();
     finalFileContent += ";";
     
     printf("finalFileContent = %s\n", finalFileContent.toStdString().c_str());
@@ -3419,7 +3407,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     
     return destinationFile;
 }
-
 //Drop of sources on a window
 void FLApp::drop_Action(QList<QString> sources){
     

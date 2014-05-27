@@ -1298,7 +1298,7 @@ void FLWindow::set_MenuBar(){
     httpdViewAction->setShortcut(tr("Ctrl+K"));
     httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
     connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View()));
-//#endif
+#endif
     
     QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
     svgViewAction->setShortcut(tr("Ctrl+G"));
@@ -1315,7 +1315,7 @@ void FLWindow::set_MenuBar(){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#if defined !(_WIN32) || defined HTTPCTRL    
+#if !defined (_WIN32) /*|| defined HTTPCTRL*/    
     fWindowMenu->addAction(httpdViewAction);
 #endif
     fWindowMenu->addAction(svgViewAction);
