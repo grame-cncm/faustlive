@@ -65,8 +65,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
 //    fLayout1->addWidget(fPublishBox);
 //    connect(fPublishBox, SIGNAL(checkStateSet()), this, SLOT());
     
-//#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+#ifdef HTTPCTRL
 
     fHttpBox = new QGroupBox(tr("Enable Http Remote Interface"));
     fHttpBox->setCheckable(true);
@@ -222,8 +221,7 @@ void FLToolBar::modifiedOptions(){
 	int port = 5510;    
     int portOsc = 5510;
     
-//#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+#ifdef HTTPCTRL
     QString portText = fPortLine->text();
 	if(isStringInt(portText.toStdString().c_str()))
 		port = atoi(portText.toStdString().c_str());
@@ -267,8 +265,7 @@ int FLToolBar::getVal(){
 
 int FLToolBar::getPort(){
 
-//#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+#ifdef HTTPCTRL
     QString val = fPortLine->text();
 	if(isStringInt(val.toStdString().c_str()))
 		return atoi(val.toStdString().c_str());
@@ -278,8 +275,8 @@ int FLToolBar::getPort(){
 }
 
 void FLToolBar::setPort(int port){
-//#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+
+#ifdef HTTPCTRL
     stringstream ss;
     ss<<port;
     
@@ -363,14 +360,14 @@ void FLToolBar::redirectHttp(bool on){
 
 void FLToolBar::switchHttp(bool on){
 //#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+#ifdef HTTPCTRL
     fHttpBox->setChecked(on);
 #endif
 }
 
 bool FLToolBar::isHttpOn(){
 //#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPDVAR
+#ifdef HTTPCTRL
     return fHttpBox->isChecked();
 #else
     return false;

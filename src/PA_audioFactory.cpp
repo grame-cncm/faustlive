@@ -25,9 +25,9 @@ AudioSettings* PA_audioFactory::createAudioSettings(QString homeFolder, QGroupBo
 }
 
 //Creates an AudioManager, corresponding to a JackAudio object 
-AudioManager* PA_audioFactory::createAudioManager(AudioSettings* audioParameters){
+AudioManager* PA_audioFactory::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
     
-    return new PA_audioManager(audioParameters);
+    return new PA_audioManager(audioParameters, cb, arg);
     
 }
 

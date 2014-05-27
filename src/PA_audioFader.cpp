@@ -12,9 +12,7 @@
 
 PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize){}
 
-PA_audioFader::~PA_audioFader(){   
-    Pa_Terminate();
-}
+PA_audioFader::~PA_audioFader(){}
 
 bool PA_audioFader::set_dsp(dsp* DSP){
     set_dsp_aux(DSP);
@@ -24,9 +22,16 @@ bool PA_audioFader::set_dsp(dsp* DSP){
 int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames) 
 {
     // process samples
+	//printf("Process Audio \n");
     fDsp->compute(frames, ibuf, obuf);
     crossfade_Calcul(fBufferSize, fDevNumOutChans, obuf);
-    return paContinue;
+	
+	for(int i=0; i<fDsp->getNumOutputs(); i++){
+		for(int j=0; j<frames; j++){
+			//printf("Output Buffer = %f\n", obuf[i][j]);
+		}
+	}
+	return paContinue;
 }
 
 // UpDate the list of ports needed by new DSP

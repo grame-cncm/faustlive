@@ -27,9 +27,9 @@ class PA_audioManager : public AudioManager{
     PA_audioSettings*       fSettings;
     PA_audioFader*          fCurrentAudio;
     PA_audioFader*          fFadeInAudio;
-    
+
     public :
-        PA_audioManager(AudioSettings* as);
+        PA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg);
         virtual ~PA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);

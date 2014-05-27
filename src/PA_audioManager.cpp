@@ -14,7 +14,7 @@
 
 #include <QFileInfo>
 
-PA_audioManager::PA_audioManager(AudioSettings* as): AudioManager(as){
+PA_audioManager::PA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg): AudioManager(as, cb, arg){
 
     
     printf("NEW PORT AUDIO\n");
@@ -23,7 +23,6 @@ PA_audioManager::PA_audioManager(AudioSettings* as): AudioManager(as){
     
     fCurrentAudio = new PA_audioFader(fSettings->get_SampleRate(), fSettings->get_BufferSize());
 }
-
 PA_audioManager::~PA_audioManager(){
 
     delete fCurrentAudio;
@@ -38,7 +37,7 @@ bool PA_audioManager::initAudio(QString& error, const char* name){
 
 bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs){
     
-    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
+	if(fCurrentAudio->init(port_name, numInputs, numOutputs/*, fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)){
         fInit = true;
         return true;
     }
@@ -64,7 +63,13 @@ bool PA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name){
 }
 
 bool PA_audioManager::init(const char* name, dsp* DSP){
-    return fCurrentAudio->init(name, DSP);
+	
+	if(fCurrentAudio->init(name, DSP/*->getNumInputs(), DSP->getNumOutputs(),fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)){
+		//fCurrentAudio->set_dsp_aux(DSP);
+		return true;
+	}
+	else
+		return false;
 }
 
 bool PA_audioManager::start(){
@@ -82,8 +87,10 @@ bool PA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
     
     fFadeInAudio = new PA_audioFader(fSettings->get_SampleRate(), fSettings->get_BufferSize());
     
-    if(fFadeInAudio->init(name, DSP))
-        return true;
+	if(fFadeInAudio->init(name, DSP/*->getNumInputs(), DSP->getNumOutputs(), fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)){
+		//fFadeInAudio->set_dsp_aux(DSP);
+		return true;
+	}
     else{
         error = "Impossible to init new Port Audio Client";
         return false;

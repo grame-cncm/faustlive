@@ -136,7 +136,7 @@ class FLWindow : public QMainWindow
         void            importSnapshotFromMenu();
         void            closeWin();
         void            shut_AllWindows();
-        void            closeAllWindows();
+        void            close_AllWindows();
         void            edit_Action();
         void            paste_Action();
         void            duplicate_Action();

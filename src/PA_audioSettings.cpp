@@ -9,6 +9,7 @@
 #include "PA_audioSettings.h"
 #include <sstream>
 #include "utilities.h"
+#include "faust/audio/portaudio-dsp.h"
 
 PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){
     
@@ -19,9 +20,11 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     fBufSize = new QLineEdit;
     fsplRate = new QLineEdit;
     
-    fDeviceBox = new QComboBox;
-    
-    fLayout->addRow(new QLabel(tr("Choose Audio Device")), fDeviceBox);
+ /* fInputDeviceBox = new QComboBox;
+    fOutputDeviceBox = new QComboBox;
+
+    fLayout->addRow(new QLabel(tr("Choose Input Device")), fInputDeviceBox);
+	fLayout->addRow(new QLabel(tr("Choose Ouput Device")), fOutputDeviceBox);*/
     fLayout->addRow(new QLabel(tr("Audio Sample Rate")), fsplRate);
     fLayout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     
@@ -29,14 +32,31 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     
     readSettings();
     setVisualSettings();
+//	set_deviceList();
 }
+
+void PA_audioSettings::set_deviceList(){
+/*	
+	fInputdevices = portaudio::get_InputDevices();
+	fOutputdevices = portaudio::get_OutputDevices();
+
+	map<string, int>::iterator it;
+
+	for(it = fInputdevices.begin(); it != fInputdevices.end(); it++){
+		fInputDeviceBox->addItem(it->first.c_str());
+	}
+	for(it = fOutputdevices.begin(); it != fOutputdevices.end(); it++){
+		fOutputDeviceBox->addItem(it->first.c_str());
+	}*/
+}
+
 
 PA_audioSettings::~PA_audioSettings(){
     
     writeSettings();
-    delete fLayout;
-    delete fBufSize;
-    delete fsplRate;
+//    delete fLayout;
+//    delete fBufSize;
+//    delete fsplRate;
 }
 
 //Accessors to the Buffersize
@@ -70,10 +90,10 @@ void PA_audioSettings::storeVisualSettings(){
         fBufferSize = atoi(fBufSize->text().toLatin1().data());
         
         if(fBufferSize == 0)
-            fBufferSize = 512;
+            fBufferSize = 1024;
     }
     else
-        fBufferSize = 512;
+        fBufferSize = 1024;
     
     if(isStringInt(fsplRate->text().toLatin1().data())){
         
@@ -99,7 +119,7 @@ void PA_audioSettings::writeSettings(){
         
         f.close();
         printf("FILE WAS WROTE\n");
-    }
+	}
 }
 
 void PA_audioSettings::readSettings(){
@@ -114,7 +134,7 @@ void PA_audioSettings::readSettings(){
         f.close();
     }
     else{
-        fBufferSize = 512;
+        fBufferSize = 1024;
         fSampleRate = 44100;
     }
 }
@@ -138,12 +158,21 @@ QString PA_audioSettings::get_ArchiName(){
     return "PortAudio";
 }
 
-void PA_audioSettings::add_audioDevice(const QString& deviceName){
-    fDeviceBox->addItem(deviceName);
+int PA_audioSettings::get_inputDevice(){
+/*	if(fInputDeviceBox->currentText().compare("") != 0){
+		return fInputdevices[fInputDeviceBox->currentText().toStdString()];
+	}
+	else*/
+		return 0;
 }
 
-QString PA_audioSettings::get_audioDevice(){
-    return fDeviceBox->currentText();
+
+int PA_audioSettings::get_ouputDevice(){
+/*    if(fOutputDeviceBox->currentText().compare("") != 0){
+		return fOutputdevices[fOutputDeviceBox->currentText().toStdString()];
+	}
+	else*/
+		return 0;
 }
 
 

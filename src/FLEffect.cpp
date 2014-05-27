@@ -31,7 +31,14 @@ FLEffect::FLEffect(bool isEffectRecalled, const QString& sourceFile, const QStri
     fOldRemoteFactory = NULL;
     fWatcher = NULL;
     fSynchroTimer = NULL;
-    fSource = sourceFile;
+
+//File:// is not liked by QFileInfo soooooo it has to be stripped off
+#ifdef _WIN32
+	if(sourceFile.indexOf("file://") == 0)
+		fSource = QString(sourceFile).right(sourceFile.size()-8);
+	else
+#endif
+		fSource = sourceFile;
     fName = name;
     fForceSynchro = false;
     fRecompilation= false;
@@ -174,7 +181,9 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
 
         argv[iteratorParams] = "-I";   
 		iteratorParams++;
-        string sourcePath = QFileInfo(fSource).absolutePath().toStdString();
+        QString sourceChemin = QFileInfo(fSource).absolutePath();
+		string sourcePath = sourceChemin.toStdString();
+
         argv[iteratorParams] = sourcePath.c_str();
 		iteratorParams++;
 
@@ -235,7 +244,9 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
         
         if(fIsLocal){      
             
-            buildingFactory = createDSPFactoryFromFile(fSource.toStdString(), argc, argv, "", getError, fOpt_level);
+			string mySourceToCompile = fSource.toStdString();
+
+            buildingFactory = createDSPFactoryFromFile(mySourceToCompile, argc, argv, "", getError, fOpt_level);
 
 			printf("ERROR FROM BUILD FACTORY = %s\n", getError.c_str());
         }
@@ -514,7 +525,13 @@ QString FLEffect::getSource(){
 }
 
 void FLEffect::setSource(QString file){
-    fSource = file;
+
+//File:// is not liked by QFileInfo soooooo it has to be stripped off
+	if(file.indexOf("file://") == 0){
+		fSource = QString(file).right(file.size()-8);
+	}
+	else
+		fSource = file;
 }
 
 QDateTime FLEffect::get_creationDate(){

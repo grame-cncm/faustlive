@@ -94,7 +94,6 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 FLWindow::~FLWindow(){
 
     printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
-
 }
 
 //------------------------WINDOW ACTIONS
@@ -137,12 +136,14 @@ QString FLWindow::getErrorFromCode(int code){
 //@param : init = if the window created is a default window.
 //@param : error = in case init fails, the error is filled
 bool FLWindow::init_Window(int init, QString& errorMsg){
-    
+
     if(fEffect->isLocal()){
+
         if(!init_audioClient(errorMsg))
-            return false;
-        
+			return false;
+
         fCurrent_DSP = createDSPInstance(fEffect->getFactory());
+
     }
 #ifdef REMOTE
     else{
@@ -189,10 +190,10 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
     }
     
     if(buildInterfaces(fCurrent_DSP, fEffect->getName())){
-        
+
         if(init != kNoInit)
-            print_initWindow(init);        
-        
+			print_initWindow(init);
+
         if(setDSP(errorMsg)){
             
             start_Audio();
@@ -568,12 +569,13 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     
     fRCInterface = new FUI;
     
+#ifndef _WIN32
     if(fMenu->isOscOn())
         allocateOscInterface();
     
     if(fMenu->isHttpOn())
         allocateHttpInterface();
-
+#endif
     //    printf("OSCINTERFACE = %p\n", fOscInterface);
     if(fRCInterface){
         
@@ -1229,9 +1231,8 @@ void FLWindow::set_MenuBar(){
     shutAllAction->setToolTip(tr("Close all the Windows"));
     connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_All()));
     
-    QAction* closeAllAction = new QAction(tr("&Closing"),this);
-    closeAllAction->setShortcut(tr("Ctrl+Q"));
-    closeAllAction = new QAction(tr("&Quit FaustLive"),this);
+    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),this);
+	closeAllAction->setShortcut(tr("Ctrl+Q"));
     closeAllAction->setToolTip(tr("Close the application"));   
     connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAll()));
     
@@ -1273,12 +1274,14 @@ void FLWindow::set_MenuBar(){
     duplicateAction->setToolTip(tr("Duplicate current DSP"));
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
-#ifndef _WIN32 || HTTPDVAR
+//#if-group:
+#ifndef _WIN32
+//#ifdef HTTPCTRL
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
     httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
     connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View()));
-#endif
+//#endif
     
     QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
     svgViewAction->setShortcut(tr("Ctrl+G"));
@@ -1295,7 +1298,7 @@ void FLWindow::set_MenuBar(){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#ifndef _WIN32 || HTTPDVAR    
+#if defined !(_WIN32) || defined HTTPCTRL    
     fWindowMenu->addAction(httpdViewAction);
 #endif
     fWindowMenu->addAction(svgViewAction);
@@ -1380,7 +1383,8 @@ void FLWindow::shut_All(){
 }
 
 void FLWindow::closeAll(){
-    emit closeAllWindows();
+	printf("WE WILL CLOSE ALL\n");
+    emit close_AllWindows();
 }
 
 void FLWindow::edit(){
