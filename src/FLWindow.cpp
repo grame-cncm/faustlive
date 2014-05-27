@@ -735,16 +735,30 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     
     QList<QString>    sourceList;    
     
+	int numberCharToErase = 0;
+#ifdef _WIN32
+	numberCharToErase = 8;
+#else
+	numberCharToErase = 7;
+#endif
+	
     //The event is not entirely handled by the window, it is redirected to the application through the drop signal
     if (event->mimeData()->hasText()){
         
-        printf("TEXT DROPPED= %s\n", event->mimeData()->text().toStdString().c_str());
+        QString TextContent;
+
+        if(event->mimeData()->text().indexOf("file://") == 0){
+        	printf("is file detected ??\n");
+        	TextContent = QString(event->mimeData()->text()).right(event->mimeData()->text().size()-numberCharToErase);
+       	}
+        else
+         	TextContent = event->mimeData()->text();
+         	
+        printf("TEXT DROPPED= %s\n", TextContent.toStdString().c_str());
         
-		event->accept();
-        
-        QString TextContent = event->mimeData()->text();
         sourceList.push_back(TextContent);
-        
+                
+	event->accept();
         emit drop(sourceList);
     }
     else if (event->mimeData()->hasUrls()) {
@@ -757,12 +771,15 @@ void FLWindow::dropEvent ( QDropEvent * event ){
             
             if(i->isLocalFile()){
                 QString fileName = i->toLocalFile();
-                QString dsp = fileName;
-                
-                printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
+                QString dsp;
                 
                 event->accept();
-                
+                if(fileName.indexOf("file://") == 0)
+         		dsp = QString(fileName).right(fileName.size()-numberCharToErase);      
+         	else
+         		dsp = fileName;	
+                               
+                printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
                 sourceList.push_back(dsp);
             }
         }   

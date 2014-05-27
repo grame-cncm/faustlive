@@ -19,20 +19,22 @@
 
 FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     
+    setAutoFillBackground(true);
+    
     QLineEdit* myLine = new QLineEdit(this);
     myLine->setReadOnly(true);
-    myLine->setStyleSheet("*{background-color:transparent; selection-background-color : white; border-color:white;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;}*:selected{color:black; border-color : white;margin: 0px;padding: 0px;spacing: 0px;}");
+    myLine->setStyleSheet("*{background-color:transparent; border-color:white;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;}*:selected{color:black; border-color : white;margin: 0px;padding: 0px;spacing: 0px;}");
     myLine->setAutoFillBackground(true);
     
     fTreeWidget = new QTreeWidget(myLine);
     fTreeWidget->setAttribute(Qt::WA_MacShowFocusRect, 0);
+    fTreeWidget->setAutoFillBackground(true);
     
-    fTreeWidget->setStyleSheet("*{background-color:transparent; alternate-background-color: white;selection-background-color : white; selection-color : black;border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} *:item{background-color:transparent;border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} ");
+    fTreeWidget->setStyleSheet("*{background-color:transparent; border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} *:item{background-color:transparent;border-color:transparent;margin: 0px;padding: 0px 0px 0px 0px;spacing: 0px;} ");
     
     
     fItem = new QTreeWidgetItem( fTreeWidget, QStringList(QString("Window Options")), QTreeWidgetItem::UserType);
-    
-    fItem2 = new QTreeWidgetItem( fItem, QStringList(QString("")), QTreeWidgetItem::UserType);
+    fItem2 = new QTreeWidgetItem( fItem, QStringList(QString("Window Options")), QTreeWidgetItem::UserType);
     
     fTreeWidget->setFrameShape(QFrame::NoFrame);
     fTreeWidget->header()->setVisible(false);
@@ -44,9 +46,12 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     connect(fTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(collapseAction(QTreeWidgetItem*)));
     
     fWidget1 = new QWidget;
+    fWidget1->setStyleSheet("*{background-color:#CECECE;}");
     
     fOptionLine = new QLineEdit(tr(""), fWidget1);
+    fOptionLine->setStyleSheet("*{background-color:white;}");
     fOptValLine = new QLineEdit(tr(""), fWidget1);
+    fOptValLine->setStyleSheet("*{background-color:white;}");
 
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
@@ -78,6 +83,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fPortLine = new QLineEdit(tr(""), fWidget1);
     httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
     httpLayout->addWidget(fPortLine);
+    fPortLine->setStyleSheet("*{background-color:white;}");
     connect(fPortLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fHttpBox->setLayout(httpLayout);
@@ -93,6 +99,7 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
     fOscBox->setChecked(false);
     
     fPortOscLine = new QLineEdit(tr(""), fWidget1);
+    fPortOscLine->setStyleSheet("*{background-color:white;}");
     oscLayout->addWidget(new QLabel(tr("Osc Port"), fWidget1));
     oscLayout->addWidget(fPortOscLine);
     connect(fPortOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));

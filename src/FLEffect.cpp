@@ -33,11 +33,11 @@ FLEffect::FLEffect(bool isEffectRecalled, const QString& sourceFile, const QStri
     fSynchroTimer = NULL;
 
 //File:// is not liked by QFileInfo soooooo it has to be stripped off
-#ifdef _WIN32
-	if(sourceFile.indexOf("file://") == 0)
-		fSource = QString(sourceFile).right(sourceFile.size()-8);
-	else
-#endif
+//#ifdef _WIN32
+//	if(sourceFile.indexOf("file://") == 0)
+//		fSource = QString(sourceFile).right(sourceFile.size()-8);
+//	else
+//#endif
 		fSource = sourceFile;
     fName = name;
     fForceSynchro = false;

@@ -104,16 +104,33 @@ DEFINES += HTTPCTRL
 }
 }
 else{
-	LIBS+=-lqrencode
-	LIBS+=-lHTTPDFaust
-	LIBS+=-lOSCFaust -loscpack
-	LIBS+=-L/opt/local/lib
-	LIBS+=-lmicrohttpd
-	#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
-	LIBS+= $$LLVMDIR
 
-DEFINES += HTTPCTRL
-DEFINES += QRCODECTRL
+     equals(static, 1){
+	LIBS+=/usr/local/lib/libqrencode.a
+	LIBS+=/usr/lib/x86_64-linux-gnu/libmicrohttpd.a
+	LIBS+=-lgnutls
+	LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
+	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
+	#LIBS+=-lp11-kit
+     }
+     else{
+	LIBS+=-lqrencode
+	LIBS+=-lmicrohttpd
+	LIBS+=-lcrypto
+
+     }
+
+      LIBS+=-lHTTPDFaust
+      LIBS+=-lOSCFaust -loscpack
+      LIBS+=-L/opt/local/lib
+
+      LIBS+= $$LLVMDIR
+
+      DEFINES += HTTPCTRL
+      DEFINES += QRCODECTRL
 }
 
 HEADERS += src/utilities.h 
@@ -126,23 +143,18 @@ equals(REMVAR, 1){
 	LIBS+=-llo
 }
 
-win32{
-}
-else{
-LIBS+=-lcrypto
-}
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
 	HEADERS += 	src/CA_audioFactory.h\
-				src/CA_audioSettings.h\
-				src/CA_audioManager.h\
-				src/CA_audioFader.h 
+			src/CA_audioSettings.h\
+			src/CA_audioManager.h\
+			src/CA_audioFader.h 
 				
 	SOURCES += 	src/CA_audioFactory.cpp \
-				src/CA_audioSettings.cpp \
-				src/CA_audioManager.cpp 
+			src/CA_audioSettings.cpp \
+			src/CA_audioManager.cpp 
 }else{
 	message("COREAUDIO NOT LINKED")
 }
@@ -171,15 +183,12 @@ equals(NJVAR, 1){
 	HEADERS += 	src/NJ_audioFactory.h \
 				src/NJ_audioSettings.h \
 				src/NJ_audioManager.h \
-				src/NJ_audioFader.h \
-				src/JsonParser.h \
-							
+				src/NJ_audioFader.h 
 	
 	SOURCES += 	src/NJ_audioFactory.cpp \
 				src/NJ_audioSettings.cpp \
 				src/NJ_audioManager.cpp \
-				src/NJ_audioFader.cpp \
-				src/JsonParser.cpp 
+				src/NJ_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		

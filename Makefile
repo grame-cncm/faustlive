@@ -31,6 +31,9 @@ endif
 ifeq ($(PORTAUDIO), 1)
      QM-DEFS += "PAVAR=1" 
 endif
+ifeq ($(STATIC), 1)
+     QM-DEFS += "static=1" 
+endif
 
 ####### Targets
 
@@ -52,14 +55,17 @@ deploy:
 	macdeployqt FaustLive.app
 
 # make a binary distribution .dmg file for OSX
-dmg : 
+dist-Darwin : 	
+	macdeployqt FaustLive.app
 	cp -R FaustLive.app Distribution_OSX/FaustLive
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
-
+	
+dist-Linux:
+	cp FaustLive Distribution_Linux/FaustLive
+	zip -r FaustLive_Linux.zip Distribution_Linux
 	
 # make a source distribution .zip file
-dist :
-	git archive -o FaustLive.zip --prefix=FaustLive/ HEAD
+dist : dist-$(system)
 
 
 ####### Install
