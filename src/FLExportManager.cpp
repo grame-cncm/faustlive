@@ -84,6 +84,7 @@ void FLExportManager::init_DialogWindow()
     exportLayout->addRow(intermediateWidget);
     
     fDialogWindow->setLayout(exportLayout);
+    fDialogWindow->move((QApplication::desktop()->geometry().size().width() - fDialogWindow->width())/2, (QApplication::desktop()->geometry().size().height()- fDialogWindow->height())/2);
 }
 
 void FLExportManager::setLastState(){
@@ -93,6 +94,16 @@ void FLExportManager::setLastState(){
     fLastPlatform = fExportPlatform->currentText();
     fLastArchi = fExportArchi->currentText();
     fLastChoice = fExportArchi->currentText();
+}
+
+bool FLExportManager::isDialogVisible(){
+
+	if(fDialogWindow->isVisible())
+		return true;
+	else if(fMessageWindow->isVisible())
+		return true;
+	else
+		return false;
 }
 
 //Displaying the progress of remote compilation
@@ -144,10 +155,10 @@ void FLExportManager::init_MessageWindow(){
     fMessageWindow->setLayout(fMsgLayout);
     fMessageWindow->adjustSize();
     fMessageWindow->hide();
+    fMessageWindow->move((QApplication::desktop()->geometry().size().width() - fMessageWindow->width())/2, (QApplication::desktop()->geometry().size().height()- fMessageWindow->height())/2);
 }
 
-FLExportManager::FLExportManager(QString url, QString sessionHome)
-{
+FLExportManager::FLExportManager(QString url, QString sessionHome){
     std::cerr << "FLExportManager::FLExportManager(...)" << std::endl;
     
     fHome = sessionHome;
@@ -161,7 +172,7 @@ FLExportManager::FLExportManager(QString url, QString sessionHome)
     fLastArchi = "";
     fLastChoice = "";
     
-    fDialogWindow = new QDialog;
+    fDialogWindow = new QDialog();
     fDialogWindow->setWindowFlags(Qt::FramelessWindowHint);
     
     fMessageWindow = new QDialog();
@@ -187,24 +198,26 @@ FLExportManager::~FLExportManager()
     delete fMessageWindow ;
     
 //    In case the export is aborted during its execution
-    abortReply(fTargetReply);
-    abortReply(fPostReply);
-    abortReply(fGetKeyReply);
+    if(fTargetReply)
+        abortReply(fTargetReply);
+    if(fPostReply)
+        abortReply(fPostReply);
+    if(fGetKeyReply)
+        abortReply(fGetKeyReply);
 }
 
 //When Cancel is pressed, the request is aborted
 void FLExportManager::abortReply(QNetworkReply* reply){
     
-     disconnect(reply, 0, 0, 0);
-    
     if(reply) {
+        disconnect(reply, 0, 0, 0);
+        printf("FLExportManager::disconnected\n");
+        
         if(reply->isRunning()) {
-            reply->abort();
-            printf("ABORTED\n");
+            reply->close();
+            printf("FLExportManager::aborted\n");
         }
         reply->deleteLater();
-        delete reply;
-        reply = NULL;
     }
 }
 
@@ -220,8 +233,8 @@ void FLExportManager::redirectAbort(){
         response = fGetKeyReply;
     else
         return;
-    
-    abortReply(response);
+
+    disconnect(response, 0, 0, 0);
 }
 
 //Access Point for FaustLive to export a file
@@ -266,8 +279,7 @@ void FLExportManager::exportFile(QString file, QString faustCode){
 }
 
 //Build Graphical lists of OS and Platforms received from the server
-void FLExportManager::targetsDescriptionReceived()
-{
+void FLExportManager::targetsDescriptionReceived(){
     fErrorText->setText("");
     
     QNetworkReply* response = (QNetworkReply*)QObject::sender();
@@ -322,7 +334,9 @@ void FLExportManager::targetsDescriptionReceived()
         fErrorText->setText("Web Service is not available.\nVerify the web service URL in the preferences.");
     }
     
+    fTargetReply = NULL;
 }
+
 //Upload the file to the server with a post request
 void FLExportManager::postExport(){
     
@@ -384,6 +398,8 @@ void FLExportManager::readKey(){
         
         getFileFromKey(key.data());
     }
+
+    fPostReply = NULL;
 }
 
 //When the Server sends back an error
@@ -437,7 +453,6 @@ void FLExportManager::getFileFromKey(const char* key){
     
     connect(fGetKeyReply, SIGNAL(finished()), this, SLOT(showSaveB()));
     connect(fGetKeyReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));    
-    
 }
 
 //Manage the file received from server
@@ -481,8 +496,7 @@ void FLExportManager::saveFileOnDisk(){
 }
 
 //Dynamic changes of the available architectures depending on platform
-void FLExportManager::platformChanged(const QString& index)
-{
+void FLExportManager::platformChanged(const QString& index){
     printf("INDEX = %s\n", index.toStdString().c_str());
     
     fExportArchi->hide();

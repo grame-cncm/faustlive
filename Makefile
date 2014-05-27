@@ -42,7 +42,8 @@ install : install-$(system)
 uninstall : uninstall-$(system)
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
-math_lib : $(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/llvm_math.c -c -S -o Resources/Libs/llvm_math.ll)
+math_lib : 
+	$(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/llvm_math.c -c -S -o Resources/Libs/llvm_math.ll)
 
 ####### Packages
 
@@ -52,7 +53,7 @@ deploy:
 
 # make a binary distribution .dmg file for OSX
 dmg : 
-	cp -R FaustLive.app Distribution_OSX
+	cp -R FaustLive.app Distribution_OSX/FaustLive
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
 
 	
@@ -64,6 +65,7 @@ dist :
 ####### Install
 
 install-Darwin: 
+	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
 	cp -r FaustLive.app /Applications
 	
 uninstall-Darwin: 
@@ -85,12 +87,12 @@ uninstall-Linux :
 
 ####### MAKE MAKEFILE.QT4
 
-clean : Makefile.qt4
+clean : 
 	make -f Makefile.qt4 clean
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
 	rm -f Makefile.qt4
-	rm -f Resources/Libs/llvm_math.ll
 
 Makefile.qt4: 
 	$(qm) $(SPEC) -o Makefile.qt4 $(QM-DEFS)
+

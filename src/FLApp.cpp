@@ -20,6 +20,10 @@
 #include "FLExportManager.h"
 #include "utilities.h"
 
+#ifdef __APPLE__
+#include "faust/remote-dsp.h"
+#endif
+
 #include <sstream>
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
@@ -39,12 +43,15 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initializing preference
     fOpt_level = 3;
-    fServerUrl = "http://faust.grame.fr:8888";
+    fServerUrl = "http://faustservice.grame.fr";
     fPort = 7777;
     fStyleChoice = "Default";
     recall_Settings(fSettingsFolder);
     styleClicked(fStyleChoice);
     
+	//Initializing Recalling 
+	fRecalling = false;
+
     // Presentation Window Initialization
     fPresWin = new QDialog;
     fPresWin->setWindowFlags(Qt::FramelessWindowHint);
@@ -55,8 +62,13 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
     
+#ifndef __APPLE__
     //For the application not to quit when the last window is closed
+	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));    
+	//setQuitOnLastWindowClosed(true);
+#else
     setQuitOnLastWindowClosed(false);
+#endif
     
     fMenuBar = new QMenuBar;
     setup_Menu();
@@ -76,6 +88,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     launch_Server();
 #endif
     fCompilingMessage = NULL;
+
+    fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
     
     //If no event opened a window half a second after the application was created, a initialized window is created
     fInitTimer = new QTimer(this);
@@ -114,22 +128,7 @@ FLApp::~FLApp(){
     fSessionContent.clear();
 }
 
-void FLApp::create_Session_Hierarchy(){    
-
-    
-//    QProcess myCmd;
-//	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-//    
-//    QString systemInstruct("defaults write com.apple.LaunchServices LSHandlers -array-add '{LSHandlerContentTag = \"dsp\"; LSHandlerContentTagClass = \"public.filename-extension\"; LSHandlerRoleAll = \"com.apple.textedit\"; }");
-//    
-//	myCmd.setProcessEnvironment(env);
-//    myCmd.start(systemInstruct);
-//    myCmd.waitForFinished();
-//    
-    
-//    CFPreferencesSetAppValue (CFSTR("public.filename-extension"), kCFArray, CFSTR("com.apple.LaunchServices"));
-//    CFPreferencesAppSynchronize(CFSTR("com.apple.LaunchServices"));
-
+void FLApp::create_Session_Hierarchy(){
     
 	QString separationChar;
 
@@ -244,46 +243,17 @@ void FLApp::create_Session_Hierarchy(){
                 file.copy(pathInSession);
             }
         }
-        
     }
     
-    
+    QString sched(":/usr/local/lib/faust/scheduler.ll");
+    if(QFileInfo(sched).exists()){
+        QString newScheduler = fLibsFolder + "/scheduler.ll";
+        
+        QFile f(sched);
+        f.copy(newScheduler);
+    }
     QDir direc(fSessionFile);
 }
-
-//void FLApp::WriteInFile(const string& file, ...){
-//    
-//    
-//}
-//
-//void FLApp::ReadInFile(const string& file, ...){
-//    
-//    va_list va;
-//    va_start (va, n);
-//    
-//    int i;
-//    
-//    for (i = 0; i < n; i++)
-//    {
-//        int c = va_arg (va, int);
-//    }
-//    putchar ('\n');
-//    va_end (va);
-//    
-//    
-//    QFile f(fSessionFile.);
-//    QString text("");
-//    
-//    if(f.open(QFile::ReadOnly)){
-//        
-//        QTextStream textReading(&f);
-//        
-//        textReading>>text;
-//        f.close();
-//    }
-//
-//    return text.toStdString();
-//}
 
 //--Build FaustLive Menu
 void FLApp::setup_Menu(){
@@ -424,16 +394,16 @@ void FLApp::setup_Menu(){
     
     fPrefDialog = new QDialog;
     fPrefDialog->setWindowFlags(Qt::FramelessWindowHint);
-    
     init_PreferenceWindow();
+    fPrefDialog->move((fScreenWidth-fPrefDialog->width())/2, (fScreenHeight-fPrefDialog->height())/2);
     
     //--------------------HELP
     
     fHelpWindow = new QMainWindow;
     fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
     
-    this->init_HelpWindow();
-    fHelpWindow->move(fScreenWidth/3, fScreenHeight/3);
+    init_HelpWindow();
+    fHelpWindow->move((fScreenWidth-fHelpWindow->width())/2, (fScreenHeight-fHelpWindow->height())/2);
     
     QAction* aboutAction = new QAction(tr("&Help..."), this);
     aboutAction->setToolTip(tr("Show the library's About Box"));
@@ -797,6 +767,8 @@ FLEffect* FLApp::getCompiledEffect(bool isLocal, QString source, const QString& 
                 
                 if((*it)->hasToBeRecompiled() || contentSaved.compare(contentInSource) != 0)
                     synchronize_Window(*it);
+//                else
+//                    IL FAUT METTRE A JOUR LE NOM DE LA COPIE, LE NOM DU IR, DU SVG, ...
                 
                 return *it;
             }
@@ -956,11 +928,13 @@ QString FLApp::ifUrlToText(const QString& source){
     
     QString UrlText(source);
     
-    if(pos != -1){
+    printf("pos of http:// = %i\n", pos);
+    
+//    Has to be at the beginning, otherwise, it can be a component containing an URL.
+    if(pos == 0){
         UrlText = "process = component(\"";
         UrlText += source;
         UrlText +="\");";
-//        source = UrlText;
     }
     
     return UrlText;
@@ -1021,8 +995,8 @@ bool FLApp::isEffectNameInCurrentSession(const QString& sourceToCompare , const 
     for(it = fSessionContent.begin() ; it != fSessionContent.end() ; it ++){
         
         if((*it)->name.compare(nom)==0 && 
-           ((*it)->source.compare(sourceToCompare) != 0 || 
-            (*it)->name.contains(DEFAULTNAME) != string::npos && isRecalledEffect)
+           (((*it)->source.compare(sourceToCompare) != 0 || 
+            ((*it)->name.contains(DEFAULTNAME) != string::npos && isRecalledEffect)))
            )
             return true;
     }
@@ -1152,14 +1126,19 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
     leavingEffect->stop_Watcher();
     deleteWinFromSessionFile(win);
 
+    QString winOptions = win->get_Effect()->getCompilationOptions();
+    int winOptValue = win->get_Effect()->getOptValue();
     
-    FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level, error, false, win->get_Effect()->isLocal(), win->get_Effect()->getRemoteIP(), win->get_Effect()->getRemotePort());
+    FLEffect* newEffect = getEffectFromSource(source, empty, fSourcesFolder, winOptions, winOptValue, error, false, win->get_Effect()->isLocal(), win->get_Effect()->getRemoteIP(), win->get_Effect()->getRemotePort());
 
-// To force the update of compilation parameters ????
-//    bool optionChanged;
-//    
-//    if(newEffect != NULL)
-//        optionChanged = (fCompilationMode.compare(newEffect->getCompilationOptions()) != 0 || fOpt_level != (newEffect->getOptValue())) && !isLocalEffectInCurrentSession(newEffect->getSource()) && !isRemoteEffectInCurrentSession(newEffect->getSource(), newEffect->getRemoteIP(), newEffect->getRemotePort());
+//We will force the update of compilation parameters ?
+//    for a recycled effect
+    bool optionChanged;
+    
+    if(newEffect != NULL)
+        optionChanged = (winOptions.compare(newEffect->getCompilationOptions()) != 0 || winOptValue != (newEffect->getOptValue())) &&
+        !isLocalEffectInCurrentSession(newEffect->getSource()) &&
+        !isRemoteEffectInCurrentSession(newEffect->getSource(), newEffect->getRemoteIP(), newEffect->getRemotePort());
     
 //  If the change fails, the leaving effect has to be reimplanted
     if(newEffect == NULL || (!(win)->update_Window(newEffect, error))){
@@ -1187,11 +1166,11 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
         addWinToSessionFile(win);
         newEffect->launch_Watcher();
         
-        //In case the compilation options have changed... ???
-//        if(optionChanged){
-//            newEffect->update_compilationOptions(fCompilationMode, fOpt_level);
-//            printf("update_compilationOptions\n");
-//        }
+        //Forcing the update of compilation parameters for a recycled effect
+        if(optionChanged){
+            newEffect->update_compilationOptions(winOptions,  winOptValue);
+            printf("update_compilationOptions\n");
+        }
     }
     
 }
@@ -1278,7 +1257,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     connect(win, SIGNAL(importSnapshotFromMenu()), this, SLOT(importSnapshotFromMenu()));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
-    connect(win, SIGNAL(closeAllWindows()), this, SLOT(closeAllWindows()));
+    connect(win, SIGNAL(close_AllWindows()), this, SLOT(closeAllWindows()));
     connect(win, SIGNAL(edit_Action()), this, SLOT(edit_Action()));
     connect(win, SIGNAL(paste_Action()), this, SLOT(paste_Text()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
@@ -1292,6 +1271,7 @@ void FLApp::redirectMenuToWindow(FLWindow* win){
     connect(win, SIGNAL(show_presentation_Action()), this, SLOT(show_presentation_Action()));
     connect(win, SIGNAL(recall_Snapshot(QString, bool)), this, SLOT(recall_Snapshot(QString, bool)));
     connect(win, SIGNAL(front(QString)), this, SLOT(frontShow(QString)));
+    connect(win, SIGNAL(savePrefs()), this, SLOT(save_Mode()));
 }
 
 //--Creation of a new window
@@ -1348,11 +1328,9 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         
         FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
         
-        printf("WIN = %p\n", win);
-        
         redirectMenuToWindow(win);
-        
-        if(win->init_Window(init, error)){
+		
+		if(win->init_Window(init, error)){
             
             printf("INIT\n");
             
@@ -1813,16 +1791,27 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     newWin->setData(QVariant(name));
     connect(newWin, SIGNAL(triggered()), win, SLOT(frontShowFromMenu()));
     
-    fNavigateMenu->addAction(newWin);
+//    Update Navigate Menu For App & Wins
+    fNavigateMenu->clear();
+    for(QList<QAction*>::iterator ite = fFrontWindow.begin(); ite != fFrontWindow.end() ; ite++){
+        fNavigateMenu->addAction(*ite);
+    }
     
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->addWinInMenu(newWin);
+        (*it)->updateNavigateMenu(fFrontWindow);
+	
+	printf("addWinToSession ended\n");
 }
 
 //Delete window from Current Session Structure
 void FLApp::deleteWinFromSessionFile(FLWindow* win){
+    
+    QString toto = win->get_Effect()->getSource();
+    QString tutu = win->get_Effect()->getName();
+    if(toto.indexOf(fSourcesFolder) == -1)
+        set_Current_File(toto, tutu);
     
     QList<WinInSession*>::iterator it;
     
@@ -1844,17 +1833,29 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
                 if((*it2)->text().compare(name) == 0){
                     fFrontWindow.removeOne(*it2);
                     
-                    fNavigateMenu->removeAction(*it2);
+                    fNavigateMenu->clear();
+
+                    for(QList<QAction*>::iterator ite = fFrontWindow.begin(); ite != fFrontWindow.end() ; ite++)
+                        fNavigateMenu->addAction(*ite);
                     
                     QList<FLWindow*>::iterator it3;
                     
                     for (it3 = FLW_List.begin(); it3 != FLW_List.end(); it3++)
-                            (*it3)->deleteWinInMenu(*it2);
+                            (*it3)->updateNavigateMenu(fFrontWindow);
+                    
                     break;
                 }
             }
             break;
         }
+    }
+    
+    QList<FLWindow*>::iterator it2;
+    
+    for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++){
+        
+        (*it2)->set_RecentFile(fRecentFiles);
+        (*it2)->update_RecentFileMenu();
     }
 }
 
@@ -1921,8 +1922,8 @@ void FLApp::createSnapshotFolder(const QString& snapshotFolder){
             sourceF.copy(sourceFileCpy);
             
 //            COPY SVG
-            QString svgFolder = fSVGFolder + "/" + (*it)->get_Effect()->getName() + "-svg";
-            QString svgFolderCpy = svg + "/" + (*it)->get_Effect()->getName() + "-svg";
+            QString svgFolder = fSVGFolder + "/" + (*it)->get_Effect()->getName()/* + "-svg"*/;
+            QString svgFolderCpy = svg + "/" + (*it)->get_Effect()->getName() /*+ "-svg"*/;
             
             cpDir(svgFolder, svgFolderCpy);
         }
@@ -1932,7 +1933,11 @@ void FLApp::createSnapshotFolder(const QString& snapshotFolder){
 //Reset Current Session Folder
 void FLApp::reset_CurrentSession(){
     
-    QDir srcDir(fSessionFolder);
+    QDir srcDir(fSessionFolder);    
+    
+    deleteDirectoryAndContent(fSourcesFolder);
+    deleteDirectoryAndContent(fSVGFolder);
+    deleteDirectoryAndContent(fIRFolder);
     
     QFileInfoList children = srcDir.entryInfoList(QDir::Dirs | QDir::Drives | QDir::NoDotAndDotDot);
     
@@ -1941,30 +1946,30 @@ void FLApp::reset_CurrentSession(){
     for(it = children.begin(); it != children.end(); it++){
         
         QString toRemove(it->absoluteFilePath());
-        //        printf("WATH IS BEING REMOVED??? = %s\n", toRemove);
-        deleteDirectoryAndContent(toRemove);
+        
+        if(toRemove.indexOf("FLW-") != -1)
+            deleteDirectoryAndContent(toRemove);
     }
     
     QDir nv(fSessionFolder);
     QString ss(fSessionFolder);
     ss += "/Sources";
-    nv.mkdir(ss);
+    
+    if(!QFileInfo(ss).exists())
+        nv.mkdir(ss);
     
     QString svg(fSessionFolder);
     svg += "/SVG";
-    nv.mkdir(svg);
+    
+    if(!QFileInfo(svg).exists())
+        nv.mkdir(svg);
     
     QString ir(fSessionFolder);
     ir += "/IR";
-    nv.mkdir(ir);
+    
+    if(!QFileInfo(ir).exists())
+        nv.mkdir(ir);
 
-	QString ex(fExamplesFolder);
-    ex += "/Examples";
-    nv.mkdir(ex);
-
-	QString libs(fLibsFolder);
-    libs += "/Libs";
-    nv.mkdir(libs);
 
     fSessionContent.clear();
     
@@ -2128,11 +2133,18 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>& session){
         QString sourceSaved = fSourcesFolder + "/" + (*it)->name + ".dsp";
         contentSaved = pathToContent(sourceSaved);
         
+//        Original source 
         QFileInfo infoSource((*it)->source);
-
-        //If one source (not in the Source folder) couldn't be found, the User is asked to decide whether to reload it from the copied file
-        //If the copy was not correctly saved OR deleted; this message should not appear
-        if(updated.find((*it)->source) == updated.end() && infoSource.absolutePath().compare(fSourcesFolder) != 0 && (!infoSource.exists() || (contentSaved.compare(contentOrigin) != 0) && QFileInfo(sourceSaved).exists())){
+        
+        //If the source lose was NOT already handled &&
+        //If the source is NOT in the Source folder &&
+        //If this source could NOT be found or that its content was modified &&
+        //If the copied file exists
+        // THEN the user is asked if he wants to reload his effect from original or copied file
+        if(updated.find((*it)->source) == updated.end() && 
+           (infoSource.absolutePath().compare(fSourcesFolder) != 0 && 
+           ((!infoSource.exists() || (contentSaved.compare(contentOrigin) != 0)) &&
+            QFileInfo(sourceSaved).exists()))){
             
             QString mesg;
             bool contentModif = false;
@@ -2164,7 +2176,7 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>& session){
             if (existingNameMessage->clickedButton() == cancel_Button) {
                 
                 QString toErase = fSourcesFolder + "/" + (*it)->name + ".dsp";
-                removeFilesOfWin(toErase, (*it)->name);
+                removeFilesOfEffect(toErase, (*it)->name);
                 
                 //ORIGINAL - Source Erased - Copy not used --> Effect erased
                 if(!contentModif)
@@ -2194,7 +2206,7 @@ void FLApp::currentSessionRestoration(QList<WinInSession*>& session){
             deleteLineIndexed((*it)->ID, session);
             QString msg = "\n" + (*it)->name + " could not be reload. The File is lost!"; 
             fErrorWindow->print_Error(msg);
-            removeFilesOfWin((*it)->source, (*it)->name);
+            removeFilesOfEffect((*it)->source, (*it)->name);
         }
 //        Lost Source was already handled
         else if(updated.find((*it)->source) != updated.end()){
@@ -2280,14 +2292,13 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
 #endif
 
     if(!importOption){
-        shut_AllWindows(); 
+        shut_AllWindows();
         reset_CurrentSession();
         fExecutedEffects.clear();
         fRemoteEffects.clear();
     }
     
     QString finalFile = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
-    
     QString finalFilename = finalFile + "/Description.txt";
     
     recall_Session(finalFilename);
@@ -2425,6 +2436,7 @@ void FLApp::recall_Session(const QString& filename){
                 //In case the compilation options have changed...
                 if((*it)->compilationOptions.compare(newEffect->getCompilationOptions()) != 0)
                     newEffect->update_compilationOptions((*it)->compilationOptions, (*it)->opt_level);
+				    			
             }
             else{
                 delete win;
@@ -2435,9 +2447,10 @@ void FLApp::recall_Session(const QString& filename){
             fErrorWindow->print_Error(error);
         }
     }
-    
+
 //    If the current session is not recalled for some reason, the presentation menu is opened
     if(filename.compare(fSessionFile) == 0){
+
         if(FLW_List.size() == 0)
             show_presentation_Action();
     }
@@ -2692,10 +2705,10 @@ void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::l
         for(it2 = nameChanges.begin(); it2 !=nameChanges.end() ; it2++){
             
             QString toCompare = it2->first.c_str();
-            toCompare += "-svg";
+//            toCompare += "-svg";
             
             if(name.compare(toCompare) == 0){
-                QString newDir = dstDir + "/" +it2->second.c_str() + "-svg";
+                QString newDir = dstDir + "/" +it2->second.c_str()/* + "-svg"*/;
                 printf("COPYING = %s TO %s\n", it->absoluteFilePath().toStdString().c_str(), newDir.toStdString().c_str());
                 //                if(!QFileInfo(newDir).exists())
                 cpDir(it->absoluteFilePath(), newDir);
@@ -2739,6 +2752,7 @@ void FLApp::display_Progress(){
         layoutSave->addWidget(fPBar);
         savingMessage->setLayout(layoutSave);
         
+        savingMessage->move((fScreenWidth-savingMessage->width())/2, (fScreenHeight-savingMessage->height())/2);
         savingMessage->adjustSize();
         savingMessage->show();
         
@@ -2768,9 +2782,13 @@ void FLApp::update_ProgressBar(){
 
 //Quit FaustLive
 void FLApp::closeAllWindows(){
-    
-    //    printf("CLOSE ALL WINDOWS\n");
-    
+
+//This function is called when there are no more windows. In case of session recallin, the application can not be closed !!
+   if(fRecalling){
+	printf("Yes when arrrre recallling\n");
+	   return;
+   }
+
     display_Progress();
     
     update_CurrentSession();
@@ -2782,7 +2800,7 @@ void FLApp::closeAllWindows(){
     for(it2 = fExecutedEffects.begin() ;it2 != fExecutedEffects.end(); it2++){
         if(!isSourceInCurrentSession((*it2)->getSource())){
             QString toErase = fSourcesFolder + "/" + (*it2)->getName() + ".dsp";
-            removeFilesOfWin(toErase, (*it2)->getName());
+            removeFilesOfEffect(toErase, (*it2)->getName());
         }
     }
     
@@ -2826,6 +2844,9 @@ void FLApp::shut_AllWindows(){
         
         printf(" FLApp::shut_AllWindows() || NB WIN = %i\n", FLW_List.size());
     }
+#ifndef __APPLE__
+    closeAllWindows();
+#endif   
 }
 
 //Close Window from Menu
@@ -2893,7 +2914,7 @@ void FLApp::common_shutAction(FLWindow* win){
         else
             fRemoteEffects.removeOne(win->get_Effect());
 
-        removeFilesOfWin(toto, tutu);
+        removeFilesOfEffect(toto, tutu);
         toDelete = (win)->get_Effect();
     }
     else if(!isSourceInCurrentSession((win)->get_Effect()->getSource()))
@@ -2906,24 +2927,28 @@ void FLApp::common_shutAction(FLWindow* win){
         delete toDelete;
     }
     
-    QList<FLWindow*>::iterator it;
+    QList<FLWindow*>::iterator it2;
     
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++){
+    for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++){
         
-        (*it)->set_RecentFile(fRecentFiles);
-        (*it)->update_RecentFileMenu();
+        (*it2)->set_RecentFile(fRecentFiles);
+        (*it2)->update_RecentFileMenu();
     }
 
+
 #ifndef __APPLE__
-    if(FLW_List.size() == 0 && !fRecalling)
-        exit();
+    if(FLW_List.size() == 0 && fExportDialog->isDialogVisible() && !fPresWin->isVisible()){
+    printf("CLOSE ALL WINDOWS FROM COMMON SHUT WIN \n");
+    	closeAllWindows();
+    }
+
 #endif
 }
 
 //--------------DELETION
 
-//Delete File and Folder directly related to a window
-void FLApp::removeFilesOfWin(const QString& sourceName, const QString& effName){
+//Delete File and Folder directly related to an effect
+void FLApp::removeFilesOfEffect(const QString& sourceName, const QString& effName){
     
 //    In case the source is a waveform, 2 files have to be deleted
     QString possibleWaveformFile = QFileInfo(sourceName).absolutePath() + "/" + QFileInfo(sourceName).baseName()  + "_waveform." + QFileInfo(sourceName).completeSuffix();
@@ -2938,7 +2963,7 @@ void FLApp::removeFilesOfWin(const QString& sourceName, const QString& effName){
     QString irFile = fIRFolder + "/" + effName;
     QFile::remove(irFile);
     
-    QString svgFolder = fSVGFolder + "/" + effName + "-svg";
+    QString svgFolder = fSVGFolder + "/" + effName /*+ "-svg"*/;
     deleteDirectoryAndContent(svgFolder);
     
 }
@@ -2959,7 +2984,7 @@ void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
             
             //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
             if(newEffect->getSource().compare(leavingEffect->getSource())!=0)
-                removeFilesOfWin(leavingEffect->getSource(), leavingEffect->getName());
+                removeFilesOfEffect(leavingEffect->getSource(), leavingEffect->getName());
             
             if(leavingEffect->isLocal())
                 fExecutedEffects.removeOne(leavingEffect);
@@ -2972,7 +2997,7 @@ void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
             //The copy made of the source is erased
             QString toErase = fSourcesFolder + "/" + leavingEffect->getName() + ".dsp";
             
-            removeFilesOfWin(toErase, leavingEffect->getName());
+            removeFilesOfEffect(toErase, leavingEffect->getName());
         }
     }
     //If the effect is used in an other window, its watcher is reactivated
@@ -3185,13 +3210,78 @@ void FLApp::httpd_View_Window(){
         fErrorWindow->print_Error("No active Window");
 }
 
+#include "faust/llvm-dsp.h"
+
 //View SVG of a specific Window
 void FLApp::viewSvg(FLWindow* win){
     
     QString source = win->get_Effect()->getSource();
-    QString pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "-svg/process.svg";
+    QString pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "/" + QFileInfo(win->get_Effect()->getSource()).baseName() + "-svg/process.svg";
     
-
+    printf("PATH TO OPEN = %s\n", pathToOpen.toStdString().c_str());
+    
+    if(!QFileInfo(pathToOpen).exists()){
+        
+//------------This is ridiculous but hopefully TEMPORARY (12/05/14)
+        
+        
+        int numberFixedParams = 7;
+		int iteratorParams = 0;
+        
+#ifdef _WIN32
+		numberFixedParams = numberFixedParams+2;
+#endif
+        
+        //+7 = -I libraryPath -I currentFolder -O drawPath -svg
+        int argc = numberFixedParams;
+        argc += win->get_Effect()->get_numberParameters(win->get_Effect()->getCompilationOptions());
+        
+        const char** argv = new const char*[argc];
+        
+        argv[iteratorParams] = "-I";
+		iteratorParams++;
+        
+        //The library path is where libraries like the scheduler architecture file are = currentSession
+        string libPath = fLibsFolder.toStdString();
+        argv[iteratorParams] = libPath.c_str();
+		iteratorParams++;
+        
+        argv[iteratorParams] = "-I";   
+		iteratorParams++;
+        string sourcePath = QFileInfo(win->get_Effect()->getSource()).absolutePath().toStdString();
+        argv[iteratorParams] = sourcePath.c_str();
+		iteratorParams++;
+        
+        argv[iteratorParams] = "-O";
+		iteratorParams++;
+        
+        QString svgPath = fSVGFolder + "/" + win->get_Effect()->getName();
+        
+        printf("svg path = %s\n", svgPath.toStdString().c_str());
+        
+        QDir direct(svgPath);
+        direct.mkdir(svgPath);
+        
+        string pathSVG = svgPath.toStdString();
+        
+        argv[iteratorParams] = pathSVG.c_str();
+		iteratorParams++;
+        argv[iteratorParams] = "-svg";
+		iteratorParams++;
+		
+#ifdef _WIN32
+        //LLVM_MATH is added to resolve mathematical float functions, like powf
+		argv[iteratorParams] = "-l";
+		iteratorParams++;
+		argv[iteratorParams] = "llvm_math.ll";
+		iteratorParams++;
+#endif
+        string err;
+        generateAuxFilesFromFile(win->get_Effect()->getSource().toStdString(), argc, argv, err);
+    }
+        
+    
+    
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
 
@@ -3236,7 +3326,17 @@ void FLApp::export_Action(){
 //For sound files, a pass transforms them into faust code through the waveforms
 QString FLApp::soundFileToFaust(const QString& soundFile){
     
-    QString soundFileName = QFileInfo(soundFile).baseName();
+	QString fileSound;
+
+
+	//File:// is not liked by QFileInfo soooooo it has to be stripped off
+	if(soundFile.indexOf("file://") == 0){
+		fileSound = QString(soundFile).right(soundFile.size()-8);
+	}
+	else
+		fileSound = soundFile;
+
+    QString soundFileName = QFileInfo(fileSound).baseName();
     soundFileName = nameWithoutSpaces(soundFileName);
     
     QString destinationFile = fSourcesFolder;
@@ -3251,16 +3351,28 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     printf("FLAPP::destinationFile = %s\n", destinationFile.toStdString().c_str());
     
     QProcess myCmd;
+//    myCmd.setProcessEnvironment(env);
+//    printf("IS ENV EMPTY?? = %i\n", env.isEmpty());
     QByteArray error;
     
     QString systemInstruct;
 #ifdef _WIN32
-    systemInstruct = "sound2faust.exe ";
-#else
-    systemInstruct = "sound2faust ";
+    systemInstruct += "sound2faust.exe ";
+#endif
+#ifdef __linux__
+    systemInstruct += "./sound2faust ";
+#endif
+#ifdef __APPLE__
+    
+    QDir base;
+    
+    if(base.absolutePath().indexOf("Contents/MacOS") != -1)
+        systemInstruct += "./sound2faust ";
+    else
+        systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";
 #endif
     
-    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
+    systemInstruct += "\"" + fileSound + "\"" + " -o " + waveFile;
     
     printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
     
@@ -3275,7 +3387,7 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     QString finalFileContent = "import(\"";
     finalFileContent += soundFileName + "_waveform.dsp";
     finalFileContent += "\");\nprocess=";
-    finalFileContent += QFileInfo(soundFile).baseName();
+    finalFileContent += QFileInfo(fileSound).baseName();
     finalFileContent += ";";
     
     printf("finalFileContent = %s\n", finalFileContent.toStdString().c_str());
@@ -3303,7 +3415,7 @@ void FLApp::drop_Action(QList<QString> sources){
 //    The sound files are transformated into faust files
     for(it = sources.begin(); it != sources.end(); it++){
 
-        if((*it).indexOf(' ') != -1){
+        if((QFileInfo(*it).completeSuffix().compare("dsp") == 0) && (*it).indexOf(' ') != -1){
             sources.removeOne(*it);
             fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
             
@@ -3357,7 +3469,7 @@ void FLApp::setToolText(const QString & currentText){
 
 //Set Text in Application Properties Menu of HELP
 void FLApp::setAppPropertiesText(const QString& currentText){
-     
+    
     if(currentText.compare("New Default Window")==0)
         fAppText->setPlainText("\nCreates a new window containing a simple Faust process.\n\n process = !,!:0,0; ");
     
@@ -3379,7 +3491,7 @@ void FLApp::setAppPropertiesText(const QString& currentText){
     else if(currentText.compare("Preferences")==0){
         
         QString text = "\nWINDOW PREFERENCES : You can choose default compilation options for new windows. (Faust & LLVM options)\n\nAUDIO PREFERENCES : If this version of FaustLive includes multiple audio architectures, you can switch from one to another in Audio Preferences. All opened windows will try to switch. If the update fails, former architecture will be reloaded.\n\nNETWORK PREFERENCES : The compilation web service URL can be modified.";
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPCTRL
       text += "The port of remote drop (on html interface) can be modified.";  
 #endif
         
@@ -3413,10 +3525,10 @@ void FLApp::setWinPropertiesText(const QString& currentText){
     else if(currentText.compare("Window Options")==0){
         
         QString text = "\nYou can add compilation options for Faust Compiler. You can also change the level of optimization for the LLVM compiler. If several windows correspond to the same audio application, they will load the chosen options.";
-#ifndef _WIN || HTTPDVAR 
+#ifdef HTTPCTRL
         text+="\n\nThe HTTPD Port corresponds to the TCP port used for remote HTTP control of the interface.\n";
 #endif
-#ifndef _WIN || OSCVAR 
+#ifdef OSCVAR
         text+="\n\nThe OSC Port corresponds to the UDP port used for OSC control. \nWARNING : a port needs a few seconds to be released once a window is closed. Moreover, only 30 OSC ports can be opened at the same time.";
 #endif
         fWinText->setPlainText(text);
@@ -3502,7 +3614,7 @@ void FLApp::init_HelpWindow(){
     vue->addItem(QString(tr("PORTAUDIO")));
 #endif
     
-#ifndef _WIN32 || HTTPDVAR 
+#ifdef HTTPCTRL
     vue->addItem(QString(tr("LIB MICROHTTPD")));
     vue->addItem(QString(tr("LIB QRENCODE")));
     vue->addItem(QString(tr("OSC PACK")));
@@ -3615,7 +3727,7 @@ void FLApp::init_HelpWindow(){
     vue3->addItem(QString(tr("Edit Source")));    
     vue3->addItem(QString(tr("Drag and Drop / Paste")));
     vue3->addItem(QString(tr("Duplicate")));
-#ifndef _WIN32 || HTTPDVAR 
+#ifdef HTTPCTRL
     vue3->addItem(QString(tr("View QrCode")));
 #endif
     
@@ -3656,7 +3768,9 @@ void FLApp::apropos(){
 }
 
 void FLApp::end_apropos(){
-    fHelpWindow->hide(); 
+    fHelpWindow->hide();
+    if(!fPresWin->isVisible() && FLW_List.size() == 0)
+    	closeAllWindows();
 }
 
 //Not Active Window containing version of all the librairies
@@ -3875,7 +3989,7 @@ void FLApp::init_presentationWindow(){
     
     QPushButton* cancel = new QPushButton("Cancel");
     //    cancel->setStyleSheet("*{background-color: transparent;}");
-    connect(cancel, SIGNAL(clicked()), fPresWin, SLOT(hide()));
+    connect(cancel, SIGNAL(clicked()), this, SLOT(hidePresWin()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
@@ -3957,6 +4071,19 @@ void FLApp::show_presentation_Action(){
     
     fPresWin->show();
     fPresWin->raise();
+}
+
+void FLApp::hidePresWin(){
+
+    if(FLW_List.size() != 0){
+    	printf("Hide presentation win\n");
+    	fPresWin->hide();
+    }
+    else{
+    	printf("Close All from presentation Win\n");
+    	fPresWin->hide();
+    	closeAllWindows();
+    }
 }
 
 //--------------------------------PREFERENCES---------------------------------------
@@ -4776,7 +4903,7 @@ void FLApp::init_PreferenceWindow(){
     fServerLine = new QLineEdit(menu4);
     fServerLine->setText(fServerUrl);
     
-#ifndef _WIN32 || HTTPDVAR
+#ifdef  HTTPCTRL
     fPortLine = new QLineEdit(menu4);
     QString p =  QString::number(fPort);
     fPortLine->setText(p);
@@ -4784,7 +4911,7 @@ void FLApp::init_PreferenceWindow(){
     myTab->addTab(menu4, tr("Network"));
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPCTRL
     layoutNet->addRow(new QLabel(tr("")));
     layoutNet->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 #endif
@@ -4889,7 +5016,7 @@ void FLApp::save_Mode(){
     else
         fOpt_level = 3;
     
-#ifndef _WIN32 || HTTPDVAR
+#ifdef HTTPCTRL
     if(isStringInt(fPortLine->text().toLatin1().data())){
         
         if(fPort != atoi(fPortLine->text().toLatin1().data())){
@@ -5010,7 +5137,7 @@ void FLApp::recall_Settings(const QString& home){
     }
     
     if(fServerUrl.compare("") == 0){
-        fServerUrl = "http://faust.grame.fr:8888";
+        fServerUrl = "http://faustservice.grame.fr";
     }
     
     if(port.compare("") == 0){
@@ -5105,8 +5232,11 @@ void FLApp::update_AudioArchitecture(){
             (*it)->start_Audio();
         fAudioCreator->saveCurrentSettings();
         
-        errorToPrint = "Update successfull";
-        fErrorWindow->print_Error(errorToPrint);
+//        If there is no current window, it is strange to show that msg
+        if(FLW_List.size() != 0){
+            errorToPrint = "Update successfull";
+            fErrorWindow->print_Error(errorToPrint);
+        }
     }
     
     StopProgressSlot();
@@ -5133,6 +5263,7 @@ void FLApp::display_CompilingProgress(const QString& msg){
     layoutSave->addWidget(new QLabel(tr("")));
     fCompilingMessage->setLayout(layoutSave);
     
+    fCompilingMessage->move((fScreenWidth-fCompilingMessage->width())/2, (fScreenHeight-fCompilingMessage->height())/2);
     fCompilingMessage->adjustSize();
     fCompilingMessage->show();
     fCompilingMessage->raise();

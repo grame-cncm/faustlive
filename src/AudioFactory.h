@@ -20,6 +20,8 @@
 class AudioSettings;
 class AudioManager;
 
+typedef void (* AudioShutdownCallback)(const char* message, void* arg);
+
 class AudioFactory{
 
     public :
@@ -27,7 +29,7 @@ class AudioFactory{
         virtual ~AudioFactory(){}
 
     virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent) = 0;
-        virtual AudioManager* createAudioManager(AudioSettings* audioParameters) = 0;
+        virtual AudioManager* createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg) = 0;
     
 };
 

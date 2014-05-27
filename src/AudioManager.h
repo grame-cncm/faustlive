@@ -11,6 +11,7 @@
 #ifndef _AudioManager_h
 #define _AudioManager_h
 
+#include "AudioFactory.h"
 #include "faust/audio/audio.h"
 
 #include <string>
@@ -26,7 +27,7 @@ class AudioManager : public QObject, public audio{
     
     public :
     
-    AudioManager(AudioSettings* as){Q_UNUSED(as);}
+    AudioManager(AudioSettings* as, AudioShutdownCallback cb = NULL, void* arg = NULL){Q_UNUSED(as);}
     virtual ~AudioManager(){}
     
     virtual bool initAudio(QString& error, const char* name) = 0;

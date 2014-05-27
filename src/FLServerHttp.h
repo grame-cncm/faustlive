@@ -28,7 +28,7 @@ color: #CECECE;\n\
 border: 8px dashed #CECECE;\n\
 border-radius: 7px;\n\
 cursor: default;\n\
-font-size : 40px;\n\
+font-size : 20px;\n\
 }\n\
 \n\
 #filedrag.hover{\n\
@@ -50,7 +50,7 @@ Drop your .dsp file here\n\
 \n\
 <iframe id=\"httpInterface\" src=\""
 
-#define kResponseTail  "\" style=\"min-width:100%; min-height:90%;\" frameBorder=\"0\">\n</iframe>\n\
+#define kResponseTail  "\" style=\"width:100%; height:80%;\" frameBorder=\"0\" >\n</iframe>\n\
 \n\
 <script type=text/javascript>\n\
 (function(){\n\

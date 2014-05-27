@@ -47,6 +47,7 @@ class FLErrorWindow : public QMainWindow{
     
     public slots :
         void            hideWin();
+        void            redirectClose();
 };
 
 #endif

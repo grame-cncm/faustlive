@@ -79,7 +79,7 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 //    Creating Audio Manager
     AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
     
-    fAudioManager = creator->createAudioManager(creator->getCurrentSettings());
+    fAudioManager = creator->createAudioManager(creator->getCurrentSettings(), FLWindow::audioShutDown, this);
     fClientOpen = false;
     
 //    Not Sure It Is UseFull
@@ -151,12 +151,16 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
             return false;
         
         // Sending local IP for NetJack Connection
-        int argc = 2;
-        const char* argv[2];
+        int argc = 6;
+        const char* argv[6];
         
         argv[0] = "--NJ_ip";
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
+        argv[2] = "--NJ_latency";
+        argv[3] = "10";
+        argv[4] = "--NJ_compression";
+        argv[5] = "64";
         
         int error;
         
@@ -243,12 +247,16 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
         charging_DSP = createDSPInstance(newEffect->getFactory());
 #ifdef REMOTE
     else{
-        int argc = 2;
-        const char* argv[2];
+        int argc = 6;
+        const char* argv[6];
         
         argv[0] = "--NJ_ip";
         string localString = searchLocalIP().toStdString();
         argv[1] = localString.c_str();
+        argv[2] = "--NJ_latency";
+        argv[3] = "10";
+        argv[4] = "--NJ_compression";
+        argv[5] = "64";
         
         int errorMsg;
         
@@ -487,7 +495,8 @@ int FLWindow::get_Port(){
         return fHttpInterface->getTCPPort();
     else
 #endif
-        return fPortHttp;
+// If the interface is not enabled, it's not running on any port
+        return 0;
 }
 
 int FLWindow::get_oscPort(){
@@ -528,7 +537,7 @@ void catch_OSCError(void* arg){
     
     FLWindow* win = (FLWindow*)(arg);
     
-    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");    
+    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");
     win->disableOSCInterface();
 }
 
@@ -544,9 +553,9 @@ void FLWindow::allocateOscInterface(){
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
 #ifndef WIN32
-        printf("Before New OSCUI\n");
+//        printf("Before New OSCUI\n");
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
-        printf("After New OSCUI\n");
+//        printf("After New OSCUI\n");
 #endif
     }
 }
@@ -678,7 +687,7 @@ void FLWindow::shut_Window(){
 
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
-    
+
     printf("FLWindow::close_Window %s\n", fWindowName.toStdString().c_str());
     
     hide();
@@ -690,8 +699,8 @@ void FLWindow::close_Window(){
     
 #ifndef _WIN32
     if(fHttpdWindow){
-        delete fHttpdWindow;
-        fHttpdWindow = NULL;
+        fHttpdWindow->deleteLater();
+        //fHttpdWindow = NULL;
     }
 #endif
     //     printf("deleting instance = %p\n", current_DSP);  
@@ -725,27 +734,8 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     QList<QString>    sourceList;    
     
     //The event is not entirely handled by the window, it is redirected to the application through the drop signal
-    if (event->mimeData()->hasUrls()) {
+    if (event->mimeData()->hasText()){
         
-        QList<QString>    sourceList;
-        QList<QUrl> urls = event->mimeData()->urls();
-        QList<QUrl>::iterator i;
-        
-        for (i = urls.begin(); i != urls.end(); i++) {
-            
-            QString fileName = i->toLocalFile();
-            QString dsp = fileName;
-            
-			printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
-
-            event->accept();
-            
-            sourceList.push_back(dsp);
-        }   
-        emit drop(sourceList);
-    }
-    else if (event->mimeData()->hasText()){
-
         printf("TEXT DROPPED= %s\n", event->mimeData()->text().toStdString().c_str());
         
 		event->accept();
@@ -753,6 +743,27 @@ void FLWindow::dropEvent ( QDropEvent * event ){
         QString TextContent = event->mimeData()->text();
         sourceList.push_back(TextContent);
         
+        emit drop(sourceList);
+    }
+    else if (event->mimeData()->hasUrls()) {
+        
+        QList<QString>    sourceList;
+        QList<QUrl> urls = event->mimeData()->urls();
+        QList<QUrl>::iterator i;
+        
+        for (i = urls.begin(); i != urls.end(); i++) {
+            
+            if(i->isLocalFile()){
+                QString fileName = i->toLocalFile();
+                QString dsp = fileName;
+                
+                printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
+                
+                event->accept();
+                
+                sourceList.push_back(dsp);
+            }
+        }   
         emit drop(sourceList);
     }
 }
@@ -769,14 +780,20 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
-                QString fileName = i->toLocalFile();
-                QString dsp = fileName;
-                
-                if(QFileInfo(dsp).completeSuffix().compare("dsp") == 0 || QFileInfo(dsp).completeSuffix().compare("wav") == 0){
+//                if(i->isLocalFile()){
+//                    QString fileName = i->toLocalFile();
+//                    QString dsp = fileName;
                     
-                    centralWidget()->hide();
-                    event->acceptProposedAction();   
-                }
+                    if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
+                        
+                        centralWidget()->hide();
+                        event->acceptProposedAction();   
+                    }
+//                }
+//                else if(i->toString().indexOf("http://")!=-1){
+//                    centralWidget()->hide();
+//                    event->acceptProposedAction();
+//                }
             }
             
         }
@@ -833,6 +850,21 @@ void FLWindow::start_Audio(){
         currentDSP->startAudio();
     }
 #endif
+}
+
+
+//In case audio clients collapse, the architecture has to be changed
+void FLWindow::audioShutDown(const char* msg, void* arg){
+
+    ((FLWindow*)arg)->audioShutDown(msg);
+}
+
+void FLWindow::audioShutDown(const char* msg){
+    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
+    
+//    creator->change_Architecture();
+    emit errorPrint(msg);
+//    emit savePrefs();
 }
 
 //Switch of Audio architecture
@@ -1339,7 +1371,8 @@ void FLWindow::importSnapshot(){
 }
 
 void FLWindow::shut(){
-    emit closeWin();
+    emit close();
+//    emit closeWin();
 }
 
 void FLWindow::shut_All(){
@@ -1483,14 +1516,10 @@ void FLWindow::initNavigateMenu(QList<QAction*> wins){
     }
 }
 
-void FLWindow::addWinInMenu(QAction* newWin){
+void FLWindow::updateNavigateMenu(QList<QAction*> wins){
     
-    fNavigateMenu->addAction(newWin);
-}
-
-void FLWindow::deleteWinInMenu(QAction* toDeleteWin){
-
-    fNavigateMenu->removeAction(toDeleteWin);
+    fNavigateMenu->clear();
+    initNavigateMenu(wins);
 }
 
 void FLWindow::frontShowFromMenu(){

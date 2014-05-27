@@ -104,6 +104,7 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
 
 //---------------FACTORY ACTIONS
 
+//Force Recompilation ensures 
 void FLEffect::forceRecompilation(bool val){
     fRecompilation = val;
 }
@@ -132,7 +133,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
     QString IRpath = fCurrentIRFolder + "/" + fName;
     
     if(fRecalled && QFileInfo(IRpath).exists() && fIsLocal){        
-        buildingFactory = readDSPFactoryFromBitcodeFile(IRpath.toStdString(), "");
+//        buildingFactory = readDSPFactoryFromBitcodeFile(IRpath.toStdString(), "");
         
         printf("factory from IR\n");
             
@@ -180,9 +181,16 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
         argv[iteratorParams] = "-O";
 		iteratorParams++;
         
-        string svgPath = fCurrentSVGFolder.toStdString();
+        QString svgPath = fCurrentSVGFolder + "/" + fName;
         
-        argv[iteratorParams] = svgPath.c_str();
+        printf("svg path = %s\n", svgPath.toStdString().c_str());
+        
+        QDir direct(svgPath);
+        direct.mkdir(svgPath);
+        
+        string pathSVG = svgPath.toStdString();
+        
+        argv[iteratorParams] = pathSVG.c_str();
 		iteratorParams++;
         argv[iteratorParams] = "-svg";
 		iteratorParams++;
@@ -250,7 +258,7 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
 //          KEEPING BUILT FACTORY IN RIGHT CLASS MEMBER
             if(fIsLocal){
                 //The Bitcode files are written at each compilation 
-                writeDSPFactoryToBitcodeFile(buildingFactory, IRpath.toStdString());
+//                writeDSPFactoryToBitcodeFile(buildingFactory, IRpath.toStdString());
                 
                 if(factoryToBuild == kCurrentFactory)
                     fFactory = buildingFactory;
@@ -354,9 +362,16 @@ string FLEffect::get_expandedVersion(){
     argv[iteratorParams] = "-O";
     iteratorParams++;
     
-    string svgPath = fCurrentSVGFolder.toStdString();
+    QString svgPath = fCurrentSVGFolder + "/" + fName;
     
-    argv[iteratorParams] = svgPath.c_str();
+    printf("svg path = %s\n", svgPath.toStdString().c_str());
+    
+    QDir direct(svgPath);
+    direct.mkdir(svgPath);
+    
+    string pathSVG = svgPath.toStdString();
+    
+    argv[iteratorParams] = pathSVG.c_str();
     iteratorParams++;
     argv[iteratorParams] = "-svg";
     iteratorParams++;

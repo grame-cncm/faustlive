@@ -22,7 +22,8 @@
 
 class AudioSettings;
 class AudioManager;
-class AudioFactory;
+
+#include "AudioFactory.h"
 
 using namespace std;
 
@@ -71,7 +72,7 @@ class AudioCreator : public QObject{
     
     //Creates an audioManager depending on the current Audio Architecture
         AudioFactory*   createFactory(int index);
-        AudioManager*   createAudioManager(AudioSettings* audioParameters);
+        AudioManager*   createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb = NULL, void* arg = NULL);
         AudioSettings*  createAudioSettings(QString homeFolder, QGroupBox* parent);
     
     //Accessors to the settings
@@ -82,6 +83,8 @@ class AudioCreator : public QObject{
         void            reset_Settings();
     
         void            saveCurrentSettings();
+    
+        void            change_Architecture();
     
     private slots :
     

@@ -93,6 +93,7 @@ class FLExportManager : public QObject{
     
     void                exportFile(QString file, QString faustCode);
     void                set_URL(const QString& url);
+    bool		isDialogVisible();
     
     public slots :
     

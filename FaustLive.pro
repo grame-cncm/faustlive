@@ -9,10 +9,20 @@
 
 FAUSTDIR = /usr/local/lib/faust
 TARGET = FaustLive
+VERSION = 1.1
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
+
+# currently no support for httpd and osc on windows version
+win32 {
+
+} else {
+DEFINES += HTTPDVAR
+DEFINES += OSCVAR
+}
 
 win32{
 
@@ -39,9 +49,8 @@ INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
-LLVMLIBS = $$system(llvm-config --libs)
-LLVMDIR = $$system(llvm-config --ldflags)
-
+LLVMLIBS = $$system($$system(which llvm-config) --libs)
+LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 }
 
 #QMAKE_CXXFLAGS += -Wno-unused-variable -g
@@ -89,13 +98,10 @@ else{
 	LIBS+=-lmicrohttpd
 	#LIBS+=-lboost_system-mt -lboost_filesystem-mt -lboost_program_options-mt
 	LIBS+= $$LLVMDIR
-	LIBS+=-lcurl
-	LIBS+=-lcrypto
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 }
-
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
@@ -103,7 +109,11 @@ SOURCES += src/utilities.cpp
 equals(REMVAR, 1){
 	DEFINES += REMOTE
 	LIBS+=-lfaustremote
+	LIBS+=-lcurl
+	LIBS+=-llo
 }
+
+LIBS+=-lcrypto
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
@@ -251,6 +261,7 @@ SOURCES +=      src/SimpleParser.cpp \
 
 RESOURCES     = Resources/application.qrc
 win32:RESOURCES += Resources/windows.qrc
+unix:RESOURCES += Resources/unix.qrc
 
 
 

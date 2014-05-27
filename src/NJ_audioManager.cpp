@@ -12,7 +12,7 @@
 
 #include "NJ_audioFader.h"
 
-NJ_audioManager::NJ_audioManager(AudioSettings* as): AudioManager(as){
+NJ_audioManager::NJ_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg): AudioManager(as, cb, arg){
     
     NJ_audioSettings* settings = dynamic_cast<NJ_audioSettings*>(as);
     

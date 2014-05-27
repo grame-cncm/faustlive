@@ -152,6 +152,8 @@ class FLWindow : public QMainWindow
         void            open_Ex(QString);
         void            migrate(const QString& ip, int port);
     
+        void            savePrefs();
+    
     private slots :
         void            create_Empty();
         void            open_New();
@@ -159,7 +161,6 @@ class FLWindow : public QMainWindow
         void            take_Snapshot();
         void            recallSnapshot();
         void            importSnapshot();
-        void            shut();
         void            shut_All();
         void            closeAll();
         void            edit();
@@ -231,6 +232,11 @@ class FLWindow : public QMainWindow
         void            stop_Audio();
         void            start_Audio();
     
+//    In case audio architecture collapses
+        static void            audioShutDown(const char* msg, void* arg);
+        void                    audioShutDown(const char* msg);
+    
+    
         bool            init_audioClient(QString& error);
         bool            init_audioClient(QString& error, int numInputs, int numOutputs);
         bool            setDSP(QString& error);
@@ -282,8 +288,7 @@ class FLWindow : public QMainWindow
         void            set_RecentSession(QStringList recents);
         void            update_RecentSessionMenu();
     
-        void            addWinInMenu(QAction* newWin);
-        void            deleteWinInMenu(QAction* toDeleteWin);
+        void            updateNavigateMenu(QList<QAction*> wins);
         void            initNavigateMenu(QList<QAction*> wins);
     
     public slots :
@@ -296,6 +301,7 @@ class FLWindow : public QMainWindow
         void            switchOsc(bool on);
         void            disableOSCInterface();
         void            frontShowFromMenu(); 
+        void            shut();
     
     //Raises and shows the window
         void            frontShow();

@@ -12,7 +12,7 @@
 #include "CA_audioFader.h"
 #include "CA_audioManager.h"
 
-CA_audioManager::CA_audioManager(AudioSettings* as) : AudioManager(as){
+CA_audioManager::CA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg) : AudioManager(as, cb, arg){
 
     CA_audioSettings* settings = dynamic_cast<CA_audioSettings*>(as);
     

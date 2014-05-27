@@ -15,11 +15,18 @@
 
 #include <QFileInfo>
 
-JA_audioManager::JA_audioManager(AudioSettings* as): AudioManager(as){
+
+void JA_audioManager::shutdown_message(const char * msg, void* arg){
+    printf("JA_audioManager::SHUTDOWN\n");
+}
+
+
+JA_audioManager::JA_audioManager(AudioSettings* as, shutdown_callback cb, void* arg): AudioManager(as, cb, arg){
 
     fSettings = dynamic_cast<JA_audioSettings*>(as);
     
     fCurrentAudio = new JA_audioFader;
+    fCurrentAudio->shutdown(cb, arg);
 }
 
 JA_audioManager::~JA_audioManager(){

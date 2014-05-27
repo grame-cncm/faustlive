@@ -30,8 +30,8 @@ using namespace std;
 #include <windows.h>
 #endif
 
-//#include <sys/time.h>
-//#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,8 +71,9 @@ void myMessageOutput(QtMsgType type, const char *msg)
 
 static bool SetMaximumFiles(long filecount)
 {
-    struct rlimit lim;
-    lim.rlim_cur = lim.rlim_max = (rlim_t)filecount;
+    rlimit lim;
+    lim.rlim_cur = (rlim_t)filecount;
+    lim.rlim_max = (rlim_t)filecount;
     if (setrlimit(RLIMIT_NOFILE, &lim) == 0) {
         return true;
     } else {
@@ -82,7 +83,7 @@ static bool SetMaximumFiles(long filecount)
 
 static bool GetMaximumFiles(int& filecount) 
 {
-    struct rlimit lim;
+    rlimit lim;
     if (getrlimit(RLIMIT_NOFILE, &lim) == 0) {
         filecount = lim.rlim_max;
         return true;
