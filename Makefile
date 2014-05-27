@@ -61,6 +61,8 @@ dist-Darwin :
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
 	
 dist-Linux:
+	make clean
+	make NETJACK=1 STATIC=1
 	cp FaustLive Distribution_Linux/FaustLive
 	zip -r FaustLive_Linux.zip Distribution_Linux
 	

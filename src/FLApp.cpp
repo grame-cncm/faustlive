@@ -3405,17 +3405,18 @@ void FLApp::drop_Action(QList<QString> sources){
 //    The sound files are transformated into faust files
     for(it = sources.begin(); it != sources.end(); it++){
 
-	printf("SOURCE DROOOOOOOPPPPEDDDD = %s\n", (*it).toStdString().c_str());
 	QString suffix = QFileInfo(*it).suffix();
 
-        if((suffix.indexOf("dsp") == 0) && (*it).indexOf(' ') != -1){
-            sources.removeOne(*it);
-            fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
-        }
-        else if(suffix.indexOf("wav") == 0)
-           *it = soundFileToFaust(*it);
-        else if(suffix.indexOf(".wav") == 0)
-       	   *it = soundFileToFaust(*it);
+	if(QFileInfo(*it).exists()){
+        	if((suffix.indexOf("dsp") == 0) && (*it).indexOf(' ') != -1){
+        	    sources.removeOne(*it);
+        	    fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
+        	}
+       		else if(suffix.indexOf("wav") == 0)
+       		    *it = soundFileToFaust(*it);
+       		else if(suffix.indexOf(".wav") == 0)
+       		   *it = soundFileToFaust(*it);
+       	}
     }
     
     it = sources.begin();
