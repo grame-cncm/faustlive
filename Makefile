@@ -56,6 +56,7 @@ deploy:
 
 # make a binary distribution .dmg file for OSX
 dist-Darwin : 	
+	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
 	macdeployqt FaustLive.app
 	cp -R FaustLive.app Distribution_OSX/FaustLive
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
@@ -103,4 +104,3 @@ clean :
 
 Makefile.qt4: 
 	$(qm) $(SPEC) -o Makefile.qt4 $(QM-DEFS)
-
