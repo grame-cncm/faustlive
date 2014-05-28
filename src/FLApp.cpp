@@ -4051,12 +4051,15 @@ void FLApp::new_Window_pres(){
 }
 
 void FLApp::open_Window_pres(){
+	fRecalling = true;
     fPresWin->hide();   
     //    reset_CurrentSession();
     open_New_Window();
+	fRecalling = false;
 }
 
 void FLApp::open_Session_pres(){
+	fRecalling = true;
     fPresWin->hide();
     //    reset_CurrentSession();
     recallSnapshotFromMenu();
