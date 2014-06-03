@@ -1287,7 +1287,7 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         
         source = "process = !,!:0,0;";
         
-        if(fStyleChoice == "Blue" || fStyleChoice == "Grey")
+        if(QString::compare(fStyleChoice,"Blue") == 0 || QString::compare(fStyleChoice,"Grey") == 0)
             init = kInitWhite;
         else
             init = kInitBlue;
@@ -1324,7 +1324,7 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         
         redirectMenuToWindow(win);
 		
-		if(win->init_Window(init, error)){
+	if(win->init_Window(init, error)){
             
             FLW_List.push_back(win);
             addWinToSessionFile(win);
