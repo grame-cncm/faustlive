@@ -5,125 +5,120 @@
 # THANKS TO QMAKE, THIS FILE WILL PRODUCE THE MAKEFILE OF FAUSTLIVE APPLICATION
 # IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED
 
-# APPLICATION SETTINGS
-
-FAUSTDIR = /usr/local/lib/faust
-TARGET = FaustLive
-#VERSION = 1.1
-DEFINES += APP_VERSION=\\\"1.1\\\"
-
+## Application Settings
 OBJECTS_DIR += src
 MOC_DIR += src
 RCC_DIR += src
 
-# currently no support for httpd and osc on windows version
-win32 {
-
-} else {
-DEFINES += HTTPDVAR
-DEFINES += OSCVAR
-}
-
-win32{
-
-RC_FILE = FaustLive.rc
-
-TEMPLATE=vcapp
-INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
-INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
-INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
-INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
-INCLUDEPATH += C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32
-INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
-INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include\curl
-
-LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
-LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
-
-} else{
-
-ICON = Resources/Images/FaustLiveIcon.icns
-TEMPLATE = app
-DEPENDPATH += /usr/local/include/faust/gui
-INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include	
-QMAKE_INFO_PLIST = FaustLiveInfo.plist
-
-LLVMLIBS = $$system($$system(which llvm-config) --libs)
-LLVMDIR = $$system($$system(which llvm-config) --ldflags)
-}
-
-#QMAKE_CXXFLAGS += -Wno-unused-variable -g
 QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
+## QT libraries needed
 QT+=widgets
 QT+=core
 QT+=gui
 QT+=network
 
+TARGET = FaustLive
+#VERSION = 1.1
+DEFINES += APP_VERSION=\\\"1.1\\\"
+
+## Images/Examples and other needed resources
+RESOURCES     = Resources/application.qrc
+win32:RESOURCES += Resources/windows.qrc
+macx:RESOURCES += Resources/unix.qrc
+
+####### INCLUDES PATHS && LIBS PATHS
 
 win32{
-Debug{
-LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
-LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
-LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
-LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
-LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
-LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
-CONFIG += console
+
+	RC_FILE = FaustLive.rc
+
+## VISUAL STUDIO PROJECT
+	TEMPLATE = vcapp
+	INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
+	INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
+	INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
+	INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
+	INCLUDEPATH += C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32
+	INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
+	INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include\curl
+
+	LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --libs)
+	#LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
+
+} else{
+
+	ICON = Resources/Images/FaustLiveIcon.icns
+	TEMPLATE = app
+	DEPENDPATH += /usr/local/include/faust/gui
+	INCLUDEPATH += .
+	INCLUDEPATH += /opt/local/include	
+	QMAKE_INFO_PLIST = FaustLiveInfo.plist
+
+	LLVMLIBS = $$system($$system(which llvm-config) --libs)
+	LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 }
-Release{
-LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libfaust_vs2012\Release
-LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Release
-LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Release
-LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Release
-LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
-LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
+
+win32{
+	Debug{
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
+		LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
+		LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
+		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+		LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
+		CONFIG += console
 }
+	Release{
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libfaust_vs2012\Release
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Release
+		LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Release
+		LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Release
+		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+		LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
+	}
 }
 else{
-LIBS+=-L/usr/local/lib/faust
-LIBS+= $$LLVMDIR
+	LIBS+=-L/usr/local/lib/faust
+	LIBS+= $$LLVMDIR
 }
 
 
 LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
 
-
 win32{
-equals(HTTPDVAR, 1){
-LIBS+=-lHTTPDFaust
-LIBS+=-lqrcodelib
-LIBS+=-llibcurl
-DEFINES += HTTPCTRL
-#DEFINES += QRCODECTRL
-}
+	equals(HTTPDVAR, 1){
+		LIBS+=-lHTTPDFaust
+		LIBS+=-lqrcodelib
+		LIBS+=-llibcurl
+		DEFINES += HTTPCTRL
+		#DEFINES += QRCODECTRL
+	}
 }
 else{
 
      equals(static, 1){
-	LIBS+=/usr/local/lib/libqrencode.a
-	LIBS+=/usr/lib/x86_64-linux-gnu/libmicrohttpd.a
-	LIBS+=-lgnutls
-	LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
-	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
-	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
-	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
-	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
-	#LIBS+=-lp11-kit
+		LIBS+=/usr/local/lib/libqrencode.a
+		LIBS+=/usr/lib/x86_64-linux-gnu/libmicrohttpd.a
+		LIBS+=-lgnutls
+		LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
+		#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
+		#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
+		#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
+		#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
+		#LIBS+=-lp11-kit
      }
      else{
-	LIBS+=-lqrencode
-	LIBS+=-lmicrohttpd
-	LIBS+=-lcrypto
-
+		LIBS+=-lqrencode
+		LIBS+=-lmicrohttpd
+		LIBS+=-lcrypto
      }
-
-      LIBS+=-lHTTPDFaust
+	  
+	  LIBS+=-lHTTPDFaust
       LIBS+=-lOSCFaust -loscpack
       LIBS+=-L/opt/local/lib
 
@@ -135,6 +130,8 @@ else{
 
 HEADERS += src/utilities.h 
 SOURCES += src/utilities.cpp
+
+########## DEFINES/LIBS/SOURCES/... depending on audio drivers | remote processing feature
 
 equals(REMVAR, 1){
 	DEFINES += REMOTE
@@ -148,13 +145,13 @@ equals(CAVAR, 1){
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
 	HEADERS += 	src/CA_audioFactory.h\
-			src/CA_audioSettings.h\
-			src/CA_audioManager.h\
-			src/CA_audioFader.h 
+				src/CA_audioSettings.h\
+				src/CA_audioManager.h\
+				src/CA_audioFader.h 
 				
 	SOURCES += 	src/CA_audioFactory.cpp \
-			src/CA_audioSettings.cpp \
-			src/CA_audioManager.cpp 
+				src/CA_audioSettings.cpp \
+				src/CA_audioManager.cpp 
 }else{
 	message("COREAUDIO NOT LINKED")
 }
@@ -211,12 +208,13 @@ equals(ALVAR, 1){
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
-win32{
-	LIBS += -lportaudio_x86
-}
-else{
-	LIBS += -lportaudio
-}
+	win32{
+		LIBS += -lportaudio_x86
+	}
+	else{
+		LIBS += -lportaudio
+	}
+	
 	DEFINES += PORTAUDIO
 	HEADERS += 	src/PA_audioFactory.h \
 				src/PA_audioSettings.h \
@@ -231,21 +229,23 @@ else{
 	message("PORT AUDIO NOT LINKED")
 }		
 
-HEADERS +=              src/AudioSettings.h \
+########## HEADERS AND SOURCES OF PROJECT
+
+HEADERS +=  src/AudioSettings.h \
 			src/AudioManager.h \
 			src/AudioFactory.h \
 			src/AudioCreator.h \
 			src/AudioFader_Interface.h \
-                        src/AudioFader_Implementation.h \
+            src/AudioFader_Implementation.h \
 			src/FJUI.h \
 			src/FLToolBar.h \
 			src/FLrenameDialog.h \
 			src/FLErrorWindow.h \
-                        src/FLExportManager.h \
-                        src/FLEffect.h \
-                        src/FLWindow.h \
-                        src/FLApp.h \
-                        src/SimpleParser.h
+            src/FLExportManager.h \
+            src/FLEffect.h \
+            src/FLWindow.h \
+            src/FLApp.h \
+            src/SimpleParser.h
 win32{
 	equals(HTTPDVAR, 1){
 			HEADERS +=		src/HTTPWindow.h 
@@ -262,14 +262,14 @@ else{
 }
 
 SOURCES += 	src/AudioCreator.cpp \
-                src/AudioFader_Implementation.cpp \
-                src/FLToolBar.cpp \
-                src/FLrenameDialog.cpp \
-                src/FLErrorWindow.cpp \
-                src/FLExportManager.cpp \
-                src/FLEffect.cpp \
-                src/FLWindow.cpp \
-                src/FLApp.cpp
+            src/AudioFader_Implementation.cpp \
+        	src/FLToolBar.cpp \
+            src/FLrenameDialog.cpp \
+            src/FLErrorWindow.cpp \
+            src/FLExportManager.cpp \
+            src/FLEffect.cpp \
+            src/FLWindow.cpp \
+            src/FLApp.cpp
 win32{
 	equals(HTTPDVAR, 1){
 		SOURCES +=	src/HTTPWindow.cpp
@@ -283,10 +283,6 @@ else{
 
 SOURCES +=      src/SimpleParser.cpp \
                 src/main.cpp
-
-RESOURCES     = Resources/application.qrc
-win32:RESOURCES += Resources/windows.qrc
-unix:RESOURCES += Resources/unix.qrc
 
 
 

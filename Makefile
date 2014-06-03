@@ -1,5 +1,4 @@
 ### Defining some variables
-
 system	:= $(shell uname -s)
 qm4 := $(shell which qmake-qt4)
 qm := $(if $(qm4),$(qm4),qmake)
@@ -14,6 +13,7 @@ else
 	QM-DEFS := "JVAR=1"
 endif
 
+### Defining qmake variables
 ifeq ($(JACK), 1)
     QM-DEFS += "JVAR=1" 
 endif
@@ -54,6 +54,9 @@ math_lib :
 deploy: 
 	macdeployqt FaustLive.app
 
+# make a source distribution .zip file
+dist : dist-$(system)
+
 # make a binary distribution .dmg file for OSX
 dist-Darwin : 	
 	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
@@ -66,10 +69,10 @@ dist-Linux:
 	make NETJACK=1 STATIC=1
 	cp FaustLive Distribution_Linux/FaustLive
 	zip -r FaustLive_Linux.zip Distribution_Linux
-	
-# make a source distribution .zip file
-dist : dist-$(system)
 
+# make a distribution .zip file for FaustLive sources
+dist-sources :
+	git archive --format=tar.gz -o FaustLive-sources.tgz --prefix=FaustLive-sources/ HEAD
 
 ####### Install
 

@@ -1,8 +1,7 @@
 
 ============================== FAUSTLIVE =========================
 
-The goal of this project is to build an application that embeds Faust and LLVM compilers 
-to provide dynamical compilation of the Faust langage.
+The goal of this project is to build an application that embeds Faust and LLVM compilers to provide dynamical compilation of the Faust programming language.
 
 ----------------LINKED LIBRARIES------------------
 
@@ -79,7 +78,5 @@ make REMOTE=1
 
 1) Add the library in "Resources" folder
 2) Add the library in application.qrc
-
-
 
 

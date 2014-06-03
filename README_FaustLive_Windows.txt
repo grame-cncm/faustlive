@@ -1,8 +1,7 @@
 
 ============================== FAUSTLIVE =========================
 
-The goal of this project is to build an application that embeds Faust and LLVM compiler 
-to provide dynamical compilation of the Faust langage.
+The goal of this project is to build an application that embeds Faust and LLVM compiler to provide dynamical compilation of the Faust programming language.
 
 ----------------LINKED LIBRARIES------------------
 
@@ -32,28 +31,13 @@ Make sure to download the current development trunk of these libraries.
 
 cd projetDIR
 
-make
-sudo make install
+In FaustLive.pro, change paths to your libs and includes.
 
-OSX default audio = CoreAudio
-Linux default audio = JackAudio
+qmake -spec win32-msvc2012 (or your version of Visual Studio)
 
-To add Jack/NetJack or PortAudio to compilation
-make JACK=1 NETJACK=1 PORTAUDIO=1
+In Visual Studio : create a new empty solution and add the created project in it.
+Once it is built, add the dlls in executable folder and execute folder.
 
-To enable remote processing option
-make REMOTE=1
-
------------------WARNINGS
-
-1) If you want to recompile with new compilation options, you will have to execute 
-	"make clean" before doing "make"
-	& "make uninstall" before "make install"
-
-2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
-	if the version changes. For now llvm 3.1 is used
-
-3) If you use the remote control through httpd and you want to use a port < 100, you will have to start FaustLive in sudo mode.
 
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 
@@ -71,4 +55,7 @@ make REMOTE=1
 
 3) Modify FaustLive.pro to add the libraries through conditional Compilation
 
+----------------TO ADD FAUST LIBRAIRIES
 
+1) Add the library in "Resources" folder
+2) Add the library in application.qrc
