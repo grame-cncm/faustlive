@@ -3632,7 +3632,7 @@ void FLApp::init_HelpWindow(){
     
     vue->setCurrentRow(0);
     
-    //-----------------------Faust Librairies
+    //-----------------------Faust Libraries
     
     QWidget* tab_app1 = new QWidget();
     
@@ -3663,13 +3663,13 @@ void FLApp::init_HelpWindow(){
     fLibsText = new QPlainTextEdit;
     fLibsText->setReadOnly(true);
     fLibsText->setMinimumWidth(300);
-    fLibsText->setPlainText("\nDouble Click On a Librairy to Open It.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These librairies exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
+    fLibsText->setPlainText("\nDouble Click on a library to open it.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These libraries exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
     
     vue1->setCurrentRow(0);
     
     appLayout1->addWidget(fLibsText, 0, 1, 1, 2);
     
-    myTabWidget->addTab(tab_app1, QString(tr("Faust Librairies")));
+    myTabWidget->addTab(tab_app1, QString(tr("Faust Libraries")));
     
     tab_app1->setLayout(appLayout1);
     
