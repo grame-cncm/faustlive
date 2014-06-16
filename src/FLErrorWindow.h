@@ -27,7 +27,6 @@ class FLErrorWindow : public QMainWindow{
         QVBoxLayout*    fLayout;
         QWidget*        fWidget;
         QTextEdit*      fErrorText;
-        bool            fShortcut;
         QPushButton*    fButton;
     
     public :
@@ -38,9 +37,6 @@ class FLErrorWindow : public QMainWindow{
         void            init_Window();
         void            print_Error(const QString& text);
         virtual void    closeEvent(QCloseEvent* event);
-    
-        virtual void    keyPressEvent(QKeyEvent* event);
-        virtual void    keyReleaseEvent(QKeyEvent* event);
     
     signals :
         void            closeAll();

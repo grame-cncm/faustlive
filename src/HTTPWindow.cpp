@@ -16,9 +16,7 @@ using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
 
-HTTPWindow::HTTPWindow(){
-    fShortcut = false;
-}
+HTTPWindow::HTTPWindow(){}
 
 HTTPWindow::~HTTPWindow(){}
 
@@ -49,22 +47,11 @@ void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
     
 }
 
-//Tracking for close all shortcut event = ALT + x button
-void HTTPWindow::keyPressEvent(QKeyEvent* event){ 
-    
-    if(event->key() == Qt::Key_Alt) fShortcut = true;
-}
-
-void HTTPWindow::keyReleaseEvent(QKeyEvent* event){
-    
-    if(event->key() == Qt::Key_Alt) fShortcut = false;
-}
-
 void HTTPWindow::closeEvent(QCloseEvent* /*event*/){
     
     this->hide();
     
-    if(fShortcut) emit closeAll();
+    if(QApplication::keyboardModifiers() == Qt::AltModifier) emit closeAll();
 }
 
 

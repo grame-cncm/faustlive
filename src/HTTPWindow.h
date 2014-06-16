@@ -31,8 +31,6 @@ class HTTPWindow : public QMainWindow{
     
     private : 
     
-    bool        fShortcut;      //In case ALT + x button is pressed, shortcut is activated
-    
     public : 
     
     //------------------------HTTPD WINDOW ACTIONS
@@ -44,8 +42,6 @@ class HTTPWindow : public QMainWindow{
     
     virtual void contextMenuEvent(QContextMenuEvent* ev);
     
-    void        keyPressEvent(QKeyEvent* event);
-    void        keyReleaseEvent(QKeyEvent* event);
     void        closeEvent(QCloseEvent* event);
     
 signals:

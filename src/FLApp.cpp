@@ -3390,7 +3390,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
         QTextStream textWriting(&f);
         
         textWriting<<finalFileContent;
-        
         f.close();
     }
     
@@ -3537,17 +3536,88 @@ void FLApp::setWinPropertiesText(const QString& currentText){
 }
 
 //Set Faust Lib Text in Help Menu
-void FLApp::setLibText(QListWidgetItem * item){
+void FLApp::setLibText(){
     
-    QString pathLib = fLibsFolder + "/" + item->text();
-   
-    QUrl url = QUrl::fromLocalFile(pathLib);
-    bool b = QDesktopServices::openUrl(url);
+    if(QFileInfo(fTreeLibs->currentItem()->text(0)).completeSuffix() != "lib"){
+        
+        vector<pair<string, string> > libInfos = fInfoLibs[fTreeLibs->currentItem()->parent()->text(0).toStdString()];
+        
+        for(int i=0; i<libInfos.size(); i++){
+            
+            if(libInfos[i].first.compare(fTreeLibs->currentItem()->text(0).toStdString()) == 0){
+                
+                fLibsText->setPlainText(libInfos[i].second.c_str());
+                break;
+            }
+        }
+    }
+    else
+        fLibsText->setPlainText("");
+//    
+//    fLibsText->setPlainText(textForLibs);
+//    QString pathLib = fLibsFolder + "/" + item->text();
+//   
+//    QUrl url = QUrl::fromLocalFile(pathLib);
+//    bool b = QDesktopServices::openUrl(url);
+//    
+//    QString error = pathLib + " could not be opened!";
+//    
+//    if(!b)
+//        fErrorWindow->print_Error(error);    
+}
+
+#include "faust/llvm-dsp.h"
+#include "faust/gui/meta.h"
+
+struct MyMeta: public Meta{
     
-    QString error = pathLib + " could not be opened!";
+    public :
+    vector<pair<string, string> > datas;
     
-    if(!b)
-        fErrorWindow->print_Error(error);    
+    virtual void declare(const char* key, const char* value){
+        datas.push_back(make_pair(key, value));
+    }
+};
+
+void FLApp::parseLibs(map<string, vector<pair<string, string> > >& infoLibs){
+    
+    const char** argv = new const char*[2];
+    
+    argv[0] = "-I";
+    
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    string libPath = fLibsFolder.toStdString();
+    argv[1] = libPath.c_str();
+    
+    string getError;
+    
+    string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
+    
+    llvm_dsp_factory* temp = createDSPFactoryFromFile(file, 2, argv, "", getError, 3);
+    
+    MyMeta* meta = new MyMeta;
+    
+    metadataDSPFactory(temp, meta);
+    
+    for(int i=0; i<meta->datas.size(); i++){
+        
+        string libName, key, value;
+        
+        int pos = meta->datas[i].first.find("/");
+        
+        if(pos != string::npos){
+            libName = meta->datas[i].first.substr(0, pos);
+            key = meta->datas[i].first.substr(pos+1);
+        }
+        else
+            key = meta->datas[i].first;
+        
+        value = meta->datas[i].second;
+        
+        infoLibs[libName].push_back(make_pair(key, value));
+    }
+    
+    deleteDSPFactory(temp);
 }
 
 void FLApp::init_HelpWindow(){
@@ -3638,9 +3708,12 @@ void FLApp::init_HelpWindow(){
     
     QGridLayout* appLayout1 = new QGridLayout;
     
-    QListWidget *vue1 = new QListWidget;
+    fTreeLibs = new QTreeWidget;
+    fTreeLibs->setHeaderLabel("Available Librairies");
     
     //    Mettre en route d'ajouter les librairies présentes dans le dossier Libs
+    
+    parseLibs(fInfoLibs);
     
     QDir libsDir(fLibsFolder);
     
@@ -3649,23 +3722,41 @@ void FLApp::init_HelpWindow(){
     QFileInfoList::iterator it;
     
     for(it = children.begin(); it != children.end(); it++){
-        if(it->completeSuffix().compare("ll") != 0){
+        if(it->completeSuffix().compare("ll") != 0 && it->completeSuffix().compare("dsp") != 0){
+            
+            
             QString completeName = it->baseName() + "." + it->completeSuffix();
-            vue1->addItem(completeName);
+            QTreeWidgetItem* newItem = new QTreeWidgetItem(fTreeLibs, QStringList(completeName));
+            
+            for(int i=0; i<fInfoLibs[completeName.toStdString()].size(); i++){
+                
+                QTreeWidgetItem* childItem = new QTreeWidgetItem(newItem, QStringList(QString(fInfoLibs[completeName.toStdString()][i].first.c_str())));
+                
+                newItem->addChild(childItem);
+            }
+
+            fTreeLibs->addTopLevelItem(newItem);
         }
     }
     
-    vue1->setMaximumWidth(150);
-    connect(vue1, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
+    connect(fTreeLibs, SIGNAL(itemSelectionChanged()), this, SLOT(setLibText()));
+    fTreeLibs->setMaximumWidth(150);
+//    connect(fTreeLibs, SIGNAL(itemClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
+//    connect(fTreeLibs, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
     
-    appLayout1->addWidget(vue1, 0, 0, 1, 1);
+    appLayout1->addWidget(fTreeLibs, 0, 0, 1, 1);
     
     fLibsText = new QPlainTextEdit;
     fLibsText->setReadOnly(true);
     fLibsText->setMinimumWidth(300);
-    fLibsText->setPlainText("\nDouble Click on a library to open it.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These libraries exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
+//<<<<<<< Updated upstream
+//    fLibsText->setPlainText("\nDouble Click on a library to open it.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These libraries exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
+//=======
+//>>>>>>> Stashed changes
     
-    vue1->setCurrentRow(0);
+//    fLibsText->setPlainText("\nDouble Click On a Librairy to Open It.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These librairies exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
+    
+//    fTreeLibs->setCurrentRow(0);
     
     appLayout1->addWidget(fLibsText, 0, 1, 1, 2);
     

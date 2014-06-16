@@ -88,9 +88,11 @@ class FLApp : public QApplication
     //Appendices Dialogs
         QMainWindow*        fHelpWindow;        //Help Dialog
         QTextBrowser*       fToolText;          //ToolText in Help Dialog
-        QPlainTextEdit*       fAppText;
-        QPlainTextEdit*       fWinText;
+        QPlainTextEdit*     fAppText;
+        QPlainTextEdit*     fWinText;
         QPlainTextEdit*     fLibsText;
+        map<string, vector<pair<string, string> > > fInfoLibs;
+        QTreeWidget *       fTreeLibs;
     
         FLErrorWindow*      fErrorWindow;       //Error Dialog
         QDialog*            fPresWin;           //Presentation Window
@@ -293,6 +295,7 @@ class FLApp : public QApplication
         FLWindow*           new_Window(const QString& mySource, QString& error);
         void                create_Empty_Window();
         void                open_New_Window();
+//        void                open_Remote_Window();
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
@@ -344,7 +347,8 @@ class FLApp : public QApplication
         void                setToolText(const QString&);
         void                setAppPropertiesText(const QString& currentText);
         void                setWinPropertiesText(const QString& currentText);
-        void                setLibText(QListWidgetItem* item);
+        void                parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
+        void                setLibText();
         void                apropos();
         void                end_apropos();
         void                version_Action();

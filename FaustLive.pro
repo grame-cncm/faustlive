@@ -82,8 +82,7 @@ win32{
 	}
 }
 else{
-	LIBS+=-L/usr/lib/faust
-	LIBS+=-L/usr/local/lib/faust
+	LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust
 	LIBS+= $$LLVMDIR
 }
 

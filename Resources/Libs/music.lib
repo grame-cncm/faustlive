@@ -37,7 +37,122 @@ declare copyright "GRAME";
 declare version "1.0";
 declare license "LGPL with exception"; 
 
+//////////////////////
+declare SmoothDelay "s(mooth)delay : a mono delay that doesn't click and doesn't transpose when the delay time is changed. It takes 4 input signals and produces a delayed output signal
+
+USAGE : 
+... : sdelay(N,it,dt) : ...
+**<N>  = maximal delay in samples (must be a constant power of 2, for example 65536)
+**<it> = interpolation time (in samples) for example 1024
+**<dt> = delay time (in samples)
+**<  > = input signal we want to delay";
+
+//////////////////////
+declare Primitives "USAGE:
+tempo(t);
+**tempo(t) -> samples
+
+period(p)
+**signal en dent de scie de periode p
+
+pulse(t);
+**pulse (10000...) de periode p
+
+pulsen(n,t);
+**pulse (1110000...) de taille n et de periode p
+
+beat(t)
+**pulse au tempo t";
+
+//////////////////////
+declare DbConversions "USAGE:
+
+db2linear(x);
+
+OR linear2db(x);
+";
+
+//////////////////////
+declare Noise "Noise generator
+
+USAGE:
+noise: ... ;
+";
+
+//////////////////////
+declare MultipleRandom "Generates multiple decorrelated random numbers in parallel.
+
+USAGE:
+multirandom(n)";
+
+//////////////////////
+declare MultipleNoise "Generates multiple decorrelated noises in parallel.
+
+USAGE:
+multinoise(n)";
+
+//////////////////////
+declare ADSREnvelop "ADSR envelop
+
+USAGE:
+adsr(a,d,s,r,t);
+**a = attack (sec)
+**d = decay (sec)
+**s = sustain (percentage of t)
+**r = release (sec)
+**t = trigger signal ( >0 for attack, then release is when t back to 0)";
+
+//////////////////////
+declare SPAT "GMEM SPAT
+
+USAGE:
+spat(n,a,d);
+**n = number of outputs
+**r = rotation (between 0 et 1)
+**d = distance of the source (between 0 et 1)";
+
+//////////////////////
+declare BreakPoints "bpf is an environment (a group of related definitions) that can be used to 
+create break-point functions. It contains three functions : 
+
+USAGE:
+start(x,y) to start a break-point function
+end(x,y) to end a break-point function
+point(x,y) to add intermediate points to a break-point function";
+
+//////////////////////
+declare Automat "Record and replay to the values the input signal in a loop
+
+USAGE: 
+hslider(...) : automat(360, 15, 0.0)";
+
+//////////////////////
+declare BSmooth "bsmooth : (block smooth) linear interpolation during a block of samples
+
+USAGE: 
+hslider(...) : bsmooth";
+
+//////////////////////
+declare Cheby "USAGE: 
+_ : chebychev(n) : _
+**n = transformation order
+
+REFERENCE:
+http://en.wikipedia.org/wiki/Chebyshev_polynomial";
+
+//////////////////////
+declare ChebyPoly "linear combination of the first Chebyshev polynomials
+
+USAGE: _ : 
+chebychevpoly((c0,c1,...,cn)) : _
+
+REFERENCE:
+http://www.csounds.com/manual/html/chebyshevpoly.html
+";
+
 import("math.lib");
+
+
 
 //-----------------------------------------------
 // 					DELAY LINE

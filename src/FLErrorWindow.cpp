@@ -12,7 +12,6 @@
 
 FLErrorWindow::FLErrorWindow(){
     fErrorText = new QTextEdit(this);
-    fShortcut = false;
 }
 
 FLErrorWindow::~FLErrorWindow(){
@@ -52,7 +51,7 @@ void FLErrorWindow::closeEvent(QCloseEvent* /*event*/){
     
     this->hideWin();
     
-    if(fShortcut)
+    if(QApplication::keyboardModifiers() == Qt::AltModifier)
         emit closeAll();
 }
 
@@ -70,17 +69,5 @@ void FLErrorWindow::print_Error(const QString& text){
     this->adjustSize();
     show();
     raise(); 
-}
-
-void FLErrorWindow::keyPressEvent(QKeyEvent* event){ 
-    
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = true;
-}
-
-void FLErrorWindow::keyReleaseEvent(QKeyEvent* event){
-    
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = false;
 }
 

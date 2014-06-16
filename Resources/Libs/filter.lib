@@ -7,6 +7,436 @@ declare version "1.29";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
+//////////////////////
+declare Zero "USAGE:
+zero(z);
+**z = location of zero along real axis in z-plane
+
+Difference equation: 
+y(n) = x(n) - z * x(n-1)
+
+Reference: 
+https://ccrma.stanford.edu/~jos/filters/One_Zero.html";
+
+//////////////////////
+declare Pole "Leaky Integrator
+
+USAGE:
+pole(p)
+**p = pole location = feedback coefficient
+
+Difference equation: 
+y(n) = x(n) + p * y(n-1)
+
+Reference: 
+https://ccrma.stanford.edu/~jos/filters/One_Pole.html";
+
+//////////////////////
+declare Smooth "Exponential smoothing by a unity-dc-gain one-pole lowpass
+
+USAGE: 
+smooth(tau2pole(tau))
+**tau = desired smoothing time constant in seconds,
+OR
+smooth(s)
+**s = smoothness between 0 and 1.
+
+NOTE:
+s>1 is unstable, and s=1 yields the zero signal for all inputs.
+The exponential time-constant is approximately 
+1/(1-s) samples, when s is close to (but less than) 1.
+
+Reference: 
+https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html";
+
+//////////////////////
+declare Blockrat "USAGE:
+dcblockerat(fb);
+**fb = break frequency in Hz, i.e., -3 dB gain frequency.
+
+NOTE:
+The amplitude response is substantially flat above fb
+and sloped at about +6 dB/octave below fb.
+
+Reference:
+https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html";
+
+//////////////////////
+declare Notch "USAGE:
+notchw(width,freq)
+OR notch(freq)
+**width = notch width in Hz (approximate)
+**freq  = notch frequency in Hz
+
+Reference:
+https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html";
+
+//////////////////////
+declare Latch "Latch input on positive-going transition of clock (sample-and-hold)
+
+USAGE:
+_ : latch(clocksig) : _";
+
+//////////////////////
+declare CombForward "Feed-Forward Comb Filter
+
+USAGE:
+_ : ff_comb(maxdel,intdel,b0,bM) : _
+OR _ : ff_fcomb(maxdel,del,b0,bM) : _
+**maxdel = maximum delay (a power of 2)
+**intdel = current (integer) comb-filter delay between 0 and maxdel
+**del = current (float) comb-filter delay between 0 and maxdel
+**b0 = gain applied to delay-line input
+**bM = gain applied to delay-line output and then summed with input
+
+NOTE:
+ff_comb requires integer delays  (uses delay()  internally)
+while ff_fcomb takes floating-point delays (uses fdelay() internally).
+
+REFERENCE:
+https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html";
+
+//////////////////////
+declare CombBack "Feed-Back Comb Filter
+
+USAGE: 
+_ : fb_comb(maxdel,intdel,b0,aN) : _
+OR _ : fb_fcomb(maxdel,del,b0,aN) : _
+OR _ : rev1(maxdel,del,-aN) : _
+**maxdel = maximum delay (a power of 2)
+**intdel = current (integer) comb-filter delay between 0 and maxdel
+**del = current (float) comb-filter delay between 0 and maxdel
+**b0 = gain applied to delay-line input and forwarded to output
+**aN = minus the gain applied to delay-line output before summing with the input and feeding to the delay line
+
+Reference: 
+https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html";
+
+//////////////////////
+declare CombSchroeder "Schroeder Allpass Comb Filter
+
+USAGE: 
+_ : allpass_comb (maxdel,intdel,aN) : _
+OR _ : allpass_fcomb(maxdel,del,aN) : _
+OR _ : rev2(maxdel,del,-aN) : _
+**maxdel = maximum delay (a power of 2)
+**intdel = current (integer) comb-filter delay between 0 and maxdel
+**del = current (float) comb-filter delay between 0 and maxdel
+**aN = minus the feedback gain
+
+NOTE:
+allpass_comb(maxlen,len,aN) = 
+	ff_comb(maxlen,len,aN,1) : 
+	fb_comb(maxlen,len-1,1,aN);
+which is a direct-form-1 implementation, requiring two delay lines.
+The implementation here is direct-form-2 requiring only one delay line.
+ 
+REFERENCES:
+https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html
+https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html
+https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html";
+
+//////////////////////
+declare IIR "Nth-order Infinite-Impulse-Response (IIR) digital filter,
+implemented in terms of the Transfer-Function (TF) coefficients.
+
+USAGE:
+_ : iir(bcoeffs,acoeffs) : _
+**order = filter order (int) = max(#poles,#zeros)
+**bcoeffs = (b0,b1,...,b_order) = TF numerator coefficients
+**acoeffs =    (a1,...,a_order) = TF denominator coeffs (a0=1)
+
+REFERENCE:
+https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html";
+
+//////////////////////
+declare FIR "FIR filter (convolution of FIR filter coefficients with a signal)
+
+USAGE: 
+_ : fir(bv) : _
+**bv = b0,b1,...,bn is a parallel bank of coefficient signals.
+
+NOTE: 
+bv is processed using pattern-matching at compile time,
+so it must have this normal form (parallel signals).";
+
+//////////////////////
+declare Convolution "Convolution of input signal with given coefficients
+
+USAGE:
+_ : conv((k1,k2,k3,...,kN)) : _; // Argument = one signal bank
+OR _ : convN(N,(k1,k2,k3,...)) : _; // Useful when N < count((k1,...))";
+
+//////////////////////
+declare Reflection "Compute reflection coefficients sv from transfer-function denominator av
+
+USAGE:
+sv = av2sv(av)
+**av = parallel signal bank a1,...,aN
+**sv = parallel signal bank s1,...,sN
+**si = ith reflection coefficient, and
+**ai = coefficient of z^(-i) in the filter transfer-function denominator A(z).
+
+REFERENCE:
+https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html";
+
+//////////////////////
+declare Lattice "Compute lattice tap coefficients from transfer-function coefficients
+
+USAGE:
+nuv = bvav2nuv(bv,av)
+**av = parallel signal bank    a1,...,aN
+**bv = parallel signal bank b0,b1,...,aN
+**nuv = parallel signal bank   nu1,...,nuN
+**nui is the i'th tap coefficient,
+**bi is the coefficient of z^(-i) in the filter numerator,
+**ai is the coefficient of z^(-i) in the filter denominator";
+
+//////////////////////
+declare WaveguideT "Second-order transformer-normalized digital waveguide resonator
+
+USAGE: 
+_ : wgr(f,r) : _
+**f = resonance frequency (Hz)
+**r = loss factor for exponential decay (set to 1 to make a numerically stable oscillator)
+
+REFERENCES:
+https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
+https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html";
+
+//////////////////////
+declare Waveguide "Second order normalized digital waveguide resonator
+USAGE: 
+_ : nlf2(f,r) : _
+**f = resonance frequency (Hz)
+r = loss factor for exponential decay
+(set to 1 to make a sinusoidal oscillator)
+
+REFERENCE:
+https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html";
+
+//////////////////////
+declare Allpass "An allpass filter has gain 1 at every frequency, but variable phase.
+Ladder/lattice allpass filters are specified by reflection coefficients.
+They are defined here as nested allpass filters, hence the names allpassn*.
+
+USAGE:
+ _ : allpassn(N,sv) : _
+**N  = allpass order (number of ladder or lattice sections)
+**sv = (s1,s2,...,sN) = reflection coefficients (between -1 and 1).
+
+NOTE:
+For allpassnn only, sv is replaced by tv, where sv(i) = sin(tv(i)),
+where tv(i) may range between -PI and PI.
+
+REFERENCES:
+https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html
+https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html
+
+QUICK GUIDE
+	allpassn   - two-multiply lattice - each section is two multiply-adds
+	allpassnn  - normalized form - four multiplies and two adds per section, but coefficients can be time varying and nonlinear without parametric amplification (modulation of signal energy).
+	allpassnkl - Kelly-Lochbaum form - four multiplies and two adds per section, but all signals have an immediate physical interpretation as traveling pressure waves, etc.
+	allpassn1m - One-multiply form - one multiply and three adds per section.
+				Normally the most efficient in special-purpose hardware.";
+
+//////////////////////
+declare SFilterDF "Second-order direct-form digital filter, specified by ANALOG transfer-function polynomials B(s)/A(s), and a frequency-scaling parameter.  Digitization via the bilinear transform is built in.
+
+USAGE:
+tf2s(b2,b1,b0,a1,a0,w1), where 
+
+         b2 s^2 + b1 s + b0
+H(s) = --------------------
+           s^2 + a1 s + a0
+**w1 = the desired digital frequency (in radians/second) corresponding to analog frequency 1 rad/sec (i.e., s = j).
+
+METHOD: 
+Bilinear transform scaled for exact mapping of w1.
+
+REFERENCE: 
+https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html";
+
+//////////////////////
+declare FFilterDF  "First-order direct-form digital filter, specified by ANALOG transfer-function polynomials B(s)/A(s), and a frequency-scaling parameter.
+
+USAGE: 
+tf1s(b1,b0,a0,w1), where 
+
+       b1 s + b0
+H(s) = ----------
+         s + a0
+
+** w1 is the desired digital frequency (in radians/second) corresponding to analog frequency 1 rad/sec (i.e., s = j).
+
+METHOD: 
+Bilinear transform scaled for exact mapping of w1.
+
+REFERENCE: 
+https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html";
+
+//////////////////////
+declare ButterworthLow "Nth-order Butterworth lowpass or highpass filters
+
+USAGE: 
+_ : lowpass(N,fc) : _
+OR _ : highpass(N,fc) : _
+
+**N = filter order (number of poles) [nonnegative constant integer]
+**fc = desired cut-off frequency (-3dB frequency) in Hz
+
+REFERENCE: 
+https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html";
+
+//////////////////////
+declare LowPass "USAGE: 
+_ : lowpass3e(fc) : _
+OR _ : lowpass6e(fc) : _
+**fc = -3dB frequency in Hz
+
+REFERENCES:
+http://en.wikipedia.org/wiki/Elliptic_filter";
+
+//////////////////////
+declare ButterworthBand "Order 2*Nh Butterworth bandpass filter made using the transformation
+s <- s + wc^2/s on lowpass(Nh), where wc is the desired bandpass center 
+frequency.  The lowpass(Nh) cutoff w1 is half the desired bandpass width.
+A notch-like bandstop filter is similarly made from highpass(Nh).
+
+USAGE: 
+_ : bandpass(Nh,fl,fu) : _
+OR _ : bandstop(Nh,fl,fu) : _
+**Nh = HALF the desired bandpass/bandstop order (which is therefore even)
+**fl = lower -3dB frequency in Hz
+**fu = upper -3dB frequency in Hz
+
+NOTE:
+Thus, the passband (stopband) width is fu-fl, 
+and its center frequency is (fl+fu)/2.
+
+REFERENCE: 
+http://cnx.org/content/m16913/latest";
+
+//////////////////////
+declare LowShelf "First-order low shelf filter (gain boost|cut between dc and some frequency)
+
+USAGE: 
+_ : lowshelf(N,L0,fx) : _
+**N = filter order 1, 3, 5, ... (odd only).
+**L0 = desired level (dB) between dc and fx (boost L0>0 or cut L0<0)
+**fx = -3dB frequency of lowpass band (L0>0) or upper band (L0<0)";
+
+//////////////////////
+declare HighShelf "First-order high shelf filter (gain boost|cut above some frequency)
+
+USAGE: 
+_ : highshelf(N,Lpi,fx) : _
+**N = filter order 1, 3, 5, ... (odd only).
+**Lpi = desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
+**fx = -3dB frequency of highpass band (L0>0) or lower band (L0<0)";
+
+//////////////////////
+declare SPeakingEqualizer "Second order peaking equalizer section (gain boost or cut near some frequency)
+
+USAGE: 
+_ : peak_eq(Lfx,fx,B) : _;
+**Lfx = level (dB) at fx (boost Lfx>0 or cut Lfx<0)
+**fx = peak frequency (Hz)
+**B = bandwidth (B) of peak in Hz";
+
+//////////////////////
+declare QPeakingEqualizer "Constant-Q second order peaking equalizer section 
+
+USAGE: 
+_ : peak_eq_cq(Lfx,fx,Q) : _;
+**Lfx = level (dB) at fx
+**fx = boost or cut frequency (Hz)
+**Q = Quality factor = fx/B where B = bandwidth of peak in Hz";
+
+//////////////////////
+declare RMPeakingEqualizer "Regalia-Mitra second order peaking equalizer section
+
+USAGE: 
+_ : peak_eq_rm(Lfx,fx,tanPiBT) : _;
+**Lfx = level (dB) at fx
+**fx = boost or cut frequency (Hz)
+**tanPiBT = tan(PI*B/SR), where B = -3dB bandwidth (Hz) when 10^(Lfx/20) = 0
+** ~ PI*B/SR for narrow bandwidths B
+
+REFERENCE: 
+P.A. Regalia, S.K. Mitra, and P.P. Vaidyanathan,
+The Digital All-Pass Filter: A Versatile Signal Processing Building Block
+Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)";
+
+//////////////////////
+declare Lagrange "Delay lines interpolated using Lagrange interpolation
+
+USAGE: 
+_ : fdelayN(maxdelay, delay, inputsignal) : _
+**N=1,2,3, or 4 is the order of the Lagrange interpolation polynomial.
+
+NOTE: 
+requested delay should not be less than (N-1)/2.
+While the implementations below appear to use multiple delay lines, they in fact use only one thanks to optimization by the Faust compiler.";
+
+//////////////////////
+declare Thiran "Delay lines interpolated using Thiran allpass interpolation
+
+USAGE: 
+fdelayNa(maxdelay, delay, inputsignal) 
+**N=1,2,3, or 4 is the order of the Thiran interpolation filter,
+and the delay argument is at least N - 1/2.
+
+NOTE: 
+The interpolated delay should not be less than N - 1/2.
+	(The allpass delay ranges from N - 1/2 to N + 1/2.)
+	This constraint can be alleviated by altering the code,
+	but be aware that allpass filters approach zero delay
+	by means of pole-zero cancellations.
+	The delay range [N-1/2,N+1/2] is not optimal. What is?
+
+NOTE: 
+Delay arguments too small will produce an UNSTABLE allpass!
+
+NOTE: 
+Because allpass interpolation is recursive, it is not as robust
+as Lagrange interpolation under time-varying conditions.
+(You may hear clicks when changing the delay rapidly.)
+
+Reference:
+https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html";
+
+//////////////////////
+declare OctaveAnalyzer "mth_octave_analyzer
+
+USAGE
+ _ : mth_octave_analyzer(O,M,ftop,N) : par(i,N,_); // Oth-order Butterworth
+OR _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_); // 6th-order elliptic
+**O = order of filter used to split each frequency band into two
+**M = number of band-slices per octave
+**N = total number of bands (including dc and Nyquist)";
+
+//////////////////////
+declare OctaveSpectral "Mth-Octave Spectral Level : Display (in bar graphs) the average signal level in each spectral band.
+
+USAGE: _ : mth_octave_spectral_level(M,ftop,NBands,tau,dB_offset);
+**M = bands per octave
+**ftop = lower edge frequency of top band
+**NBands = number of passbands (including highpass and dc bands),
+**tau = spectral display averaging-time (time constant) in seconds,
+**dB_offset = constant dB offset in all band level meters.";
+
+//////////////////////
+declare FilterBanks "Arbritary-Crossover Filter-Banks and Spectrum Analyzers 
+These are similar to the Mth-octave filter-banks above, except that the band-split frequencies are passed explicitly as arguments. 
+
+USAGE:
+_ : filterbank (O,freqs) : par(i,N,_); // Butterworth band-splits
+OR _ : filterbanki(O,freqs) : par(i,N,_); // Inverted-dc version 
+**O     = band-split filter order (ODD integer required for filterbank[i])
+**freqs = (fc1,fc2,...,fcNs) [in numerically ascending order], where
+**Ns=N-1 is the number of octave band-splits";
+
 import("music.lib"); // delay, frac and, from math.lib, SR and PI
 
 //---------------------- zero(z) --------------------------

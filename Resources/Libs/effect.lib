@@ -2,7 +2,109 @@ declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.33";
-declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+// Synthesis Tool Kit 4.3 (MIT style license)
+declare license "STK-4.3";
+declare LowPass "USAGE: 
+levelfilter(L,freq) ; 
+**L = desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+**freq = corner frequency (-3dB point) usually set to fundamental freq.
+
+REFERENCE:
+https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html";
+
+declare CubicDistortion "USAGE: 
+cubicnl(drive,offset) ; 
+**drive  = distortion amount, between 0 and 1
+**offset = constant added before nonlinearity to give even harmonics 
+
+NOTE: 
+offset can introduce a nonzero mean - feed cubicnl output to dcblocker to remove this.";
+
+declare Exciter "Psychoacoustic harmonic exciter, with GUI ; 
+
+USAGE:
+_ : exciter : _";
+
+declare MoogA "Moog, Voltage Controlled Filter (VCF) in analog form ; 
+
+USAGE: 
+moog_vcf(res,fr) ;
+**fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
+**res  = Normalized amount of corner-resonance between 0 and 1";
+
+declare MoogB "Moog, Voltage Controlled Filter (VCF) as two biquads
+
+USAGE: 
+moog_vcf_2b(res,fr) ; moog_vcf_2bn(res,fr),
+**fr = corner-resonance frequency in Hz
+**res  = Normalized amount of corner-resonance between 0 and 1";
+
+declare Wah "Wah effect, 4th order 
+
+USAGE: 
+wah4(fr)
+**fr = resonance frequency in Hz";
+
+declare AutoWah "Auto-wah effect
+
+USAGE: 
+ _ : autowah(level) : _ ; 
+**level = amount of effect desired (0 to 1).";
+
+declare CryBaby "Digitized CryBaby wah pedal
+
+USAGE: 
+_ : crybaby(wah) : _
+**wah = pedal angle from 0 to 1.";
+
+declare Flanging "Flanging effect
+
+USAGE: 
+_ : flanger_mono(dmax,curdel,depth,fb,invert) : _ 
+OR _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_";
+
+declare Phasing "Phasing effect
+
+USAGE: 
+_ : phaser2_mono(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _ 
+OR _,_ : phaser2_stereo(idem) : _,_;";
+
+declare WidthEffect "Stereo Width effect using the Blumlein Shuffler technique 
+
+USAGE: 
+_,_ : stereo_width(w) : _,_ 
+**w = stereo width between 0 and 1";
+
+declare Gate "Mono and stereo signal gates
+
+USAGE: 
+_ : gate_mono(thresh,att,hold,rel)   : _  
+OR _,_ : gate_stereo(thresh,att,hold,rel) : _,_";
+
+declare Compressors "Mono and stereo dynamic range compressors
+
+USAGE: 
+_ : compressor_mono(ratio,thresh,att,rel)   : _ 
+OR _,_ : compressor_stereo(ratio,thresh,att,rel) : _,_";
+
+declare Limiter "Mono and stereo limiter 
+
+USAGE: 
+_ : limiter_1176_R4_mono : _; 
+OR _,_ : limiter_1176_R4_stereo : _,_;";
+
+declare Reverberators "Schroeder Reverberators
+
+USAGE: 
+_ :  jcrev : _,_,_,_; 
+OR _ : satrev : _,_;";
+
+declare DelayNetwork "Pure Feedback Delay Network Reverberator (generalized for easy scaling)
+
+USAGE: 
+<1,2,4,...,N signals> <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :>  <1,2,4,...,N signals>";
+
+
 
 import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 

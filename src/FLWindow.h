@@ -56,8 +56,6 @@ class FLWindow : public QMainWindow
     
         QDateTime        fLastMigration;
     
-        bool             fShortcut;   //True if ALT is pressed when x button is pressed
-    
         QString          fHome;        //Folder of currentSession
         QString          fSettingsFolder;
     
@@ -201,8 +199,6 @@ class FLWindow : public QMainWindow
     
     //Called when the X button of a window is triggered
         virtual void    closeEvent ( QCloseEvent * event );
-        void            keyPressEvent(QKeyEvent* event);
-        void            keyReleaseEvent(QKeyEvent* event);
     
     //Creates dsp and interface corresponding to effect
     //Init = 1 --> if the window is created with default process
@@ -244,7 +240,9 @@ class FLWindow : public QMainWindow
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
         virtual void    dragEnterEvent ( QDragEnterEvent * event );
-        virtual void    dragLeaveEvent ( QDragLeaveEvent * event );   
+        virtual void    dragLeaveEvent ( QDragLeaveEvent * event );
+        void    pressEvent();
+        virtual bool    eventFilter( QObject *obj, QEvent *ev );
 
     //Save the graphical and audio connections of current DSP
         void            save_Window();

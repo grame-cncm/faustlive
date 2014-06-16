@@ -49,8 +49,6 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 //    Initializing class members
     fEffect = eff;
     
-    fShortcut = false;
-    
 #ifndef _WIN32
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
@@ -96,7 +94,7 @@ FLWindow::~FLWindow(){
     printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
 }
 
-//------------------------WINDOW ACTIONS
+//------------------------WINDOW ACTIONSfile://localhost/Users/denoux/Desktop/qompander.dsp
 
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
@@ -216,6 +214,8 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
                 setWindowsOptions();
 #endif
             fInterface->run();
+            fInterface->installEventFilter(this);
+                    
             return true;
         } 
         else
@@ -225,6 +225,42 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
         errorMsg = "Interface could not be allocated";
     
     return false;
+}
+
+void FLWindow::pressEvent()
+{
+    QDrag* reverseDrag = new QDrag(this);
+    QMimeData* mimeData = new QMimeData;
+    reverseDrag->setMimeData(mimeData);
+    
+    QPixmap fileIcon;
+    fileIcon.load(":/Images/FileIcon.png");
+    
+    reverseDrag->setPixmap(fileIcon);
+    
+    if(QApplication::keyboardModifiers() == Qt::AltModifier){
+        mimeData->setText(pathToContent(fEffect->getSource()));
+    }
+    else{
+        QList<QUrl> listUrls;
+        QUrl newURL(fEffect->getSource());
+        listUrls.push_back(newURL);
+        mimeData->setUrls(listUrls);
+    }
+    
+    if (reverseDrag->exec(Qt::CopyAction) == Qt::CopyAction){}
+
+}
+
+bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
+    
+    if (ev->type() == QEvent::MouseMove && QApplication::mouseButtons()==Qt::LeftButton){
+        
+        pressEvent();
+        return true;
+    }
+    else
+        return QMainWindow::eventFilter(obj, ev);
 }
 
 //Modification of the process in the window
@@ -324,6 +360,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             
             //Step 12 : Launch User Interface
             fInterface->run();
+            fInterface->installEventFilter(this);
 #ifndef _WIN32
             if(fOscInterface){   
                 fOscInterface->run();
@@ -646,9 +683,11 @@ void FLWindow::print_initWindow(int typeInit){
         dropImage.load(":/Images/DropYourFaustLife_White.png");
         
     dropImage.scaledToHeight(10, Qt::SmoothTransformation);
-    
+
     QLabel *image = new QLabel();
 //    image->setMinimumSize (dropImage.width()*3, dropImage.height()*3);
+    
+    image->installEventFilter(this);
     
     image->setPixmap(dropImage);
     image->setAlignment(Qt::AlignCenter);
@@ -658,26 +697,12 @@ void FLWindow::print_initWindow(int typeInit){
 //------------------------CLOSING ACTIONS
 
 //Reaction to click an x button
-void FLWindow::closeEvent(QCloseEvent* /*event*/){
+void FLWindow::closeEvent(QCloseEvent* event){
     
-    if(!fShortcut)
-        emit closeWin();
-    else
+    if(QApplication::keyboardModifiers() == Qt::AltModifier)
         emit shut_AllWindows();
-}
-
-//A way to know if user is trying shortcut ALT + click on x button of a window
-//= Tracking the event of ALT pressed
-void FLWindow::keyPressEvent(QKeyEvent* event){ 
-    
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = true;
-}
-
-void FLWindow::keyReleaseEvent(QKeyEvent* event){
-    
-    if(event->key() == Qt::Key_Alt)
-        fShortcut = false;
+    else
+        emit closeWin();
 }
 
 //During the execution, when a window is shut, its associate folder has to be removed
@@ -743,28 +768,25 @@ void FLWindow::dropEvent ( QDropEvent * event ){
 #endif
 	
     if (event->mimeData()->hasUrls()) {
-        
-        printf("URLS\n");
-        
+
         QList<QString>    sourceList;
         QList<QUrl> urls = event->mimeData()->urls();
         QList<QUrl>::iterator i;
         
         for (i = urls.begin(); i != urls.end(); i++) {
             
-            if(i->isLocalFile()){
-                QString fileName = i->toLocalFile();
-                QString dsp;
+            if(i->isLocalFile() || QFileInfo(i->toString()).exists()){
+                
+                QString fileName;
+                
+                if(i->isLocalFile())
+                    fileName = i->toLocalFile();
+                else
+                    fileName =  i->toString();
+                               
+                sourceList.push_back(fileName);
                 
                 event->accept();
-                /*if(fileName.indexOf("file://") == 0)
-         		dsp = QString(fileName).right(fileName.size()-numberCharToErase);      
-         	else*/
-         		dsp = fileName;	
-                               
-                printf("SOURCE DROPPED= %s\n", fileName.toStdString().c_str());
-                sourceList.push_back(dsp);
-                
             }
             else{
             	QString dsp = event->mimeData()->text();
@@ -776,18 +798,17 @@ void FLWindow::dropEvent ( QDropEvent * event ){
         //The event is not entirely handled by the window, it is redirected to the application through the drop signal
     else if (event->mimeData()->hasText()){
         
-        printf("TEXTE\n");
+//        printf("TEXTE = %s\n", event->mimeData()->text().toStdString().c_str());
         
         event->accept();
         
-        QString TextContent;
+        QString TextContent = event->mimeData()->text();
 
         /*if(event->mimeData()->text().indexOf("file://") == 0){
         	printf("is file detected ??\n");
         	TextContent = QString(event->mimeData()->text()).right(event->mimeData()->text().size()-numberCharToErase);
        	}
         else*/
-         	TextContent = event->mimeData()->text();
          	
         printf("TEXT DROPPED= %s\n", TextContent.toStdString().c_str());
         

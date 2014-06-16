@@ -7,6 +7,69 @@ declare author "Julien Colafrancesco";
 
 declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8";
 
+//////////////////////
+declare Encoder "Encodes a signal in the circular harmonics domain depending on an order of decomposition and an angle
+
+USAGE:
+encoder(0, x, a);
+**n is the order
+**x is the signal
+**a the angle in radiant";
+
+//////////////////////
+declare Decoder "Number of loudspeakers must be greater or equal to 2n+1. It's souhaitable to use 2n+2 loudspeakers.
+
+USAGE:
+decoder(n,p);
+**n is the order
+**p the number of loudspeakers";
+
+//////////////////////
+declare OptimBasic "The basic optimization has no effect and should be used for a perfect circle of loudspeakers with one listener at the perfect center loudspeakers array.
+
+USAGE:
+optimBasic(n);
+**n is the order";
+
+//////////////////////
+declare OptimMax "The maxRe optimization optimize energy vector. It should be used for an auditory confined in the center of the loudspeakers array.
+
+USAGE:
+optimMaxRe(n);
+**n is the order";
+
+//////////////////////
+declare OptimInPhase "The inPhase Optimization optimize energy vector and put all loudspeakers signals in phase. It should be used for an auditory.
+
+USAGE:
+optionInPhase(n);
+**n is the order";
+
+//////////////////////
+declare Wider "It can be used to wide the diffusion of a localised sound. The order depending signals are weighted to simulate fractional order. When w = 0, there's only the harmonic 0 and the sound is omnidirectionnal, when w = 1, the processing have no effect and the sound field have the highest spatial resolution. From 0 to 1, harmonics appear in a logarithmic way to have linear changes. Wider is used to simulate sources inside the loudspeakers array.
+
+USAGE:
+wider(n, w)
+**n is the order 
+**w the widen value between 0 - 1";
+
+//////////////////////
+declare Map "It simulate the distance of the source by applying a gain on the signal and a wider processing on the soundfield.
+
+USAGE: 
+map(n, x, r, a);
+**n is the order
+**x is the signal
+**r is the radius 
+**a is the angle in radiant";
+
+//////////////////////
+declare Rotation "Rotates the sound field.
+
+USAGE:
+rotate(n, a)
+**n is the order
+**a is the angle in radiant";
 
 import("math.lib");
 

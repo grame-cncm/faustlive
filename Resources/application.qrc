@@ -13,6 +13,7 @@
 	<file>Images/Preferences.png</file>
 	<file>Images/DropYourFaustLife_Blue.png</file>
 	<file>Images/DropYourFaustLife_White.png</file>
+	<file>Images/FileIcon.png</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>
@@ -48,5 +49,6 @@
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
+<file>Libs/TestLibs.dsp</file>
 </qresource>
 </RCC>
