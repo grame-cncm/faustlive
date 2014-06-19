@@ -14,14 +14,16 @@ FLSettings::FLSettings( const QString & organization, const QString & applicatio
 
 FLSettings::FLSettings(Format format, Scope scope, const QString & organization, const QString & application, QObject * parent) : QSettings(format, scope, organization, application, parent){}
 
+FLSettings::FLSettings( const QString & fileName, Format format, QObject * parent) : QSettings(fileName, format, parent){}
+
 FLSettings::~FLSettings(){}
 
 FLSettings* FLSettings::getInstance(){
     if(FLSettings::_settingsInstance == 0)
-        FLSettings::_settingsInstance = new FLSettings("Grame", "FaustLive");
-//        FLSettings::_settingsInstance = new FLSettings(QSettings::IniFormat, QSettings::UserScope, "FaustList", "Grame");
+//        FLSettings::_settingsInstance = new FLSethtings("Grame", "FaustLive");
+        FLSettings::_settingsInstance = new FLSettings("/Users/denoux/.FaustLive-CurrentSession-1.1/Settings.ini", QSettings::IniFormat);
     
-    setPath(QSettings::IniFormat, QSettings::UserScope, "/Users/denoux/.FaustLive-CurrentSession-1.1");
+//    setPath(QSettings::IniFormat, QSettings::UserScope, "");
     
     return FLSettings::_settingsInstance;
 }

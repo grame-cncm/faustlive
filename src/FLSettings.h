@@ -24,6 +24,9 @@ public:
     FLSettings(const QString & organization, const QString & application = QString(), QObject * parent = 0);
     
     FLSettings(Format format, Scope scope, const QString & organization, const QString & application = QString(), QObject * parent = 0 );
+    
+    FLSettings( const QString & fileName, Format format, QObject * parent = 0);
+    
     ~FLSettings();
 
     
