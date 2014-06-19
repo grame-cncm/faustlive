@@ -37,6 +37,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     settings->setValue("General", "NotBouiboui");
     
+    printf("PATH OF SETTINGS = %s\n", settings->fileName().toStdString().c_str());
+    
     
     //Create Current Session Folder
     create_Session_Hierarchy();
