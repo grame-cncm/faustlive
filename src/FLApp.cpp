@@ -23,12 +23,21 @@
 #include "faust/remote-dsp.h"
 #endif
 
+#include "FLSettings.h"
+
 #include <sstream>
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
+    FLSettings* settings = FLSettings::getInstance();
+    
+    printf("VALUE mon PGM = %s\n", settings->value("General").toString().toStdString().c_str());
+    
+    settings->setValue("General", "NotBouiboui");
+    
+    
     //Create Current Session Folder
     create_Session_Hierarchy();
     
