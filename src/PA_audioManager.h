@@ -13,7 +13,6 @@
 #define _PA_audioManager_h
 
 #include "AudioManager.h"
-#include "PA_audioSettings.h"
 #include "FJUI.h"
 
 class PA_audioFader;
@@ -22,14 +21,16 @@ class PA_audioManager : public AudioManager{
 
     Q_OBJECT
     
+    long            fBufferSize;
+    long            fSampleRate;
+    
     bool                    fInit;
     
-    PA_audioSettings*       fSettings;
     PA_audioFader*          fCurrentAudio;
     PA_audioFader*          fFadeInAudio;
 
     public :
-        PA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg);
+        PA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~PA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);

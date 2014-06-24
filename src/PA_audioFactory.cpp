@@ -18,16 +18,15 @@ PA_audioFactory::PA_audioFactory(){}
 PA_audioFactory::~PA_audioFactory(){}
 
 //Creates Settings, corresponding to a JackAudio object
-AudioSettings* PA_audioFactory::createAudioSettings(QString homeFolder, QGroupBox* parent){
+AudioSettings* PA_audioFactory::createAudioSettings(QGroupBox* parent){
     
-    return new PA_audioSettings(homeFolder, parent);
-    
+    return new PA_audioSettings(parent);
 }
 
 //Creates an AudioManager, corresponding to a JackAudio object 
-AudioManager* PA_audioFactory::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
+AudioManager* PA_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg){
     
-    return new PA_audioManager(audioParameters, cb, arg);
+    return new PA_audioManager(cb, arg);
     
 }
 

@@ -16,6 +16,10 @@
 #include "AudioManager.h"
 #include "AudioFactory.h"
 
+#include "CA_audioSettings.h"
+
+#include "FLSettings.h"
+
 #ifdef COREAUDIO
     #include "CA_audioFactory.h"
 #endif
@@ -62,10 +66,7 @@ enum audioArchi{
 
 AudioCreator* AudioCreator::_instance = 0;
 
-AudioCreator::AudioCreator(QString homeFolder, QGroupBox* parent) : QObject(NULL){
-
-    fHome = homeFolder;
-    fSavingFile = fHome + "/" + SAVINGFILE;
+AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
     
     fMenu = parent;
     fLayout = new QFormLayout;
@@ -91,106 +92,71 @@ AudioCreator::AudioCreator(QString homeFolder, QGroupBox* parent) : QObject(NULL
     fAudioArchi->addItem("PortAudio");
 #endif
     
-    readSettings();
-    
-//    printf("fAudioIndex = %i\n", fAudioIndex);
-    
-    fFactory = createFactory(fAudioIndex);
-        
     connect(fAudioArchi, SIGNAL(activated(int)), this, SLOT(indexChanged(int)));
-    
-    setCurrentSettings(fAudioIndex);
-    
+
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
-    fSettingsBox = new QGroupBox;
-    fUselessBox = new QGroupBox;
+//    Initializing current settings
+    fFactory = NULL;
+    fSettingsBox = NULL;
+    fCurrentSettings = NULL;
+    savedSettingsToVisualSettings();
     
-    fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+//    Initialize temporary settings
+    fTempAudioIndex = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
     
-//    printf("fIntermediateSettings = %p\n", fIntermediateSettings);
-    
-    fLayout->addRow(fSettingsBox);
-    
-    fMenu->setLayout(fLayout);
-
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
-//    printf("fIntermediateSettings = %p\n", fCurrentSettings);
+    fTempBox = new QGroupBox();
+    fTempSettings = fFactory->createAudioSettings(fTempBox);
 }
 
 //Returns the instance of the audioCreator
-AudioCreator* AudioCreator::_Instance(QString homeFolder, QGroupBox* box){
+AudioCreator* AudioCreator::_Instance(QGroupBox* box){
     if(_instance == 0)
-        _instance = new AudioCreator(homeFolder, box);
+        _instance = new AudioCreator(box);
     
     return _instance;
 }
 
 AudioCreator::~AudioCreator(){
-
-//    printf("AudioCreator::~Destructor\n");
     
-    writeSettings();
-    
-    delete fFactory;
     delete fSettingsBox;
-    delete fUselessBox;
+    delete fTempBox;
     delete fCurrentSettings;
-    delete fIntermediateSettings;
+    delete fTempSettings;
+    delete fFactory;
+    
+    delete fAudioArchi;
+    delete fLayout;
 }
 
-//Set or Save fAudioIndex with the visual parameter chosen
-void AudioCreator::setCurrentSettings(int index){
+//Parsing ComboBox to find the index corresponding to a Drover Name
+int AudioCreator::driverNameToIndex(const QString& driverName){
     
-//    printf("AudioCreator::SetCurrentSettings\n");
-
-    fAudioArchi->setCurrentIndex(index);
-}
-
-void AudioCreator::saveCurrentSettings(){
-    
-//    printf("AudioCreator::SaveCurrentSettings\n");
-    
-    fAudioIndex = fAudioArchi->currentIndex();
-    
-    delete fCurrentSettings;
-    delete fUselessBox;
-    fUselessBox = new QGroupBox;
-    
-    reset_Settings();
-    fCurrentSettings = fFactory->createAudioSettings(fHome, fUselessBox);
-}
-
-void AudioCreator::change_Architecture(){
-    
-    for(int i =0; i<fAudioArchi->count(); i++){
-        if(i != fAudioArchi->currentIndex()){
-            indexChanged(i);
-            return;
-        }
+    //  In case compilation options have changed, it is checked if it still exists
+    for(int i=0; i<fAudioArchi->count() ; i++){
+        
+        if(driverName == fAudioArchi->itemText(i))
+            return i;
     }
     
+    return 0;
 }
 
 //Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index){
- 
-    
-    printf("AudioCreator::indexChanged\n");
-    
+
     if(fFactory != NULL)
         delete fFactory;
     
-    if(fIntermediateSettings != NULL){
-        delete fIntermediateSettings;
-    }
+    if(fCurrentSettings != NULL)
+        delete fCurrentSettings;
     
     if(fSettingsBox != NULL)
         delete fSettingsBox;
     
     fFactory = createFactory(index);
     fSettingsBox = new QGroupBox;
-    fIntermediateSettings = fFactory->createAudioSettings(fHome, fSettingsBox);
+    fCurrentSettings = fFactory->createAudioSettings(fSettingsBox);
     
     fLayout->addRow(fSettingsBox);
     fMenu->setLayout(fLayout);
@@ -199,25 +165,20 @@ void AudioCreator::indexChanged(int index){
 //Creation of the Factory/Settings/Manager depending on audio index
 AudioFactory* AudioCreator::createFactory(int index){
     
-//        printf("AudioCreator::createFactory\n");
-    
     switch(index){
 #ifdef COREAUDIO
         case kCoreaudio:
-            
             return new CA_audioFactory();
             break;
 #endif
 #ifdef JACK
         case kJackaudio:
-            
             return new JA_audioFactory();
             break;
 #endif
             
 #ifdef NETJACK
         case kNetjackaudio:
-            
             return new NJ_audioFactory();
             break;
 #endif  
@@ -239,69 +200,15 @@ AudioFactory* AudioCreator::createFactory(int index){
     }
 }
 
-AudioSettings* AudioCreator::createAudioSettings(QString homeFolder, QGroupBox* parent){
+AudioSettings* AudioCreator::createAudioSettings(QGroupBox* parent){
 
-//        printf("AudioCreator::createAudioSettings");
-    
-    return fFactory->createAudioSettings(homeFolder, parent);
+    return fFactory->createAudioSettings(parent);
     
 }
 
-AudioManager* AudioCreator::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
-
-//        printf("AudioCreator::createAudioManager\n");
+AudioManager* AudioCreator::createAudioManager(AudioShutdownCallback cb, void* arg){
     
-    return fFactory->createAudioManager(audioParameters, cb, arg);
-}
-
-//Save and read settings in the saving file
-void AudioCreator::readSettings(){
-    
-//    printf("AudioCreator::readSettings\n");
-    
-    QString boxText;
-    
-    QFile f(fSavingFile); 
-    
-    if(f.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&f);
-        textReading>>boxText;
-
-        f.close();
-        
-        for(int i=0; i<fAudioArchi->count() ; i++){
-        
-            if(boxText == fAudioArchi->itemText(i)){
-                fAudioIndex = i;
-                break;
-            }
-            else
-                fAudioIndex = 0;
-        }
-    }
-    else
-        fAudioIndex = 0;
-}
-
-void AudioCreator::writeSettings(){
-    
-//        printf("AudioCreator::writeSettings\n");
-    
-    //fSavedSettings = fSettings + Modifier le fichier
-    
-    QFile f(fSavingFile); 
-    
-    QString boxText = fAudioArchi->itemText(fAudioIndex);
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<boxText;
-        
-        f.close();
-    }    
+    return fFactory->createAudioManager(cb, arg);
 }
 
 //Accessors to the Settings
@@ -309,47 +216,61 @@ QString AudioCreator::get_ArchiName(){
     return fCurrentSettings->get_ArchiName();
 }
 
-AudioSettings* AudioCreator::getCurrentSettings(){
-    
-//    printf("AudioCreator::GetCurrentSettings\n");
-    return fCurrentSettings;
-}
-
-AudioSettings* AudioCreator::getNewSettings(){
-    
-//    printf("AudioCreator::getNewSettings\n");
-    
-    return fIntermediateSettings;
-}
-
-void AudioCreator::reset_Settings(){
-    
-//    printf("AudioCreator::reset_Settings\n");
-    indexChanged(fAudioIndex);
-    setCurrentSettings(fAudioIndex);
-    fIntermediateSettings->writeSettings();
-}
-
 //Does the visual parameters concord to the stored settings?
 //Determines if the audio has to be reloaded
 bool AudioCreator::didSettingChanged(){
     
-//    printf("AudioCreator::didSettings\n");
-    
-    fIntermediateSettings->storeVisualSettings();
-    
-    if(fAudioIndex != fAudioArchi->currentIndex()){
+    if(driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex())
         return true;
-    }
     else{
         
-        if(!((*fCurrentSettings)==(*fIntermediateSettings)))
-        {
+        if(!((*fCurrentSettings)==(*fTempSettings)))
             return true;
-        }
-        else{
+        else
             return false;
-        }
     }
 }
+
+// Restoring saved Settings
+void AudioCreator::savedSettingsToVisualSettings(){
+    
+    int index = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
+    
+    fAudioArchi->setCurrentIndex(index);     
+    indexChanged(index);
+}
+
+//Storing temporarily the settings to test them
+void AudioCreator::visualSettingsToTempSettings(){
+    
+    fTempAudioIndex = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
+    
+    FLSettings::getInstance()->setValue("General/Audio/DriverName", fAudioArchi->currentText());
+    
+    fCurrentSettings->storeVisualSettings();
+}
+
+//Store temporary settings
+void AudioCreator::tempSettingsToSavedSettings(){
+
+    if(fTempBox != NULL)
+        delete fTempBox;
+    
+    fTempBox = new QGroupBox();
+    fTempSettings = fFactory->createAudioSettings(fTempBox);
+}
+
+//Restoring settings
+void AudioCreator::restoreSavedSettings(){
+    
+    FLSettings::getInstance()->setValue("General/Audio/DriverName", fAudioArchi->itemText(fTempAudioIndex));
+
+    fAudioArchi->setCurrentIndex(fTempAudioIndex);
+    indexChanged(fTempAudioIndex);
+    
+    fTempSettings->storeVisualSettings();
+}
+
+
+
 

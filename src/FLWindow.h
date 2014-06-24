@@ -85,7 +85,6 @@ class FLWindow : public QMainWindow
 		void            allocateHttpInterface();
 
         QString         fInterfaceUrl;
-        int             fGeneralHttpPort;
         int             fPortHttp;
         int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 
@@ -150,8 +149,6 @@ class FLWindow : public QMainWindow
         void            open_Ex(QString);
         void            migrate(const QString& ip, int port);
     
-        void            savePrefs();
-    
     private slots :
         void            create_Empty();
         void            open_New();
@@ -164,7 +161,9 @@ class FLWindow : public QMainWindow
         void            edit();
         void            paste();
         void            duplicate();
+#ifndef _WIN32
         void            httpd_View();
+#endif
         void            svg_View();
         void            exportManage();
         void            aboutQt();
@@ -175,7 +174,6 @@ class FLWindow : public QMainWindow
         void            recall_Recent_Session();
         void            import_Recent_Session();
         void            redirectSwitch(const QString& ip, int port);
-//        void            cancelSwitch();
     
     public :
     
@@ -229,8 +227,8 @@ class FLWindow : public QMainWindow
         void            start_Audio();
     
 //    In case audio architecture collapses
-        static void            audioShutDown(const char* msg, void* arg);
-        void                    audioShutDown(const char* msg);
+        static void     audioShutDown(const char* msg, void* arg);
+        void            audioShutDown(const char* msg);
     
     
         bool            init_audioClient(QString& error);
@@ -241,7 +239,7 @@ class FLWindow : public QMainWindow
         virtual void    dropEvent ( QDropEvent * event );
         virtual void    dragEnterEvent ( QDragEnterEvent * event );
         virtual void    dragLeaveEvent ( QDragLeaveEvent * event );
-        void    pressEvent();
+                void    pressEvent();
         virtual bool    eventFilter( QObject *obj, QEvent *ev );
 
     //Save the graphical and audio connections of current DSP
@@ -252,9 +250,6 @@ class FLWindow : public QMainWindow
     //Recall the parameters (graphical and audio)
         void            recall_Window();
     
-    //Functions to create an httpd interface
-        void            viewQrCode();
-    
     //Accessors to parameters
         QString         get_nameWindow();
         int             get_indexWindow();
@@ -262,7 +257,6 @@ class FLWindow : public QMainWindow
         int             get_x();
         int             get_y();
         int             get_Port();
-        void            set_GeneralPort(int port);
         int             get_oscPort();
         bool            is_Default();
         QString         get_machineName();
@@ -271,10 +265,16 @@ class FLWindow : public QMainWindow
         void            migrationSuccessfull();
     
     //Accessors to httpd Window
+#ifndef _WIN32    
+    
+    //Functions to create an httpd interface
+        void            viewQrCode();
+    
         bool            is_httpdWindow_active();
         void            hide_httpdWindow();
-        QString          get_HttpUrl();
+        QString         get_HttpUrl();
         void            resetHttpInterface();
+#endif
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -294,8 +294,10 @@ class FLWindow : public QMainWindow
         void            modifiedOptions(QString text, int value, int port, int portOsc);
         void            resizingBig();
         void            resizingSmall();
+#ifndef _WIN32
         void            switchHttp(bool on);
         void            exportToPNG();
+#endif
         void            switchOsc(bool on);
         void            disableOSCInterface();
         void            frontShowFromMenu(); 

@@ -8,12 +8,10 @@
 
 #include "JA_audioSettings.h"
 
-JA_audioSettings::JA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){}
+JA_audioSettings::JA_audioSettings(QGroupBox* parent) : AudioSettings(parent){}
 
 JA_audioSettings::~JA_audioSettings(){}
 
-void JA_audioSettings::readSettings(){}
-void JA_audioSettings::writeSettings(){}
 void JA_audioSettings::setVisualSettings(){}
 void JA_audioSettings::storeVisualSettings(){}
 

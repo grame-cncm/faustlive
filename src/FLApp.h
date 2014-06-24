@@ -7,8 +7,8 @@
 
 // FLApp is the centerpiece of FaustLive. The class controls all the windows, menu and actions of a user. 
 
-#ifndef _FaustLiveApp_h
-#define _FaustLiveApp_h
+#ifndef _FLApp_h
+#define _FLApp_h
 
 //#include <list>
 #include <map>
@@ -127,7 +127,6 @@ class FLApp : public QApplication
         void                create_Session_Hierarchy();
     
         QString              fSessionFolder; //Path to currentSession Folder
-        QString              fSettingsFolder;   //Path to currentSettings Folder
         QString              fSessionFile; //Path to currentSession DescriptionFile
         QString              fSourcesFolder; //Folder with the copy of the sources
         QString              fSVGFolder;   //Folder with the SVG processes
@@ -136,9 +135,8 @@ class FLApp : public QApplication
         QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
     //Recent Files Parameters and functions
-        QString              fRecentsFile;    //Path to  Recent Dsp file
         QList<std::pair<QString, QString> >         fRecentFiles;
-        void                recall_Recent_Files(const QString& filename);
+        void                recall_Recent_Files();
         void                save_Recent_Files();
         void                set_Current_File(const QString& pathName, const QString& effName);
         void                update_Recent_File();
@@ -152,23 +150,7 @@ class FLApp : public QApplication
         AudioCreator*       fAudioCreator;
         QGroupBox*          fAudioBox;
     
-        QLineEdit*          fCompilModes;
-        QLineEdit*          fOptVal;
-        QLineEdit*          fServerLine;
-        QLineEdit*          fPortLine;
-    
-        QString              fCompilationMode;
-        int                 fOpt_level;
-        QString              fServerUrl;
-        int                 fPort;
-        
-        QString              fStyleChoice;
-    
         void                init_PreferenceWindow();
-        void                save_Setting(const QString& home, const QString& parameter);
-        QString             recall_Setting(const QString& home);
-        void                save_Settings(const QString& home);
-        void                recall_Settings(const QString& home);
     
         void                update_AudioArchitecture();
     
@@ -179,10 +161,9 @@ class FLApp : public QApplication
         QString              fExampleToOpen;
 
     //Recent Sessions Parameters and functions
-        QString              fHomeRecentSessions;
         QStringList         fRecentSessions;
         void                save_Recent_Sessions();
-        void                recall_Recent_Sessions(const QString& filename); 
+        void                recall_Recent_Sessions(); 
         void                set_Current_Session(const QString& pathName);
         void                update_Recent_Session();
         
@@ -265,8 +246,15 @@ class FLApp : public QApplication
     
     private slots :
         
+#ifndef _WIN32
+//--------Server Response
+        void                changeDropPort();
         void                launch_Server();
-    
+        void                compile_HttpData(const char* data, int port);
+        void                stop_Server();
+        void                viewHttpd(FLWindow* win);
+        void                httpd_View_Window();
+#endif
     //---------Drop on a window
     
         void                update_SourceInWin(FLWindow* win, const QString& source);
@@ -327,9 +315,6 @@ class FLApp : public QApplication
         void                paste_Text();
         void                duplicate(FLWindow* window);
         void                duplicate_Window();
-    
-        void                viewHttpd(FLWindow* win);
-        void                httpd_View_Window();
         void                viewSvg(FLWindow* win);
         void                svg_View_Action();
     
@@ -337,11 +322,8 @@ class FLApp : public QApplication
         void                export_Action();
     
     //---------Preferences
-        void                styleClicked();
         void                styleClicked(const QString& style);
         void                Preferences();
-        void                save_Mode();
-        void                cancelPref();
     
     //---------Help
         void                setToolText(const QString&);
@@ -361,10 +343,6 @@ class FLApp : public QApplication
     //--------Long operations entertainment
         void                display_CompilingProgress(const QString& msg);
         void                StopProgressSlot(); 
-    
-    //--------Server Response
-        void                compile_HttpData(const char* data, int port);
-        void                stop_Server();
     
     public : 
 

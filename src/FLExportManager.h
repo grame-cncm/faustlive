@@ -87,13 +87,11 @@ class FLExportManager : public QObject{
     
     public :
     
-    FLExportManager(string url, string sessionHome, string file, string filename);
-    FLExportManager(QString url, QString sessionHome);
+    FLExportManager(QString sessionHome);
     virtual ~FLExportManager();
     
     void                exportFile(QString file, QString faustCode);
-    void                set_URL(const QString& url);
-    bool		isDialogVisible();
+    bool                isDialogVisible();
     
     public slots :
     
@@ -107,6 +105,7 @@ class FLExportManager : public QObject{
     void            showSaveB();
     void            setLastState();
     void            redirectAbort();
+    void                set_URL();
 };
 
 #endif

@@ -21,6 +21,8 @@
 #include "utilities.h"
 #include "faust/llvm-dsp.h"
 
+#include "FLSettings.h"
+
 #define JSON_ONLY
 
 using namespace std;
@@ -157,7 +159,7 @@ void FLExportManager::init_MessageWindow(){
     fMessageWindow->move((QApplication::desktop()->geometry().size().width() - fMessageWindow->width())/2, (QApplication::desktop()->geometry().size().height()- fMessageWindow->height())/2);
 }
 
-FLExportManager::FLExportManager(QString url, QString sessionHome){
+FLExportManager::FLExportManager(QString sessionHome){
     std::cerr << "FLExportManager::FLExportManager(...)" << std::endl;
     
     fHome = sessionHome;
@@ -179,7 +181,10 @@ FLExportManager::FLExportManager(QString url, QString sessionHome){
     
     fTextZone = NULL;
     
-    fServerUrl = QUrl(url);
+    FLSettings* settings = FLSettings::getInstance();
+    connect(settings, SIGNAL(urlChanged()), this, SLOT(set_URL()));
+    
+    fServerUrl = QUrl(settings->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
     init_DialogWindow();
     init_MessageWindow();
     
@@ -537,7 +542,7 @@ void FLExportManager::showSaveB(){
     
 }
 
-void FLExportManager::set_URL(const QString& url){
+void FLExportManager::set_URL(){
     
     bool isVisible = true;
     
@@ -556,7 +561,7 @@ void FLExportManager::set_URL(const QString& url){
 //        fServerUrl = QUrl(fullUrl);
 //    }
 //    else
-        fServerUrl = QUrl(url);
+    fServerUrl = QUrl(FLSettings::getInstance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
     
     QString targetUrl= fServerUrl.toString();
     targetUrl += "/targets";

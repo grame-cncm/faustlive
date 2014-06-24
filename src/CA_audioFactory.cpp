@@ -19,15 +19,15 @@ CA_audioFactory::CA_audioFactory(){}
 CA_audioFactory::~CA_audioFactory(){}
 
 //Creates Settings, corresponding to a CoreAudio object
-AudioSettings* CA_audioFactory::createAudioSettings(QString homeFolder, QGroupBox* parent){
+AudioSettings* CA_audioFactory::createAudioSettings(QGroupBox* parent){
 
-    return new CA_audioSettings(homeFolder, parent);
+    return new CA_audioSettings(parent);
 
 }
 //Creates an AudioManager, corresponding to a CoreAudio object
-AudioManager* CA_audioFactory::createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg){
+AudioManager* CA_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg){
 
-    return new CA_audioManager(audioParameters, cb, arg);
+    return new CA_audioManager(cb, arg);
 
 }
 

@@ -13,11 +13,13 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+
 list<GUI*>               GUI::fGuiList;
 
 #include <sstream>
 #include "FLToolBar.h"
 #include "utilities.h"
+#include "FLSettings.h"
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
@@ -37,12 +39,10 @@ list<GUI*>               GUI::fGuiList;
 //@param : machineName = in case of remote processing, the name of remote machine
 FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport, const QString& machineName, const QString& ipMachine){
     
-    printf("Machine Name = %s\n", machineName.toStdString().c_str());
-    
-//    Enable Drag & Drop on window
+//  Enable Drag & Drop on window
     setAcceptDrops(true);
     
-//    Creating Window Name
+//  Creating Window Name
     fWindowIndex = index;
     fWindowName = baseName + "-" +  QString::number(fWindowIndex);
     
@@ -75,9 +75,9 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     direct.mkdir(fHome);
     
 //    Creating Audio Manager
-    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
+    AudioCreator* creator = AudioCreator::_Instance(NULL);
     
-    fAudioManager = creator->createAudioManager(creator->getCurrentSettings(), FLWindow::audioShutDown, this);
+    fAudioManager = creator->createAudioManager(FLWindow::audioShutDown, this);
     fClientOpen = false;
     
 //    Not Sure It Is UseFull
@@ -91,10 +91,10 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 
 FLWindow::~FLWindow(){
 
-    printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
+    printf("FLWindow::~FLWindow %s \n", fWindowName.toStdString().c_str());
 }
 
-//------------------------WINDOW ACTIONSfile://localhost/Users/denoux/Desktop/qompander.dsp
+//------------------------WINDOW ACTIONS
 
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
@@ -195,17 +195,14 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
         if(setDSP(errorMsg)){
             
             start_Audio();
-			printf("Audio started\n");
             frontShow();
             
-#ifndef _WIN32  
+#ifdef _WIN32  
             if(fOscInterface){
                 fOscInterface->run();
                 fPortOsc = fOscInterface->getUDPPort();
             }
             if(fHttpInterface){
-                
-                printf("Does HTTP RUN ? = %i\n", fMenu->isHttpOn());
                 
                 fHttpInterface->run();
                 
@@ -267,8 +264,6 @@ bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
 //@param : effect = effect that reemplaces the current one
 //@param : error = in case update fails, the error is filled
 bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
-    
-    printf("FLWindow::update_Win\n");
     
     //Save the parameters of the actual interface
     fXPos = this->geometry().x();
@@ -361,7 +356,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             //Step 12 : Launch User Interface
             fInterface->run();
             fInterface->installEventFilter(this);
-#ifndef _WIN32
+#ifdef _WIN32
             if(fOscInterface){   
                 fOscInterface->run();
                 fPortOsc = fOscInterface->getUDPPort();
@@ -472,8 +467,6 @@ void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
 #endif
     }
     
-    printf("PORT HTTP = %i || PORT OSC =%i\n", fPortHttp, fPortOsc);
-    
     fEffect->update_compilationOptions(text, value);
 }
 
@@ -488,8 +481,7 @@ void FLWindow::resizingBig(){
     
     //    QSize winSize = fMenu->geometry().size();
     //    winSize += fMenu->minimumSize();
-    //    
-    //    printf("SIZE BEFORE RESIZE = %i || %i\n", winSize.width(), winSize.height());
+    //   
     //    
     QSize winMinSize = minimumSize();
     winMinSize += fMenu->geometry().size();
@@ -497,7 +489,6 @@ void FLWindow::resizingBig(){
     //    setGeometry(0,0,winSize.width(), winSize.height());
     setMinimumSize(winMinSize);
     //
-    //    printf("SIZE AFTER RESIZE = %i || %i\n", winSize.width(), winSize.height());
     adjustSize();
 }
 
@@ -557,11 +548,8 @@ void FLWindow::switchOsc(bool on){
         allocateOscInterface();
         fCurrent_DSP->buildUserInterface(fOscInterface);
         recall_Window();
-        printf("Before Run\n");
         fOscInterface->run();
-        printf("After Run\n");
         fPortOsc = fOscInterface->getUDPPort();
-        printf("Before getPort\n");
         setWindowsOptions();
 #endif
     }
@@ -591,9 +579,7 @@ void FLWindow::allocateOscInterface(){
         argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
         
 #ifndef WIN32
-//        printf("Before New OSCUI\n");
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
-//        printf("After New OSCUI\n");
 #endif
     }
 }
@@ -613,7 +599,7 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     if(fMenu->isHttpOn())
         allocateHttpInterface();
 #endif
-    //    printf("OSCINTERFACE = %p\n", fOscInterface);
+    
     if(fRCInterface){
         
         //Window tittle is build with the window Name + effect Name
@@ -646,7 +632,6 @@ void FLWindow::deleteInterfaces(){
     delete fRCInterface;
 #ifndef _WIN32
     if(fMenu->isOscOn()){
-        printf("OSC INTERFACE DELETED\n");
         delete fOscInterface;
         fOscInterface = NULL;
     }
@@ -714,8 +699,6 @@ void FLWindow::shut_Window(){
 
 //Closing the window without removing its property for example when the application is quit
 void FLWindow::close_Window(){
-
-    printf("FLWindow::close_Window %s\n", fWindowName.toStdString().c_str());
     
     hide();
     
@@ -730,7 +713,6 @@ void FLWindow::close_Window(){
         //fHttpdWindow = NULL;
     }
 #endif
-    //     printf("deleting instance = %p\n", current_DSP);  
     
     if(fEffect->isLocal())
         deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
@@ -738,8 +720,6 @@ void FLWindow::close_Window(){
     else
         deleteRemoteDSPInstance((remote_dsp*)fCurrent_DSP);
 #endif
-    
-    printf("DELETE AUDIO MANAGER FROM CLOSE WIN\n");
     
     if(fAudioManager)
         delete fAudioManager;
@@ -761,7 +741,7 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     QList<QString>    sourceList;    
     
 	int numberCharToErase = 0;
-#ifdef _WIN32
+#ifndef _WIN32
 	numberCharToErase = 8;
 #else
 	numberCharToErase = 7;
@@ -798,19 +778,14 @@ void FLWindow::dropEvent ( QDropEvent * event ){
         //The event is not entirely handled by the window, it is redirected to the application through the drop signal
     else if (event->mimeData()->hasText()){
         
-//        printf("TEXTE = %s\n", event->mimeData()->text().toStdString().c_str());
-        
         event->accept();
         
         QString TextContent = event->mimeData()->text();
 
         /*if(event->mimeData()->text().indexOf("file://") == 0){
-        	printf("is file detected ??\n");
         	TextContent = QString(event->mimeData()->text()).right(event->mimeData()->text().size()-numberCharToErase);
        	}
         else*/
-         	
-        printf("TEXT DROPPED= %s\n", TextContent.toStdString().c_str());
         
         sourceList.push_back(TextContent);
                 
@@ -866,7 +841,6 @@ void FLWindow::stop_Audio(){
 #endif
     
     fAudioManager->stop();
-    printf("STOP AUDIO\n");
     fClientOpen = false;
 }
 
@@ -879,7 +853,6 @@ void FLWindow::start_Audio(){
     QString connectFile = fHome + "/" + fWindowName + ".jc";
 
     fAudioManager->connect_Audio(connectFile.toStdString());
-//    printf("CONNECT = %s\n", connectFile.toStdString().c_str());
     
     fClientOpen = true;
     
@@ -900,20 +873,19 @@ void FLWindow::audioShutDown(const char* msg, void* arg){
 }
 
 void FLWindow::audioShutDown(const char* msg){
-    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
+    AudioCreator* creator = AudioCreator::_Instance(NULL);
     
 //    creator->change_Architecture();
     emit errorPrint(msg);
-//    emit savePrefs();
 }
 
 //Switch of Audio architecture
 bool FLWindow::update_AudioArchitecture(QString& error){
     
-    AudioCreator* creator = AudioCreator::_Instance(fSettingsFolder, NULL);
+    AudioCreator* creator = AudioCreator::_Instance(NULL);
     delete fAudioManager;
     
-    fAudioManager = creator->createAudioManager(creator->getNewSettings());
+    fAudioManager = creator->createAudioManager();
     
     if(init_audioClient(error) && setDSP(error))
         return true;
@@ -971,8 +943,6 @@ void FLWindow::save_Window(){
     //Audio Connections parameters
     QString connectFile = fHome + "/" + fWindowName + ".jc";
     
-    printf("SAVE CNX = %s\n", connectFile.toStdString().c_str());
-    
     fAudioManager->save_Connections(connectFile.toStdString());
 }
 
@@ -982,10 +952,8 @@ void FLWindow::recall_Window(){
     QString rcfilename = fHome + "/" + fWindowName + ".rc";
     QString toto(rcfilename);
     
-    if(QFileInfo(toto).exists()){
-        fRCInterface->recallState(rcfilename.toStdString().c_str());	
-        printf("state recalled for %p\n", fRCInterface);
-    }
+    if(QFileInfo(toto).exists())
+        fRCInterface->recallState(rcfilename.toStdString().c_str());
 }
 
 //------------------------ACCESSORS
@@ -1025,6 +993,7 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
+#ifndef _WIN32
 void FLWindow::resetHttpInterface(){
 
     fMenu->switchHttp(false);
@@ -1032,8 +1001,7 @@ void FLWindow::resetHttpInterface(){
 }
 
 void FLWindow::allocateHttpInterface(){
-   
-#ifndef _WIN32
+
     if(fMenu->isHttpOn()){
         
         QString optionPort = "-port";
@@ -1048,12 +1016,9 @@ void FLWindow::allocateHttpInterface(){
         
         fHttpInterface = new httpdUI(argv[0], 3, argv);
     }
-#endif
 }
 
 void FLWindow::switchHttp(bool on){
-
-#ifndef _WIN32        
     if(on){
         save_Window();
         allocateHttpInterface();
@@ -1070,11 +1035,10 @@ void FLWindow::switchHttp(bool on){
         delete fHttpInterface;
         fHttpInterface = NULL;
     } 
-#endif
 }
 
 void FLWindow::viewQrCode(){
-#ifndef _WIN32
+
     if(fHttpInterface == NULL){
         allocateHttpInterface();
     }
@@ -1097,7 +1061,7 @@ void FLWindow::viewQrCode(){
         
         fullUrl = fInterfaceUrl;
         
-        fullUrl += QString::number(fGeneralHttpPort);
+        fullUrl += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
         fullUrl += "/";
         fInterfaceUrl += QString::number(fHttpInterface->getTCPPort());
         fullUrl += QString::number(fHttpInterface->getTCPPort());
@@ -1114,11 +1078,9 @@ void FLWindow::viewQrCode(){
     }
     else
         emit error("Enable Http Before Asking for Qr Code");
-#endif
 }
 
 void FLWindow::exportToPNG(){
-#ifndef _WIN32
 
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
@@ -1131,37 +1093,23 @@ void FLWindow::exportToPNG(){
     
     if(!fInterface->toPNG(filename, errorMsg))
         emit error(errorMsg.toStdString().c_str());
-#endif
 }
 
 bool FLWindow::is_httpdWindow_active() {
-    
-#ifndef _WIN32
+
     if(fHttpdWindow)
         return fHttpdWindow->isActiveWindow();
-#endif
-	return false;
 }
 
 void FLWindow::hide_httpdWindow() {
-#ifndef _WIN32
     if(fHttpdWindow)
         fHttpdWindow->hide();
-#endif
 }
 
 QString FLWindow::get_HttpUrl() {
-
-#ifndef _WIN32
     return fInterfaceUrl;
-#else
-	return "";
+}
 #endif
-}
-
-void FLWindow::set_GeneralPort(int port){
-    fGeneralHttpPort = port;
-}
 
 //------------------------Right Click Reaction
 
@@ -1436,11 +1384,13 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
+#ifndef _WIN32
 void FLWindow::httpd_View(){
 
     fMenu->switchHttp(true);    
     viewQrCode();
 }
+#endif
 
 void FLWindow::svg_View(){
     emit svg_View_Action();
@@ -1523,8 +1473,6 @@ void FLWindow::update_RecentSessionMenu(){
             fIrecentSessionAction[j]->setText(text);
             fIrecentSessionAction[j]->setData(fRecentSessions[j]);
             fIrecentSessionAction[j]->setVisible(true);
-            
-            //            printf("TEXT = %s\n", text.toStdString());
         }
         else{
             fRrecentSessionAction[j]->setVisible(false);
@@ -1583,8 +1531,6 @@ int FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
     FLWindow* errorWin = (FLWindow*) arg;
     
     if(errorWin->fLastMigration.secsTo(currentTime) > 3){
-        
-        printf("MIGRATING...\n");
         
         if(error_code == WRITE_ERROR || error_code == READ_ERROR){
             

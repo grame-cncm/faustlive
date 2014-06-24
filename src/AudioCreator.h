@@ -35,60 +35,56 @@ class AudioCreator : public QObject{
     
     protected : 
     
-        int             fAudioIndex;        //Audio architecture currently used
-    
-        QString          fHome;              //HomeFolder where to save the settings
-        QString          fSavingFile;        //File saving the audio architecture used
+        int             fTempAudioIndex;        //Audio architecture currently used
     
         static AudioCreator*    _instance;
     
         AudioFactory*   fFactory;           //Type of factory depending on audio Architecture
     
-    
-    //BOTH ARE NEEDED IN CASE THE UPDATE AUDIO DOES NOT WORK AND INTERMEDIATE SETTINGS HAVE TO BE SWITCHED BACK
-        AudioSettings*  fIntermediateSettings;  //Visual settings that can change multiple times before being saved
-        AudioSettings*  fCurrentSettings;       //Current audio settings saved
-    
     //Layout and menus that contain the audioArchi ComboBox and the Settings
         QFormLayout*    fLayout;                
         QGroupBox*      fMenu;
         QGroupBox*      fSettingsBox;
-        QGroupBox*      fUselessBox;
+        QGroupBox*      fTempBox;
         QComboBox*      fAudioArchi;
-
-    //Save and read settings in the saving file
-        void            writeSettings();
-        void            readSettings();
     
-    //Set fAudioIndex with the visual parameter chosen
-        void            setCurrentSettings(int index);
+    //BOTH ARE NEEDED IN CASE THE UPDATE AUDIO DOES NOT WORK AND INTERMEDIATE SETTINGS HAVE TO BE SWITCHED BACK
+        AudioSettings*  fTempSettings;  //Visual settings that can change multiple times before being saved (when audio update is tested, fTempSetting stores the previous settings)
+        AudioSettings*  fCurrentSettings;       //Current audio settings saved
+    
+        int             driverNameToIndex(const QString& driverName);
     
     public :
-                        AudioCreator(QString homeFolder, QGroupBox* parent);
+    
+        AudioCreator(QGroupBox* parent);
         virtual         ~AudioCreator();
     
     //Returns the instance of the audioCreator
-        static AudioCreator*   _Instance(QString homeFolder, QGroupBox* box);
+        static AudioCreator*   _Instance(QGroupBox* box);
     
     //Creates an audioManager depending on the current Audio Architecture
         AudioFactory*   createFactory(int index);
-        AudioManager*   createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb = NULL, void* arg = NULL);
-        AudioSettings*  createAudioSettings(QString homeFolder, QGroupBox* parent);
+        AudioManager*   createAudioManager(AudioShutdownCallback cb = NULL, void* arg = NULL);
+        AudioSettings*  createAudioSettings(QGroupBox* parent);
+    
+    //        When the parameters are not saved
+        void savedSettingsToVisualSettings();
+    
+    //    When the parameters are saved, there are 2 steps : 1- Save them temporarily 2- Test them in the application --> In case of success they are saved // In case of failure, previous parameters are restored
+        void visualSettingsToTempSettings();
+        void tempSettingsToSavedSettings();
+        void restoreSavedSettings();
     
     //Accessors to the settings
         QString          get_ArchiName();
-        AudioSettings*  getCurrentSettings();
-        AudioSettings*  getNewSettings();
         bool            didSettingChanged();
-        void            reset_Settings();
-    
-        void            saveCurrentSettings();
-    
-        void            change_Architecture();
+
     
     private slots :
     
         void            indexChanged(int index);
+    
+    
     
 };
 

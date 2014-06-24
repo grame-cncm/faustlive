@@ -14,7 +14,6 @@
 #include "AudioManager.h"
 
 class CA_audioFader;
-class CA_audioSettings;
 
 class CA_audioManager : public AudioManager{
 
@@ -30,7 +29,7 @@ class CA_audioManager : public AudioManager{
         CA_audioFader*      fFadeInAudio;
     
     public :
-        CA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg);
+        CA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~CA_audioManager();
     
         virtual bool init(const char*, dsp* DSP);

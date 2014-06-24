@@ -16,12 +16,10 @@
 class JA_audioSettings : public AudioSettings{
 
     public :
-    JA_audioSettings(QString home, QGroupBox* parent);
+    JA_audioSettings(QGroupBox* parent);
     
         virtual ~JA_audioSettings();
     
-        virtual void readSettings();
-        virtual void writeSettings();
         virtual void setVisualSettings();
         virtual void storeVisualSettings();
     

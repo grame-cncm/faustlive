@@ -8,19 +8,15 @@
 
 // CA_audioManager controls 2 CA_audioFader. It can switch from one to another with a crossfade or it can act like a simple coreaudio-dsp
 
-#include "CA_audioSettings.h"
 #include "CA_audioFader.h"
 #include "CA_audioManager.h"
+#include "FLSettings.h"
 
-CA_audioManager::CA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg) : AudioManager(as, cb, arg){
-
-    CA_audioSettings* settings = dynamic_cast<CA_audioSettings*>(as);
+CA_audioManager::CA_audioManager(AudioShutdownCallback cb, void* arg) : AudioManager(cb, arg){
     
-    fBufferSize = settings->get_BufferSize();
+    fBufferSize = FLSettings::getInstance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
     
     fCurrentAudio = new CA_audioFader(fBufferSize);
-    
-//    fStopped = false;
     
 }
 

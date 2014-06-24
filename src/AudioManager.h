@@ -27,7 +27,7 @@ class AudioManager : public QObject, public audio{
     
     public :
     
-    AudioManager(AudioSettings* as, AudioShutdownCallback cb = NULL, void* arg = NULL){Q_UNUSED(as);}
+    AudioManager(AudioShutdownCallback cb = NULL, void* arg = NULL){}
     virtual ~AudioManager(){}
     
     virtual bool initAudio(QString& error, const char* name) = 0;

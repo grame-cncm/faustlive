@@ -27,9 +27,6 @@ class PA_audioSettings : public AudioSettings{
 
     private :
     
-    long            fBufferSize; //Real Buffer Size setting
-    long            fSampleRate;
-    
 	map<string, int> fInputdevices;
 	map<string, int> fOutputdevices;
 
@@ -41,12 +38,10 @@ class PA_audioSettings : public AudioSettings{
     QComboBox*       fOutputDeviceBox;
 
     public :
-        PA_audioSettings(QString home, QGroupBox* parent);
+        PA_audioSettings(QGroupBox* parent);
     
         virtual ~PA_audioSettings();
     
-        virtual void readSettings();
-        virtual void writeSettings();
         virtual void setVisualSettings();
         virtual void storeVisualSettings();
     
@@ -54,9 +49,9 @@ class PA_audioSettings : public AudioSettings{
         long    get_BufferSize();
         long    get_SampleRate();
         virtual QString get_ArchiName();
-        int		get_inputDevice();
-		int		get_ouputDevice();
-		void	set_deviceList();
+//        int		get_inputDevice();
+//		int		get_ouputDevice();
+//		void	set_deviceList();
 };
 
 #endif

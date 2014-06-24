@@ -33,13 +33,6 @@ class NJ_audioSettings : public AudioSettings{
 
     private :
     
-    //Real parameters
-        int                 fCompressionValue;
-        QString              fIP;
-        int                 fPort;
-        int                 fLatency;
-        int                 fMTU;
-    
     //Graphical parameters
         QLineEdit*          fCVLine;
         QLineEdit*          fIPLine;
@@ -48,22 +41,19 @@ class NJ_audioSettings : public AudioSettings{
         QLineEdit*          fMTULine;
     
     public :
-        NJ_audioSettings(QString homeFolder, QGroupBox* parent);
+        NJ_audioSettings(QGroupBox* parent);
         virtual ~NJ_audioSettings();
     
-        virtual void readSettings();
-        virtual void writeSettings();
         virtual void setVisualSettings();
         virtual void storeVisualSettings();
     
         virtual bool isEqual(AudioSettings* as);
-        bool         isStringInt(const char* word);
     
-        int get_compressionValue();
-        QString& get_IP();
-        int get_Port();
-        int get_latency();
-        int get_mtu();
+        int         get_compressionValue();
+        QString    get_IP();
+        int         get_Port();
+        int         get_latency();
+        int         get_mtu();
     
         virtual QString get_ArchiName();
 };

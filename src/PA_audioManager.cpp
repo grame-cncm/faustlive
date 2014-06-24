@@ -12,16 +12,16 @@
 #include "PA_audioManager.h"
 #include "PA_audioFader.h"
 
+#include "FLSettings.h"
+
 #include <QFileInfo>
 
-PA_audioManager::PA_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg): AudioManager(as, cb, arg){
-
+PA_audioManager::PA_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg){
     
-    printf("NEW PORT AUDIO\n");
+    fBufferSize = settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
+    fSampleRate = settings->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     
-    fSettings = dynamic_cast<PA_audioSettings*>(as);
-    
-    fCurrentAudio = new PA_audioFader(fSettings->get_SampleRate(), fSettings->get_BufferSize());
+    fCurrentAudio = new PA_audioFader(fSampleRate, fBufferSize);
 }
 PA_audioManager::~PA_audioManager(){
 

@@ -11,6 +11,7 @@
 #include <string>
 
 #include "FLServerHttp.h"
+#include "FLSettings.h"
 
 #define kFile "HtmlCompiler.html"
 
@@ -31,7 +32,9 @@ FLServerHttp::FLServerHttp(){
 FLServerHttp::~FLServerHttp(){}
 
 //Start Server Listening
-bool FLServerHttp::start(unsigned short port){
+bool FLServerHttp::start(){
+    
+    unsigned short port = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
     
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 

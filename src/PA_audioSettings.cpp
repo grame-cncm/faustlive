@@ -11,9 +11,9 @@
 #include "utilities.h"
 #include "faust/audio/portaudio-dsp.h"
 
-PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){
-    
-    fSavingFile = home + "/" + PA_SAVINGFILE;
+#include "FLSettings.h"
+
+PA_audioSettings::PA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
     
     fLayout = new QFormLayout;
     
@@ -29,31 +29,13 @@ PA_audioSettings::PA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     fLayout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     
     parent->setLayout(fLayout);
-    
-    readSettings();
+
     setVisualSettings();
 //	set_deviceList();
 }
 
-void PA_audioSettings::set_deviceList(){
-/*	
-	fInputdevices = portaudio::get_InputDevices();
-	fOutputdevices = portaudio::get_OutputDevices();
-
-	map<string, int>::iterator it;
-
-	for(it = fInputdevices.begin(); it != fInputdevices.end(); it++){
-		fInputDeviceBox->addItem(it->first.c_str());
-	}
-	for(it = fOutputdevices.begin(); it != fOutputdevices.end(); it++){
-		fOutputDeviceBox->addItem(it->first.c_str());
-	}*/
-}
-
-
 PA_audioSettings::~PA_audioSettings(){
-    
-    writeSettings();
+
 //    delete fLayout;
 //    delete fBufSize;
 //    delete fsplRate;
@@ -62,21 +44,23 @@ PA_audioSettings::~PA_audioSettings(){
 //Accessors to the Buffersize
 long PA_audioSettings::get_BufferSize(){
     
-    return fBufferSize;
+    return fBufSize->text().toLong();
 }
 
 //Accessors to the Buffersize
 long PA_audioSettings::get_SampleRate(){
     
-    return fSampleRate;
+    return fsplRate->text().toLong();
 }
 
 //Real to Visual
 void PA_audioSettings::setVisualSettings(){
     
+    FLSettings* settings = FLSettings::getInstance();
+    
     stringstream sr, bs;
-    bs << fBufferSize;
-    sr << fSampleRate;
+    bs << settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
+    sr << settings->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     
     fBufSize->setText(bs.str().c_str());
     fsplRate->setText(sr.str().c_str());
@@ -85,68 +69,41 @@ void PA_audioSettings::setVisualSettings(){
 //Visual to Real
 void PA_audioSettings::storeVisualSettings(){
     
+    FLSettings* settings = FLSettings::getInstance();
+    
+    int value;
+    
     if(isStringInt(fBufSize->text().toLatin1().data())){
         
-        fBufferSize = atoi(fBufSize->text().toLatin1().data());
+        value = atoi(fBufSize->text().toLatin1().data());
         
-        if(fBufferSize == 0)
-            fBufferSize = 1024;
+        if(value == 0)
+            value = 1024;
     }
     else
-        fBufferSize = 1024;
+        value = 1024;
+    
+    settings->setValue("General/Audio/PortAudio/BufferSize", value);
     
     if(isStringInt(fsplRate->text().toLatin1().data())){
         
-        fSampleRate = atoi(fsplRate->text().toLatin1().data());
+        value = atoi(fsplRate->text().toLatin1().data());
         
-        if(fSampleRate == 0)
-            fSampleRate = 44100;
+        if(value == 0)
+            value = 44100;
     }
     else
-        fSampleRate = 44100;
-}
-
-//Write or Read Settings in a File
-void PA_audioSettings::writeSettings(){
+        value = 44100;
     
-    QFile f(fSavingFile); 
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<fSampleRate<<' '<<fBufferSize;
-        
-        f.close();
-        printf("FILE WAS WROTE\n");
-	}
-}
-
-void PA_audioSettings::readSettings(){
-    
-    QFile f(fSavingFile); 
-    
-    if(QFileInfo(fSavingFile).exists() && f.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&f);
-        textReading>>fSampleRate>>fBufferSize;
-        
-        f.close();
-    }
-    else{
-        fBufferSize = 1024;
-        fSampleRate = 44100;
-    }
+    settings->setValue("General/Audio/PortAudio/SampleRate", value);
 }
 
 //Operator== for CoreAudio Settings
 bool PA_audioSettings::isEqual(AudioSettings* as){
     
-    //    printf("Before casting\n");
-    
     PA_audioSettings* settings1 = dynamic_cast<PA_audioSettings*>(as);
     
-    if(settings1 != NULL && settings1->get_BufferSize() == fBufferSize && settings1->get_SampleRate() == fSampleRate)
+    if(settings1 != NULL && settings1->get_BufferSize() == get_BufferSize() && settings1->get_SampleRate() == get_SampleRate())
         return true;
     else
         return false;
@@ -158,23 +115,35 @@ QString PA_audioSettings::get_ArchiName(){
     return "PortAudio";
 }
 
-int PA_audioSettings::get_inputDevice(){
-/*	if(fInputDeviceBox->currentText().compare("") != 0){
-		return fInputdevices[fInputDeviceBox->currentText().toStdString()];
-	}
-	else*/
-		return 0;
-}
-
-
-int PA_audioSettings::get_ouputDevice(){
-/*    if(fOutputDeviceBox->currentText().compare("") != 0){
-		return fOutputdevices[fOutputDeviceBox->currentText().toStdString()];
-	}
-	else*/
-		return 0;
-}
-
-
-
+//int PA_audioSettings::get_inputDevice(){
+///*	if(fInputDeviceBox->currentText().compare("") != 0){
+//		return fInputdevices[fInputDeviceBox->currentText().toStdString()];
+//	}
+//	else*/
+//		return 0;
+//}
+//
+//
+//int PA_audioSettings::get_ouputDevice(){
+///*    if(fOutputDeviceBox->currentText().compare("") != 0){
+//		return fOutputdevices[fOutputDeviceBox->currentText().toStdString()];
+//	}
+//	else*/
+//		return 0;
+//}
+//
+//void PA_audioSettings::set_deviceList(){
+//    /*	
+//     fInputdevices = portaudio::get_InputDevices();
+//     fOutputdevices = portaudio::get_OutputDevices();
+//     
+//     map<string, int>::iterator it;
+//     
+//     for(it = fInputdevices.begin(); it != fInputdevices.end(); it++){
+//     fInputDeviceBox->addItem(it->first.c_str());
+//     }
+//     for(it = fOutputdevices.begin(); it != fOutputdevices.end(); it++){
+//     fOutputDeviceBox->addItem(it->first.c_str());
+//     }*/
+//}
 

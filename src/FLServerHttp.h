@@ -197,7 +197,7 @@ private:
     
     int             getMaxClients();
     
-    bool            start(unsigned short port);
+    bool            start();
     void            stop();
 
     int             send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);

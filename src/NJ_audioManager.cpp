@@ -12,15 +12,17 @@
 
 #include "NJ_audioFader.h"
 
-NJ_audioManager::NJ_audioManager(AudioSettings* as, AudioShutdownCallback cb, void* arg): AudioManager(as, cb, arg){
+#include "FLSettings.h"
+
+NJ_audioManager::NJ_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg){
     
-    NJ_audioSettings* settings = dynamic_cast<NJ_audioSettings*>(as);
+    FLSettings* settings = FLSettings::getInstance();
     
-    fCV = settings->get_compressionValue();
-    fIP = settings->get_IP();
-    fPort = settings->get_Port();
-    fLatency = settings->get_latency();
-    fMTU = settings->get_mtu();
+    fCV = settings->value("General/Audio/NetJack/CV", -1).toInt();
+    fIP = settings->value("General/Audio/NetJack/IP", "225.3.19.154").toString();
+    fPort = settings->value("General/Audio/NetJack/Port", 19000).toInt();
+    fLatency = settings->value("General/Audio/NetJack/Latency", 2).toInt();
+    fMTU = settings->value("General/Audio/NetJack/MTU", 1500).toInt();
     
     fCurrentAudio = new NJ_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     

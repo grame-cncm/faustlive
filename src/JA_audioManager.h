@@ -13,7 +13,6 @@
 #define _JA_audioManager_h
 
 #include "AudioManager.h"
-#include "JA_audioSettings.h"
 #include "FJUI.h"
 
 class JA_audioFader;
@@ -21,9 +20,7 @@ class JA_audioFader;
 class JA_audioManager : public AudioManager{
 
     Q_OBJECT
-    
-    JA_audioSettings*       fSettings;
-    
+
     FJUI*                   fInterface;
     JA_audioFader*          fCurrentAudio;
     
@@ -31,7 +28,7 @@ class JA_audioManager : public AudioManager{
     
     static void        shutdown_message(const char * msg, void* arg);
     
-    JA_audioManager(AudioSettings* as, shutdown_callback cb, void* arg);
+    JA_audioManager(shutdown_callback cb, void* arg);
         virtual ~JA_audioManager();
     
     virtual bool init(const char*, dsp* DSP);

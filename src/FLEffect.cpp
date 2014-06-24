@@ -38,7 +38,8 @@ FLEffect::FLEffect(bool isEffectRecalled, const QString& sourceFile, const QStri
 //		fSource = QString(sourceFile).right(sourceFile.size()-8);
 //	else
 //#endif
-		fSource = sourceFile;
+    
+    fSource = sourceFile;
     fName = name;
     fForceSynchro = false;
     fRecompilation= false;
@@ -80,8 +81,6 @@ bool FLEffect::reinit(QString& error){
 //@param : ip/port remote = IP/Port of processing machine (Remote Case)
 bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFolder, const QString& currentLibsFolder, QString compilationMode, int optValue, QString& error, const QString& IPremote, int portremote){
     
-    printf("FICHIER SOURCE = %s\n", fSource.toStdString().c_str());
-    
     fCompilationOptions = compilationMode;
     fOpt_level = optValue;
     fIpMachineRemote = IPremote;
@@ -92,9 +91,7 @@ bool FLEffect::init(const QString& currentSVGFolder, const QString& currentIRFol
     fCurrentLibsFolder = currentLibsFolder;
     
     if(buildFactory(kCurrentFactory, error)){
-        
-		printf("Factory was build\n");
-
+    
         //Initializing watcher looking for changes on faust source through text editor 
         fWatcher = new QFileSystemWatcher(this);
         fSynchroTimer = new QTimer(fWatcher);
@@ -142,8 +139,6 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
     if(fRecalled && QFileInfo(IRpath).exists() && fIsLocal){        
 //        buildingFactory = readDSPFactoryFromBitcodeFile(IRpath.toStdString(), "");
         
-        printf("factory from IR\n");
-            
         fRecalled = false;
         
         if(buildingFactory != NULL){
@@ -192,8 +187,6 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
         
         QString svgPath = fCurrentSVGFolder + "/" + fName;
         
-        printf("svg path = %s\n", svgPath.toStdString().c_str());
-        
         QDir direct(svgPath);
         direct.mkdir(svgPath);
         
@@ -229,14 +222,8 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
             else{
                 argc--;
                 i--;
-                printf("Option -double not taken into account\n");
             }
         }
-        
-        printf("ARGC = %i\n", argc);
-        
-        for(int i=0; i<argc; i++)
-            printf("ARGV %i = %s\n", i, argv[i]);
         
         std::string getError("");
         
@@ -247,15 +234,10 @@ bool FLEffect::buildFactory(int factoryToBuild, QString& error){
 			string mySourceToCompile = fSource.toStdString();
 
             buildingFactory = createDSPFactoryFromFile(mySourceToCompile, argc, argv, "", getError, fOpt_level);
-
-			printf("ERROR FROM BUILD FACTORY = %s\n", getError.c_str());
         }
 #ifdef REMOTE
-        else{
-            printf("REMOTE BUILDING FACTORY\n");
-             
+        else             
             buildingRemoteFactory = createRemoteDSPFactoryFromFile(fSource.toStdString(), argc, argv, fIpMachineRemote.toStdString(), fPortMachineRemote, getError, fOpt_level);
-        }
 #endif
         error = getError.c_str();
         
@@ -328,10 +310,8 @@ void FLEffect::erase_OldFactory(){
 	    deleteDSPFactory(fOldFactory);
     }
 #ifdef REMOTE
-	else{
-        printf("DELETE REMOTE OLD FACTORY\n");
+	else
         deleteRemoteDSPFactory(fOldRemoteFactory);
-    }
 #endif
 }
 
@@ -375,8 +355,6 @@ string FLEffect::get_expandedVersion(){
     
     QString svgPath = fCurrentSVGFolder + "/" + fName;
     
-    printf("svg path = %s\n", svgPath.toStdString().c_str());
-    
     QDir direct(svgPath);
     direct.mkdir(svgPath);
     
@@ -412,7 +390,6 @@ string FLEffect::get_expandedVersion(){
         else{
             argc--;
             i--;
-            printf("Option -double not taken into account\n");
         }
     }
 
@@ -446,9 +423,7 @@ int FLEffect::get_numberParameters(const QString& compilOptions){
             }
         }
     }
-    
-    printf("ARGC = %i\n", argc);
-    
+
     return argc;
     
 }
@@ -489,8 +464,6 @@ string FLEffect::parse_compilationParams(QString& compilOptions){
 
 void FLEffect::reset_Timer(const QString /*toto*/){
     
-    //    printf("Reseting Timer\n");
-    
     //If the signal is triggered multiple times in 2 second, only 1 is taken into account
     if(fSynchroTimer->isActive()){
         fSynchroTimer->stop();
@@ -502,18 +475,14 @@ void FLEffect::reset_Timer(const QString /*toto*/){
 
 void FLEffect::effectModified(){
     fSynchroTimer->stop();
-    //    printf("Emission FLEffectChanged\n");
     emit effectChanged();
 }
 
 void FLEffect::stop_Watcher(){
-    printf("PATH STOP WATCHING = %s\n", fSource.toLatin1().data());
     fWatcher->removePath(fSource);
 }
 
 void FLEffect::launch_Watcher(){
-    
-    printf("PATH WATCHED= %s\n", fSource.toLatin1().data());
     
     fWatcher->addPath(fSource);
 }
@@ -562,11 +531,8 @@ QString FLEffect::getCompilationOptions(){
 void FLEffect::update_compilationOptions(QString& compilOptions, int newOptValue){
     if(fCompilationOptions.compare(compilOptions) !=0 || fOpt_level != newOptValue){
         
-        printf("EFFECT CHANGED IS LOCAL = %i\n", fIsLocal);
-        
         fCompilationOptions = compilOptions;
-        fOpt_level = newOptValue;   
-        //        printf("opt level = %i\n", opt_level);
+        fOpt_level = newOptValue;
         fForceSynchro = true;
         emit effectChanged();
     }

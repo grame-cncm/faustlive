@@ -20,8 +20,8 @@ class NJ_audioFactory : public AudioFactory{
     NJ_audioFactory();
     ~NJ_audioFactory();
     
-    virtual AudioSettings* createAudioSettings(QString homeFolder, QGroupBox* parent);
-    virtual AudioManager* createAudioManager(AudioSettings* audioParameters, AudioShutdownCallback cb, void* arg);
+    virtual AudioSettings* createAudioSettings(QGroupBox* parent);
+    virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
 };
 
 #endif

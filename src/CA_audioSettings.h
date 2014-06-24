@@ -26,8 +26,6 @@ using namespace std;
 class CA_audioSettings : public AudioSettings{
 
     private :
-
-        int                 fBufferSize; //Real Buffer Size setting
     
     //Graphical CoreAudio Settings
         QTextBrowser*       fsplRate;
@@ -39,17 +37,16 @@ class CA_audioSettings : public AudioSettings{
         void linkClicked(const QUrl& link); 
     
     public :
-        CA_audioSettings(QString home, QGroupBox* parent);
+        CA_audioSettings(QGroupBox* parent);
         ~CA_audioSettings();
+
+        virtual void    setVisualSettings();
+        virtual void    storeVisualSettings();
     
-        virtual void readSettings();
-        virtual void writeSettings();
-        virtual void setVisualSettings();
-        virtual void storeVisualSettings();
-    
-        virtual bool isEqual(AudioSettings* as);    
-        int get_BufferSize();
+        virtual bool    isEqual(AudioSettings* as);
         virtual QString get_ArchiName();
+        int             get_BufferSize();
+        int             get_SampleRate();
 };
 
 #endif

@@ -117,14 +117,10 @@ char **argv = __argv;
     
     int filecount = 0;
     if(GetMaximumFiles(filecount)){
-        
-        cout<<filecount<<endl;
       
         if(SetMaximumFiles(4096)){
             filecount = 0;
             GetMaximumFiles(filecount);
-            
-            cout<<filecount<<endl;
 #endif 
             app = new FLApp(argc, argv);
             

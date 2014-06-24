@@ -7,26 +7,19 @@
 //
 
 #include "CA_audioSettings.h"
-#include <sstream>
 #include "utilities.h"
 
-CA_audioSettings::CA_audioSettings(QString home, QGroupBox* parent) : AudioSettings(home, parent){
-    
-    fSavingFile = home + "/" + CA_SAVINGFILE;
+#include "FLSettings.h"
+
+CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
     
     QFormLayout* layout = new QFormLayout;
     
     fBufSize = new QLineEdit;
-    
-//    fBufSize->setInputMask("0000000");
-//    bufSize->setText(bf.str().c_str());
-    
+
     fsplRate = new QTextBrowser;
     
     string urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
-//    QString sheet = QString::fromLatin1("*{ text-decoration: underline; color: black; font: Menlo; font-size: 14px }");
-//    fsplRate->document()->setDefaultStyleSheet(sheet);
-//    fsplRate->setStyleSheet("*{color: black; font: Menlo; font-size: 14px; background-color : white; }");
     
     fsplRate->setOpenExternalLinks(false);
     fsplRate->setHtml(urlText.c_str());
@@ -36,83 +29,46 @@ CA_audioSettings::CA_audioSettings(QString home, QGroupBox* parent) : AudioSetti
     layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     layout->addRow(fsplRate);
     
-//        printf("SET LAYOUT %p\n", this);
     parent->setLayout(layout);
-//        printf("AFTER LAYOUT %p\n", this);
     
-    readSettings();
     setVisualSettings();
 }
 
 CA_audioSettings::~CA_audioSettings(){
-
-    writeSettings();
-//    delete fBufSize;
-//    delete fsplRate;
 }
 
 //Accessors to the Buffersize
 int CA_audioSettings::get_BufferSize(){
     
-    return fBufferSize;
+    if(isStringInt(fBufSize->text().toStdString().c_str()))
+        return atoi(fBufSize->text().toStdString().c_str());
+    else
+        return 512;
 }
 
 //Real to Visual
 void CA_audioSettings::setVisualSettings(){
     
-//    printf("SET CURRENT LINE EDIT = %i\n", fBufferSize);
-    
-    stringstream bs;
-    bs << fBufferSize;
-    
-    fBufSize->setText(bs.str().c_str());
+    fBufSize->setText(QString::number(FLSettings::getInstance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
 }
 
 //Visual to Real
 void CA_audioSettings::storeVisualSettings(){
     
-    if(isStringInt(fBufSize->text().toStdString().c_str())){
+    int value;
     
-        fBufferSize = atoi(fBufSize->text().toStdString().c_str());
+    if(isStringInt(fBufSize->text().toStdString().c_str())){
         
-        if(fBufferSize == 0)
-            fBufferSize = 512;
+        value = atoi(fBufSize->text().toStdString().c_str());
+        
+        if(value == 0)
+            value = 512;
     }
     else
-            fBufferSize = 512;
+            value = 512;
     
-//    printf("fBufferSize = %i\n", fBufferSize);
-}
-
-//Write or Read Settings in a File
-void CA_audioSettings::writeSettings(){
-    
-    QFile f(fSavingFile); 
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<fBufferSize;
-        
-        f.close();
-    }
-}
-
-void CA_audioSettings::readSettings(){
-    
-    QFile f(fSavingFile); 
-    
-    if(QFileInfo(fSavingFile).exists() && f.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&f);
-        textReading>>fBufferSize;
-        
-        f.close();
-    }
-    else{
-        fBufferSize = 512;
-    }
+    fBufSize->setText(QString::number(value));
+    FLSettings::getInstance()->setValue("General/Audio/CoreAudio/BufferSize", value);
 }
 
 //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
@@ -137,14 +93,9 @@ void CA_audioSettings::linkClicked(const QUrl& link){
 //Operator== for CoreAudio Settings
 bool CA_audioSettings::isEqual(AudioSettings* as){
     
-//    printf("Before casting\n");
-    
     CA_audioSettings* settings1 = dynamic_cast<CA_audioSettings*>(as);
     
-    printf("SETTINGS1 = %i\n", settings1->get_BufferSize());
-    printf("SETTINGS2 = %i\n", fBufferSize);
-    
-    if(settings1 != NULL && settings1->get_BufferSize() == fBufferSize)
+    if(settings1 != NULL && settings1->get_BufferSize() == get_BufferSize())
         return true;
     else
         return false;

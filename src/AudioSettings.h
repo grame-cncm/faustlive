@@ -21,16 +21,12 @@ class AudioSettings : public QObject{
     Q_OBJECT
     
     protected:
-
-        QString              fSavingFile;
     
     public :
     
-    AudioSettings(QString home, QGroupBox* parent){ Q_UNUSED(home); Q_UNUSED(parent); }
+        AudioSettings(QGroupBox* parent){ Q_UNUSED(parent); }
         virtual ~AudioSettings(){}
     
-        virtual void readSettings() = 0;
-        virtual void writeSettings() = 0;
         virtual void setVisualSettings() = 0;
         virtual void storeVisualSettings() = 0;
     

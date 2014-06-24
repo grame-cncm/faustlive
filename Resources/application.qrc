@@ -50,5 +50,9 @@
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
 <file>Libs/TestLibs.dsp</file>
+<file>Styles/Default.qss</file>
+<file>Styles/Blue.qss</file>
+<file>Styles/Grey.qss</file>
+<file>Styles/Salmon.qss</file>
 </qresource>
 </RCC>

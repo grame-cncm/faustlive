@@ -24,24 +24,18 @@
 #endif
 
 #include "FLSettings.h"
+#include "FLPreferenceWindow.h"
 
 #include <sstream>
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
-
-    FLSettings* settings = FLSettings::getInstance();
-    
-    printf("VALUE mon PGM = %s\n", settings->value("General").toString().toStdString().c_str());
-    
-    settings->setValue("General", "NotBouiboui");
-    
-    printf("PATH OF SETTINGS = %s\n", settings->fileName().toStdString().c_str());
-    
     
     //Create Current Session Folder
     create_Session_Hierarchy();
+    
+    FLSettings::initInstance(fSessionFolder);
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
@@ -50,14 +44,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Base Name of application's windows
     fWindowBaseName = "FLW";
-    
-    //Initializing preference
-    fOpt_level = 3;
-    fServerUrl = "http://faustservice.grame.fr";
-    fPort = 7777;
-    fStyleChoice = "Default";
-    recall_Settings(fSettingsFolder);
-    styleClicked(fStyleChoice);
+
+    styleClicked(FLSettings::getInstance()->value("General/Style", "Default").toString());
     
 	//Initializing Recalling 
 	fRecalling = false;
@@ -74,8 +62,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
-	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));    
-	//setQuitOnLastWindowClosed(true);
+	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));
 #else
     setQuitOnLastWindowClosed(false);
 #endif
@@ -83,8 +70,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fMenuBar = new QMenuBar;
     setup_Menu();
     
-    recall_Recent_Files(fRecentsFile);
-    recall_Recent_Sessions(fHomeRecentSessions);
+    recall_Recent_Files();
+    recall_Recent_Sessions();
     
     //Initializing OutPut Window
     fErrorWindow = new FLErrorWindow();
@@ -111,7 +98,7 @@ FLApp::~FLApp(){
     
     save_Recent_Files();
     save_Recent_Sessions();
-    save_Settings(fSettingsFolder);
+//    save_Settings(fSettingsFolder);
     
     for(int i=0; i<kMAXRECENTFILES; i++){
         delete fRecentFileAction[i];
@@ -136,6 +123,9 @@ FLApp::~FLApp(){
     delete fExportDialog;
     
     fSessionContent.clear();
+    
+    delete FLSettings::getInstance();
+    
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -155,8 +145,6 @@ void FLApp::create_Session_Hierarchy(){
 	separationChar = "/";
 #endif
 
-	printf("HOME = %s\n", fSessionFolder.toStdString().c_str());
-
     fSessionFolder += FLVERSION;
     if(!QFileInfo(fSessionFolder).exists()){
         QDir direct(fSessionFolder);
@@ -175,15 +163,6 @@ void FLApp::create_Session_Hierarchy(){
         QDir direct(fSourcesFolder);
         direct.mkdir(fSourcesFolder);
     }    
-    
-    fSettingsFolder = fSessionFolder + separationChar  + "Settings";
-    if(!QFileInfo(fSettingsFolder).exists()){
-        QDir direct(fSettingsFolder);
-        direct.mkdir(fSettingsFolder);
-    }
-    
-    fRecentsFile = fSettingsFolder + separationChar  + "FaustLive_FileSavings.rf"; 
-    fHomeRecentSessions = fSettingsFolder + separationChar  + "FaustLive_SessionSavings.rf"; 
     
     fSVGFolder = fSessionFolder + separationChar  + "SVG";
     if(!QFileInfo(fSVGFolder).exists()){
@@ -402,10 +381,11 @@ void FLApp::setup_Menu(){
     preferencesAction->setToolTip(tr("Set the preferences of the application"));
     connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
     
-    fPrefDialog = new QDialog;
-    fPrefDialog->setWindowFlags(Qt::FramelessWindowHint);
-    init_PreferenceWindow();
-    fPrefDialog->move((fScreenWidth-fPrefDialog->width())/2, (fScreenHeight-fPrefDialog->height())/2);
+    fPrefDialog = new FLPreferenceWindow;
+    
+    connect(fPrefDialog, SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
+    connect(fPrefDialog, SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
+    fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP
     
@@ -443,7 +423,7 @@ void FLApp::setup_Menu(){
     
 //    EXPORT MANAGER
     
-    fExportDialog = new FLExportManager(fServerUrl, fSessionFolder);
+    fExportDialog = new FLExportManager(fSessionFolder);
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
@@ -507,8 +487,6 @@ int FLApp::find_smallest_index(QList<int> currentIndexes){
     bool found = true;
     int i = 0;
     
-//    printf("current index list = %i\n", FLW_List.size());
-    
     while(found && currentIndexes.size() != 0){
         i++;
         for (it = currentIndexes.begin(); it != currentIndexes.end(); it++){
@@ -549,7 +527,6 @@ void FLApp::calculate_position(int index, int* x, int* y){
     *y = fScreenHeight/3 + multiplCoef*10;
 }
 
-
 //----------NAMING EFFECTS
 
 //Default Names
@@ -564,9 +541,6 @@ QList<QString> FLApp::get_currentDefault(){
         if((*it)->name.indexOf(DEFAULTNAME)!=-1)
             currentDefault.push_back((*it)->name);
     }
-    
-    
-//    printf("WIN CONTENT = %i\n", currentDefault.size());
     return currentDefault;
 }
 
@@ -1068,8 +1042,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
             for (it2 = FLW_List.begin(); it2 != FLW_List.end(); it2++) {
                 if((*it2)->get_indexWindow() == *it){
                     
-                    //printf("UPDATE_FACTORY\n");
-                    
                     if(!(*it2)->update_Window(modifiedEffect, error)){
                         
                         fErrorWindow->print_Error(error);
@@ -1082,7 +1054,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
                         
                         QString oldSource = modifiedEffect->getSource();
                         QString newSource = fSourcesFolder + "/" + modifiedEffect->getName() + ".dsp";
-						printf("SYNCHRONIZE COPIES = %s TO %s\n", oldSource.toStdString().c_str(), newSource.toStdString().c_str());
                         update_Source(oldSource, newSource);
                         break;
                     }
@@ -1114,8 +1085,6 @@ void FLApp::synchronize_Window(FLEffect* modifiedEffect){
 
 //Refresh a window. In case the source/options have been modified.
 void FLApp::synchronize_Window(){ 
-
-    printf("FLApp::synchronize_Window\n");
     
     FLEffect* modifiedEffect = (FLEffect*)QObject::sender();
     
@@ -1174,10 +1143,8 @@ void FLApp::update_SourceInWin(FLWindow* win, const QString& source){
         newEffect->launch_Watcher();
         
         //Forcing the update of compilation parameters for a recycled effect
-        if(optionChanged){
+        if(optionChanged)
             newEffect->update_compilationOptions(winOptions,  winOptValue);
-            //printf("update_compilationOptions\n");
-        }
     }
     
 }
@@ -1197,10 +1164,8 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
     bool isEffectLocal = false;
     bool isMigrationSuccessfull = true;
     
-    if(ip.compare("localhost") == 0){
+    if(ip.compare("localhost") == 0)
         isEffectLocal = true;
-        printf("Back to Local host\n");
-    }
     
     QString compilationOptions(migratingWin->get_Effect()->getCompilationOptions());
     
@@ -1221,9 +1186,6 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
 //        
 //        vector<pair<string, string> > factories_list;
 //        getRemoteFactoriesAvailable(ip.toStdString(), port, &factories_list);
-//        
-//        for(int i=0; i<factories_list.size(); i++)
-//            printf("FACTORIES = %s\n", factories_list[i].first.c_str(), factories_list[i].second.c_str());
         
         return true;
     }
@@ -1242,8 +1204,6 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
 //---------------NEW
 
 void FLApp::redirectMenuToWindow(FLWindow* win){
-    
-    win->set_GeneralPort(fPort);
     
     win->set_RecentFile(fRecentFiles);
     win->update_RecentFileMenu();
@@ -1298,7 +1258,7 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         
         source = "process = !,!:0,0;";
         
-        if(QString::compare(fStyleChoice,"Blue") == 0 || QString::compare(fStyleChoice,"Grey") == 0)
+        if(QString::compare(FLSettings::getInstance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::getInstance()->value("General/Style", "Grey").toString(), "Blue") == 0)
             init = kInitWhite;
         else
             init = kInitBlue;
@@ -1312,7 +1272,8 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
     
     //Creation of new effect from the source    
     QString empty("");
-    FLEffect* first = getEffectFromSource(source, empty, fSourcesFolder, fCompilationMode, fOpt_level ,error, false, true); 
+    QString compilationValue = FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString();
+    FLEffect* first = getEffectFromSource(source, empty, fSourcesFolder, compilationValue, FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt() ,error, false, true); 
 
     if(first != NULL){
 //        To force the update in case compilation option changed ??? 
@@ -1343,10 +1304,8 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
             first->launch_Watcher();
             
 // ?????        
-//            if(optionChanged){
-//                printf("update_compilationOptions\n");
+//            if(optionChanged)
 //                first->update_compilationOptions(fCompilationMode, fOpt_level);
-//            }
             return win;
         }
         else{
@@ -1459,43 +1418,35 @@ void FLApp::open_Example_Action(){
 //--Save/Recall from file 
 void FLApp::save_Recent_Files(){
     
-    QFile f(fRecentsFile);
+    QList<std::pair<QString, QString> >::iterator it;
+    int index = 1;
     
-    if(f.open(QFile::WriteOnly | QFile::Truncate)){
+    for (it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
         
-        QTextStream text(&f);
-        
-        QList<std::pair<QString, QString> >::iterator it;
-        
-        for (it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
-            QString toto = it->first;
-            QString tata = it->second;
-            text << toto <<' '<<tata<< endl;
-        }
-        f.close();
+        QString settingPath = "General/RecentFiles/" + QString::number(index) + "/path";
+        QString path = it->first;
+        FLSettings::getInstance()->setValue(settingPath, path);
+
+        QString settingName = "General/RecentFiles/" + QString::number(index) + "/name";
+        QString name = it->second;
+        FLSettings::getInstance()->setValue(settingName, name);
+
+        index ++;
     }
 }
 
-void FLApp::recall_Recent_Files(const QString& filename){
+void FLApp::recall_Recent_Files(){
     
-    QFile f(filename);
-    QString toto, titi;
-    int i=0;
-    
-    if(f.open(QFile::ReadOnly)){
+    for(int i=1; i<=kMAXRECENTFILES; i++){
         
-        QTextStream textReading(&f);
+        QString settingName = "General/RecentFiles/" + QString::number(i) + "/name";
+        QString settingPath = "General/RecentFiles/" + QString::number(i) + "/path";
         
-        while(!textReading.atEnd() && i<kMAXRECENTFILES){
-            textReading >> toto >> titi;
-            QString tata = toto;
-            QString tutu = titi;
-            i++;
-            
-            if(tata.compare("") != 0)
-                set_Current_File(tata, tutu);
-        }
-        f.close();
+        QString name = FLSettings::getInstance()->value(settingName, "").toString();
+        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
+
+        if(name != "" && path != "")
+            set_Current_File( path, name);
     }
     
     QList<FLWindow*>::iterator it;
@@ -1653,41 +1604,29 @@ void FLApp::fileToSessionContent(const QString& filename, QList<WinInSession*>* 
 //--Save/Recall from file
 void FLApp::save_Recent_Sessions(){
     
-    QFile f(fHomeRecentSessions);
+    QList<QString>::iterator it;
+    int index = 1;
     
-    if(f.open(QFile::WriteOnly | QFile::Truncate)){
+    for (it = fRecentSessions.begin(); it != fRecentSessions.end(); it++) {
         
-        QTextStream text(&f);
+        QString settingPath = "General/RecentSessions/" + QString::number(index);
+        FLSettings::getInstance()->setValue(settingPath, *it);
         
-        for (int i = min(kMAXRECENTSESSIONS, fRecentSessions.size()) - 1; i>=0; i--) {
-            QString toto = fRecentSessions[i];
-            text << toto << endl;
-        }
-        f.close();      
+        index++;
     }
-
 }
 
-void FLApp::recall_Recent_Sessions(const QString& filename){
+void FLApp::recall_Recent_Sessions(){
     
-    QFile f(filename);
-    QString toto;
-    
-    int i=0;
-    
-    if(f.open(QFile::ReadOnly)){
+    for(int i=1; i<=kMAXRECENTSESSIONS; i++){
         
-        QTextStream textReading(&f);
+        QString settingPath = "General/RecentSessions/" + QString::number(i) ;
+        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
         
-        while(!textReading.atEnd() && i<kMAXRECENTSESSIONS){
-            
-            textReading >> toto;
-            set_Current_Session(toto);
-            i++;
-        }
-        f.close();
+        if(path != "")
+            set_Current_Session(path);
     }
-    
+
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
@@ -1696,8 +1635,6 @@ void FLApp::recall_Recent_Sessions(const QString& filename){
 
 //Add new recent session
 void FLApp::set_Current_Session(const QString& pathName){
-    
-    //    printf("SET CURRENT SESSION = %s\n", pathName);
     
     QString currentSess = pathName;
     fRecentSessions.removeAll(currentSess);
@@ -1735,8 +1672,6 @@ void FLApp::update_Recent_Session(){
             fIrecentSessionAction[j]->setText(text);
             fIrecentSessionAction[j]->setData(fRecentSessions[j]);
             fIrecentSessionAction[j]->setVisible(true);
-            
-            //            printf("TEXT = %s\n", text.toStdString());
         }
         else{
             fRrecentSessionAction[j]->setVisible(false);
@@ -1785,8 +1720,6 @@ void FLApp::addWinToSessionFile(FLWindow* win){
     name+=" : ";
     name+= win->get_Effect()->getName();
     
-    printf("ADD = %s\n", name.toStdString().c_str());
-    
     QAction* newWin = new QAction(name, fNavigateMenu);
     fFrontWindow.push_back(newWin);
     
@@ -1827,8 +1760,6 @@ void FLApp::deleteWinFromSessionFile(FLWindow* win){
                 QString name = win->get_nameWindow();
                 name+=" : ";
                 name+= win->get_Effect()->getName();
-                
-                printf("DELETE = %s\n", name.toStdString().c_str());
                 
                 if((*it2)->text().compare(name) == 0){
                     fFrontWindow.removeOne(*it2);
@@ -1881,8 +1812,6 @@ void FLApp::createSnapshotFolder(const QString& snapshotFolder){
     
     QFile descriptionFile(fSessionFile);
     QString descFileCpy = snapshotFolder + "/Description.txt";
-    
-    printf("Description File saved = %s || Original = %s\n", descFileCpy.toStdString().c_str(), fSessionFile.toStdString().c_str());
     
     descriptionFile.copy(descFileCpy);
     
@@ -1973,7 +1902,7 @@ void FLApp::reset_CurrentSession(){
 
     fSessionContent.clear();
     
-    recall_Settings(fSettingsFolder);
+//    recall_Settings(fSettingsFolder);
 }
 
 
@@ -2010,7 +1939,6 @@ void FLApp::take_Snapshot(){
 //----------- Not everything has to be copied, because some resources are kept for recycling
 //----------- but are not usefull in Snapshot
         
-    	printf("filename = %s\n", filename.toStdString().c_str());    
         createSnapshotFolder(filename);
         
 //        cpDir(fSessionFolder, filename);
@@ -2276,8 +2204,6 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
     
     QString systemInstruct("tar xfv ");
     systemInstruct += filename +" -C /";
-    
-	printf("Recall process\n");
 
 	myCmd.setProcessEnvironment(env);
     myCmd.start(systemInstruct);
@@ -2331,13 +2257,10 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
 //@param : filename = snapshot that is loaded
 void FLApp::recall_Session(const QString& filename){
     
-    printf("FOlder recalled = %s\n", filename.toStdString().c_str());
-    
     //Temporary copies of the description files in which all the modifications due to conflicts will be saved
     QList<WinInSession*>  snapshotContent;
     
     fileToSessionContent(filename, &snapshotContent);
-    printf("SIZE OF SNAPSHOT CONTENT = %i\n", snapshotContent.size());
     
     if(filename.compare(fSessionFile) == 0){
         
@@ -2350,8 +2273,6 @@ void FLApp::recall_Session(const QString& filename){
         //Different resolution of disappearance for a snapshot 
         snapshotRestoration(filename, &snapshotContent);
     }
-    
-    printf("SIZE OF SNAPSHOT CONTENT = %i\n", snapshotContent.size());
     
     //------------Resolution of the name conflicts (Window Names & Effect Names)
     QList<std::pair<int,int> > indexChanges = establish_indexChanges(&snapshotContent);
@@ -2551,15 +2472,13 @@ std::list<std::pair<std::string,std::string> > FLApp::establish_nameChanges(QLis
                 }
             }
             if(!found){
-                
-                //                printf("NO FOUND thE DEFAULT NAME\n");
+
                 currentDefault.push_back(newName);
                 nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
                 updated[(*it)->name] = true;
                 (*it)->name = newName;
             }
             else{
-                //                printf("Found the default name\n");
                 newName = find_smallest_defaultName(currentDefault);
                 currentDefault.push_back(newName);
                 nameChanges.push_front(make_pair((*it)->name.toStdString(), newName.toStdString()));
@@ -2709,8 +2628,7 @@ void FLApp::copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::l
             
             if(name.compare(toCompare) == 0){
                 QString newDir = dstDir + "/" +it2->second.c_str()/* + "-svg"*/;
-                printf("COPYING = %s TO %s\n", it->absoluteFilePath().toStdString().c_str(), newDir.toStdString().c_str());
-                //                if(!QFileInfo(newDir).exists())
+                
                 cpDir(it->absoluteFilePath(), newDir);
             }
             
@@ -2784,10 +2702,8 @@ void FLApp::update_ProgressBar(){
 void FLApp::closeAllWindows(){
 
 //This function is called when there are no more windows. In case of session recallin, the application can not be closed !!
-   if(fRecalling){
-	printf("Yes when arrrre recallling\n");
+   if(fRecalling)
 	   return;
-   }
 
     display_Progress();
     
@@ -2837,12 +2753,9 @@ void FLApp::closeAllWindows(){
 void FLApp::shut_AllWindows(){
     
     while(FLW_List.size() != 0 ){
-        printf("New ROund\n");
         FLWindow* win = *(FLW_List.begin());
         
         common_shutAction(win);
-        
-        printf(" FLApp::shut_AllWindows() || NB WIN = %i\n", FLW_List.size());
     }
 #ifndef __APPLE__
     closeAllWindows();
@@ -2851,8 +2764,6 @@ void FLApp::shut_AllWindows(){
 
 //Close Window from Menu
 void FLApp::shut_Window(){
-    
-    printf("void FLApp::shut_Window()\n");
     
     if(fErrorWindow->isActiveWindow())
         fErrorWindow->hideWin();
@@ -2869,10 +2780,12 @@ void FLApp::shut_Window(){
                 
                 break;
             }
+#ifdef _WIN32
             else if((*it)->is_httpdWindow_active()){
                 (*it)->hide_httpdWindow();
                 break;
             }
+#endif
             else
                 it++;
         }
@@ -2882,10 +2795,7 @@ void FLApp::shut_Window(){
 //Close from Window Action
 void FLApp::close_Window_Action(){
     
-    printf("FLApp::close_Window_Action()\n");
-    
     FLWindow* win = (FLWindow*)QObject::sender();
-    
     common_shutAction(win);
 }
 
@@ -2938,7 +2848,7 @@ void FLApp::common_shutAction(FLWindow* win){
 
 #ifndef __APPLE__
     if(FLW_List.size() == 0 && fExportDialog->isDialogVisible() && !fPresWin->isVisible()){
-    printf("CLOSE ALL WINDOWS FROM COMMON SHUT WIN \n");
+    printf("FLAPP::CLOSE ALL WINDOWS FROM COMMON SHUT WIN \n");
     	closeAllWindows();
     }
 
@@ -2952,8 +2862,6 @@ void FLApp::removeFilesOfEffect(const QString& sourceName, const QString& effNam
     
 //    In case the source is a waveform, 2 files have to be deleted
     QString possibleWaveformFile = QFileInfo(sourceName).absolutePath() + "/" + QFileInfo(sourceName).baseName()  + "_waveform." + QFileInfo(sourceName).completeSuffix();
-    
-//    printf("Possible Waveform = %s\n", possibleWaveformFile.toStdString().c_str());
     
     if(QFileInfo(possibleWaveformFile).exists())
         QFile::remove(possibleWaveformFile);
@@ -2979,8 +2887,6 @@ void FLApp::deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect){
         
         //The effects pointing in the Sources Folder are not kept (nor in the list of exectued Effects, nor the source file)
         if(folderOfSource.compare(fSourcesFolder) == 0){
-            
-            printf("DELETING SOURCE = %s\n", leavingEffect->getSource().toStdString().c_str());
             
             //If newEffect source = oldEffect source the file is kept because it has been modified and is needed
             if(newEffect->getSource().compare(leavingEffect->getSource())!=0)
@@ -3077,8 +2983,6 @@ void FLApp::edit(FLWindow* win){
         }
     }
     
-    printf("SOURCE = %s\n", source.toStdString().c_str());
-    
     QUrl url = QUrl::fromLocalFile(source);
     bool b = QDesktopServices::openUrl(url);
     
@@ -3099,8 +3003,6 @@ void FLApp::edit_Action(){
 
 //Duplicate a specific window
 void FLApp::duplicate(FLWindow* window){
-    
-    printf("SIZE OF LIST = %i\n", FLW_List.size());
     
     if(FLW_List.size() == numberWindows){
         fErrorWindow->print_Error("You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^");
@@ -3195,6 +3097,7 @@ void FLApp::paste_Text(){
         paste(win);
 } 
 
+#ifndef _WIN32
 //View Httpd Window
 void FLApp::viewHttpd(FLWindow* win){
     
@@ -3212,6 +3115,7 @@ void FLApp::httpd_View_Window(){
     else
         fErrorWindow->print_Error("No active Window");
 }
+#endif
 
 #include "faust/llvm-dsp.h"
 
@@ -3220,8 +3124,6 @@ void FLApp::viewSvg(FLWindow* win){
     
     QString source = win->get_Effect()->getSource();
     QString pathToOpen = fSVGFolder + "/" + win->get_Effect()->getName() + "/" + QFileInfo(win->get_Effect()->getSource()).baseName() + "-svg/process.svg";
-    
-    printf("PATH TO OPEN = %s\n", pathToOpen.toStdString().c_str());
     
     if(!QFileInfo(pathToOpen).exists()){
         
@@ -3259,8 +3161,6 @@ void FLApp::viewSvg(FLWindow* win){
 		iteratorParams++;
         
         QString svgPath = fSVGFolder + "/" + win->get_Effect()->getName();
-        
-        printf("svg path = %s\n", svgPath.toStdString().c_str());
         
         QDir direct(svgPath);
         direct.mkdir(svgPath);
@@ -3329,8 +3229,6 @@ void FLApp::export_Action(){
 //For sound files, a pass transforms them into faust code through the waveforms
 QString FLApp::soundFileToFaust(const QString& soundFile){
     
-    printf("FLApp::soundFileToFaust\n");   
- 
     QString soundFileName = QFileInfo(soundFile).baseName();
     soundFileName = nameWithoutSpaces(soundFileName);
     
@@ -3342,12 +3240,8 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     waveFile += "_waveform.dsp";
 
     destinationFile += ".dsp";
-
-    printf("FLAPP::destinationFile = %s\n", destinationFile.toStdString().c_str());
     
     QProcess myCmd;
-//    myCmd.setProcessEnvironment(env);
-//    printf("IS ENV EMPTY?? = %i\n", env.isEmpty());
     QByteArray error;
     
     QString systemInstruct;
@@ -3356,7 +3250,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
 #ifdef __linux__
-	printf("LINUX SOUND2FAUST\n");
 	if(QFileInfo("/usr/local/bin/sound2faust").exists())
 	    systemInstruct += "/usr/local/bin/sound2faust ";
 	else
@@ -3376,8 +3269,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
    systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
     
-    printf("INSTRUCTION = %s\n", systemInstruct.toStdString().c_str());
-    
     myCmd.start(systemInstruct);
     myCmd.waitForFinished();
     
@@ -3391,8 +3282,6 @@ QString FLApp::soundFileToFaust(const QString& soundFile){
     finalFileContent += "\");\nprocess=";
     finalFileContent += QFileInfo(soundFile).baseName();
     finalFileContent += ";";
-    
-    printf("finalFileContent = %s\n", finalFileContent.toStdString().c_str());
     
     QFile f(destinationFile); 
     
@@ -3420,7 +3309,7 @@ void FLApp::drop_Action(QList<QString> sources){
 	if(QFileInfo(*it).exists()){
         	if((suffix.indexOf("dsp") == 0) && (*it).indexOf(' ') != -1){
         	    sources.removeOne(*it);
-        	    fErrorWindow->print_Error("Forbidden to drop a file with spaces in its name!");
+        	    fErrorWindow->print_Error("It is forbidden to drop a file with spaces in its path!");
         	}
        		else if(suffix.indexOf("wav") == 0)
        		    *it = soundFileToFaust(*it);
@@ -4175,12 +4064,9 @@ void FLApp::show_presentation_Action(){
 
 void FLApp::hidePresWin(){
 
-    if(FLW_List.size() != 0){
-    	printf("Hide presentation win\n");
+    if(FLW_List.size() != 0)
     	fPresWin->hide();
-    }
     else{
-    	printf("Close All from presentation Win\n");
     	fPresWin->hide();
     	closeAllWindows();
     }
@@ -4188,735 +4074,45 @@ void FLApp::hidePresWin(){
 
 //--------------------------------PREFERENCES---------------------------------------
 
-//Style clicked in Menu
-void FLApp::styleClicked(){
-    
-    QPushButton* item = (QPushButton*)QObject::sender();
-    styleClicked(item->text());
-}
-
 //Modification of application style
 void FLApp::styleClicked(const QString& style){
     
+    QFile file;
+    
     if(style.compare("Default") == 0){
         
-        fStyleChoice = "Default";
+        FLSettings::getInstance()->setValue("General/Style", "Default");
         
-        setStyleSheet(
-                      
-                      // BUTTONS
-                      "QPushButton{"
-                      //                           "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      //                           "stop: 0 #E67E30, stop : 1 #AD4F09);"
-                      "min-width : 80px;"
-                      "border: 2px solid grey;"
-                      "border-radius: 6px;"
-                      "margin-top: 1ex;"
-                      "border-color: #811453;"
-                      "background-color: transparent;"
-                      "}"
-                      
-                      "QPushButton:hover{"
-                      "border: 2px;"
-                      "border-radius: 6px;"
-                      "border-color: #811453;"
-                      "background-color: #6A455D;"
-                      "}"
-                      
-                      "QPushButton:pressed{"
-                      "background-color: #6A455D;"
-                      "border-radius: 6px;"
-                      "border-color: #811453;"
-                      "}"
-                      
-                      // GROUPS
-                      "QGroupBox{"
-                      "subcontrol: .QGroupBox"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: black;"
-                      "}"
-                      
-                      "QGroupBox::title {"
-                      "subcontrol-origin: margin;"
-                      "subcontrol-position: top center;"
-                      "padding: 0 5px;"
-                      "color: black;"
-                      "}"
-                      
-                      // MAINWINDOW
-                      "QMainWindow {"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: black;"
-                      "}"
-                      
-                      // PLAINTEXTEDIT
-                      "QPlainTextEdit, QTextEdit{"
-                      "background-color: transparent;"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "top: 3px;"
-                      "margin-top: 3ex;"
-                      "font-size:12pt;"
-                      "font-weight:bold;"
-                      "color: black;"
-                      "}"
-                      
-                      //TextBrowser
-                      "QTextBrowser {"
-                      "color: black;"
-                      "}"
-                      "QTextBrowser:document{"
-                      "text-decoration: underline;"
-                      "color: black;"
-                      "font: Menlo;"
-                      "font-size: 14px"
-                      "}"
-                      
-                      //LABEL
-                      "QLabel{"
-                      "color : black;"
-                      "background: transparent;"
-                      "}"
-                      
-                      // SLIDERS
-                      // horizontal sliders
-                      "QSlider::groove:vertical {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "left: 13px; right: 13px;"
-                      "}"
-                      
-                      "QSlider::handle:vertical {"
-                      "height: 40px;"
-                      "width: 30px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #E67E30, stop : 0.05 #AD4F09, stop: 0.3 #E67E30, stop : 0.90 #AD4F09, stop: 0.91 #AD4F09);"
-                      "margin: 0 -5px; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::add-page:vertical {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #6A455D, stop : 0.5 #6A455D);"
-                      "}"
-                      
-                      "QSlider::sub-page:vertical {"
-                      "background: grey;"
-                      "}"
-                      
-                      // horizontal sliders
-                      
-                      "QSlider::groove:horizontal {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "top: 14px; bottom: 14px;"
-                      "}"
-                      
-                      "QSlider::handle:horizontal {"
-                      "width: 40px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #E67E30, stop : 0.05 #AD4F09, stop: 0.3 #E67E30, stop : 0.90 #AD4F09, stop: 0.91 #AD4F09);"
-                      "margin: -5px 0; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::sub-page:horizontal {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #6A455D, stop : 0.5 #6A455D);"
-                      "}"
-                      
-                      "QSlider::add-page:horizontal {"
-                      "background: grey;"
-                      "}"
-                      
-                      "QListWidget{"                      
-                      "background-color: transparent;"
-                      "}"
-                      );
+        file.setFileName(":/Styles/Default.qss");
     }
     
     if(style.compare("Blue") == 0){    
         
-        fStyleChoice = "Blue";
-        setStyleSheet(
-                      
-                      // BUTTONS
-                      "QPushButton{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #811453, stop: 1 #702963);"
-                      "min-width : 80px;"
-                      "border: 2px solid grey;"
-                      "border-radius: 6px;"
-                      "margin-top: 1ex;"
-                      "}"
-                      
-                      "QPushButton:hover{"
-                      "border: 2px solid orange;"
-                      "}"
-                      
-                      "QPushButton:pressed{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #811453, stop: 1 #702963);"
-                      "}"
-                      
-                      // GROUPS
-                      "QGroupBox{"
-                      //Subcontrol differenciates the instances of QGroupBox and the subclasses of QGroupBox
-                      "subcontrol: .QGroupBox"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #003366, stop: 1 #22427C);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: dark grey;"
-                      "color: white;"
-                      "}"
-                      
-                      "QGroupBox::title {"
-                      "subcontrol-origin: margin;"
-                      "subcontrol-position: top center;"
-                      "padding: 0 5px;"
-                      "color: white;"
-                      "}"
-                      
-                      // MAINWINDOW
-                      "QMainWindow {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #003366, stop: 1 #22427C);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: dark grey;"
-                      "color: white;"
-                      "}"
-                      
-                      // PLAINTEXTEDIT
-                      "QPlainTextEdit, QTextEdit{"
-                      "background-color: transparent;"
-                      "border: 2px #702963;"
-                      "border-radius: 5px;"
-                      "top: 3px;"
-                      "margin-top: 3ex;"
-                      "font-size:12pt;"
-                      "font-weight:bold;"
-                      "color: white;"
-                      "}"
-                      
-                      
-                      "QLabel{"
-                      "color : white;"
-                      "}"
-                      //TextBrowser
-                      "QTextBrowser {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #003366, stop: 1 #22427C);"
-                      "min-height:30px;"
-                      "color: white;"
-                      "}"
-                      
-                      "QTextBrowser:link{"
-                      "text-decoration: underline;"
-                      "color: white;"
-                      "font: Menlo;"
-                      "font-size: 14px"
-                      "}"
-                      
-                      
-                      "QString:link {"
-                      "color: rgb(215, 208, 100);"
-                      "}"
-                      "QString:visited {"
-                      "color: rgb(215, 208, 100);"
-                      "}"
-                      
-                      // SLIDERS
-                      // horizontal sliders
-                      "QSlider::groove:vertical {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "left: 13px; right: 13px;"
-                      "}"
-                      
-                      "QSlider::handle:vertical {"
-                      "height: 40px;"
-                      "width: 30px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
-                      "margin: 0 -5px; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::add-page:vertical {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 yellow, stop : 0.5 orange);"
-                      "}"
-                      
-                      "QSlider::sub-page:vertical {"
-                      "background: grey;"
-                      "}"
-                      
-                      // horizontal sliders
-                      
-                      "QSlider::groove:horizontal {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "top: 14px; bottom: 14px;"
-                      "}"
-                      
-                      "QSlider::handle:horizontal {"
-                      "width: 40px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #6A455D, stop : 0.05 #811453, stop: 0.3 #811453, stop : 0.90 #6A455D, stop: 0.91 #702963);"
-                      "margin: -5px 0; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::sub-page:horizontal {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 yellow, stop : 0.5 orange);"
-                      "}"
-                      
-                      "QSlider::add-page:horizontal {"
-                      "background: grey;"
-                      "}"
-                      
-                      // TABS
-                      //TabWidget and TabBar
-                      "QTabWidget::pane {" /* The tab widget frame */
-                      "color : white;"
-                      "border-top: 2px #702963;"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #003366, stop: 1.0 #22427C);"
-                      "}"
-                      
-                      "QTabWidget::tab-bar {"
-                      "left: 5px;" /* move to the right by 5px */
-                      "}"
-                      
-                      /* Style the tab using the tab sub-control. Note that
-                       it reads QTabBar _not_ QTabWidget */
-                      "QTabBar::tab {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #003366, stop: 0.4 #22427C,"
-                      "stop: 0.5 #003366, stop: 1.0 #22427C);"
-                      "border: 2px solid #808080;"
-                      "color : white;"
-                      //"border-bottom-color: #C2C7CB;" /* same as the pane color */
-                      "border-bottom-color: #702963;" /* same as the pane color */
-                      "border-top-left-radius: 4px;"
-                      "border-top-right-radius: 4px;"
-                      "min-width: 8ex;"
-                      "padding: 2px;"
-                      "}"
-                      
-                      "QTabBar::tab:selected, QTabBar::tab:hover {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #003366, stop: 0.4 #22427C,"
-                      "stop: 0.5 #003366, stop: 1.0 #22427C);"
-                      "color : white;"
-                      "}"
-                      
-                      "QTabBar::tab:selected {"
-                      "color : white;"
-                      "border-color: #702963;"
-                      "border-bottom-color: #22427C;" /* same as pane color */
-                      "}"
-                      
-                      "QTabBar::tab:!selected {"
-                      "    margin-top: 2px;" /* make non-selected tabs look smaller */
-                      "}"
-                      
-                      "QListWidget{"                      
-                      "background-color: transparent;"
-                      "}"
-                      );
+        FLSettings::getInstance()->setValue("General/Style", "Blue");
+        
+        file.setFileName(":/Styles/Blue.qss");
     }
     
     if(style.compare("Grey") == 0){
         
-        fStyleChoice = "Grey";
-        setStyleSheet(
-                      
-                      // BUTTONS
-                      "QPushButton {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
-                      "stop: 0 #B0B0B0, stop: 1 #404040);"
-                      "min-width : 80px;"
-                      "border: 2px solid grey;"
-                      "border-radius: 6px;"
-                      "margin-top: 1ex;"
-                      "}"
-                      
-                      "QPushButton:hover {"
-                      "border: 2px solid orange;"
-                      "}"
-                      
-                      "QPushButton:pressed {"
-                      //"border: 1px solid orange;"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #404040, stop: 1 #B0B0B0);"
-                      "}"
-                      // GROUPS
-                      "QGroupBox {"
-                      "subcontrol: .QGroupBox"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
-                      "stop: 0 #A0A0A0, stop: 1 #202020);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: white;"
-                      "}"
-                      
-                      "QGroupBox::title {"
-                      "subcontrol-origin: margin;"
-                      "subcontrol-position: top center;" /* position at the top center */
-                      "padding: 0 5px;"
-                      "color : white;"
-                      "}"
-                      "QMainWindow {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
-                      "stop: 0 #A0A0A0, stop: 1 #202020);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: white;"
-                      "}"    
-                      
-                      // PLAINTEXTEDIT
-                      "QPlainTextEdit, QTextEdit{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
-                      "stop: 0 #A0A0A0, stop: 1 #202020);"
-                      "border-color: yellow;"
-                      "border-radius: 5px;"
-                      "top: 3px;"
-                      "margin-top: 3ex;"
-                      "font-size:12pt;"
-                      "font-weight:bold;"
-                      "color: white;"
-                      "}"
-                      
-                      
-                      //TextBrowser
-                      "QTextBrowser {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8,"
-                      "stop: 0 #A0A0A0, stop: 1 #202020);"
-                      //                           "border: 2px solid gray;"
-                      //                           "border-radius: 5px;"
-                      //                           "top: 3px;"
-                      //                           "margin-top: 3ex;"
-                      //                           "font-size:10pt;"
-                      //                           "font-weight:bold;"
-                      //                           "color: dark grey;"
-                      "color: white;"
-                      "}"
-                      
-                      "QTextDocument{"
-                      "text-decoration: underline;"
-                      "color: white;"
-                      "font: Menlo;"
-                      "font-size: 14px"
-                      "}"
-                      
-                      // SLIDERS
-                      // horizontal sliders
-                      "QSlider::groove:vertical {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "left: 13px; right: 13px;"
-                      "}"
-                      
-                      "QSlider::handle:vertical {"
-                      "height: 40px;"
-                      "width: 30px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
-                      "margin: 0 -5px; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::add-page:vertical {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 yellow, stop : 0.5 orange);"
-                      "}"
-                      
-                      "QSlider::sub-page:vertical {"
-                      "background: grey;"
-                      "}"
-                      
-                      // horizontal sliders
-                      
-                      "QSlider::groove:horizontal {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "top: 14px; bottom: 14px;"
-                      "}"
-                      
-                      "QSlider::handle:horizontal {"
-                      "width: 40px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
-                      "margin: -5px 0; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::sub-page:horizontal {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 yellow, stop : 0.5 orange);"
-                      "}"
-                      
-                      "QSlider::add-page:horizontal {"
-                      "background: grey;"
-                      "}"
-                      
-                      // TABS
-                      //TabWidget and TabBar
-                      "QTabWidget::pane {" /* The tab widget frame */
-                      //"border-top: 2px solid #C2C7CB;"
-                      "border-top: 2px solid orange;"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #A0A0A0, stop: 1 #202020);"
-                      "}"
-                      
-                      "QTabWidget::tab-bar {"
-                      "left: 5px;" /* move to the right by 5px */
-                      "}"
-                      
-                      /* Style the tab using the tab sub-control. Note that
-                       it reads QTabBar _not_ QTabWidget */
-                      "QTabBar::tab {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #909090, stop: 0.4 #888888,"
-                      "stop: 0.5 #808080, stop: 1.0 #909090);"
-                      "border: 2px solid #808080;"
-                      //"border-bottom-color: #C2C7CB;" /* same as the pane color */
-                      "border-bottom-color: orange;" /* same as the pane color */
-                      "border-top-left-radius: 4px;"
-                      "border-top-right-radius: 4px;"
-                      "min-width: 8ex;"
-                      "padding: 2px;"
-                      "}"
-                      
-                      "QTabBar::tab:selected, QTabBar::tab:hover {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #D0D0D0, stop: 0.4 #A0A0A0,"
-                      "stop: 0.5 #808080, stop: 1.0 #A0A0A0);"
-                      //"stop: 0.5 #A0A0A0, stop: 1.0 #C0C0C0);"
-                      //"stop: 0 #fafafa, stop: 0.4 #f4f4f4,"
-                      //"stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);"
-                      //"border-bottom-color: orange;" /* same as the pane color */
-                      "}"
-                      
-                      "QTabBar::tab:selected {"
-                      "border-color: orange;"
-                      "border-bottom-color: #A0A0A0;" /* same as pane color */
-                      "}"
-                      
-                      "QTabBar::tab:!selected {"
-                      "    margin-top: 2px;" /* make non-selected tabs look smaller */
-                      "}"
-                      
-                      "QListWidget{"                      
-                      "background-color: transparent;"
-                      "}"
-                      );
+        FLSettings::getInstance()->setValue("General/Style", "Grey");
+        
+        file.setFileName(":/Styles/Grey.qss");
     }
     
     if(style.compare("Salmon") == 0){
         
-        fStyleChoice = "Salmon";
-        setStyleSheet(
-                      
-                      // BUTTONS
-                      "QPushButton{"
-                      "background-color:#FF5E4D;"
-                      "min-width : 80px;"
-                      "border: 2px solid grey;"
-                      "border-radius: 6px;"
-                      "margin-top: 1ex;"
-                      "}"
-                      
-                      "QPushButton:hover{"
-                      "border: 2px ;"
-                      "}"
-                      
-                      "QPushButton:pressed{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #FFE4C4, stop: 1 #FEC3AC);"
-                      "}"
-                      
-                      // GROUPS
-                      "QGroupBox{"
-                      //Subcontrol differenciates the instances of QGroupBox and the subclasses of QGroupBox
-                      "subcontrol: .QGroupBox"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #FFE4C4, stop: 1 #FEC3AC);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: dark grey;"
-                      "color: white;"
-                      "}"
-                      
-                      "QGroupBox::title {"
-                      "subcontrol-origin: margin;"
-                      "subcontrol-position: top center;"
-                      "padding: 0 5px;"
-                      "color: black;"
-                      "}"
-                      
-                      // MAINWINDOW
-                      "QMainWindow {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #FFE4C4,stop: 1 #FEC3AC);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "margin-top: 3ex;"
-                      "font-size:10pt;"
-                      "font-weight:bold;"
-                      "color: dark grey;"
-                      "color: white;"
-                      "}"
-                      
-                      // PLAINTEXTEDIT
-                      "QPlainTextEdit, QTextEdit{"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #FFE4C4,stop: 1 #FEC3AC);"
-                      "border: 2px solid gray;"
-                      "border-radius: 5px;"
-                      "top: 3px;"
-                      "margin-top: 3ex;"
-                      "font-size:12pt;"
-                      "font-weight:bold;"
-                      "color: black;"
-                      "}"
-                      
-                      "QLabel{"
-                      "color : black;"
-                      "}"
-                      //TextBrowser
-                      "QTextBrowser {"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                      "stop: 0 #FFE4C4,stop: 1 #FEC3AC);"
-                      "color: black;"
-                      "}"
-                      
-                      "QTextBrowser:document{"
-                      "text-decoration: underline;"
-                      "color: white;"
-                      "font: Menlo;"
-                      "font-size: 14px"
-                      "}"
-                      
-                      // SLIDERS
-                      // horizontal sliders
-                      "QSlider::groove:vertical {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "left: 13px; right: 13px;"
-                      "}"
-                      
-                      "QSlider::handle:vertical {"
-                      "height: 40px;"
-                      "width: 30px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #4E3D28, stop : 0.05 #856D4D, stop: 0.1 #4E3D28, stop : 0.15 #856D4D, stop: 0.2 #4E3D28, stop : 0.25 #856D4D, stop: 0.3 #4E3D28, stop : 0.35 #856D4D, stop: 0.4 #4E3D28, stop : 0.45 #856D4D, stop: 0.5 #4E3D28, stop : 0.55 #856D4D, stop: 0.6 #4E3D28, stop : 0.65 #856D4D, stop: 0.7 #4E3D28, stop : 0.75 #856D4D, stop: 0.8 #4E3D28, stop : 0.85 #856D4D, stop: 0.95 #4E3D28);"
-                      "margin: 0 -5px; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::add-page:vertical {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #FF5E4D, stop : 0.5 #FF5E4D);"
-                      "}"
-                      
-                      "QSlider::sub-page:vertical {"
-                      "background: #CECECE;"
-                      "}"
-                      
-                      // horizontal sliders
-                      
-                      "QSlider::groove:horizontal {"
-                      "background: red;"
-                      "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                      "top: 14px; bottom: 14px;"
-                      "}"
-                      
-                      "QSlider::handle:horizontal {"
-                      "width: 40px;"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                      "stop: 0 #4E3D28, stop : 0.05 #856D4D, stop: 0.1 #4E3D28, stop : 0.15 #856D4D, stop: 0.2 #4E3D28, stop : 0.25 #856D4D, stop: 0.3 #4E3D28, stop : 0.35 #856D4D, stop: 0.4 #4E3D28, stop : 0.45 #856D4D, stop: 0.5 #4E3D28, stop : 0.55 #856D4D, stop: 0.6 #4E3D28, stop : 0.65 #856D4D, stop: 0.7 #4E3D28, stop : 0.75 #856D4D, stop: 0.8 #4E3D28, stop : 0.85 #856D4D, stop: 0.95 #4E3D28);"
-                      "margin: -5px 0; /* expand outside the groove */"
-                      "border-radius: 5px;"
-                      "}"
-                      
-                      "QSlider::sub-page:horizontal {"
-                      "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #FF5E4D stop : 0.5 #FF5E4D);"
-                      "}"
-                      
-                      "QSlider::add-page:horizontal {"
-                      "background: #CECECE;"
-                      "}"
-                      
-                      //                      "uiKnob{"
-                      //                      "background-color : #FF5E4D;"
-                      //                      "}"
-                      //                      
-                      // TABS
-                      //TabWidget and TabBar
-                      "QTabWidget::pane {" /* The tab widget frame */
-                      "color : black;"
-                      "border-top: 2px #FF5E4D;"
-                      "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                      "stop: 0 #FFE4C4,stop: 1 #FEC3AC);"
-                      "}"
-                      
-                      "QTabWidget::tab-bar {"
-                      "left: 5px;" /* move to the right by 5px */
-                      "}"
-                      
-                      /* Style the tab using the tab sub-control. Note that
-                       it reads QTabBar _not_ QTabWidget */
-                      "QTabBar::tab {"
-                      "background: #FFE4C4;"
-                      "border: 2px solid #FF5E4D;"
-                      "color : black;"
-                      "border-bottom-color: #FF5E4D;" 
-                      "border-top-left-radius: 4px;"
-                      "border-top-right-radius: 4px;"
-                      "min-width: 8ex;"
-                      "padding: 2px;"
-                      "}"
-                      
-                      "QTabBar::tab:selected, QTabBar::tab:hover {"
-                      "background: #FEC3AC;"
-                      "color : white;"
-                      "}"
-                      
-                      "QTabBar::tab:!selected {"
-                      "    margin-top: 2px;" /* make non-selected tabs look smaller */
-                      "}"
-                      
-                      "QListWidget{"                      
-                      "background-color: transparent;"
-                      "}"
-                      );
+        FLSettings::getInstance()->setValue("General/Style", "Salmon");
+        
+        file.setFileName(":/Styles/Salmon.qss");
+    }
+    
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QString styleSheet = QLatin1String(file.readAll());
+        
+        setStyleSheet(styleSheet);
+        file.close();
     }
 }
 
@@ -4924,327 +4120,12 @@ void FLApp::styleClicked(const QString& style){
 void FLApp::Preferences(){
     
     fPrefDialog->exec();
-}
-
-//init the preferences dialog
-void FLApp::init_PreferenceWindow(){
     
-    fPrefDialog->setWindowTitle("PREFERENCES");
-    
-    QTabWidget* myTab = new QTabWidget(fPrefDialog);
-    myTab->setStyleSheet("*{}""*::tab-bar{}");
-
-    QGroupBox* menu1 = new QGroupBox(myTab);
-    QGroupBox* menu2 = new QGroupBox(myTab);
-    QGroupBox* menu3 = new QGroupBox(myTab);
-    QGroupBox* menu4 = new QGroupBox(myTab);
-    
-    QFormLayout* layout1 = new QFormLayout;
-    QFormLayout* layout2 = new QFormLayout;
-    QFormLayout* layout3 = new QFormLayout;
-    QFormLayout* layoutNet = new QFormLayout;
-    QGridLayout* layout4 = new QGridLayout;
-    QVBoxLayout* layout5 = new QVBoxLayout;
-    QHBoxLayout* intermediateLayout = new QHBoxLayout;
-    intermediateLayout->setAlignment(Qt::AlignCenter);
-    
-    QWidget* intermediateWidget = new QWidget(fPrefDialog);
-    
-    QPushButton* cancelButton = new QPushButton(tr("Cancel"), intermediateWidget);
-    cancelButton->setDefault(false);;
-    
-    QPushButton* saveButton = new QPushButton(tr("Save"), intermediateWidget);
-    saveButton->setDefault(true);
-    
-    connect(saveButton, SIGNAL(released()), this, SLOT(save_Mode()));
-    connect(cancelButton, SIGNAL(released()), this, SLOT(cancelPref()));
-    
-    intermediateLayout->addWidget(cancelButton);
-    intermediateLayout->addWidget(new QLabel(tr("")));
-    intermediateLayout->addWidget(saveButton);
-    
-    intermediateWidget->setLayout(intermediateLayout);
-    
-    
-//------------------WINDOW PREFERENCES    
-    
-    myTab->addTab(menu1, tr("Window"));
-    
-    fCompilModes = new QLineEdit(menu1);
-    fOptVal = new QLineEdit(menu1);
-    
-    recall_Settings(fSettingsFolder);
-    
-    fCompilModes->setText(fCompilationMode);
-    stringstream oV;
-    
-    oV << fOpt_level;
-    fOptVal->setText(oV.str().c_str());
-    
-    layout1->addRow(new QLabel(tr("")));
-    layout1->addRow(new QLabel(tr("Faust Compiler Options")), fCompilModes);
-    layout1->addRow(new QLabel(tr("LLVM Optimization")), fOptVal);
-    layout1->addRow(new QLabel(tr("")));
-    
-    menu1->setLayout(layout1);
-   
-//------------------AUDIO PREFERENCES  
-    
-    myTab->addTab(menu2, tr("Audio"));
-    
-    fAudioBox = new QGroupBox(menu2);
-    fAudioCreator = AudioCreator::_Instance(fSettingsFolder, fAudioBox);
-
-    layout2->addWidget(fAudioBox);
-    menu2->setLayout(layout2);
-    
-//-----------------NETWORK PREFERENCES
-    
-    fServerLine = new QLineEdit(menu4);
-    fServerLine->setText(fServerUrl);
-    
-#ifdef  HTTPCTRL
-    fPortLine = new QLineEdit(menu4);
-    QString p =  QString::number(fPort);
-    fPortLine->setText(p);
-#endif
-    myTab->addTab(menu4, tr("Network"));
-    layoutNet->addRow(new QLabel(tr("")));
-    layoutNet->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
-#ifdef HTTPCTRL
-    layoutNet->addRow(new QLabel(tr("")));
-    layoutNet->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
-#endif
-    
-    menu4->setLayout(layoutNet);
-    
-//------------------STYLE PREFERENCES
-    myTab->addTab(menu3, tr("Style"));
-    
-    QPlainTextEdit* container = new QPlainTextEdit(menu3);
-    container->setReadOnly(true);
-    container->setStyleSheet("*{background-color : transparent;}");
-    
-    QPushButton* grey = new QPushButton(tr("Grey"));
-    grey->setFlat(true);
-    grey->setStyleSheet("QPushButton:flat{"
-                        "background-color: #A0A0A0;"
-                        "color: white;"
-                        "min-width:100px;"
-                        "border: 2px solid gray;"
-                        "border-radius: 6px;"
-                        "}"
-                        "QPushButton:flat:hover{"
-                        "background-color: #202020;"                         
-                        "}" );
-    
-    QPushButton* blue = new QPushButton(tr("Blue"));
-    blue->setFlat(true);
-    blue->setStyleSheet("QPushButton:flat{"
-                        "background-color: #22427C;"
-                        "color: white;"
-                        "min-width:100px;"
-                        "border: 2px solid gray;"
-                        "border-radius: 6px;"
-                        "}"
-                        "QPushButton:flat:hover{"
-                        "background-color: #702963;"                         
-                        "}" );
-    
-    QPushButton* defaultColor = new QPushButton(tr("Default"));
-    defaultColor->setFlat(true);
-    defaultColor->setStyleSheet("QPushButton:flat{"
-                                "background-color: lightGray;"
-                                "color: black;"
-                                "min-width:100px;"
-                                "border: 2px solid gray;"
-                                "border-radius: 6px;"
-                                "}"
-                                "QPushButton:flat:hover{"
-                                "background-color: darkGray;"                         
-                                "}" );
-    
-    QPushButton* pastel = new QPushButton(tr("Salmon"));
-    pastel->setFlat(true);
-    pastel->setStyleSheet("QPushButton:flat{"
-                          "background-color: #FFE4C4;"
-                          "color: black;"
-                          "min-width:100px;"
-                          "border: 2px solid gray;"
-                          "border-radius: 6px;"
-                          "}"
-                          "QPushButton:flat:hover{"
-                          "background-color: #FF5E4D;"                         
-                          "}" );
-    
-    connect(grey, SIGNAL(clicked()), this, SLOT(styleClicked()));
-    connect(blue, SIGNAL(clicked()), this, SLOT(styleClicked()));
-    connect(defaultColor, SIGNAL(clicked()), this, SLOT(styleClicked()));
-    connect(pastel, SIGNAL(clicked()), this, SLOT(styleClicked()));
-    
-    layout4->addWidget(defaultColor, 0, 0);    
-    layout4->addWidget(blue, 1, 0);
-    layout4->addWidget(grey, 1, 1);
-    layout4->addWidget(pastel, 0, 1);
-    
-    container->setLayout(layout4);
-    
-    layout5->addWidget(container);
-    menu3->setLayout(layout5);
-    
-    layout3->addRow(myTab);
-    layout3->addRow(intermediateWidget);
-    fPrefDialog->setLayout(layout3);
-}
-
-//Response to cancel button triggered in preferences
-void FLApp::cancelPref(){
-    fPrefDialog->hide();
-    fAudioCreator->reset_Settings();
-}
-
-//Response to save button triggered in preferences
-void FLApp::save_Mode(){
-
-    fServerUrl = fServerLine->text();
-    fExportDialog->set_URL(fServerUrl);
-    
-    fCompilationMode = fCompilModes->text();
-    
-	if(isStringInt(fOptVal->text().toLatin1().data()))
-        fOpt_level = atoi(fOptVal->text().toLatin1().data());
-    else
-        fOpt_level = 3;
-    
-#ifdef HTTPCTRL
-    if(isStringInt(fPortLine->text().toLatin1().data())){
-        
-        if(fPort != atoi(fPortLine->text().toLatin1().data())){
-            fPort = atoi(fPortLine->text().toLatin1().data());
-            
-            stop_Server();
-            launch_Server();
-        }   
-    }
-    else
-#endif
-        fPort = 7777;
-    
-    QList<FLWindow*>::iterator it;
-    
-    for(it = FLW_List.begin(); it!= FLW_List.end(); it++)
-        (*it)->set_GeneralPort(fPort);
-    
-    fPrefDialog->hide();
-
     if(fAudioCreator->didSettingChanged()){
-        printf("WE ARE GOING TO UPDATE....\n");
+        
+        fAudioCreator->visualSettingsToTempSettings();
         update_AudioArchitecture();
     }
-    else
-        fAudioCreator->reset_Settings();
-}
-
-//Write Setting "parameter" in file "home"
-void FLApp::save_Setting(const QString& home, const QString& parameter){
-    
-    QFile f(home); 
-    
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
-        QTextStream textWriting(&f);
-        
-        textWriting<<parameter;
-        
-        f.close();
-    }
-    else{
-        printf("Impossible to open file = %s\n", home.toStdString().c_str());
-    }
-}
-
-//Reading Setting returned form file "home"
-QString FLApp::recall_Setting(const QString& home){
-    
-    QString parameter("");
-    
-    QFile f(home);
-    
-    if(f.open(QFile::ReadOnly)){
-        
-        QTextStream textReading(&f);
-        QString tutu;
-        
-        while(!textReading.atEnd()){
-            textReading >> tutu;
-        
-            parameter += tutu;
-            
-            if(!textReading.atEnd())
-                parameter += ' ';
-        }
-        f.close();
-    }
-    return parameter;
-}
-
-//Each Setting is written and read in a specific file
-void FLApp::save_Settings(const QString& home){
-    
-    QString homeSetting = home + kCompilationFile;
-    save_Setting(homeSetting, fCompilationMode);
-    
-    homeSetting = home + kLLVMFile;
-    QString s = QString::number(fOpt_level);
-    save_Setting(homeSetting, s);
-    
-    homeSetting = home + kStyleFile;
-    save_Setting(homeSetting, fStyleChoice);
-
-    homeSetting = fSettingsFolder + kExportUrlFile;
-    save_Setting(homeSetting, fServerUrl);
-    
-    homeSetting = fSettingsFolder + kDropPortFile;
-    QString port = QString::number(fPort);
-    save_Setting(homeSetting, port);
-}
-
-void FLApp::recall_Settings(const QString& home){
-    
-    QString homeSetting = home + kCompilationFile;
-    fCompilationMode = recall_Setting(homeSetting);
-    
-    homeSetting = home + kLLVMFile;
-    QString opt = recall_Setting(homeSetting);
-    
-    homeSetting = home + kStyleFile;
-    fStyleChoice = recall_Setting(homeSetting);
-    
-    homeSetting = home + kExportUrlFile;
-    fServerUrl = recall_Setting(homeSetting);
-    
-    homeSetting = home + kDropPortFile;
-    QString port = recall_Setting(homeSetting);
-    
-    if(opt.compare("") == 0){
-        fOpt_level = 3;
-    }
-    else
-        fOpt_level = opt.toInt();
-    
-    if(fStyleChoice.compare("") == 0){
-        fStyleChoice = "Default";
-    }
-    
-    if(fServerUrl.compare("") == 0){
-        fServerUrl = "http://faustservice.grame.fr";
-    }
-    
-    if(port.compare("") == 0){
-        fPort = 7777;
-    }
-    else
-        fPort = port.toInt();
 }
 
 //Update Audio Architecture of all opened windows
@@ -5270,8 +4151,6 @@ void FLApp::update_AudioArchitecture(){
     //Try to init new audio architecture
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
         
-        printf("UPDATE AUDIO \n");
-        
         if(!(*it)->update_AudioArchitecture(error)){
             updateSuccess = false;
             updateFailPointer = it;
@@ -5284,7 +4163,6 @@ void FLApp::update_AudioArchitecture(){
     //If init failed, reinit old audio Architecture
     if(!updateSuccess){
         
-        printf("Update Audio failed\n");
         errorToPrint = "Update not successfull";
     
         fErrorWindow->print_Error(errorToPrint);
@@ -5293,7 +4171,7 @@ void FLApp::update_AudioArchitecture(){
         for(it = FLW_List.begin() ; it != updateFailPointer; it++)
             (*it)->stop_Audio();
 
-        fAudioCreator->reset_Settings();    
+        fAudioCreator->restoreSavedSettings();
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
             
@@ -5330,8 +4208,8 @@ void FLApp::update_AudioArchitecture(){
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
             (*it)->start_Audio();
-        fAudioCreator->saveCurrentSettings();
-        
+//        fAudioCreator->saveCurrentSettings();
+        fAudioCreator->tempSettingsToSavedSettings();
 //        If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
             errorToPrint = "Update successfull";
@@ -5378,10 +4256,10 @@ void FLApp::StopProgressSlot(){
 
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
+#ifndef _WIN32
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
     
-#ifndef _WIN32
     bool returning = true;
     
     if(fServerHttp == NULL){
@@ -5390,14 +4268,14 @@ void FLApp::launch_Server(){
         
        int i = 0;
        
-        while(!fServerHttp->start(fPort)){
+        while(!fServerHttp->start()){
            
             QString s("Server Could Not Start On Port ");
-            s += QString::number(fPort);
+            s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
            
             fErrorWindow->print_Error(s);
             
-           fPort++;
+           FLSettings::getInstance()->setValue("General/Network/HttpDropPort", FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
            
             if(i > 15){
                 returning = false;
@@ -5418,26 +4296,23 @@ void FLApp::launch_Server(){
 //    That way, it doesn't say it when the application is started
     else if(FLW_List.size() != 0){
         QString s("Server Started On Port ");
-        s += QString::number(fPort);
+        s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
         fErrorWindow->print_Error(s);
     }
-#endif
 }
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-#ifndef _WIN32
     if(fServerHttp != NULL){
         fServerHttp->stop();
         delete fServerHttp;
         fServerHttp = NULL;
     }
-#endif
 }
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
-#ifndef _WIN32   
+    
   string error("");
 
 	QString source(data);
@@ -5456,10 +4331,15 @@ void FLApp::compile_HttpData(const char* data, int port){
     }
    else{
        fServerHttp->compile_Failed(error);
-   }
-#endif    
+   }  
 }
 
-
+void FLApp::changeDropPort(){
+ 
+    stop_Server();
+    launch_Server();
+    
+}
+#endif
 
 
