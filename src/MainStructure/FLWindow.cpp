@@ -37,7 +37,9 @@ list<GUI*>               GUI::fGuiList;
 //@param : home = current Session folder
 //@param : osc/httpd port = port on which remote interface will be built 
 //@param : machineName = in case of remote processing, the name of remote machine
-FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& home, int oscPort, int httpdport, const QString& machineName, const QString& ipMachine){
+FLWindow::FLWindow(QString& baseName, int index, const QString& home, QSettings* windowSettings){
+    
+    fSettings = windowSettings;
     
 //  Enable Drag & Drop on window
     setAcceptDrops(true);
@@ -58,14 +60,9 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
 
     fMenu = NULL;
     
-    fPortHttp = httpdport;
     fInterfaceUrl = "";
-    fPortOsc = oscPort;
     
     fIPToHostName = new map<QString, std::pair<QString, int> >;
-    
-    fXPos = x;
-    fYPos = y;
     
 //    Creating Window Folder
     fHome = home + "/" + fWindowName;
@@ -79,12 +76,9 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fAudioManager = creator->createAudioManager(FLWindow::audioShutDown, this);
     fClientOpen = false;
     
-//    Not Sure It Is UseFull
-//    setMinimumHeight(QApplication::desktop()->geometry().size().height()/4);
-    
 //    Set Menu & ToolBar
     fLastMigration = QDateTime::currentDateTime();
-    setToolBar(machineName, ipMachine);
+    setToolBar();
     set_MenuBar();
 }
 
@@ -98,7 +92,7 @@ FLWindow::~FLWindow(){
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
     
-    setGeometry(fXPos, fYPos, 0, 0);
+    setGeometry(fSettings->value("Position/x", 0).toInt(), fSettings->value("Position/y", 0).toInt(), 0, 0);
     adjustSize();
     
     show();
@@ -197,16 +191,12 @@ bool FLWindow::init_Window(int init, QString& errorMsg){
             frontShow();
             
 #ifdef _WIN32  
-            if(fOscInterface){
+            if(fOscInterface)
                 fOscInterface->run();
-                fPortOsc = fOscInterface->getUDPPort();
-            }
-            if(fHttpInterface){
-                
+
+            if(fHttpInterface)
                 fHttpInterface->run();
-                
-                fPortHttp = fHttpInterface->getTCPPort();
-            }
+
                 setWindowsOptions();
 #endif
             fInterface->run();
@@ -265,8 +255,8 @@ bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
 bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
     
     //Save the parameters of the actual interface
-    fXPos = this->geometry().x();
-    fYPos = this->geometry().y();
+    fSettings->setValue("Position/x", this->geometry().x());
+    fSettings->setValue("Position/y", this->geometry().y());
     
     save_Window(); 
     hide();
@@ -326,7 +316,7 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
                 //Start crossfade and wait for its end
                 fAudioManager->start_Fade();
                 
-                setGeometry(fXPos, fYPos, 0, 0);
+                setGeometry(fSettings->value("Position/x", 0).toInt(), fSettings->value("Position/y", 0).toInt(), 0, 0);
                 adjustSize();
                 show();
                 
@@ -356,14 +346,11 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
             fInterface->run();
             fInterface->installEventFilter(this);
 #ifdef _WIN32
-            if(fOscInterface){   
+            if(fOscInterface)
                 fOscInterface->run();
-                fPortOsc = fOscInterface->getUDPPort();
-            }
-            if(fHttpInterface){
+                
+            if(fHttpInterface)
                 fHttpInterface->run();
-                fPortHttp = fHttpInterface->getTCPPort();
-            }
             
             setWindowsOptions();
 #endif
@@ -391,13 +378,15 @@ bool FLWindow::update_Window(FLEffect* newEffect, QString& error){
 //------------TOOLBAR RELATED ACTIONS
 
 //Set up of the Window ToolBar
-void FLWindow::setToolBar(const QString& machineName, const QString& ipMachine){
+void FLWindow::setToolBar(){
     
-    fMenu = new FLToolBar(this);
+    fMenu = new FLToolBar(fSettings, this);
     
     addToolBar(fMenu);
      
-    connect(fMenu, SIGNAL(modified(QString, int, int, int)), this, SLOT(modifiedOptions(const QString&, int, int, int)));
+    connect(fMenu, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
+    connect(fMenu, SIGNAL(httpPortChanged()), this, SLOT(updateHTTPInterface()));
+    connect(fMenu, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
     connect(fMenu, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fMenu, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fMenu, SIGNAL(switchMachine(const QString&, int)), this, SLOT(redirectSwitch(const QString&, int)));
@@ -405,7 +394,7 @@ void FLWindow::setToolBar(const QString& machineName, const QString& ipMachine){
     connect(fMenu, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     
 #ifdef REMOTE
-    fMenu->setRemoteButtonName(machineName, ipMachine);
+    fMenu->setRemoteButtonName(fSettings->value("MachineName", "local processing").toString(), fSettings->value("MachineIP", "127.0.0.1").toString());
 #endif
     
 }
@@ -417,56 +406,55 @@ void FLWindow::setWindowsOptions(){
     if(textOptions.compare(" ") == 0)
         textOptions = "";
     
+    fSettings->setValue("FaustOptions", textOptions);
     fMenu->setOptions(textOptions);
+    
+    fSettings->setValue("OptValue", fEffect->getOptValue());
     fMenu->setVal(fEffect->getOptValue());
-    fMenu->setPort(fPortHttp);
-    fMenu->setPortOsc(fPortOsc);
+    
+    if(fHttpInterface)
+        fSettings->setValue("HttpPort", fHttpInterface->getTCPPort());
+    fMenu->setPort(fSettings->value("HttpPort", 5510).toInt());
+    
+    if(fOscInterface)
+        fSettings->setValue("OscPort", fOscInterface->getUDPPort());
+    fMenu->setPortOsc(fSettings->value("OscPort", 5510).toInt());
 }
 
+#ifndef _WIN32
+void FLWindow::updateOSCInterface(){
+
+    save_Window();
+    
+    allocateOscInterface();
+    
+    fCurrent_DSP->buildUserInterface(fOscInterface);
+    recall_Window();
+    fOscInterface->run();
+
+    setWindowsOptions();
+}
+
+void FLWindow::updateHTTPInterface(){
+    
+    save_Window();
+
+    allocateHttpInterface();
+    
+    fCurrent_DSP->buildUserInterface(fHttpInterface);
+    recall_Window();
+    fHttpInterface->run();
+    
+    setWindowsOptions();
+}
+#endif
+
 //Reaction to the modifications of the ToolBar options
-void FLWindow::modifiedOptions(QString text, int value, int port, int portOsc){
+void FLWindow::modifiedOptions(){
     
-    if(fPortHttp != port){
-        fPortHttp = port;
-        
-        save_Window();
-#ifndef _WIN32
-        delete fHttpInterface;
-        fHttpInterface = NULL;
-        
-        allocateHttpInterface();
-        
-        fCurrent_DSP->buildUserInterface(fHttpInterface);
-        recall_Window();
-        fHttpInterface->run();
-        
-        fPortHttp = fHttpInterface->getTCPPort();
-        setWindowsOptions();
-#endif
-        
-    }
+    QString faustOptions = fSettings->value("FaustOptions", "").toString();
     
-    if(fPortOsc != portOsc){
-        fPortOsc = portOsc;
-        
-        save_Window();
-        
-#ifndef _WIN32
-        delete fOscInterface;
-        fOscInterface = NULL;
-        
-        allocateOscInterface();
-        
-        fCurrent_DSP->buildUserInterface(fOscInterface);
-        recall_Window();
-        fOscInterface->run();
-        
-        fPortOsc = fOscInterface->getUDPPort();
-        setWindowsOptions();
-#endif
-    }
-    
-    fEffect->update_compilationOptions(text, value);
+    fEffect->update_compilationOptions(faustOptions, fSettings->value("OptValue", "").toInt());
 }
 
 //Reaction to the resizing the toolbar
@@ -529,7 +517,7 @@ int FLWindow::get_Port(){
 
 int FLWindow::get_oscPort(){
     
-    return fPortOsc;
+    return fSettings->value("OscPort", 5510).toInt();
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
@@ -540,18 +528,8 @@ void FLWindow::disableOSCInterface(){
 
 void FLWindow::switchOsc(bool on){
  
-    if(on){
-        
-        save_Window();
-#ifndef _WIN32
-        allocateOscInterface();
-        fCurrent_DSP->buildUserInterface(fOscInterface);
-        recall_Window();
-        fOscInterface->run();
-        fPortOsc = fOscInterface->getUDPPort();
-        setWindowsOptions();
-#endif
-    }
+    if(on)
+        updateOSCInterface();
     else{
         delete fOscInterface;
         fOscInterface = NULL;
@@ -569,13 +547,18 @@ void catch_OSCError(void* arg){
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
+    if(fOscInterface!=NULL){
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
+    
     if(fOscInterface == NULL){
         
         char* argv[3];
         argv[0] = (char*)(fWindowName.toStdString().c_str());
         argv[1] = "-port";
         
-        argv[2] = (char*) (QString::number(fPortOsc).toLatin1().data());
+        argv[2] = (char*) (QString::number(fSettings->value("OscPort", 5510).toInt()).toLatin1().data());
         
 #ifndef WIN32
         fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
@@ -971,13 +954,15 @@ FLEffect* FLWindow::get_Effect(){
 
 int FLWindow::get_x(){
     
-    fXPos = this->geometry().x();
-    return fXPos;
+    int x = this->geometry().x();
+    fSettings->setValue("Position/x", x);
+    return x;
 }
 
 int FLWindow::get_y(){
-    fYPos = this->geometry().y();
-    return fYPos;
+    int y = this->geometry().y();
+    fSettings->setValue("Position/y", y);
+    return y;
 }
 
 //------------------------HTTPD
@@ -1000,36 +985,28 @@ void FLWindow::resetHttpInterface(){
 }
 
 void FLWindow::allocateHttpInterface(){
-
+    
     if(fMenu->isHttpOn()){
+        
+        if(fHttpInterface != NULL)    
+            delete fHttpInterface;
         
         QString optionPort = "-port";
         QString windowTitle = fWindowName + ":" + fEffect->getName();
-        fPortHttp = fMenu->getPort();
         
         char* argv[3];
         
         argv[0] = (char*)(windowTitle.toLatin1().data());
         argv[1] = (char*)(optionPort.toLatin1().data());
-        argv[2] = (char*)(QString::number(fPortHttp).toStdString().c_str());
+        argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
         
         fHttpInterface = new httpdUI(argv[0], 3, argv);
     }
 }
 
 void FLWindow::switchHttp(bool on){
-    if(on){
-        save_Window();
-        allocateHttpInterface();
-        
-        fCurrent_DSP->buildUserInterface(fHttpInterface);
-        recall_Window();
-        fHttpInterface->run();
-        
-        fPortHttp = fHttpInterface->getTCPPort();
-        setWindowsOptions();
-
-    }
+    if(on)
+        updateHTTPInterface();
     else{
         delete fHttpInterface;
         fHttpInterface = NULL;

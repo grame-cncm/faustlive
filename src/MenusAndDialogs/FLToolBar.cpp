@@ -17,7 +17,9 @@
 
 //--------------------------FLToolBar
 
-FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
+FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
+    
+    fSettings = settings;
     
     setAutoFillBackground(true);
     
@@ -110,10 +112,9 @@ FLToolBar::FLToolBar(QWidget* parent) : QToolBar(parent){
 
 
 #ifdef REMOTE
-    fIpRemoteServer = "localhost";
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
-    fRemoteButton->setText(tr("local processing"));
+    fRemoteButton->setText(fSettings->value("MachineName", "local processing").toString());
     
     fRemoteMenu = new QMenu();
     fRemoteButton->setMenu(fRemoteMenu);
@@ -176,28 +177,29 @@ void FLToolBar::openRemoteBox(){
 void FLToolBar::setRemoteButtonName(const QString& name, const QString& ipServer){
     
     fRemoteButton->setText(name);
-    fIpRemoteServer = ipServer;
+    fSettings->setValue("MachineName", name);
+    fSettings->setValue("MachineIP", ipServer);
 }
 
 //Reaction to a click cancellation
 void FLToolBar::remoteFailed(){
 
-    fIpRemoteServer = fFormerIp;
-    fPortRemoteServer = fFormerPort;
+    fSettings->setValue("MachineIP", fFormerIp);
+    fSettings->setValue("MachinePort", fFormerPort);
 }
 
 void FLToolBar::remoteSuccessfull(){
-    setRemoteButtonName(fNewName, fIpRemoteServer);
+    setRemoteButtonName(fNewName, fSettings->value("MachineIP", "127.0.0.1").toString());
 }
 
 void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
     
-    fFormerIp = fIpRemoteServer;
-    fFormerPort = fPortRemoteServer;
+    fFormerIp = fSettings->value("MachineIP", "127.0.0.1").toString();
+    fFormerPort = fSettings->value("MachinePort", 7777).toInt();
     fFormerName = fRemoteButton->text();
     
-    fIpRemoteServer = ip;
-    fPortRemoteServer = port;
+    fSettings->setValue("MachineIP", ip);
+    fSettings->setValue("MachinePort", port);
     fNewName = newName;
     
 }
@@ -214,43 +216,54 @@ void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
 
 FLToolBar::~FLToolBar(){}
 
-//Reaction to enter one of the QlineEdit
+//Reaction to enter one of the QLineEdit
 void FLToolBar::modifiedOptions(){
     
     QString text = fOptionLine->text();
     
-    int value = 3;
-    
     QString val = fOptValLine->text();
-	if(isStringInt(val.toLatin1().data()))
-        value = atoi(val.toStdString().c_str());
-  
-	int port = 5510;    
-    int portOsc = 5510;
     
+    bool ok;
+    int value = val.toInt(&ok);
+	if(!ok)
+        value = 3;
+    
+    if(text != (fSettings->value("FaustOptions", "").toString()) || value != fSettings->value("OptValue", 3).toInt()){
+        
+        fSettings->setValue("OptValue", value); 
+        fSettings->setValue("FaustOptions", text); 
+        emit compilationOptionsChanged();
+    }
 #ifdef HTTPCTRL
-    QString portText = fPortLine->text();
-	if(isStringInt(portText.toStdString().c_str()))
-		port = atoi(portText.toStdString().c_str());
+    int port = fPortLine->text().toInt(&ok);
+    
+	if(!ok)
+        port = 5510;
+    
+    if(port != fSettings->value("HttpPort", 5510)){
+        fSettings->setValue("HttpPort", port); 
+        emit httpPortChanged();
+    }
+    
 #endif
 #ifdef OSCVAR
     QString portOscText = fPortOscLine->text();
-	if(isStringInt(portOscText.toStdString().c_str()))
-		portOsc = atoi(portOscText.toStdString().c_str());
+    
+    int portOsc = fPortOscLine->text().toInt(&ok);
+    
+	if(!ok)
+        portOsc = 5510;
+        
+    if(portOsc != fSettings->value("OscPort", 5510)){
+        fSettings->setValue("OscPort", portOsc); 
+        emit oscPortChanged();
+    }
 #endif
-    
-//    printf("value = %i// text = %s\n", value, text.c_str());
-    
-    emit modified(text, value, port, portOsc);
 }
 
 //Accessors to FLToolBar values
 void FLToolBar::setOptions(QString options){
     fOptionLine->setText(options);
-}
-
-QString FLToolBar::getOptions(){
-    return fOptionLine->text();
 }
 
 void FLToolBar::setVal(int value){
@@ -261,26 +274,6 @@ void FLToolBar::setVal(int value){
     fOptValLine->setText(ss.str().c_str());
 }
 
-int FLToolBar::getVal(){
-    
-    QString val = fOptValLine->text();
-	if(isStringInt(val.toStdString().c_str()))
-		return atoi(val.toStdString().c_str());
-    else
-        return 0;
-}
-
-int FLToolBar::getPort(){
-
-#ifdef HTTPCTRL
-    QString val = fPortLine->text();
-	if(isStringInt(val.toStdString().c_str()))
-		return atoi(val.toStdString().c_str());
-    else
-#endif
-        return 0;
-}
-
 void FLToolBar::setPort(int port){
 
 #ifdef HTTPCTRL
@@ -289,18 +282,6 @@ void FLToolBar::setPort(int port){
     
     fPortLine->setText(ss.str().c_str());
 #endif
-}
-
-int FLToolBar::getPortOsc(){
-    
-//#ifndef _WIN32 || OSCVAR
-#ifdef OSCVAR
-    QString val = fPortOscLine->text();
-	if(isStringInt(val.toStdString().c_str()))
-		return atoi(val.toStdString().c_str());
-    else
-#endif
-        return 0;
 }
 
 void FLToolBar::setPortOsc(int port){
@@ -326,7 +307,7 @@ QString FLToolBar::machineName(){
 
 QString FLToolBar::ipServer(){
 #ifdef REMOTE
-    return fIpRemoteServer;
+    return fSettings->value("MachineIP", "127.0.0.1").toString();
 #else
 	return "";
 #endif
@@ -340,22 +321,22 @@ void FLToolBar::update_remoteMachine(){
     string toto(action->text().toStdString());
     
     //    If the server is the same, there is no update
-    if((fIpRemoteServer.toStdString()).compare((fIPToHostName[toto]).first) == 0)
+    if((fSettings->value("MachineIP", "127.0.0.1").toString().toStdString()).compare((fIPToHostName[toto]).first) == 0)
         return;
     else{
         
-        fFormerIp = fIpRemoteServer;
-        fFormerPort = fPortRemoteServer;
+        fFormerIp = fSettings->value("MachineIP", "127.0.0.1").toString();
+        fFormerPort = fSettings->value("MachinePort", 7777).toString();
         fFormerName = fRemoteButton->text();
         
-        fIpRemoteServer = fIPToHostName[toto].first.c_str();
-        fPortRemoteServer = fIPToHostName[toto].second;
+        fSettings->setValue("MachineIP", fIPToHostName[toto].first.c_str());
+        fSettings->setValue("MachinePort", fIPToHostName[toto].second);
         
-        printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
+//        printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
         
         fNewName = toto.c_str();
         
-        emit switchMachine(fIpRemoteServer, fPortRemoteServer);
+        emit switchMachine(fSettings->value("MachineIP", "127.0.0.1").toString(), fSettings->value("MachinePort", 7777).toInt());
     }
     
 #endif

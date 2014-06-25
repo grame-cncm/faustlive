@@ -65,6 +65,13 @@ class FLApp : public QApplication
     
     private :
     
+        QString    createWindowFolder(const QString& sessionFolder, int index);
+        QString    copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index);
+    
+    
+    
+    
+    
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;

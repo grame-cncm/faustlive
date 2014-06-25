@@ -59,7 +59,7 @@ class FLWindow : public QMainWindow
         QString          fHome;        //Folder of currentSession
     
         FLToolBar*      fMenu;
-        void            setToolBar(const QString& machineName, const QString& ipMachine);
+        void            setToolBar();
         void            set_MenuBar();
         
         QMenu*          fWindowMenu;
@@ -70,6 +70,8 @@ class FLWindow : public QMainWindow
         QList<QAction*>     fFrontWindow;
     
         FLEffect*         fEffect;         //Effect currently running in the window
+    
+        QSettings*      fSettings;       //All the window settings
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
@@ -84,8 +86,6 @@ class FLWindow : public QMainWindow
 		void            allocateHttpInterface();
 
         QString         fInterfaceUrl;
-        int             fPortHttp;
-        int             fPortOsc;   //FaustLive specific port for droppable httpInterface
 
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
@@ -93,10 +93,6 @@ class FLWindow : public QMainWindow
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
 
         map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-    
-    //Position on screen
-        int             fXPos;
-        int             fYPos;
 
         QString         fWindowName;     //WindowName = Common Base Name + - + index
         int             fWindowIndex;    //Unique index corresponding to this window
@@ -183,7 +179,7 @@ class FLWindow : public QMainWindow
     //@param : osc/httpd port = port on which remote interface will be built 
     //@param : machineName = in case of remote processing, the name of remote machine
 
-        FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QString& appHome, int oscPort = 5510, int httpdport = 5510, const QString& machineName = "local processing", const QString& ipMachine = "localhost");
+        FLWindow(QString& baseName, int index, FLEffect* eff, const QString& appHome, QSettings* windowSettings);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -288,17 +284,21 @@ class FLWindow : public QMainWindow
     
     public slots :
     //Modification of the compilation options
-        void            modifiedOptions(QString text, int value, int port, int portOsc);
+        void            modifiedOptions();
         void            resizingBig();
         void            resizingSmall();
 #ifndef _WIN32
         void            switchHttp(bool on);
-        void            exportToPNG();
+        void            exportToPNG();    
+        void            updateHTTPInterface();
+        void            updateOSCInterface();
 #endif
         void            switchOsc(bool on);
         void            disableOSCInterface();
         void            frontShowFromMenu(); 
         void            shut();
+
+    
     
     //Raises and shows the window
         void            frontShow();

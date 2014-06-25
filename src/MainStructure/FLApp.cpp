@@ -1207,6 +1207,24 @@ bool FLApp::migrate_ProcessingInWin(const QString& ip, int port){
 
 //---------------NEW
 
+QString FLApp::createWindowFolder(const QString& sessionFolder, int index){
+    QString path = sessionFolder + "FLW-" + QString::number(index);
+    
+    QDir dir;
+    dir.mkdir(path);
+    
+    return path;
+}
+
+QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index){
+    QString newPath = sessionNewFolder + "FLW-" + QString::number(newIndex);
+    QString oldPath = sessionFolder + "FLW-" + QString::number(index);
+    
+    cpDir(oldPath, newPath);
+    
+    return newPath;
+}
+
 void FLApp::redirectMenuToWindow(FLWindow* win){
     
     win->set_RecentFile(fRecentFiles);
@@ -1284,10 +1302,10 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
 //        bool optionChanged = (fCompilationMode.compare(first->getCompilationOptions()) != 0 || fOpt_level != (first->getOptValue())) && !isLocalEffectInCurrentSession(first->getSource()) && !isRemoteEffectInCurrentSession(first->getSource(), first->getRemoteIP(), first->getRemotePort());
         
         //Copy of the source File in the CurrentSession Source Folder
-        QString copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
-        QString toCopy = first->getSource();
-        
-        update_Source(toCopy, copySource);
+//        QString copySource = fSourcesFolder +"/" + first->getName() + ".dsp";
+//        QString toCopy = first->getSource();
+//        
+//        update_Source(toCopy, copySource);
         
         if(error.compare("") != 0){
             fErrorWindow->print_Error(error);
@@ -1296,11 +1314,18 @@ FLWindow* FLApp::new_Window(const QString& mySource, QString& error){
         int x, y;
         calculate_position(val, &x, &y);
         
-        FLWindow* win = new FLWindow(fWindowBaseName, val, first, x, y, fSessionFolder);
+        QString windowPath = createWindowFolder(fSessionFolder, val);
+        
+        QString settingPath = windowPath + "/Settings.ini";
+        QSettings* windowSettings = new FLSettings(settingPath, QSettings::IniFormat);
+        windowSettings->setValue("Position/x", x);
+        windowSettings->setValue("Position/y", y);
+        
+        FLWindow* win = new FLWindow(fWindowBaseName, val, first, windowPath, windowSettings);
         
         redirectMenuToWindow(win);
 		
-	if(win->init_Window(init, error)){
+    if(win->init_Window(init, error)){
             
             FLW_List.push_back(win);
             addWinToSessionFile(win);
@@ -2347,7 +2372,20 @@ void FLApp::recall_Session(const QString& filename){
                 return;
             }
             
-            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, (*it)->x*fScreenWidth, (*it)->y*fScreenHeight, fSessionFolder, (*it)->oscPort, (*it)->portHttpd);
+//            copyWindowFolder(fSessionFolder, (*it)->ID, f);
+            
+//            EN VRAI C'EST PAS COMME ÇA !!!!! IL FAUT COPIER LES SETTINGS
+            
+            QString windowPath = createWindowFolder(fSessionFolder, (*it)->ID);
+            
+            QString settingPath = windowPath + "/Settings.ini";
+            QSettings* windowSettings = new FLSettings(settingPath, QSettings::IniFormat);
+            windowSettings->setValue("Position/x", (*it)->x*fScreenWidth);
+            windowSettings->setValue("Position/y", (*it)->y*fScreenHeight);
+            windowSettings->setValue("OscPort", (*it)->oscPort);
+            windowSettings->setValue("HttpPort", (*it)->portHttpd);
+            
+            FLWindow* win = new FLWindow(fWindowBaseName, (*it)->ID, newEffect, fSessionFolder, windowSettings);
             
             redirectMenuToWindow(win);
             
@@ -3031,7 +3069,21 @@ void FLApp::duplicate(FLWindow* window){
     int x = window->get_x() + 10;
     int y = window->get_y() + 10;
     
-    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, x, y, fSessionFolder, window->get_oscPort(), window->get_Port(), window->get_machineName(), window->get_ipMachine());
+//    C'EST PAS COMME ÇA QU'IL FAUDRA FAIRE, IL FAUDRA COPIER LES SETTINGS !!!! 
+    
+    QString windowPath = createWindowFolder(fSessionFolder, val);
+    
+    QString settingPath = windowPath + "/Settings.ini";
+    QSettings* windowSettings = new FLSettings(settingPath, QSettings::IniFormat);
+    windowSettings->setValue("Position/x", x);
+    windowSettings->setValue("Position/y", y);
+    windowSettings->setValue("OscPort", window->get_oscPort());
+    windowSettings->setValue("HttpPort", window->get_Port());
+    windowSettings->setValue("MachineName", window->get_machineName());
+    windowSettings->setValue("MachineIP", window->get_ipMachine());
+    
+    
+    FLWindow* win = new FLWindow(fWindowBaseName, val, commonEffect, fSessionFolder, windowSettings);
     
     redirectMenuToWindow(win);
     

@@ -24,6 +24,7 @@ class FLToolBar : public QToolBar{
     Q_OBJECT
     
     private:
+        QSettings*          fSettings;
     
         QTreeWidget*        fTreeWidget;
         QTreeWidgetItem *   fItem;
@@ -41,8 +42,6 @@ class FLToolBar : public QToolBar{
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
         map<string, pair<string, int> > fIPToHostName;  //Correspondance of remote machine IP to its name
-        QString             fIpRemoteServer;    //IP of the processing machine
-        int                 fPortRemoteServer;  //Port used for processing
     
         QString             fFormerIp;
         int                 fFormerPort;
@@ -55,7 +54,7 @@ class FLToolBar : public QToolBar{
     
     public:
     
-    FLToolBar(QWidget* parent = NULL);
+    FLToolBar(QSettings* settings, QWidget* parent = NULL);
     ~FLToolBar();
     
     void    setOptions(QString options);
@@ -65,11 +64,6 @@ class FLToolBar : public QToolBar{
     void    setPort(int port);
     void    setPortOsc(int port);
     void    setNewOptions(const QString& ip, int port, const QString& newName);
-    
-    QString getOptions();
-    int     getVal();
-    int     getPort();
-    int     getPortOsc();
     
     void    remoteFailed();
     void    remoteSuccessfull();
@@ -91,7 +85,9 @@ public slots:
     
     signals :
     
-       void  modified(const QString& option, int val, int port, int portOsc);
+        void  oscPortChanged();
+        void  httpPortChanged();
+        void  compilationOptionsChanged();
         void sizeGrowth();
         void sizeReduction();
         void remoteStateChanged(int state);
