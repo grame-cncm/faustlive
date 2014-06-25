@@ -57,7 +57,6 @@ class FLWindow : public QMainWindow
         QDateTime        fLastMigration;
     
         QString          fHome;        //Folder of currentSession
-        QString          fSettingsFolder;
     
         FLToolBar*      fMenu;
         void            setToolBar(const QString& machineName, const QString& ipMachine);
@@ -91,9 +90,7 @@ class FLWindow : public QMainWindow
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
-        remote_dsp_factory*     fRemoteFactory;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
-        bool            fIsLocal;      //True = llvm | False = remote
 
         map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
     

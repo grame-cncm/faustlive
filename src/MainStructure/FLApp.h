@@ -10,7 +10,6 @@
 #ifndef _FLApp_h
 #define _FLApp_h
 
-//#include <list>
 #include <map>
 
 #include <QtGui>
@@ -23,6 +22,9 @@
 class FLServerHttp;
 class FLExportManager;
 class FLErrorWindow;
+class FLHelpWindow;
+class FLPresentationWindow;
+class FLPreferenceWindow;
 class FLWindow;
 class FLEffect;
 class AudioCreator;
@@ -30,14 +32,8 @@ class AudioCreator;
 using namespace std;
 
 #define FLVERSION APP_VERSION
-#define DEFAULTNAME "DefaultName"
 
-//Setting Files
-#define kCompilationFile "/CompilationOptions.txt"
-#define kLLVMFile "/LLVMFile.txt"
-#define kStyleFile "/StyleFile.txt"
-#define kExportUrlFile "/ServerURL.txt"
-#define kDropPortFile "/DropPortFile.txt"
+#define DEFAULTNAME "DefaultName"
 
 #define kMAXRECENTFILES 4
 #define kMAXRECENTSESSIONS 3
@@ -86,16 +82,10 @@ class FLApp : public QApplication
         QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     
     //Appendices Dialogs
-        QMainWindow*        fHelpWindow;        //Help Dialog
-        QTextBrowser*       fToolText;          //ToolText in Help Dialog
-        QPlainTextEdit*     fAppText;
-        QPlainTextEdit*     fWinText;
-        QPlainTextEdit*     fLibsText;
-        map<string, vector<pair<string, string> > > fInfoLibs;
-        QTreeWidget *       fTreeLibs;
+        FLHelpWindow*        fHelpWindow;        //Help Dialog
     
         FLErrorWindow*      fErrorWindow;       //Error Dialog
-        QDialog*            fPresWin;           //Presentation Window
+        FLPresentationWindow*            fPresWin;           //Presentation Window
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
         QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
         FLExportManager*    fExportDialog;      //Manager for web service use
@@ -146,19 +136,12 @@ class FLApp : public QApplication
         QTimer*             fEndTimer;
     
     //Preference Menu Objects and Functions
-        QDialog*            fPrefDialog;     //Preference Window
+        FLPreferenceWindow* fPrefDialog;     //Preference Window
         AudioCreator*       fAudioCreator;
-        QGroupBox*          fAudioBox;
     
         void                init_PreferenceWindow();
     
         void                update_AudioArchitecture();
-    
-    //Setups of help menu and the presentation interface
-        void                init_HelpWindow();
-        void                init_presentationWindow();
-    //If the user chooses to open an example, it is stored 
-        QString              fExampleToOpen;
 
     //Recent Sessions Parameters and functions
         QStringList         fRecentSessions;
@@ -259,31 +242,22 @@ class FLApp : public QApplication
     
         void                update_SourceInWin(FLWindow* win, const QString& source);
     
-        QString          soundFileToFaust(const QString& soundFile);
+        QString             soundFileToFaust(const QString& soundFile);
         void                drop_Action(QList<QString>);
     
     
     //--------Switch to remote processing
-        bool    migrate_ProcessingInWin(const QString& ip, int port);
+        bool                migrate_ProcessingInWin(const QString& ip, int port);
     
     //---------Presentation Window Slots
     
         void                open_Example_Action(QString pathInQResource);
-        void                open_Example_Action();
-        void                new_Window_pres();
-        void                open_Window_pres();
-        void                open_Session_pres();
-        void		    hidePresWin();
-
-    //---------Click On an example
-        void                itemClick(QListWidgetItem *item);
-        void                itemDblClick(QListWidgetItem* item);
+        void                openExampleAction(const QString& exampleName);
     
     //---------File
         FLWindow*           new_Window(const QString& mySource, QString& error);
         void                create_Empty_Window();
         void                open_New_Window();
-//        void                open_Remote_Window();
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
@@ -326,13 +300,7 @@ class FLApp : public QApplication
         void                Preferences();
     
     //---------Help
-        void                setToolText(const QString&);
-        void                setAppPropertiesText(const QString& currentText);
-        void                setWinPropertiesText(const QString& currentText);
-        void                parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
-        void                setLibText();
         void                apropos();
-        void                end_apropos();
         void                version_Action();
         void                show_presentation_Action();
     
@@ -360,7 +328,7 @@ class FLApp : public QApplication
         void                sessionContentToFile();
 
     //--------Error received
-    void                errorPrinting(const char* msg);
+        void                errorPrinting(const char* msg);
 
 };
 

@@ -6,9 +6,11 @@
 # IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED
 
 ## Application Settings
-OBJECTS_DIR += src
-MOC_DIR += src
-RCC_DIR += src
+OBJECTS_DIR += src/objectsFolder
+
+MOC_DIR += src/objectsFolder
+
+RCC_DIR += src/Utilities
 
 QMAKE_EXTRA_TARGETS += all
 
@@ -61,6 +63,12 @@ win32{
 	LLVMLIBS = $$system($$system(which llvm-config) --libs)
 	LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 }
+
+INCLUDEPATH += src/Audio
+INCLUDEPATH += src/MenusAndDialogs
+INCLUDEPATH += src/MainStructure
+INCLUDEPATH += src/Network
+INCLUDEPATH += src/Utilities
 
 win32{
 	Debug{
@@ -126,10 +134,11 @@ else{
 
       DEFINES += HTTPCTRL
       DEFINES += QRCODECTRL
+      DEFINES += OSCVAR
 }
 
-HEADERS += src/utilities.h 
-SOURCES += src/utilities.cpp
+HEADERS += src/Utilities/utilities.h 
+SOURCES += src/Utilities/utilities.cpp
 
 ########## DEFINES/LIBS/SOURCES/... depending on audio drivers | remote processing feature
 
@@ -144,14 +153,16 @@ equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
 	DEFINES += COREAUDIO
-	HEADERS += 	src/CA_audioFactory.h\
-				src/CA_audioSettings.h\
-				src/CA_audioManager.h\
-				src/CA_audioFader.h 
+	INCLUDEPATH += src/Audio/CA
+	
+	HEADERS += 	src/Audio/CA/CA_audioFactory.h\
+				src/Audio/CA/CA_audioSettings.h\
+				src/Audio/CA/CA_audioManager.h\
+				src/Audio/CA/CA_audioFader.h 
 				
-	SOURCES += 	src/CA_audioFactory.cpp \
-				src/CA_audioSettings.cpp \
-				src/CA_audioManager.cpp 
+	SOURCES += 	src/Audio/CA/CA_audioFactory.cpp \
+				src/Audio/CA/CA_audioSettings.cpp \
+				src/Audio/CA/CA_audioManager.cpp 
 }else{
 	message("COREAUDIO NOT LINKED")
 }
@@ -160,15 +171,18 @@ equals(JVAR, 1){
 	message("JACK LINKED")
 	LIBS+= -ljack
 	DEFINES += JACK
-	HEADERS += 	src/JA_audioFactory.h \
-				src/JA_audioSettings.h \
-				src/JA_audioManager.h \
-				src/JA_audioFader.h \
 	
-	SOURCES += 	src/JA_audioSettings.cpp \
-				src/JA_audioManager.cpp \
-				src/JA_audioFactory.cpp \
-				src/JA_audioFader.cpp 
+	INCLUDEPATH += src/Audio/JA
+		
+	HEADERS += 	src/Audio/JA/JA_audioFactory.h \
+				src/Audio/JA/JA_audioSettings.h \
+				src/Audio/JA/JA_audioManager.h \
+				src/Audio/JA/JA_audioFader.h \
+	
+	SOURCES += 	src/Audio/JA/JA_audioSettings.cpp \
+				src/Audio/JA/JA_audioManager.cpp \
+				src/Audio/JA/JA_audioFactory.cpp \
+				src/Audio/JA/JA_audioFader.cpp 
 }else{
 	message("JACK NOT LINKED")
 }	
@@ -177,15 +191,18 @@ equals(NJVAR, 1){
 	message("NETJACK LINKED")
 	LIBS += -ljacknet
 	DEFINES += NETJACK
-	HEADERS += 	src/NJ_audioFactory.h \
-				src/NJ_audioSettings.h \
-				src/NJ_audioManager.h \
-				src/NJ_audioFader.h 
 	
-	SOURCES += 	src/NJ_audioFactory.cpp \
-				src/NJ_audioSettings.cpp \
-				src/NJ_audioManager.cpp \
-				src/NJ_audioFader.cpp 
+	INCLUDEPATH += src/Audio/NJ
+	
+	HEADERS += 	src/Audio/NJ/NJ_audioFactory.h \
+				src/Audio/NJ/NJ_audioSettings.h \
+				src/Audio/NJ/NJ_audioManager.h \
+				src/Audio/NJ/NJ_audioFader.h 
+	
+	SOURCES += 	src/Audio/NJ/NJ_audioFactory.cpp \
+				src/Audio/NJ/NJ_audioSettings.cpp \
+				src/Audio/NJ/NJ_audioManager.cpp \
+				src/Audio/NJ/NJ_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		
@@ -194,17 +211,24 @@ equals(ALVAR, 1){
 	message("ALSA LINKED")
 	LIBS += -lasound
 	DEFINES += ALSA
-	HEADERS += 	src/AL_audioFactory.h \
-				src/AL_audioSettings.h \
-				src/AL_audioManager.h \
-				src/AL_audioFader.h \
 	
-	SOURCES += 	src/AL_audioFactory.cpp \
-				src/AL_audioSettings.cpp \
-				src/AL_audioManager.cpp 
+	INCLUDEPATH += src/Audio/AL
+	
+	HEADERS += 	src/Audio/AL/AL_audioFactory.h \
+				src/Audio/AL/AL_audioSettings.h \
+				src/Audio/AL/AL_audioManager.h \
+				src/Audio/AL/AL_audioFader.h \
+	
+	SOURCES += 	src/Audio/AL/AL_audioFactory.cpp \
+				src/Audio/AL/AL_audioSettings.cpp \
+				src/Audio/AL/AL_audioManager.cpp 
 }else{
 	message("ALSA NOT LINKED")
 }		
+
+win32{
+	PAVAR = 1
+}
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
@@ -216,38 +240,43 @@ equals(PAVAR, 1){
 	}
 	
 	DEFINES += PORTAUDIO
-	HEADERS += 	src/PA_audioFactory.h \
-				src/PA_audioSettings.h \
-				src/PA_audioManager.h \
-				src/PA_audioFader.h \
 	
-	SOURCES += 	src/PA_audioFader.cpp \
-				src/PA_audioFactory.cpp \
-				src/PA_audioSettings.cpp \
-				src/PA_audioManager.cpp 
+	INCLUDEPATH += src/Audio/PA
+	
+	HEADERS += 	src/Audio/PA/PA_audioFactory.h \
+				src/Audio/PA/PA_audioSettings.h \
+				src/Audio/PA/PA_audioManager.h \
+				src/Audio/PA/PA_audioFader.h \
+	
+	SOURCES += 	src/Audio/PA/PA_audioFader.cpp \
+				src/Audio/PA/PA_audioFactory.cpp \
+				src/Audio/PA/PA_audioSettings.cpp \
+				src/Audio/PA/PA_audioManager.cpp 
 }else{
 	message("PORT AUDIO NOT LINKED")
 }		
 
 ########## HEADERS AND SOURCES OF PROJECT
 
-HEADERS +=  src/AudioSettings.h \
-			src/AudioManager.h \
-			src/AudioFactory.h \
-			src/AudioCreator.h \
-			src/AudioFader_Interface.h \
-            src/AudioFader_Implementation.h \
-			src/FJUI.h \
-			src/FLToolBar.h \
-			src/FLrenameDialog.h \
-			src/FLErrorWindow.h \
-            src/FLExportManager.h \
-            src/FLEffect.h \
-            src/FLWindow.h \
-            src/FLSettings.h \
-            src/FLPreferenceWindow.h \
-            src/FLApp.h \
-            src/SimpleParser.h
+HEADERS +=  src/Audio/AudioSettings.h \
+			src/Audio/AudioManager.h \
+			src/Audio/AudioFactory.h \
+			src/Audio/AudioCreator.h \
+			src/Audio/AudioFader_Interface.h \
+            src/Audio/AudioFader_Implementation.h \
+			src/Audio/JA/FJUI.h \
+			src/MenusAndDialogs/FLToolBar.h \
+			src/MenusAndDialogs/FLrenameDialog.h \
+			src/MenusAndDialogs/FLHelpWindow.h \
+			src/MenusAndDialogs/FLPresentationWindow.h \
+			src/MenusAndDialogs/FLErrorWindow.h \
+            src/MenusAndDialogs/FLExportManager.h \
+            src/MenusAndDialogs/FLPreferenceWindow.h \
+            src/MainStructure/FLEffect.h \
+            src/MainStructure/FLWindow.h \
+            src/MainStructure/FLSettings.h \
+            src/MainStructure/FLApp.h \
+            src/MenusAndDialogs/SimpleParser.h
 win32{
 	equals(HTTPDVAR, 1){
 			HEADERS +=		src/HTTPWindow.h 
@@ -256,37 +285,39 @@ win32{
 }
 else{
 	
-	HEADERS +=	        src/FLServerHttp.h \
-						src/HTTPWindow.h \
+	HEADERS +=	        src/Network/FLServerHttp.h \
+						src/Network/HTTPWindow.h \
 #						API_FAUSTWEB/Faust_Exporter.h \
                         /usr/local/include/faust/gui/faustqt.h
 
 }
 
-SOURCES += 	src/AudioCreator.cpp \
-            src/AudioFader_Implementation.cpp \
-        	src/FLToolBar.cpp \
-            src/FLrenameDialog.cpp \
-            src/FLErrorWindow.cpp \
-            src/FLExportManager.cpp \
-            src/FLEffect.cpp \
-            src/FLWindow.cpp \
-            src/FLSettings.cpp \
-            src/FLPreferenceWindow.cpp \
-            src/FLApp.cpp
+SOURCES += 	src/Audio/AudioCreator.cpp \
+            src/Audio/AudioFader_Implementation.cpp \
+        	src/MenusAndDialogs/FLToolBar.cpp \
+            src/MenusAndDialogs/FLrenameDialog.cpp \
+			src/MenusAndDialogs/FLHelpWindow.cpp \
+			src/MenusAndDialogs/FLPresentationWindow.cpp \
+            src/MenusAndDialogs/FLErrorWindow.cpp \
+            src/MenusAndDialogs/FLExportManager.cpp \
+            src/MainStructure/FLEffect.cpp \
+            src/MainStructure/FLWindow.cpp \
+            src/MainStructure/FLSettings.cpp \
+            src/MenusAndDialogs/FLPreferenceWindow.cpp \
+            src/MainStructure/FLApp.cpp
 win32{
 	equals(HTTPDVAR, 1){
-		SOURCES +=	src/HTTPWindow.cpp
+		SOURCES +=	src/Network/HTTPWindow.cpp
 	}
 }
 else{
-	SOURCES +=	src/FLServerHttp.cpp \
+	SOURCES +=	src/Network/FLServerHttp.cpp \
 #				API_FAUSTWEB/Faust_Exporter.cpp \
-                src/HTTPWindow.cpp 
+                src/Network/HTTPWindow.cpp 
 }
 
-SOURCES +=      src/SimpleParser.cpp \
-                src/main.cpp
+SOURCES +=      src/MenusAndDialogs/SimpleParser.cpp \
+                src/Utilities/main.cpp
 
 
 

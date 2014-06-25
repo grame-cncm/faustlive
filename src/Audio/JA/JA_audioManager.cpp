@@ -17,6 +17,9 @@
 
 
 void JA_audioManager::shutdown_message(const char * msg, void* arg){
+    Q_UNUSED(arg);
+    Q_UNUSED(msg);
+    
     printf("JA_audioManager::SHUTDOWN\n");
 }
 

@@ -62,7 +62,6 @@ FLWindow::FLWindow(QString& baseName, int index, FLEffect* eff, int x, int y, QS
     fInterfaceUrl = "";
     fPortOsc = oscPort;
     
-    fIsLocal = true;
     fIPToHostName = new map<QString, std::pair<QString, int> >;
     
     fXPos = x;

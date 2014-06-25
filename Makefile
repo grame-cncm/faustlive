@@ -38,6 +38,7 @@ endif
 ####### Targets
 
 all : Makefile.qt4
+	mkdir -p src/objectsFolder
 	make -f Makefile.qt4
 
 install : install-$(system)
@@ -46,7 +47,7 @@ uninstall : uninstall-$(system)
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
-	$(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/llvm_math.c -c -S -o Resources/Libs/llvm_math.ll)
+	$(shell $(shell llvm-config --prefix)/bin/clang -emit-llvm src/Utilities/llvm_math.c -c -S -o Resources/Libs/llvm_math.ll)
 
 ####### Packages
 
