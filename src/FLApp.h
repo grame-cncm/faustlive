@@ -285,7 +285,7 @@ class FLApp : public QApplication
         void                new_Window_pres();
         void                open_Window_pres();
         void                open_Session_pres();
-        void		    hidePresWin();
+        void                hidePresWin();
 
     //---------Click On an example
         void                itemClick(QListWidgetItem *item);
@@ -302,6 +302,8 @@ class FLApp : public QApplication
         void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();
+    
+        void        deleteComponent();
 
     //--Session
         void                take_Snapshot();
@@ -371,8 +373,6 @@ class FLApp : public QApplication
                             FLApp(int& argc, char** argv);
         virtual             ~FLApp();
     
-        void                create_New_Window(const QString& name);
-    
     public slots :
     
         virtual void        closeAllWindows();
@@ -380,6 +380,8 @@ class FLApp : public QApplication
         void                shut_Window(); 
         void                update_CurrentSession();
         void                sessionContentToFile();
+        void                create_Component_Window();
+        void                create_New_Window(const QString& name);
 
     //--------Error received
     void                errorPrinting(const char* msg);

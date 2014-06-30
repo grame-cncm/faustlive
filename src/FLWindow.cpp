@@ -94,7 +94,7 @@ FLWindow::~FLWindow(){
     printf("DELETING %s WINDOW\n", fWindowName.toStdString().c_str());
 }
 
-//------------------------WINDOW ACTIONSfile://localhost/Users/denoux/Desktop/qompander.dsp
+//------------------------WINDOW ACTIONS
 
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
@@ -830,6 +830,9 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
+                if(i->toString() == fEffect->getSource())
+                    return;
+                
                     if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
                         
                         centralWidget()->hide();
@@ -1220,6 +1223,11 @@ void FLWindow::set_MenuBar(){
         
         openRecentAction->addAction(fRecentFileAction[i]);
     }
+    
+    QAction* componentAction = new QAction(tr("&Open Component Creator"), this);
+//    newAction->setShortcut(tr("Ctrl+N"));
+    componentAction->setToolTip(tr("Open a new window to create a 2 DSP Component"));
+    connect(componentAction, SIGNAL(triggered()), this, SLOT(open_Component()));
         
 //SESSION
     
@@ -1278,6 +1286,8 @@ void FLWindow::set_MenuBar(){
     fileMenu->addAction(openAction);
     fileMenu->addAction(menuOpen_Example->menuAction());
     fileMenu->addAction(openRecentAction->menuAction());
+    fileMenu->addSeparator();
+    fileMenu->addAction(componentAction);
     fileMenu->addSeparator();
     fileMenu->addAction(takeSnapshotAction);
     fileMenu->addSeparator();
@@ -1396,6 +1406,10 @@ void FLWindow::open_Example(){
     QString toto(action->data().toString());
     
     emit open_Ex(toto);
+}
+
+void FLWindow::open_Component(){
+    emit create_Component();
 }
 
 void FLWindow::take_Snapshot(){

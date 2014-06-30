@@ -244,6 +244,7 @@ HEADERS +=  src/AudioSettings.h \
             src/FLExportManager.h \
             src/FLEffect.h \
             src/FLWindow.h \
+            src/FLComponentWindow.h \
             src/FLApp.h \
             src/SimpleParser.h
 win32{
@@ -269,6 +270,7 @@ SOURCES += 	src/AudioCreator.cpp \
             src/FLExportManager.cpp \
             src/FLEffect.cpp \
             src/FLWindow.cpp \
+            src/FLComponentWindow.cpp \
             src/FLApp.cpp
 win32{
 	equals(HTTPDVAR, 1){

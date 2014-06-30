@@ -129,6 +129,7 @@ class FLWindow : public QMainWindow
         void            create_Empty_Window();
         void            open_New_Window();
         void            open_File(QString);
+        void            create_Component();
         void            takeSnapshot();
         void            recallSnapshotFromMenu();
         void            importSnapshotFromMenu();
@@ -156,6 +157,7 @@ class FLWindow : public QMainWindow
         void            create_Empty();
         void            open_New();
         void            open_Example();
+        void            open_Component();
         void            take_Snapshot();
         void            recallSnapshot();
         void            importSnapshot();
