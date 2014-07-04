@@ -7,6 +7,7 @@
 
 #include "FLSettings.h"
 
+
 FLSettings* FLSettings::_settingsInstance = 0;
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 

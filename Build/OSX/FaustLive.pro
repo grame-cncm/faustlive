@@ -24,7 +24,7 @@ QT+=gui
 QT+=network
 
 TARGET = FaustLive
-DEFINES += APP_VERSION=\\\"1.1\\\"
+DEFINES += APP_VERSION=\\\"1.2\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES   = ../../Resources/application.qrc
@@ -189,10 +189,12 @@ HEADERS +=  ../../src/Utilities/utilities.h \
 			../../src/MenusAndDialogs/FLErrorWindow.h \
             ../../src/MenusAndDialogs/FLExportManager.h \
             ../../src/MenusAndDialogs/FLPreferenceWindow.h \
-            ../../src/MainStructure/FLEffect.h \
             ../../src/MainStructure/FLWindow.h \
             ../../src/MainStructure/FLSettings.h \
+            ../../src/MainStructure/FLWinSettings.h \
+            ../../src/MainStructure/FLFileWatcher.h \
             ../../src/Network/FLServerHttp.h \
+            ../../src/MainStructure/FLSessionManager.h \
             ../../src/MainStructure/FLApp.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
@@ -207,10 +209,12 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/MenusAndDialogs/FLPresentationWindow.cpp \
             ../../src/MenusAndDialogs/FLErrorWindow.cpp \
             ../../src/MenusAndDialogs/FLExportManager.cpp \
-            ../../src/MainStructure/FLEffect.cpp \
             ../../src/MainStructure/FLWindow.cpp \
             ../../src/MainStructure/FLSettings.cpp \
+            ../../src/MainStructure/FLWinSettings.cpp \
+            ../../src/MainStructure/FLFileWatcher.cpp \
             ../../src/MenusAndDialogs/FLPreferenceWindow.cpp \
+            ../../src/MainStructure/FLSessionManager.cpp \
             ../../src/MainStructure/FLApp.cpp \
 			../../src/Network/FLServerHttp.cpp \
 			../../src/Network/HTTPWindow.cpp \

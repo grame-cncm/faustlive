@@ -232,6 +232,9 @@ void FLToolBar::modifiedOptions(){
         
         fSettings->setValue("OptValue", value); 
         fSettings->setValue("FaustOptions", text); 
+        
+        sleep(4);
+        
         emit compilationOptionsChanged();
     }
 #ifdef HTTPCTRL

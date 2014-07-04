@@ -101,7 +101,7 @@ void JA_audioManager::connect_Audio(string homeDir){
     
     if(QFileInfo(homeDir.c_str()).exists()){
         
-        list<pair<string, string> > connection = fInterface->recallConnections(homeDir.c_str());
+        list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
         
         fCurrentAudio->reconnect(connection);
     }
@@ -113,14 +113,8 @@ void JA_audioManager::connect_Audio(string homeDir){
 //Save connections in file
 void JA_audioManager::save_Connections(string homeDir){
     
-    fInterface->saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
+    FJUI::saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
     
-}
-
-//Update connection file following the change table
-void JA_audioManager::change_Connections(string homeDir, list<pair<string, string> > changeTable){
-    
-    fInterface->update(homeDir.c_str(), changeTable);
 }
 
 int JA_audioManager::get_buffer_size(){

@@ -26,6 +26,7 @@ class FLHelpWindow;
 class FLPresentationWindow;
 class FLPreferenceWindow;
 class FLWindow;
+class FLWinSettings;
 class FLEffect;
 class AudioCreator;
 
@@ -38,27 +39,6 @@ using namespace std;
 #define kMAXRECENTFILES 4
 #define kMAXRECENTSESSIONS 3
 
-//Keeping the information of a Window running in the current Session
-//It provides an easy way of testing the session's content and writing the session file
-struct WinInSession{
-    
-    int ID;         //Index of the window
-    QString source;  //Path of the source file
-    QString name;    //Name of the effect contained in the window
-    float x;        //Position x on screen
-    float y;
-    QString compilationOptions; //Compilation options tied to the effect contained in the window
-    int opt_level;  //Optimization level for llvm compiler
-    int portHttpd;
-    int oscPort;
-    
-    bool isLocal;
-    
-	QString ipServer;
-    int portServer;
-    
-};
-
 class FLApp : public QApplication
 {
     Q_OBJECT
@@ -66,22 +46,30 @@ class FLApp : public QApplication
     private :
     
         QString    createWindowFolder(const QString& sessionFolder, int index);
-        QString    copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index);
-    
-    
-    
+        QString    copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
     
     
     //Menu Bar and it's sub-Menus
     
         QMenuBar *          fMenuBar;
-        QMenu*              fNavigateMenu;
+    
+        QMenu*              create_FileMenu();
+        QMenu*              create_ExampleMenu();
+        QMenu*              create_RecentFileMenu();
+    
+    //@param recallOrImport : true = Recall ||| false = Import
+        QMenu*              create_LoadSessionMenu(bool recallOrImport);
+        QMenu*              create_NavigateMenu();
+        QMenu*              create_HelpMenu();
     
         QAction**           fRecentFileAction;
         QAction**           fRrecentSessionAction;
         QAction**           fIrecentSessionAction;
     
-        QList<QAction*>     fFrontWindow;
+        QMenu*                      fNavigateMenu;
+        QMap<FLWindow*, QMenu*>     fNavigateMenus;
+        QMap<QAction*, FLWindow*>   fFrontWindow;
+        void                updateNavigateMenus();
 
         void                setup_Menu();
         void                redirectMenuToWindow(FLWindow* win);
@@ -113,21 +101,14 @@ class FLApp : public QApplication
         int                 find_smallest_index(QList<int> currentIndexes); 
         QList<int>           get_currentIndexes();
         void                calculate_position(int index, int* x, int* y);
-        QList<QString>        get_currentDefault();
-        QString              find_smallest_defaultName(QList<QString> currentDefault);
     
     //Application Parameters
-        QList<WinInSession*>  fSessionContent;    //Describes the state of the application 
     
         QString              fWindowBaseName; //Name of Application
     
         void                create_Session_Hierarchy();
     
         QString              fSessionFolder; //Path to currentSession Folder
-        QString              fSessionFile; //Path to currentSession DescriptionFile
-        QString              fSourcesFolder; //Folder with the copy of the sources
-        QString              fSVGFolder;   //Folder with the SVG processes
-        QString              fIRFolder;    //Folder with the Bitcode files
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
         QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
@@ -159,77 +140,25 @@ class FLApp : public QApplication
         
     //Save and Recall Session actions
 		bool				fRecalling;		//True when recalling for the app not to close whith last window
-        void                recall_Session(const QString& filename);
-        void                addWinToSessionFile(FLWindow* win);
-        void                deleteWinFromSessionFile(FLWindow* win);
-        void                createSnapshotFolder(const QString& snapshotFolder);
     
     //In case of an import, those steps are necessary to modify the session before opening it
-        QList<std::pair<int, int> >  establish_indexChanges(QList<WinInSession*>* session);
-    void                copy_WindowsFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > indexChanges);
-        void                copy_AllSources(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges, const QString extension);
-        void                copy_SVGFolders(const QString& srcDir, const QString& dstDir, std::list<std::pair<std::string,std::string> > nameChanges);
-    
-        void                establish_sourceChanges(std::list<std::pair<std::string,std::string> > nameChanges, QList<WinInSession*>* session);
-    
-        std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
-    
-        void                deleteLineIndexed(int index, QList<WinInSession*>& sessionToModify);
+//        std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
     
     //In case of drops on Application Icon, this event is called
         virtual bool        event(QEvent *ev);
     
     //Functions of read/write of a session description file
         QString             parseNextOption(QString& optionsCompilation);
-        void                fileToSessionContent(const QString& filename, QList<WinInSession*>* session);
     
     //Reset of the Folders contained in the current Session Folder
         void                reset_CurrentSession();
     
     //Functions of rehabilitation if sources disapears
-        void                currentSessionRestoration(QList<WinInSession*>& session);
-        void                snapshotRestoration(const QString& file, QList<WinInSession*>* session);
-    
-    //-----------------Creation of Effects
-
-    QString                  ifUrlToText(const QString& source);
-    //When the source of the effect is not a file but text, it has to be stored in a file
-    void                    createSourceFile(const QString& sourceName, const QString& content);
-    //Updating the content of the backup file 
-    void                    update_Source(const QString& oldSource, const QString& newSource);
-    
-    QString                  getDeclareName(QString text);
-    QString                  renameEffect(const QString& source, const QString& nomEffet, bool isRecalledEffect);
-    
-    // GET COMPILED EFFECT
-    // @param : isLocal = is Effect local or remote
-    // @param : source = file source of wanted Effect
-    // @param : ip = ip of wanted processing machine (Remote Case)
-    // @param : port = port of wanted processing machine (Remote Case)
-    //
-    // @return : Effect already compiled | NULL if not compiled
-    FLEffect*           getCompiledEffect(bool isLocal, QString source, const QString& ip, int port);
-    
-    FLEffect*               getEffectFromSource(QString source, QString nameEffect, const QString& sourceFolder, QString& compilationOptions, int optVal, QString& error, bool init, bool isLocal, const QString& ip = "localhost", int port= 0);
-    
-    
+        bool                recall_CurrentSession();
     
     //-----------------Questions about the current State
-    
-        void                deleteEffect(FLEffect* leavingEffect, FLEffect* newEffect);
-    
-        bool                isIndexUsed(int index, QList<int> currentIndexes);
-        bool                isLocalEffectInCurrentSession(const QString& sourceToCompare);
-        bool                isRemoteEffectInCurrentSession(const QString& sourceToCompare, const QString& ip, int port);
-        bool                isSourceInCurrentSession(const QString& sourceToCompare);
 
-        QString             nameWithoutSpaces(QString name);
-    
-        QString              getNameEffectFromSource(const QString& sourceToCompare);
-        bool                isEffectNameInCurrentSession(const QString& sourceToCompare, const QString& name, bool isRecalledEffect);
         QList<QString>        getNameRunningEffects();
-        QList<int>           WindowCorrespondingToEffect(FLEffect* effect);
-        void                removeFilesOfEffect(const QString& sourceName, const QString& effName);
 
         FLWindow*           getActiveWin();
         FLWindow*           getWinFromHttp(int port);
@@ -242,19 +171,10 @@ class FLApp : public QApplication
         void                launch_Server();
         void                compile_HttpData(const char* data, int port);
         void                stop_Server();
-        void                viewHttpd(FLWindow* win);
-        void                httpd_View_Window();
 #endif
     //---------Drop on a window
-    
-        void                update_SourceInWin(FLWindow* win, const QString& source);
-    
-        QString             soundFileToFaust(const QString& soundFile);
+
         void                drop_Action(QList<QString>);
-    
-    
-    //--------Switch to remote processing
-        bool                migrate_ProcessingInWin(const QString& ip, int port);
     
     //---------Presentation Window Slots
     
@@ -262,8 +182,8 @@ class FLApp : public QApplication
         void                openExampleAction(const QString& exampleName);
     
     //---------File
-        FLWindow*           new_Window(const QString& mySource, QString& error);
         void                create_Empty_Window();
+        bool                createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
         void                open_New_Window();
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
@@ -274,6 +194,10 @@ class FLApp : public QApplication
 
     //--Session
         void                take_Snapshot();
+#ifndef _WIN32
+        void                tarFolder(const QString& folder);
+        void                untarFolder(const QString& folder);
+#endif
         void                recall_Snapshot(const QString& filename, bool importOption);
         void                recallSnapshotFromMenu();
         void                importSnapshotFromMenu();
@@ -282,22 +206,12 @@ class FLApp : public QApplication
     
     //--------Navigate
     
-        void                frontShow(QString name);
+        void                frontShow();
     
     //--------Window
-        void                edit(FLWindow* win);
-        void                edit_Action();
-    
-        void                setRecompileEffects(FLEffect* modifiedEffect);
-        void                synchronize_Window(FLEffect* modifiedEffect);
-        void                synchronize_Window();
-    
-        void                paste(FLWindow* win);
-        void                paste_Text();
+
         void                duplicate(FLWindow* window);
         void                duplicate_Window();
-        void                viewSvg(FLWindow* win);
-        void                svg_View_Action();
     
         void                export_Win(FLWindow* Win);
         void                export_Action();
@@ -332,7 +246,6 @@ class FLApp : public QApplication
         void                shut_AllWindows();
         void                shut_Window(); 
         void                update_CurrentSession();
-        void                sessionContentToFile();
 
     //--------Error received
         void                errorPrinting(const char* msg);

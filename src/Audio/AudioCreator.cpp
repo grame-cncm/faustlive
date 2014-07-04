@@ -119,6 +119,8 @@ AudioCreator* AudioCreator::_Instance(QGroupBox* box){
 
 AudioCreator::~AudioCreator(){
     
+    fCurrentSettings->storeVisualSettings();
+    
     delete fSettingsBox;
     delete fTempBox;
     delete fCurrentSettings;
@@ -223,6 +225,8 @@ bool AudioCreator::didSettingChanged(){
     if(driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex())
         return true;
     else{
+        
+        printf("Current Settings = %p || Temp = %p\n", fCurrentSettings, fTempSettings);
         
         if(!((*fCurrentSettings)==(*fTempSettings)))
             return true;

@@ -16,7 +16,7 @@ float JA_audioFader::crossfade_calculation(int i, int j){
     bool connectFadeIn = false;
     
     list<pair<string, string> >::const_iterator it;
-    
+     
     for (it = fConnections.begin(); it != fConnections.end(); it++){
         
         string jackPort(jack_port_name(fOutputPorts[j]));
@@ -190,9 +190,11 @@ int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 {        
     list<pair<string, string> >::const_iterator it;
     
-    for (it = Connections.begin(); it != Connections.end(); it++)
+    for (it = Connections.begin(); it != Connections.end(); it++){
+     
+//        printf("CONNECT = %s TO %s\n", it->first.c_str(), it->second.c_str());
         jack_connect(fClient, it->first.c_str(), it->second.c_str());
-        
+    }
     return 0;
 }
 

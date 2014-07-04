@@ -25,7 +25,7 @@ class AudioFader_Implementation
 {
     protected:
     
-    bool    fDoWeFadeOut;
+    volatile bool    fDoWeFadeOut;
     bool    fDoWeFadeIn;
     
     float   fInCoef;                 // Coefficients of multiplication   

@@ -24,20 +24,22 @@ class FJUI
     public : 
     
     //Saves the connections into the filename
-    void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
+    static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
 	{
         std::ofstream f(filename, ios::trunc);
         
         std::list<std::pair<string, string> > ::const_iterator it;
         
-		for (it=Connections.begin(); it!=Connections.end(); it++)
+		for (it=Connections.begin(); it!=Connections.end(); it++){
 			f << endl<< it->first.c_str() << ' ' << it->second.c_str();
-
+        
+            printf("Save Connection = %s || %s\n", it->first.c_str(), it->second.c_str());
+        }
 		f.close();
 	}
     
 	// Returns the connections saved in filename
-	std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
+	static std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
 	{
 		std::ifstream f(filename);
 		std::string  g;
@@ -47,6 +49,8 @@ class FJUI
 		while (f.good()) {
 			f >> g >> n;
 
+            printf("F || G connect = %s || %s\n", g.c_str(), n.c_str());
+            
             Connections.push_back(make_pair(g,n));
 		}
 		f.close();
@@ -56,7 +60,7 @@ class FJUI
     }
     
     //Updating the connections in the file following the changeTable
-    void  update(const char* filename, std::list<pair<string,string> > changeTable)
+    static void  update(const char* filename, std::map<std::string, std::string> changeTable)
 	{
         std::list<std::pair<std::string, std::string> > 	Connections;
         
@@ -66,14 +70,14 @@ class FJUI
 		while (readF.good()) {
 			readF >> port1 >> port2;
             
-            std::list<std::pair<std::string,std::string> >::iterator it;
+            std::map<std::string,std::string>::iterator it;
             for(it = changeTable.begin(); it != changeTable.end() ; it++){
                 
                 size_t pos = port1.find(it->first);
                 if(pos != std::string::npos){
                     char nextCharacter = port1[pos+it->first.length()];
                     //This way freeverb1 is not recognized in freeverb12!
-                    if(nextCharacter == ':' || nextCharacter == ' ' || nextCharacter == '_'){
+                    if(nextCharacter == ':'){
                         port1.erase(pos, it->first.length());
                         port1.insert(pos, it->second);
                         break;
@@ -84,7 +88,7 @@ class FJUI
                 size_t pos = port2.find(it->first);
                 if(pos != std::string::npos){
                     char nextCharacter = port2[pos+it->first.length()];
-                    if(nextCharacter == ':' || nextCharacter == ' ' || nextCharacter == '_'){
+                    if(nextCharacter == ':'){
                         port2.erase(pos, it->first.length());
                         port2.insert(pos, it->second);
                         break;
@@ -95,8 +99,8 @@ class FJUI
             Connections.push_back(make_pair(port1, port2));
 		}
 		readF.close();
-    
-        saveConnections(filename, Connections);
+        
+        FJUI::saveConnections(filename, Connections);
     }
 };
 

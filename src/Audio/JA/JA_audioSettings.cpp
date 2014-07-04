@@ -7,17 +7,50 @@
 //
 
 #include "JA_audioSettings.h"
+#include "FLSettings.h"
 
-JA_audioSettings::JA_audioSettings(QGroupBox* parent) : AudioSettings(parent){}
+JA_audioSettings::JA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
+
+    QFormLayout* layout = new QFormLayout;
+    
+    fAutoConnectBox = new QCheckBox(parent);
+    
+    layout->addRow(new QLabel(tr("Auto-Connection to physical ports")), fAutoConnectBox);
+    
+    parent->setLayout(layout);
+    
+    setVisualSettings();
+
+}
 
 JA_audioSettings::~JA_audioSettings(){}
 
-void JA_audioSettings::setVisualSettings(){}
-void JA_audioSettings::storeVisualSettings(){}
+void JA_audioSettings::setVisualSettings(){
 
-bool JA_audioSettings::isEqual(AudioSettings* /*as*/){
+    bool checked = FLSettings::getInstance()->value("General/Audio/Jackaudio/AutoConnect", true).toBool();
+    
+    if(checked)
+        fAutoConnectBox->setCheckState(Qt::Checked);
+    else
+        fAutoConnectBox->setCheckState(Qt::Unchecked);
+
+}
+void JA_audioSettings::storeVisualSettings(){
+
+    FLSettings::getInstance()->setValue("General/Audio/Jackaudio/AutoConnect", get_AutoConnect());
+}
+
+bool JA_audioSettings::isEqual(AudioSettings* as){
     
     return true;
+}
+
+bool JA_audioSettings::get_AutoConnect(){
+    
+    if(fAutoConnectBox->checkState() == Qt::Checked)
+        return true;
+    else
+        return false;
 }
 
 QString JA_audioSettings::get_ArchiName(){

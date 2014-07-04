@@ -26,7 +26,6 @@
 
 #include "faust/gui/FUI.h"
 
-#include "FLEffect.h"
 #ifndef _WIN32
 #include "HTTPWindow.h"
 #endif
@@ -38,6 +37,7 @@ class QTGUI;
 class FLToolBar;
 class OSCUI;
 class FLWindow;
+class FLWinSettings;
 class remote_dsp_factory;
 
 using namespace std;
@@ -58,20 +58,15 @@ class FLWindow : public QMainWindow
     
         QString          fHome;        //Folder of currentSession
     
-        FLToolBar*      fMenu;
+        FLToolBar*      fToolBar;
         void            setToolBar();
-        void            set_MenuBar();
-        
         QMenu*          fWindowMenu;
-        QMenu*          fNavigateMenu;
-        QAction**       fRecentFileAction;
-        QAction**       fRrecentSessionAction;
-        QAction**       fIrecentSessionAction;
-        QList<QAction*>     fFrontWindow;
+        void            set_MenuBar(QList<QMenu*> appMenus);
     
-        FLEffect*         fEffect;         //Effect currently running in the window
-    
-        QSettings*      fSettings;       //All the window settings
+        FLWinSettings*      fSettings;       //All the window settings
+        bool                fIsDefault;
+        QString             fSource;
+        QDateTime           fCreationDate;
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
@@ -110,7 +105,7 @@ class FLWindow : public QMainWindow
         QList<std::pair<QString, QString> > fRecentFiles;
         QStringList                 fRecentSessions;
     
-//    Set fMenu with current windows options
+//    Set fToolBar with current windows options
         void            setWindowsOptions();
     
     signals :
@@ -118,39 +113,14 @@ class FLWindow : public QMainWindow
         void            drop(QList<QString>);
         void            error(const char*);
     
-        void            create_Empty_Window();
-        void            open_New_Window();
-        void            open_File(QString);
-        void            takeSnapshot();
-        void            recallSnapshotFromMenu();
-        void            importSnapshotFromMenu();
         void            closeWin();
         void            shut_AllWindows();
-        void            close_AllWindows();
         void            edit_Action();
-        void            paste_Action();
         void            duplicate_Action();
-        void            httpd_View_Window();
-        void            svg_View_Action();
         void            export_Win();
-        void            show_aboutQt();
-        void            show_preferences();
-        void            apropos();
-        void            show_presentation_Action();
-        void            recall_Snapshot(QString, bool);
-        void            front(QString);
-        void            open_Ex(QString);
         void            migrate(const QString& ip, int port);
     
     private slots :
-        void            create_Empty();
-        void            open_New();
-        void            open_Example();
-        void            take_Snapshot();
-        void            recallSnapshot();
-        void            importSnapshot();
-        void            shut_All();
-        void            closeAll();
         void            edit();
         void            paste();
         void            duplicate();
@@ -159,13 +129,6 @@ class FLWindow : public QMainWindow
 #endif
         void            svg_View();
         void            exportManage();
-        void            aboutQt();
-        void            preferences();
-        void            aboutFaustLive();
-        void            show_presentation();
-        void            open_Recent_File();
-        void            recall_Recent_Session();
-        void            import_Recent_Session();
         void            redirectSwitch(const QString& ip, int port);
     
     public :
@@ -179,7 +142,7 @@ class FLWindow : public QMainWindow
     //@param : osc/httpd port = port on which remote interface will be built 
     //@param : machineName = in case of remote processing, the name of remote machine
 
-        FLWindow(QString& baseName, int index, FLEffect* eff, const QString& appHome, QSettings* windowSettings);
+        FLWindow(QString& baseName, int index, const QString& appHome, FLWinSettings* windowSettings, QList<QMenu*> appMenus);
         virtual ~FLWindow();
     
     //To close a window the safe way
@@ -205,13 +168,13 @@ class FLWindow : public QMainWindow
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
     //@param : error = in case init fails, the error is filled
-        bool            init_Window(int typeInit, QString& errorMsg);
+        bool            init_Window(int init, const QString& source, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
     //Returns false if any allocation was impossible and the error buffer is filled
     //@param : effect = effect that reemplaces the current one
     //@param : error = in case update fails, the error is filled
-        bool            update_Window(FLEffect* newEffect, QString& error);
+        bool            update_Window(const QString& source);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -237,8 +200,6 @@ class FLWindow : public QMainWindow
 
     //Save the graphical and audio connections of current DSP
         void            save_Window();
-    //Update the FJUI file following the changes table
-        void            update_ConnectionFile(std::list<std::pair<std::string, std::string> > changeTable);
     
     //Recall the parameters (graphical and audio)
         void            recall_Window();
@@ -246,9 +207,9 @@ class FLWindow : public QMainWindow
     //Accessors to parameters
         QString         get_nameWindow();
         int             get_indexWindow();
-        FLEffect*       get_Effect();
-        int             get_x();
-        int             get_y();
+        QString         getPath();
+        QString         getName();
+        QString         get_source();
         int             get_Port();
         int             get_oscPort();
         bool            is_Default();
@@ -272,16 +233,6 @@ class FLWindow : public QMainWindow
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
-    //Menu action
-        void            set_RecentFile(QList<std::pair<QString, QString> > recents);
-        void            update_RecentFileMenu();
-    
-        void            set_RecentSession(QStringList recents);
-        void            update_RecentSessionMenu();
-    
-        void            updateNavigateMenu(QList<QAction*> wins);
-        void            initNavigateMenu(QList<QAction*> wins);
-    
     public slots :
     //Modification of the compilation options
         void            modifiedOptions();
@@ -295,10 +246,8 @@ class FLWindow : public QMainWindow
 #endif
         void            switchOsc(bool on);
         void            disableOSCInterface();
-        void            frontShowFromMenu(); 
         void            shut();
 
-    
     
     //Raises and shows the window
         void            frontShow();

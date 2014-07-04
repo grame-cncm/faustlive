@@ -21,7 +21,6 @@ class JA_audioManager : public AudioManager{
 
     Q_OBJECT
 
-    FJUI*                   fInterface;
     JA_audioFader*          fCurrentAudio;
     
     public :
@@ -43,8 +42,7 @@ class JA_audioManager : public AudioManager{
     
     virtual void connect_Audio(string homeDir);
     virtual void save_Connections(string homeDir);
-    virtual void change_Connections(string homeDir, list<pair<string, string> > changeTable);
-    
+
     virtual int get_buffer_size();
     virtual int get_sample_rate();
 };

@@ -62,7 +62,6 @@ void myMessageOutput(QtMsgType type, const char *msg)
             app->shut_Window();
             
             app->update_CurrentSession();
-            app->sessionContentToFile();
             
             app->errorPrinting(msg);
             

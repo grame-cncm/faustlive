@@ -1,11 +1,12 @@
 //
-//  FaustLiveApp.h
+//  FLSettings.h
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// FLApp is the centerpiece of FaustLive. The class controls all the windows, menu and actions of a user. 
+// FLSettings contains the settings of the application. Its hierarchy is described in FaustLive documentation.
+// It is a singleton in order to be easily acccessible from any another class.
 
 #ifndef _FLSettings_h
 #define _FLSettings_h
