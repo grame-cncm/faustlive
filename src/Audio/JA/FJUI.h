@@ -20,7 +20,6 @@ using namespace std;
 
 class FJUI
 {
-    
     public : 
     
     //Saves the connections into the filename
@@ -30,11 +29,9 @@ class FJUI
         
         std::list<std::pair<string, string> > ::const_iterator it;
         
-		for (it=Connections.begin(); it!=Connections.end(); it++){
+		for (it=Connections.begin(); it!=Connections.end(); it++)
 			f << endl<< it->first.c_str() << ' ' << it->second.c_str();
-        
-            printf("Save Connection = %s || %s\n", it->first.c_str(), it->second.c_str());
-        }
+
 		f.close();
 	}
     
@@ -49,7 +46,7 @@ class FJUI
 		while (f.good()) {
 			f >> g >> n;
 
-            printf("F || G connect = %s || %s\n", g.c_str(), n.c_str());
+            printf("Connect = %s To %s\n", g.c_str(), n.c_str());
             
             Connections.push_back(make_pair(g,n));
 		}

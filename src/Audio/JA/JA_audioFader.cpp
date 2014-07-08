@@ -190,11 +190,9 @@ int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 {        
     list<pair<string, string> >::const_iterator it;
     
-    for (it = Connections.begin(); it != Connections.end(); it++){
-     
-//        printf("CONNECT = %s TO %s\n", it->first.c_str(), it->second.c_str());
+    for (it = Connections.begin(); it != Connections.end(); it++)
         jack_connect(fClient, it->first.c_str(), it->second.c_str());
-    }
+
     return 0;
 }
 

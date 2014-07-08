@@ -27,7 +27,7 @@ JA_audioSettings::~JA_audioSettings(){}
 
 void JA_audioSettings::setVisualSettings(){
 
-    bool checked = FLSettings::getInstance()->value("General/Audio/Jackaudio/AutoConnect", true).toBool();
+    bool checked = FLSettings::getInstance()->value("General/Audio/Jack/AutoConnect", true).toBool();
     
     if(checked)
         fAutoConnectBox->setCheckState(Qt::Checked);
@@ -37,7 +37,7 @@ void JA_audioSettings::setVisualSettings(){
 }
 void JA_audioSettings::storeVisualSettings(){
 
-    FLSettings::getInstance()->setValue("General/Audio/Jackaudio/AutoConnect", get_AutoConnect());
+    FLSettings::getInstance()->setValue("General/Audio/Jack/AutoConnect", get_AutoConnect());
 }
 
 bool JA_audioSettings::isEqual(AudioSettings* as){
@@ -54,5 +54,5 @@ bool JA_audioSettings::get_AutoConnect(){
 }
 
 QString JA_audioSettings::get_ArchiName(){
-    return "Jackaudio";
+    return "Jack";
 }
