@@ -329,7 +329,7 @@ void FLToolBar::update_remoteMachine(){
     else{
         
         fFormerIp = fSettings->value("MachineIP", "127.0.0.1").toString();
-        fFormerPort = fSettings->value("MachinePort", 7777).toString();
+        fFormerPort = fSettings->value("MachinePort", 7777).toInt();
         fFormerName = fRemoteButton->text();
         
         fSettings->setValue("MachineIP", fIPToHostName[toto].first.c_str());

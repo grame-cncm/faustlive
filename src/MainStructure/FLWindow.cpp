@@ -102,42 +102,26 @@ void FLWindow::frontShow(){
     setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 }
 
-QString FLWindow::getErrorFromCode(int code){
-    
-#ifdef REMOTE
-    if(code == ERROR_FACTORY_NOTFOUND){
-        return "Impossible to create remote factory";
-    }
-    
-    if(code == ERROR_INSTANCE_NOTCREATED){
-        return "Impossible to create DSP Instance";
-    }
-    else if(code == ERROR_NETJACK_NOTSTARTED){
-        return "NetJack Master not started";
-    }
-    else if (code == ERROR_CURL_CONNECTION){
-        return "Curl connection failed";
-    }
-#endif
-    
-    return "ERROR not recognized";
-}
-
 //Initialization of User Interface + StartUp of Audio Client
 //@param : init = if the window created is a default window.
 //@param : error = in case init fails, the error is filled
 bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
+
+    FLSessionManager* sessionManager = FLSessionManager::_Instance();
     
-    //    if(fEffect->isLocal()){
-    //
+    QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
+    
+    printf("ERROR OF CREATE FACTORY = %s\n", errorMsg.toStdString().c_str());
+    
+    if(factorySetts.second == NULL)
+        return false;
+    
     if(!init_audioClient(errorMsg))
         return false;
     
-    FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
-    fCurrent_DSP = sessionManager->createDSP(source, fSettings, errorMsg);
+    fCurrent_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
     
     
     //#ifdef REMOTE
@@ -257,9 +241,8 @@ bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
 }
 
 //Modification of the process in the window
-//@param : effect = effect that reemplaces the current one
-//@param : error = in case update fails, the error is filled
-bool FLWindow::update_Window(const QString& source){
+//@param : source = source that reemplaces the current one
+void FLWindow::update_Window(const QString& source){
 
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
@@ -283,7 +266,7 @@ bool FLWindow::update_Window(const QString& source){
 
         QString savedName = fSettings->value("Name", "").toString();
         
-        save_Window(); 
+        save_Window();
         hide();
         
         //creating the new DSP instance
@@ -291,10 +274,25 @@ bool FLWindow::update_Window(const QString& source){
         //    if(newEffect->isLocal())
         
         QString errorMsg("");
-        
+            
         FLSessionManager* sessionManager = FLSessionManager::_Instance();
         
-        charging_DSP = sessionManager->createDSP(source, fSettings, errorMsg);
+        QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
+        
+        if(factorySetts.second == NULL)
+            return;
+        
+        if(!init_audioClient(errorMsg))
+            return;
+        
+        charging_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
+        
+        
+//        FLSessionManager* sessionManager = FLSessionManager::_Instance();
+        
+//        createFactory(source, fSettings, errorMsg);
+        
+//        charging_DSP = sessionManager->createDSP(source, fSettings, errorMsg);
     
         //#ifdef REMOTE
         //    else{
@@ -353,12 +351,15 @@ bool FLWindow::update_Window(const QString& source){
                     
                     //SWITCH the current DSP as the dropped one
                     
-                    //            dsp* VecInt;
-                    //            VecInt = fCurrent_DSP;
-                    fCurrent_DSP = charging_DSP; 
-                    //            charging_DSP = VecInt;
+                    dsp* VecInt = fCurrent_DSP;
+                    fCurrent_DSP = charging_DSP;
+                    
+                    FLSessionManager::_Instance()->deleteDSPandFactory(VecInt);
+                    
+                    charging_DSP = NULL;
                     
                     fSource = source;
+                    fIsDefault = false;
                     isUpdateSucessfull = true;
                 }
                 else{
@@ -398,10 +399,12 @@ bool FLWindow::update_Window(const QString& source){
         
         show();
         FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
-        return isUpdateSucessfull;
+        
+        if(!isUpdateSucessfull)
+            errorPrint(errorMsg);
+        else
+            emit windowNameChanged();
     }
-    else 
-        return true;
 }
 
 //------------TOOLBAR RELATED ACTIONS
@@ -721,12 +724,7 @@ void FLWindow::close_Window(){
     }
 #endif
     
-//    if(fEffect->isLocal())
-//        deleteDSPInstance((llvm_dsp*)fCurrent_DSP);
-#ifdef REMOTE
-    else
-        deleteRemoteDSPInstance((remote_dsp*)fCurrent_DSP);
-#endif
+    FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
     
     if(fAudioManager)
         delete fAudioManager;
@@ -886,21 +884,16 @@ bool FLWindow::update_AudioArchitecture(QString& error){
         return false;
 }
 
-//Initialization of audio Client
+//Initialization of audio Client Reimplemented
 bool FLWindow::init_audioClient(QString& error){
     
-	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str()))
+	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), fSettings->value("InputNumber", 0).toInt(), fSettings->value("OutputNumber", 0).toInt())){
+     
+        fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
+        fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
+        
         return true;
-    else
-        return false;
-    
-}
-
-//Initialization of audio Client Reimplemented
-bool FLWindow::init_audioClient(QString& error, int numInputs, int numOutputs){
-    
-	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numInputs, numOutputs))
-        return true;
+    }
     else
         return false;
     
@@ -946,6 +939,10 @@ QString FLWindow::get_nameWindow(){
     return fWindowName;
 }
 
+QString FLWindow::getSHA(){
+    return fSettings->value("SHA", "").toString();
+}
+
 QString FLWindow::getName(){
     return fSettings->value("Name", "").toString();
 }
@@ -982,23 +979,23 @@ void FLWindow::resetHttpInterface(){
 }
 
 void FLWindow::allocateHttpInterface(){
-    //    
-    //    if(fToolBar->isHttpOn()){
-    //        
-    //        if(fHttpInterface != NULL)    
-    //            delete fHttpInterface;
-    //        
-    //        QString optionPort = "-port";
-    //        QString windowTitle = fWindowName + ":" + fEffect->getName();
-    //        
-    //        char* argv[3];
-    //        
-    //        argv[0] = (char*)(windowTitle.toLatin1().data());
-    //        argv[1] = (char*)(optionPort.toLatin1().data());
-    //        argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
-    //        
-    //        fHttpInterface = new httpdUI(argv[0], 3, argv);
-    //    }
+    
+    if(fToolBar->isHttpOn()){
+        
+        if(fHttpInterface != NULL)    
+            delete fHttpInterface;
+        
+        QString optionPort = "-port";
+        QString windowTitle = fWindowName + ":" + getName();
+        
+        char* argv[3];
+        
+        argv[0] = (char*)(windowTitle.toLatin1().data());
+        argv[1] = (char*)(optionPort.toLatin1().data());
+        argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
+        
+        fHttpInterface = new httpdUI(argv[0], 3, argv);
+    }
 }
 
 void FLWindow::switchHttp(bool on){
@@ -1185,32 +1182,36 @@ void FLWindow::edit(){
     if(source == ""){
 
         QString tempPath = fHome + "/Windows/" + fWindowName + "/_TEMP_" + fSettings->value("Name", "").toString() + ".dsp";
-        
-        QFile f(tempPath);
-        
-        if(f.open(QFile::WriteOnly)){
-            
-            QTextStream textWriting(&f);
-            
-            textWriting<<fSource;
-            
-            f.close();
-        }
-        f.setPermissions(QFile::ReadOwner);
+//        
+//        QFile f(tempPath);
+//        
+//        if(f.open(QFile::WriteOnly)){
+//            
+//            QTextStream textWriting(&f);
+//            
+//            textWriting<<fSource;
+//            
+//            f.close();
+//        }
+//        f.setPermissions(QFile::ReadOwner);
         
         FLFileWatcher::getInstance()->startWatcher(tempPath, this);
         
         pathToOpen = tempPath;
     }
     
+    QString shaFolder = fHome + "/SHAFolder/" + fSettings->value("SHA", "").toString();
+    
+    touchFolder(shaFolder);
+    
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    //        QString error = source + " could not be opened!";
-    //        
-    //        if(!b)
-    //            fErrorWindow->print_Error(error);
+    QString error = source + " could not be opened!";
+    
+    if(!b)
+        errorPrint(error);
 
 }
 
@@ -1244,7 +1245,10 @@ void FLWindow::svg_View(){
     
     QString shaValue = fSettings->value("SHA", "").toString();
     
-    QString pathToOpen = fHome + "/SHAFolder/" + shaValue + "/" + shaValue + "-svg/process.svg";
+    QString shaFolder = fHome + "/SHAFolder/" + shaValue;
+    QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
+    
+    touchFolder(shaFolder);
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
@@ -1266,11 +1270,11 @@ void FLWindow::shut(){
 }
 
 //Redirection of a received error
-void FLWindow::errorPrint(const char* msg){
+void FLWindow::errorPrint(const QString& msg){
     emit error(msg);
 }
 
-int FLWindow::RemoteDSPErrorCallback(int error_code, void* arg){
+int FLWindow::RemoteDSPCallback(int error_code, void* arg){
     
 #ifdef REMOTE
     QDateTime currentTime(QDateTime::currentDateTime());

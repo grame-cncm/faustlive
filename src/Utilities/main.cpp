@@ -47,24 +47,12 @@ FLApp* app;
 #ifndef _WIN32
 void myMessageOutput(QtMsgType type, const char *msg)
 {
+    printf("Message Output = %s\n", msg);
     switch (type) {
-        case QtDebugMsg:
-            printf("DEBUG MESSAGE\n");
-            break;
-        case QtWarningMsg:
-            printf("WARNING MESSAGE\n");
-            break;
-        case QtCriticalMsg:
-            printf("CRITICAL MESSAGE\n");
-            break;
         case QtFatalMsg:
             printf("FATAL\n");
-            app->shut_Window();
-            
             app->update_CurrentSession();
-            
-            app->errorPrinting(msg);
-            
+            app->closeAllWindows();
             abort();
     }
 }

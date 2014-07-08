@@ -10,9 +10,15 @@
 
 using namespace std;
 
+void writeFile(const QString& filePath, const QString& content);
+
 QString pathToContent(const QString& path);
 
-bool deleteDirectoryAndContent(QString& directory);
+void touchFolder(const QString& path);
+
+bool executeInstruction(const QString& instruct, QString& errorMsg);
+
+void deleteDirectoryAndContent(const QString& directory);
 
 bool rmDir(const QString &dirPath);
 
@@ -23,5 +29,21 @@ bool isStringInt(const char* word);
 QString searchLocalIP();
 
 const char* lopts(char *argv[], const char *name, const char* def);
+
+int get_numberParameters(const QString& compilOptions);
+
+string parse_compilationParams(QString& compilOptions);
+
+bool parseKey(vector<string> options, const string& key, int& position);
+
+bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
+
+void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
+
+vector<string> reorganizeCompilationOptionsAux(vector<string>& options);
+
+string FL_reorganize_compilation_options(QString compilationParams);
+
+string FL_generate_sha1(const string& dsp_content);
 
 #endif

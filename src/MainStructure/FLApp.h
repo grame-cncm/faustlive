@@ -10,14 +10,14 @@
 #ifndef _FLApp_h
 #define _FLApp_h
 
-#include <map>
-
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
 
 #define numberWindows 60
+#define kMAXRECENT 4
+#define kMaxSHAFolders 100
 
 class FLServerHttp;
 class FLExportManager;
@@ -30,24 +30,14 @@ class FLWinSettings;
 class FLEffect;
 class AudioCreator;
 
+#include <map>
 using namespace std;
-
-#define FLVERSION APP_VERSION
-
-#define DEFAULTNAME "DefaultName"
-
-#define kMAXRECENTFILES 4
-#define kMAXRECENTSESSIONS 3
 
 class FLApp : public QApplication
 {
     Q_OBJECT
     
     private :
-    
-        QString    createWindowFolder(const QString& sessionFolder, int index);
-        QString    copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
-    
     
     //Menu Bar and it's sub-Menus
     
@@ -72,7 +62,6 @@ class FLApp : public QApplication
         void                updateNavigateMenus();
 
         void                setup_Menu();
-        void                redirectMenuToWindow(FLWindow* win);
     
         QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     
@@ -112,53 +101,51 @@ class FLApp : public QApplication
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
         QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
+    //Save/Recall the recent Files/Sessions 
+        void                save_Recent(QList<QString>& recents, const QString& pathToSettings);
+    
+        void                recall_Recent(QList<QString>& recents, const QString& pathToSettings);
+    
     //Recent Files Parameters and functions
-        QList<std::pair<QString, QString> >         fRecentFiles;
+        QList<QString>        fRecentFiles;
         void                recall_Recent_Files();
         void                save_Recent_Files();
-        void                set_Current_File(const QString& pathName, const QString& effName);
+        void                set_Current_File(const QString& pathName);
         void                update_Recent_File();
+
+    //Recent Sessions Parameters and functions
+        QList<QString>         fRecentSessions;
+        void                save_Recent_Sessions();
+        void                recall_Recent_Sessions(); 
+        void                set_Current_Session(const QString& pathName);
+        void                update_Recent_Session();
+    
+    //
+        QString             createWindowFolder(const QString& sessionFolder, int index);
+        QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
+    
+        void                cleanSHAFolder();
     
     //When the application is launched without parameter, this timer will start a initialized window
         QTimer*             fInitTimer;
         QTimer*             fEndTimer;
     
     //Preference Menu Objects and Functions
-        FLPreferenceWindow* fPrefDialog;     //Preference Window
-        AudioCreator*       fAudioCreator;
-    
-        void                init_PreferenceWindow();
+        FLPreferenceWindow*     fPrefDialog;     //Preference Window
+        AudioCreator*           fAudioCreator;
     
         void                update_AudioArchitecture();
-
-    //Recent Sessions Parameters and functions
-        QStringList         fRecentSessions;
-        void                save_Recent_Sessions();
-        void                recall_Recent_Sessions(); 
-        void                set_Current_Session(const QString& pathName);
-        void                update_Recent_Session();
-        
+    
     //Save and Recall Session actions
 		bool				fRecalling;		//True when recalling for the app not to close whith last window
     
-    //In case of an import, those steps are necessary to modify the session before opening it
-//        std::list<std::pair<std::string,std::string> > establish_nameChanges(QList<WinInSession*>* session);
-    
     //In case of drops on Application Icon, this event is called
         virtual bool        event(QEvent *ev);
-    
-    //Functions of read/write of a session description file
-        QString             parseNextOption(QString& optionsCompilation);
-    
-    //Reset of the Folders contained in the current Session Folder
-        void                reset_CurrentSession();
     
     //Functions of rehabilitation if sources disapears
         bool                recall_CurrentSession();
     
     //-----------------Questions about the current State
-
-        QList<QString>        getNameRunningEffects();
 
         FLWindow*           getActiveWin();
         FLWindow*           getWinFromHttp(int port);
@@ -182,6 +169,7 @@ class FLApp : public QApplication
         void                openExampleAction(const QString& exampleName);
     
     //---------File
+        void                connectWindowSignals(FLWindow* win);
         void                create_Empty_Window();
         bool                createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
         void                open_New_Window();
@@ -205,7 +193,7 @@ class FLApp : public QApplication
         void                import_Recent_Session();
     
     //--------Navigate
-    
+        void                updateNavigateText();
         void                frontShow();
     
     //--------Window
@@ -221,7 +209,6 @@ class FLApp : public QApplication
         void                Preferences();
     
     //---------Help
-        void                apropos();
         void                version_Action();
         void                show_presentation_Action();
     
@@ -244,11 +231,10 @@ class FLApp : public QApplication
     
         virtual void        closeAllWindows();
         void                shut_AllWindows();
-        void                shut_Window(); 
         void                update_CurrentSession();
 
     //--------Error received
-        void                errorPrinting(const char* msg);
+        void                errorPrinting(const QString& msg);
 
 };
 

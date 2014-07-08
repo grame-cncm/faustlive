@@ -60,7 +60,7 @@ void FLPresentationWindow::init(){
     layout->addWidget(image);
     iconeBox->setLayout(layout);
     
-    QLabel* text = new QLabel("<h2>WELCOME TO FAUST LIVE</h2>\nDynamic Faust Compiler");  
+    QLabel* text = new QLabel("<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler");  
     text->setAlignment(Qt::AlignCenter);
     text->setStyleSheet("*{color: black}");
     
@@ -198,7 +198,10 @@ void FLPresentationWindow::init(){
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
-    QLabel* more = new QLabel("<p>by GRAME, Centre de Creation Musicale");  
+    QString grame = "<p>Version ";
+    grame   += APP_VERSION;
+    grame   += " by GRAME, Centre de Creation Musicale";
+    QLabel* more = new QLabel(grame);  
     more->setAlignment(Qt::AlignRight);
     
     layout4->addWidget(more);

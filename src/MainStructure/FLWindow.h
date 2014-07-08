@@ -111,7 +111,7 @@ class FLWindow : public QMainWindow
     signals :
     //Informing of a drop, a close event, ...
         void            drop(QList<QString>);
-        void            error(const char*);
+        void            error(const QString&);
     
         void            closeWin();
         void            shut_AllWindows();
@@ -119,6 +119,7 @@ class FLWindow : public QMainWindow
         void            duplicate_Action();
         void            export_Win();
         void            migrate(const QString& ip, int port);
+        void            windowNameChanged();
     
     private slots :
         void            edit();
@@ -162,19 +163,14 @@ class FLWindow : public QMainWindow
 
         bool           buildInterfaces(dsp* dsp, const QString& nameEffect);
     
-    
-        QString         getErrorFromCode(int code);
-    
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
     
     //Udpate the effect running in the window and all its related parameters.
-    //Returns false if any allocation was impossible and the error buffer is filled
     //@param : effect = effect that reemplaces the current one
-    //@param : error = in case update fails, the error is filled
-        bool            update_Window(const QString& source);
+        void            update_Window(const QString& source);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -186,9 +182,7 @@ class FLWindow : public QMainWindow
         static void     audioShutDown(const char* msg, void* arg);
         void            audioShutDown(const char* msg);
     
-    
         bool            init_audioClient(QString& error);
-        bool            init_audioClient(QString& error, int numInputs, int numOutputs);
         bool            setDSP(QString& error);
     
     //Drag and drop operations
@@ -209,6 +203,7 @@ class FLWindow : public QMainWindow
         int             get_indexWindow();
         QString         getPath();
         QString         getName();
+        QString         getSHA();
         QString         get_source();
         int             get_Port();
         int             get_oscPort();
@@ -252,9 +247,9 @@ class FLWindow : public QMainWindow
     //Raises and shows the window
         void            frontShow();
     //Error received
-        void            errorPrint(const char* msg);
+        void            errorPrint(const QString& msg);
 
-        static          int RemoteDSPErrorCallback(int error_code, void* arg);
+        static          int RemoteDSPCallback(int error_code, void* arg);
 };
 
 #endif

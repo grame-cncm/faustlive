@@ -22,7 +22,7 @@
 #include "FLExportManager.h"
 #include "utilities.h"
 
-#ifdef __APPLE__
+#ifdef REMOTE
 #include "faust/remote-dsp.h"
 #endif
 
@@ -32,8 +32,6 @@
 
 #include "FJUI.h"
 
-#include <sstream>
-
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
@@ -42,6 +40,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     create_Session_Hierarchy();
     
     FLSettings::initInstance(fSessionFolder);
+    FLSessionManager::initInstance(fSessionFolder);
+    connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
@@ -56,18 +56,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 	//Initializing Recalling 
 	fRecalling = false;
     
-    // Presentation Window Initialization
-    fPresWin = new FLPresentationWindow;
-    connect(fPresWin, SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
-    connect(fPresWin, SIGNAL(openWin()), this, SLOT(open_New_Window()));
-    connect(fPresWin, SIGNAL(openSession()), this, SLOT(recallSnapshotFromMenu()));
-    connect(fPresWin, SIGNAL(openPref()), this, SLOT(Preference()));
-    connect(fPresWin, SIGNAL(openHelp()), this, SLOT(apropos()));
-    connect(fPresWin, SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
-    
-    fPresWin->setWindowFlags(Qt::FramelessWindowHint);  
-    fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
-    
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));
@@ -78,22 +66,21 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fMenuBar = new QMenuBar(NULL);
     
     //Initializing menu actions 
-    fRecentFileAction = new QAction* [kMAXRECENTFILES];
-    for(int i=0; i<kMAXRECENTFILES; i++){
+    fRecentFileAction = new QAction* [kMAXRECENT];
+    for(int i=0; i<kMAXRECENT; i++){
         fRecentFileAction[i] = new QAction(NULL);
         fRecentFileAction[i]->setVisible(false);
         connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
     }
     
-    fRrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
-    for(int i=0; i<kMAXRECENTSESSIONS; i++){
+    fRrecentSessionAction = new QAction* [kMAXRECENT];
+    fIrecentSessionAction = new QAction* [kMAXRECENT];
+    
+    for(int i=0; i<kMAXRECENT; i++){
         fRrecentSessionAction[i] = new QAction(NULL);
         fRrecentSessionAction[i]->setVisible(false);
         connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
-    }
-    
-    fIrecentSessionAction = new QAction* [kMAXRECENTSESSIONS];
-    for(int i=0; i<kMAXRECENTSESSIONS; i++){
+
         fIrecentSessionAction[i] = new QAction(NULL);
         fIrecentSessionAction[i]->setVisible(false);
         connect(fIrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(import_Recent_Session()));
@@ -110,6 +97,18 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fErrorWindow->init_Window();
     connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 
+
+    // Presentation Window Initialization
+    fPresWin = new FLPresentationWindow;
+    connect(fPresWin, SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
+    connect(fPresWin, SIGNAL(openWin()), this, SLOT(open_New_Window()));
+    connect(fPresWin, SIGNAL(openSession()), this, SLOT(recallSnapshotFromMenu()));
+    connect(fPresWin, SIGNAL(openPref()), this, SLOT(Preferences()));
+    connect(fPresWin, SIGNAL(openHelp()), fHelpWindow, SLOT(show()));
+    connect(fPresWin, SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
+    
+    fPresWin->setWindowFlags(Qt::FramelessWindowHint);  
+    fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
     
     //Initialiazing Remote Drop Server
 #ifndef _WIN32
@@ -129,10 +128,8 @@ FLApp::~FLApp(){
     save_Recent_Files();
     save_Recent_Sessions();
     
-    for(int i=0; i<kMAXRECENTFILES; i++){
+    for(int i=0; i<kMAXRECENT; i++){
         delete fRecentFileAction[i];
-    }
-    for(int i=0; i<kMAXRECENTSESSIONS; i++){
         delete fRrecentSessionAction[i];
         delete fIrecentSessionAction[i];
     }
@@ -171,7 +168,7 @@ void FLApp::create_Session_Hierarchy(){
 	separationChar = "/";
 #endif
     
-    fSessionFolder += FLVERSION;
+    fSessionFolder += APP_VERSION;
     if(!QFileInfo(fSessionFolder).exists()){
         QDir direct(fSessionFolder);
         direct.mkdir(fSessionFolder);
@@ -348,7 +345,7 @@ QMenu* FLApp::create_RecentFileMenu(){
     
     QMenu* openRecentAction = new QMenu(tr("&Open Recent File"), NULL);
     
-    for(int i=0; i<kMAXRECENTFILES; i++)
+    for(int i=0; i<kMAXRECENT; i++)
         openRecentAction->addAction(fRecentFileAction[i]);
     
     return openRecentAction;
@@ -366,7 +363,7 @@ QMenu* FLApp::create_LoadSessionMenu(bool recallOrImport){
     
     QMenu* loadRecentMenu = new QMenu( menuName, NULL);
     
-    for(int i=0; i<kMAXRECENTSESSIONS; i++){
+    for(int i=0; i<kMAXRECENT; i++){
     
         if(recallOrImport)
             loadRecentMenu->addAction(fRrecentSessionAction[i]);
@@ -399,7 +396,7 @@ QMenu* FLApp::create_HelpMenu(){
     
     QAction* aboutAction = new QAction(tr("&Help..."), NULL);
     aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), this, SLOT(apropos()));
+    connect(aboutAction, SIGNAL(triggered()), fHelpWindow, SLOT(show()));
     
     //    fVersionWindow = new QDialog;
     //    
@@ -467,7 +464,7 @@ void FLApp::init_Timer_Action(){
 }
 
 //--Print errors in errorWindow
-void FLApp::errorPrinting(const char* msg){
+void FLApp::errorPrinting(const QString& msg){
     fErrorWindow->print_Error(msg);
 }
 
@@ -584,17 +581,45 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
     return newPath;
 }
 
-void FLApp::redirectMenuToWindow(FLWindow* win){
+void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
     connect(win, SIGNAL(migrate(const QString&, int)), this, SLOT(migrate_ProcessingInWin(const QString&, int)));
-    connect(win, SIGNAL(error(const char*)), this, SLOT(errorPrinting(const char*)));
+    connect(win, SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
+    connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
 }
 
 //---------------NEW
+
+void FLApp::cleanSHAFolder(){
+    
+//  Touch every window-related SHA Folder in case it was not modified for a long time but is still used  
+    QString shaFolder = fSessionFolder + "/SHAFolder";
+
+    for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
+    
+        QString winShaFolder = shaFolder + "/";
+        winShaFolder += (*it)->getSHA();
+        touchFolder(winShaFolder);
+    }
+        
+    QDir shaDir(shaFolder);
+    
+    shaDir.setSorting(QDir::Time);
+    
+    QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    
+    if(children.size()>kMaxSHAFolders){
+        
+        QFileInfoList::iterator it = children.end();
+        it--;
+        
+        deleteDirectoryAndContent(it->filePath());
+    }
+}
 
 bool FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
     
@@ -632,7 +657,7 @@ bool FLApp::createWindow(int index, const QString& mySource, FLWinSettings* wind
     
         FLW_List.push_back(win);
         
-        redirectMenuToWindow(win);
+        connectWindowSignals(win);
         
         fNavigateMenus[win] = navigateMenu;
         
@@ -645,6 +670,8 @@ bool FLApp::createWindow(int index, const QString& mySource, FLWinSettings* wind
         
         fFrontWindow[navigate] = win;
         updateNavigateMenus();
+        
+        cleanSHAFolder();
         
         return true;
     }
@@ -672,7 +699,7 @@ void FLApp::create_New_Window(const QString& source){
     windowSettings->setValue("Position/x", x);
     windowSettings->setValue("Position/y", y);
     windowSettings->setValue("FaustOptions", FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString());
-    windowSettings->setValue("OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", "").toString());
+    windowSettings->setValue("OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toString());
     
     if(!createWindow(val, source, windowSettings, error))
         fErrorWindow->print_Error(error);
@@ -690,10 +717,6 @@ void FLApp::create_Empty_Window(){
 bool FLApp::event(QEvent *ev){
     
     if (ev->type() == QEvent::FileOpen) {
-        
-        //If the application is opened by a drop action, the current Session has to be reseted
-        if(FLW_List.size() == 0)
-            reset_CurrentSession();
         
         QString fileName = static_cast<QFileOpenEvent *>(ev)->file();
         
@@ -762,51 +785,60 @@ void FLApp::openExampleAction(const QString& exampleName){
         create_New_Window(pathInSession);    
 }
 
-//-------------OPEN RECENT
+//-------------RECENT FILES MANAGEMENT
+
+void FLApp::save_Recent(QList<QString>& recents, const QString& pathToSettings){
+    
+    int index = 1;
+    
+    for (QList<QString>::iterator it=recents.begin(); it!=recents.end(); it++) {
+        
+        if(index<kMAXRECENT+1){
+            
+            QString settingPath = pathToSettings + QString::number(index);
+            
+            FLSettings::getInstance()->setValue(settingPath, *it);
+            
+            index++;
+        }
+        else
+            break;
+    }
+}
+
+void FLApp::recall_Recent(QList<QString>& recents, const QString& pathToSettings){
+    
+    for(int i=1; i<=kMAXRECENT; i++){
+        
+        QString settingPath = pathToSettings + QString::number(i);
+        
+        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
+        recents.push_back(path);
+    }
+    
+}
 
 //--Save/Recall from file 
 void FLApp::save_Recent_Files(){
     
-    QList<std::pair<QString, QString> >::iterator it;
-    int index = 1;
+    QString settingPath = "General/RecentFiles/";
     
-    for (it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
-        
-        QString settingPath = "General/RecentFiles/" + QString::number(index) + "/path";
-        QString path = it->first;
-        FLSettings::getInstance()->setValue(settingPath, path);
-        
-        QString settingName = "General/RecentFiles/" + QString::number(index) + "/name";
-        QString name = it->second;
-        FLSettings::getInstance()->setValue(settingName, name);
-        
-        index ++;
-    }
+    save_Recent(fRecentFiles, settingPath);
 }
 
 void FLApp::recall_Recent_Files(){
     
-    for(int i=1; i<=kMAXRECENTFILES; i++){
-        
-        QString settingName = "General/RecentFiles/" + QString::number(i) + "/name";
-        QString settingPath = "General/RecentFiles/" + QString::number(i) + "/path";
-        
-        QString name = FLSettings::getInstance()->value(settingName, "").toString();
-        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
-        
-        if(name != "" && path != "")
-            set_Current_File( path, name);
-    }
+    QString settingPath = "General/RecentFiles/";
+    recall_Recent(fRecentFiles, settingPath);
+    
+    update_Recent_File();
 }
 
 //--Add new recent file
-void FLApp::set_Current_File(const QString& pathName, const QString& effName){
+void FLApp::set_Current_File(const QString& path){
     
-    std::pair<QString,QString> myPair;
-	myPair = make_pair(pathName, effName);
-    
-    fRecentFiles.removeOne(myPair);
-    fRecentFiles.push_front(myPair);
+    fRecentFiles.removeOne(path);
+    fRecentFiles.push_front(path);
     
     update_Recent_File();
     
@@ -815,22 +847,25 @@ void FLApp::set_Current_File(const QString& pathName, const QString& effName){
 //--Visual Update
 void FLApp::update_Recent_File(){
     
-    int j = 0;
+    int index = 0;
     
-    QList<std::pair<QString, QString> >::iterator it;
-    
-    for (it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
+    for(QList<QString>::iterator it=fRecentFiles.begin(); it!=fRecentFiles.end(); it++){
         
-        if(j<kMAXRECENTFILES){
+        if(index<kMAXRECENT){
             
-            QString text;
-            text += it->second;
-            fRecentFileAction[j]->setText(text);
-            fRecentFileAction[j]->setData(it->first);
-            fRecentFileAction[j]->setVisible(true);
+            QString path = *it;
             
-            j++;
+            if(path != ""){
+                QString text = tr("&%1 %2").arg(index+1).arg(QFileInfo(path).baseName());
+                
+                fRecentFileAction[index]->setText(text);
+                fRecentFileAction[index]->setData(path);
+                fRecentFileAction[index]->setVisible(true);
+                index++;
+            }
         }
+        else
+            break;
     }
 }
 
@@ -854,96 +889,60 @@ void FLApp::open_Recent_File(const QString& toto){
 
 //--------------------------------SESSION
 
-//Parses the fileSessionContent one option at a time
-QString FLApp::parseNextOption(QString& optionsCompilation){
-    
-    int pos = optionsCompilation.indexOf(" ");
-    
-    if(pos != -1){
-        
-        //        The next option is from the beginning to the space
-        QString option = optionsCompilation.mid(0, pos);
-        
-        //        The rest of the options are from after the space to the end of the string
-        optionsCompilation = optionsCompilation.mid(pos+1);
-        
-        return option;
-    }
-    //    When the string is all parsed
-    else{
-        QString option = optionsCompilation;
-        optionsCompilation = "";
-        return option;
-    }
-}
-
 //--------------RECENTLY OPENED
 
 //--Save/Recall from file
 void FLApp::save_Recent_Sessions(){
-    
-    QList<QString>::iterator it;
-    int index = 1;
-    
-    for (it = fRecentSessions.begin(); it != fRecentSessions.end(); it++) {
+   
+    QString settingPath = "General/RecentSessions/";
         
-        QString settingPath = "General/RecentSessions/" + QString::number(index);
-        FLSettings::getInstance()->setValue(settingPath, *it);
-        
-        index++;
-    }
+    save_Recent(fRecentSessions, settingPath);
 }
 
 void FLApp::recall_Recent_Sessions(){
     
-    for(int i=1; i<=kMAXRECENTSESSIONS; i++){
-        
-        QString settingPath = "General/RecentSessions/" + QString::number(i) ;
-        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
-        
-        if(path != "")
-            set_Current_Session(path);
-    }
+    QString settingPath = "General/RecentSessions/";
+    recall_Recent(fRecentSessions, settingPath);
     
+    update_Recent_Session();
 }
 
 //Add new recent session
-void FLApp::set_Current_Session(const QString& pathName){
+void FLApp::set_Current_Session(const QString& path){
     
-    QString currentSess = pathName;
-    fRecentSessions.removeAll(currentSess);
-    fRecentSessions.prepend(currentSess);
+    fRecentSessions.removeOne(path);
+    fRecentSessions.push_front(path);
+    
     update_Recent_Session();
-
 }
 
 //Visual Update
 void FLApp::update_Recent_Session(){
     
-    QMutableStringListIterator i(fRecentSessions);
-    while(i.hasNext()){
-        if(!QFile::exists(i.next()))
-            i.remove();
-    }
+    int index = 0;
     
-    for(int j=0; j<kMAXRECENTSESSIONS; j++){
-        if(j<fRecentSessions.count()){
+    for(QList<QString>::iterator it=fRecentSessions.begin(); it!=fRecentSessions.end(); it++){
+        
+        if(index<kMAXRECENT){
+        
+            QString path = *it;
             
-            QString path = QFileInfo(fRecentSessions[j]).baseName();
-            
-            QString text = tr("&%1 %2").arg(j+1).arg(path);
-            fRrecentSessionAction[j]->setText(text);
-            fRrecentSessionAction[j]->setData(fRecentSessions[j]);
-            fRrecentSessionAction[j]->setVisible(true);
-            
-            fIrecentSessionAction[j]->setText(text);
-            fIrecentSessionAction[j]->setData(fRecentSessions[j]);
-            fIrecentSessionAction[j]->setVisible(true);
+            if(path != ""){
+                QString text = tr("&%1 %2").arg(index+1).arg(QFileInfo(path).baseName());
+                
+                fRrecentSessionAction[index]->setText(text);
+                fRrecentSessionAction[index]->setData(path);
+                fRrecentSessionAction[index]->setVisible(true);
+                
+                fIrecentSessionAction[index]->setText(text);
+                fIrecentSessionAction[index]->setData(path);
+                fIrecentSessionAction[index]->setVisible(true);
+                
+                index++;
+            }
         }
-        else{
-            fRrecentSessionAction[j]->setVisible(false);
-            fIrecentSessionAction[j]->setVisible(false);
-        }
+        else
+            break;
     }
 }
 
@@ -973,26 +972,6 @@ void FLApp::update_CurrentSession(){
         (*it)->save_Window();
 }
 
-//Reset Current Session Folder
-void FLApp::reset_CurrentSession(){
-    
-    QDir srcDir(fSessionFolder);    
-    
-    QFileInfoList children = srcDir.entryInfoList(QDir::Dirs | QDir::Drives | QDir::NoDotAndDotDot);
-    
-    QFileInfoList::iterator it;
-    
-    for(it = children.begin(); it != children.end(); it++){
-        
-        QString toRemove(it->absoluteFilePath());
-        
-        if(toRemove.indexOf(fWindowBaseName) != -1)
-            deleteDirectoryAndContent(toRemove);
-    }
-    
-    //    recall_Settings(fSettingsFolder);
-}
-
 //---------------SAVE SNAPSHOT FUNCTIONS
 
 //Save the current State in SnapshotFolder.tar
@@ -1014,6 +993,8 @@ void FLApp::take_Snapshot(){
     //If no name is placed, nothing happens
     if(filename.compare("") != 0){
         
+        display_CompilingProgress("Saving your snapshot...");
+        
         int pos = filename.indexOf(".tar");
         
         if(pos != -1)
@@ -1027,6 +1008,7 @@ void FLApp::take_Snapshot(){
 #ifndef _WIN32
         tarFolder(filename);
 #endif
+        StopProgressSlot();
     }
 }
 
@@ -1034,8 +1016,6 @@ void FLApp::take_Snapshot(){
 
 void FLApp::recallSnapshotFromMenu(){
 	
-    fRecalling = true;
-    
 	QString fileName;
 #ifndef _WIN32
     fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Snapshot"), "",tr("Files (*.tar)"));
@@ -1043,10 +1023,8 @@ void FLApp::recallSnapshotFromMenu(){
 	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
 #endif
     
-    if(fileName != ""){
-        
+    if(fileName != "")
         recall_Snapshot(fileName, false);
-    }
 }
 
 void FLApp::importSnapshotFromMenu(){
@@ -1058,82 +1036,67 @@ void FLApp::importSnapshotFromMenu(){
 	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
 #endif
     
-    if(fileName != ""){
-        
+    if(fileName != "")
         recall_Snapshot(fileName, true);
-    }
+    
 }
 
 #ifndef _WIN32
 void FLApp::tarFolder(const QString& folder){
 
-    
-    display_CompilingProgress("Saving your session...");
-    
-    QProcess myCmd;
-    QByteArray error;
-    
     QString systemInstruct("tar cfv ");
     systemInstruct += folder + ".tar " + folder;
+
+    QString errorMsg("");
     
-    myCmd.start(systemInstruct);
-    myCmd.waitForFinished();
-    
-    error = myCmd.readAllStandardError();
-    
-    if(myCmd.readChannel() == QProcess::StandardError )
-        fErrorWindow->print_Error(error.data());
+    if(!executeInstruction(systemInstruct, errorMsg))
+        fErrorWindow->print_Error(errorMsg);
     
     deleteDirectoryAndContent(folder);
-    StopProgressSlot();
+
 }
 
 void FLApp::untarFolder(const QString& folder){
-    
-    display_CompilingProgress("Uploading your snapshot...");
-    
-    QProcess myCmd;
-	QByteArray error;
-	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    
+
     QString systemInstruct("tar xfv ");
     systemInstruct += folder +" -C /";
     
-	myCmd.setProcessEnvironment(env);
-    myCmd.start(systemInstruct);
-    myCmd.waitForFinished();
+    QString errorMsg("");
     
-    error = myCmd.readAllStandardError();
-    
-    if(myCmd.readChannel() == QProcess::StandardError )
-        fErrorWindow->print_Error(error.data());
-    
-    StopProgressSlot();
-
+    if(!executeInstruction(systemInstruct, errorMsg))
+        fErrorWindow->print_Error(errorMsg);
 }
 #endif
 
+//----Recall or Import a Snapshot
 //@param : filename = snapshot that is loaded
 //@param : importOption = false for recalling | true for importing
-void FLApp::recall_Snapshot(const QString& filename, bool importOption){ 
+void FLApp::recall_Snapshot(const QString& name, bool importOption){ 
+    
+    QString filename(name);
+    
+    display_CompilingProgress("Uploading your snapshot...");
     
 	fRecalling = true;
     
     set_Current_Session(filename);
+    
+    if(QFileInfo(filename).completeSuffix() != "tar")
+        filename += ".tar";
     
     untarFolder(filename);
     
     if(!importOption)
         shut_AllWindows();
     
-    QString finalFile = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
-
-    map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(finalFile);
+    QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
+    
+    map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(folderName);
     
     map<int, int> indexChanges;
     
     QList<int> currentIndexes = get_currentIndexes();
-    
+//    Creating mapping between saved index and new index
     for(map<int, QString>::iterator it = restoredSources.begin(); it != restoredSources.end(); it++){
         
         int indexValue;
@@ -1146,10 +1109,10 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
         indexChanges[it->first] = indexValue;
         currentIndexes.push_back(indexValue);
     }
-    
+//    Restore windows with new index
     for(map<int, int>::iterator it = indexChanges.begin(); it != indexChanges.end(); it++){
         
-        QString windowPath = copyWindowFolder(fSessionFolder, it->second, finalFile, it->first, indexChanges);
+        QString windowPath = copyWindowFolder(fSessionFolder, it->second, folderName, it->first, indexChanges);
     
         QString settingPath = windowPath + "/Settings.ini";
         FLWinSettings* windowSettings = new FLWinSettings(it->second, settingPath, QSettings::IniFormat);
@@ -1159,35 +1122,16 @@ void FLApp::recall_Snapshot(const QString& filename, bool importOption){
             fErrorWindow->print_Error(error);
     }
     
-//    ICI ON FAIT LE TOUR DES RESTORED WIN POUR MODIFIER LEURS .JC
-//    --> LE PROBLEME C'EST QUE ÇA DEVRAIT ÊTRE FAIT AVANT QUE LA W SOIT INITIALISÉE POUR QUE LES CONNEXIONS SOIENT FAIT CORRECTEMENT !!!!
-    
 #ifndef _WIN32
-    
-    display_CompilingProgress("Ending upload...");
-
-    deleteDirectoryAndContent(finalFile);
-    
-//    QProcess myCmd2;
-//    QByteArray error2;
-//    
-//    QString rmInstruct("rm -r ");
-//    rmInstruct += finalFile;
-//    
-//    myCmd2.start(rmInstruct);
-//    myCmd2.waitForFinished();
-//    
-//    error2 = myCmd2.readAllStandardError();
-//    
-//    if(myCmd2.readChannel() == QProcess::StandardError )
-//        fErrorWindow->print_Error(error2.data());
-    
-    StopProgressSlot();
+    deleteDirectoryAndContent(folderName);
 #endif
     
 	fRecalling = false;
+    
+    StopProgressSlot();
 }
 
+//----Recall saved current session
 bool FLApp::recall_CurrentSession(){
     
     map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
@@ -1217,8 +1161,10 @@ bool FLApp::recall_CurrentSession(){
 //Display progress Bar on FaustLive quit
 void FLApp::display_Progress(){
     
+//    Quit dialog is shown only if there are windows to save
     if(FLW_List.size() != 0){
         
+//        Stop showing the menu bar 
         fMenuBar->setEnabled(false);
         
         QDialog* savingMessage = new QDialog();
@@ -1281,9 +1227,8 @@ void FLApp::closeAllWindows(){
     
     display_Progress();
         
-        update_CurrentSession();
+    update_CurrentSession();
         
-    
 // Windows have to be saved before being closed, otherwise the connections are not well saved
     QList<FLWindow*>::iterator it;
     
@@ -1292,15 +1237,10 @@ void FLApp::closeAllWindows(){
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++){
             
-            QString path = (*it)->getPath();
-            QString name = (*it)->getName();
-            
-            if(path != "")
-                set_Current_File(path, name);
-            
         (*it)->close_Window();
         (*it)->deleteLater();
     }
+    
     FLW_List.clear();
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
@@ -1314,40 +1254,7 @@ void FLApp::shut_AllWindows(){
         FLWindow* win = *(FLW_List.begin());
         
         common_shutAction(win);
-    }
-#ifndef __APPLE__
-    closeAllWindows();
-#endif   
-}
-
-//Close Window from Menu
-void FLApp::shut_Window(){
-    
-    if(fErrorWindow->isActiveWindow())
-        fErrorWindow->hideWin();
-    
-    else{
-        
-        QList<FLWindow*>::iterator it = FLW_List.begin();
-        
-        while(it != FLW_List.end()) {
-            
-            if((*it)->isActiveWindow()){
-                
-                common_shutAction(*it);
-                
-                break;
-            }
-#ifdef _WIN32
-            else if((*it)->is_httpdWindow_active()){
-                (*it)->hide_httpdWindow();
-                break;
-            }
-#endif
-            else
-                it++;
-        }
-    }
+    } 
 }
 
 //Close from Window Action
@@ -1359,12 +1266,10 @@ void FLApp::close_Window_Action(){
 
 //Shut a specific window 
 void FLApp::common_shutAction(FLWindow* win){
-
-    QString path = win->getPath();
-    QString name = win->getName();
     
+    QString path = win->getPath();
     if(path != "")
-        set_Current_File(path, name);
+        set_Current_File(path);
     
     win->shut_Window();
         
@@ -1375,17 +1280,23 @@ void FLApp::common_shutAction(FLWindow* win){
     
     FLW_List.removeOne(win);
     win->deleteLater();
-    
-//#ifndef __APPLE__
-//    if(FLW_List.size() == 0 && fExportDialog->isDialogVisible() && !fPresWin->isVisible()){
-//    printf("FLAPP::CLOSE ALL WINDOWS FROM COMMON SHUT WIN \n");
-//    	closeAllWindows();
-//    }
-//
-//#endif
 }
 
 //--------------------------------Navigate---------------------------------
+
+void FLApp::updateNavigateText(){
+    
+    FLWindow* win = (FLWindow*)QObject::sender();
+    
+    QString name = win->get_nameWindow();
+    name+=" : ";
+    name+= win->getName();
+    
+    QAction* action = fFrontWindow.key(win);
+    action->setText(name);
+    
+    updateNavigateMenus();
+}
 
 void FLApp::updateNavigateMenus(){
     
@@ -1416,7 +1327,7 @@ void FLApp::duplicate(FLWindow* window){
     
     int val = find_smallest_index(get_currentIndexes());
 
-    //Save then Copy of duplicated window's parameters
+    //Save then Copy the duplicated window's parameters
     window->save_Window();
     
     map<int, int> indexChanges;
@@ -1430,8 +1341,9 @@ void FLApp::duplicate(FLWindow* window){
     windowSettings->setValue("Position/x", windowSettings->value("Position/x", 0).toInt()+10);
     windowSettings->setValue("Position/y", windowSettings->value("Position/y", 0).toInt()+10);
     
-    QString error;
-    createWindow(val, window->get_source(), windowSettings, error);
+    QString error("");
+    if(!createWindow(val, window->get_source(), windowSettings, error))
+        fErrorWindow->print_Error(error);
 }
 
 //Duplication window from Menu
@@ -1476,9 +1388,6 @@ void FLApp::drop_Action(QList<QString> sources){
 }
 
 //--------------------------------HELP----------------------------------------
-void FLApp::apropos(){
-    fHelpWindow->show();
-}
 
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
@@ -1519,34 +1428,10 @@ void FLApp::show_presentation_Action(){
 void FLApp::styleClicked(const QString& style){
     
     QFile file;
+    FLSettings::getInstance()->setValue("General/Style", style);
     
-    if(style.compare("Default") == 0){
-        
-        FLSettings::getInstance()->setValue("General/Style", "Default");
-        
-        file.setFileName(":/Styles/Default.qss");
-    }
-    
-    if(style.compare("Blue") == 0){    
-        
-        FLSettings::getInstance()->setValue("General/Style", "Blue");
-        
-        file.setFileName(":/Styles/Blue.qss");
-    }
-    
-    if(style.compare("Grey") == 0){
-        
-        FLSettings::getInstance()->setValue("General/Style", "Grey");
-        
-        file.setFileName(":/Styles/Grey.qss");
-    }
-    
-    if(style.compare("Salmon") == 0){
-        
-        FLSettings::getInstance()->setValue("General/Style", "Salmon");
-        
-        file.setFileName(":/Styles/Salmon.qss");
-    }
+    QString styleFile = ":/Styles/" + style + ".qss";    
+    file.setFileName(styleFile);
     
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -1609,9 +1494,11 @@ void FLApp::update_AudioArchitecture(){
         fErrorWindow->print_Error(errorToPrint);
         fErrorWindow->print_Error(error);
         
+//        If some audio did start before the failure, they have to be stopped again
         for(it = FLW_List.begin() ; it != updateFailPointer; it++)
             (*it)->stop_Audio();
         
+//        Switch back to previous architecture
         fAudioCreator->restoreSavedSettings();
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
@@ -1623,6 +1510,7 @@ void FLApp::update_AudioArchitecture(){
             }
         }
         
+//        In case switch back fails, every window is closed
         if(!reinitSuccess){
             
             shut_AllWindows();
@@ -1649,9 +1537,10 @@ void FLApp::update_AudioArchitecture(){
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
             (*it)->start_Audio();
-        //        fAudioCreator->saveCurrentSettings();
+        
         fAudioCreator->tempSettingsToSavedSettings();
-        //        If there is no current window, it is strange to show that msg
+
+        //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
             errorToPrint = "Update successfull";
             fErrorWindow->print_Error(errorToPrint);
@@ -1722,9 +1611,8 @@ void FLApp::launch_Server(){
                 returning = false;
                 break;
             }
-            else{
+            else
                 i++;
-            }
         }
         
         connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
