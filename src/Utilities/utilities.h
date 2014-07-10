@@ -12,6 +12,8 @@ using namespace std;
 
 void writeFile(const QString& filePath, const QString& content);
 
+QString readFile(const QString& filePath);
+
 QString pathToContent(const QString& path);
 
 void touchFolder(const QString& path);

@@ -16,12 +16,13 @@
 
 list<GUI*>               GUI::fGuiList;
 
-#include <sstream>
 #include "FLToolBar.h"
 #include "utilities.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
+
+#include "FLServerHttp.h"
 
 #include "FLFileWatcher.h"
 
@@ -65,8 +66,6 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fCurrent_DSP = NULL;
     
     fToolBar = NULL;
-    
-    fInterfaceUrl = "";
     
     fIPToHostName = new map<QString, std::pair<QString, int> >;
     
@@ -123,49 +122,8 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fCurrent_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
     
-    
-    //#ifdef REMOTE
-    //    else{
-    //        
-    //        if(!init_audioClient(errorMsg, fEffect->getRemoteFactory()->numInputs(), fEffect->getRemoteFactory()->numOutputs()))
-    //            return false;
-    //        
-    //        // Sending local IP for NetJack Connection
-    //        int argc = 6;
-    //        const char* argv[6];
-    //        
-    //        argv[0] = "--NJ_ip";
-    //        string localString = searchLocalIP().toStdString();
-    //        argv[1] = localString.c_str();
-    //        argv[2] = "--NJ_latency";
-    //        argv[3] = "10";
-    //        argv[4] = "--NJ_compression";
-    //        argv[5] = "64";
-    //        
-    //        int error;
-    //        
-    //        fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(), RemoteDSPErrorCallback, this, error);
-    //        
-    ////        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
-    ////        NORMALLY NOT IMPORTANT FOR INIT (because a window is init in remote only when duplicated = already in current session = factory existant)
-    //        if(fCurrent_DSP == NULL){
-    //            
-    //            if(error == ERROR_FACTORY_NOTFOUND){
-    //                fEffect->reset();
-    //                
-    //                if(fEffect->reinit(errorMsg)){
-    //                    fCurrent_DSP = createRemoteDSPInstance(fEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, error);
-    //                }
-    //            }
-    //            errorMsg = getErrorFromCode(error);
-    //        }
-    //    }
-    //#endif
-    //    
     if (fCurrent_DSP == NULL)
         return false;
-    
-    printf("CURRENT DSP = %p\n", fCurrent_DSP);
     
     if(buildInterfaces(fCurrent_DSP, fSettings->value("Name", "").toString())){
         
@@ -178,20 +136,24 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
         
             start_Audio();
             frontShow();
-            //            
-            //#ifdef _WIN32  
-            //            if(fOscInterface)
-            //                fOscInterface->run();
-            //
-            //            if(fHttpInterface)
-            //                fHttpInterface->run();
-            //
-            //                setWindowsOptions();
-            //#endif
+                        
+#ifdef _WIN32  
+            if(fOscInterface)
+                fOscInterface->run();
+            
+            if(fHttpInterface){
+                fHttpInterface->run();
+                FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+            }
+                        setWindowsOptions();
+#endif
             fInterface->run();
             fInterface->installEventFilter(this);
-            fCreationDate = fCreationDate.currentDateTime();;
+            fCreationDate = fCreationDate.currentDateTime();
             FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
+            
+            if(fToolBar->isHttpOn())
+                resetHttpInterface();
             
             return true;
         } 
@@ -242,7 +204,7 @@ bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
 
 //Modification of the process in the window
 //@param : source = source that reemplaces the current one
-void FLWindow::update_Window(const QString& source){
+bool FLWindow::update_Window(const QString& source){
 
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
@@ -280,55 +242,14 @@ void FLWindow::update_Window(const QString& source){
         QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
         
         if(factorySetts.second == NULL)
-            return;
-        
-        if(!init_audioClient(errorMsg))
-            return;
+            return false;
         
         charging_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
-        
-        
-//        FLSessionManager* sessionManager = FLSessionManager::_Instance();
-        
-//        createFactory(source, fSettings, errorMsg);
-        
-//        charging_DSP = sessionManager->createDSP(source, fSettings, errorMsg);
-    
-        //#ifdef REMOTE
-        //    else{
-        //        int argc = 6;
-        //        const char* argv[6];
-        //        
-        //        argv[0] = "--NJ_ip";
-        //        string localString = searchLocalIP().toStdString();
-        //        argv[1] = localString.c_str();
-        //        argv[2] = "--NJ_latency";
-        //        argv[3] = "10";
-        //        argv[4] = "--NJ_compression";
-        //        argv[5] = "64";
-        //        
-        //        int errorMsg;
-        //        
-        //        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-        //
-        ////        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
-        //        if(charging_DSP == NULL){
-        //            
-        //            if(errorMsg == ERROR_FACTORY_NOTFOUND){
-        //                newEffect->reset();
-        //                
-        //                if(newEffect->reinit(error)){
-        //                    charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-        //                }
-        //            }
-        //            error = getErrorFromCode(errorMsg);
-        //        }
-        //    }
-        //#endif
         
         bool isUpdateSucessfull = false;
         
         if(charging_DSP){
+//            fToolBar->switchHttp(false);
             
             QString newName =  fSettings->value("Name", "").toString();
             
@@ -349,14 +270,15 @@ void FLWindow::update_Window(const QString& source){
                     
                     fAudioManager->wait_EndFade();
                     
+                    
+                    
                     //SWITCH the current DSP as the dropped one
                     
                     dsp* VecInt = fCurrent_DSP;
                     fCurrent_DSP = charging_DSP;
+                    charging_DSP = VecInt;
                     
-                    FLSessionManager::_Instance()->deleteDSPandFactory(VecInt);
-                    
-                    charging_DSP = NULL;
+                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
                     
                     fSource = source;
                     fIsDefault = false;
@@ -372,30 +294,10 @@ void FLWindow::update_Window(const QString& source){
                 //Step 12 : Launch User Interface
                 fInterface->run();
                 fInterface->installEventFilter(this);
-#ifdef _WIN32
-                if(fOscInterface)
-                    fOscInterface->run();
-                
-                if(fHttpInterface)
-                    fHttpInterface->run();
-                
+
                 setWindowsOptions();
-#endif
             }
-            
-            //-----Delete Charging DSP if update fails || Delete old DSP if update suceeds        
-            
-            //        if(newEffect->isLocal())
-            //            deleteDSPInstance((llvm_dsp*)charging_DSP);
-            //#ifdef REMOTE  
-            //        else
-            //            deleteRemoteDSPInstance((remote_dsp*)charging_DSP);
-            //#endif
         }
-        //    else{
-        //        if(newEffect->isLocal())
-        //            error = "Impossible to allocate DSP";
-        //    }
         
         show();
         FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
@@ -404,7 +306,13 @@ void FLWindow::update_Window(const QString& source){
             errorPrint(errorMsg);
         else
             emit windowNameChanged();
+        
+        
+        resetHttpInterface();
+        return isUpdateSucessfull;
     }
+    else
+        return false;
 }
 
 //------------TOOLBAR RELATED ACTIONS
@@ -421,14 +329,9 @@ void FLWindow::setToolBar(){
     connect(fToolBar, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-    connect(fToolBar, SIGNAL(switchMachine(const QString&, int)), this, SLOT(redirectSwitch(const QString&, int)));
+    connect(fToolBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
     connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
     connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
-    
-#ifdef REMOTE
-    fToolBar->setRemoteButtonName(fSettings->value("MachineName", "local processing").toString(), fSettings->value("MachineIP", "127.0.0.1").toString());
-#endif
-    
 }
 
 //Set the windows options with current values
@@ -476,6 +379,8 @@ void FLWindow::updateHTTPInterface(){
     fCurrent_DSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
+    FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+    
     
     setWindowsOptions();
 }
@@ -509,27 +414,9 @@ void FLWindow::resizingBig(){
 }
 
 //Redirection machine switch
-void FLWindow::redirectSwitch(const QString& ip, int port){
-    emit migrate(ip, port);
-}
-
-//Redirecting result of migration to toolbar 
-void FLWindow::migrationFailed(){
-    fToolBar->remoteFailed();
-}
-
-void FLWindow::migrationSuccessfull(){
-    fToolBar->remoteSuccessfull();
-}
-
-//Accessor to processing machine name
-QString FLWindow::get_machineName(){
-    return fToolBar->machineName();
-}
-
-//Accessor to processing machine ip
-QString FLWindow::get_ipMachine(){
-    return fToolBar->ipServer();
+void FLWindow::redirectSwitch(){
+    if(!update_Window(fSource))
+        fToolBar->remoteFailed();
 }
 
 //Accessor to Http & Osc Port
@@ -542,11 +429,6 @@ int FLWindow::get_Port(){
 #endif
         // If the interface is not enabled, it's not running on any port
         return 0;
-}
-
-int FLWindow::get_oscPort(){
-    
-    return fSettings->value("OscPort", 5510).toInt();
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
@@ -620,8 +502,8 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
         
         if(fInterface){
             
-            dsp->buildUserInterface(fRCInterface);
             dsp->buildUserInterface(fInterface);
+            dsp->buildUserInterface(fRCInterface);
             
 #ifndef _WIN32
             if(fOscInterface)
@@ -639,19 +521,24 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
     
-    delete fInterface;
-    delete fRCInterface;
 #ifndef _WIN32
     if(fToolBar->isOscOn()){
         delete fOscInterface;
         fOscInterface = NULL;
     }
     if(fToolBar->isHttpOn()){
+        
+        FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
         delete fHttpInterface;
+        
         fHttpInterface = NULL;
     }
 #endif
+    
+    delete fInterface;
     fInterface = NULL;
+    
+    delete fRCInterface;
     fRCInterface = NULL;
 }
 
@@ -714,8 +601,9 @@ void FLWindow::close_Window(){
     
     if(fClientOpen && fAudioManager)
         fAudioManager->stop();
-    
+
     deleteInterfaces();
+
     
 #ifndef _WIN32
     if(fHttpdWindow){
@@ -725,14 +613,15 @@ void FLWindow::close_Window(){
 #endif
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
-    
+  
     if(fAudioManager)
         delete fAudioManager;
-    
+       
     if(fToolBar)
         delete fToolBar;
     
     blockSignals(true);
+
 }
 
 //------------------------DRAG AND DROP ACTIONS
@@ -887,7 +776,13 @@ bool FLWindow::update_AudioArchitecture(QString& error){
 //Initialization of audio Client Reimplemented
 bool FLWindow::init_audioClient(QString& error){
     
-	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), fSettings->value("InputNumber", 0).toInt(), fSettings->value("OutputNumber", 0).toInt())){
+    int numberInputs = fSettings->value("InputNumber", 0).toInt();
+    int numberOutputs = fSettings->value("OutputNumber", 0).toInt();
+    
+//    if(numberInputs == 0 && numberOutputs == 0)
+//        return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
+    
+	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)){
      
         fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
         fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
@@ -982,8 +877,10 @@ void FLWindow::allocateHttpInterface(){
     
     if(fToolBar->isHttpOn()){
         
-        if(fHttpInterface != NULL)    
+        if(fHttpInterface != NULL){  
+            FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
             delete fHttpInterface;
+        }
         
         QString optionPort = "-port";
         QString windowTitle = fWindowName + ":" + getName();
@@ -1002,6 +899,7 @@ void FLWindow::switchHttp(bool on){
     if(on)
         updateHTTPInterface();
     else{
+        FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
         delete fHttpInterface;
         fHttpInterface = NULL;
     } 
@@ -1025,15 +923,12 @@ void FLWindow::viewQrCode(){
         
         QString fullUrl("");
         
-        fInterfaceUrl = "http://";
-        fInterfaceUrl += searchLocalIP();
-        fInterfaceUrl += ":";
-        
-        fullUrl = fInterfaceUrl;
+        fullUrl = "http://";
+        fullUrl += searchLocalIP();
+        fullUrl += ":";
         
         fullUrl += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
         fullUrl += "/";
-        fInterfaceUrl += QString::number(fHttpInterface->getTCPPort());
         fullUrl += QString::number(fHttpInterface->getTCPPort());
         
         fInterface->displayQRCode(fullUrl, fHttpdWindow);
@@ -1077,7 +972,19 @@ void FLWindow::hide_httpdWindow() {
 }
 
 QString FLWindow::get_HttpUrl() {
-    return fInterfaceUrl;
+
+    QString url("");
+    
+    if(fToolBar->isHttpOn()){
+
+        url = "http://";
+        url += searchLocalIP();   
+        url += ":";
+        url += QString::number(fHttpInterface->getTCPPort());
+        url += "/";
+    }
+    else
+        return url;
 }
 #endif
 
@@ -1287,8 +1194,8 @@ int FLWindow::RemoteDSPCallback(int error_code, void* arg){
             
             errorWin->errorPrint("Remote Connection Error.\n Switching back to local processing.");
             
-            errorWin->fToolBar->setNewOptions("localhost", 0, "local processing");
-            errorWin->redirectSwitch("localhost", 0);
+            errorWin->fToolBar->setRemote("local processing", "", 0);
+            errorWin->redirectSwitch();
         }
     }
     

@@ -93,7 +93,8 @@ public:
     ~FLSessionManager();
     
     static FLSessionManager* _Instance();
-    static void initInstance(const QString homePath);
+    static void createInstance(const QString homePath);
+    static void deleteInstance();
     
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     

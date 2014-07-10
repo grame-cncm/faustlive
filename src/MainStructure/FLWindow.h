@@ -79,9 +79,7 @@ class FLWindow : public QMainWindow
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 #endif
 		void            allocateHttpInterface();
-
-        QString         fInterfaceUrl;
-
+    
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
@@ -130,7 +128,7 @@ class FLWindow : public QMainWindow
 #endif
         void            svg_View();
         void            exportManage();
-        void            redirectSwitch(const QString& ip, int port);
+        void            redirectSwitch();
     
     public :
     
@@ -168,10 +166,6 @@ class FLWindow : public QMainWindow
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
     
-    //Udpate the effect running in the window and all its related parameters.
-    //@param : effect = effect that reemplaces the current one
-        void            update_Window(const QString& source);
-    
         bool            update_AudioArchitecture(QString& error);
     
     //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
@@ -206,12 +200,7 @@ class FLWindow : public QMainWindow
         QString         getSHA();
         QString         get_source();
         int             get_Port();
-        int             get_oscPort();
         bool            is_Default();
-        QString         get_machineName();
-        QString         get_ipMachine();
-        void            migrationFailed();
-        void            migrationSuccessfull();
     
     //Accessors to httpd Window
 #ifndef _WIN32    
@@ -250,6 +239,11 @@ class FLWindow : public QMainWindow
         void            errorPrint(const QString& msg);
 
         static          int RemoteDSPCallback(int error_code, void* arg);
+    
+    
+    //Udpate the effect running in the window and all its related parameters.
+    //@param : effect = effect that reemplaces the current one
+        bool            update_Window(const QString& source);
 };
 
 #endif

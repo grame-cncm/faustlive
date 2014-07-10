@@ -48,6 +48,20 @@ void writeFile(const QString& filePath, const QString& content){
     }
 }
 
+QString readFile(const QString& filePath){
+    
+    QString content("");
+    QFile f(filePath);
+    
+    if(f.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        content = QLatin1String(f.readAll());
+        f.close();
+    }
+    
+    return content;
+}
+
 //Returns the content of a file passed in path
 QString pathToContent(const QString& path)
 {

@@ -39,9 +39,12 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Create Current Session Folder
     create_Session_Hierarchy();
     
-    FLSettings::initInstance(fSessionFolder);
-    FLSessionManager::initInstance(fSessionFolder);
+    FLSettings::createInstance(fSessionFolder);
+    FLSessionManager::createInstance(fSessionFolder);
     connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
+    
+    FLServerHttp::createInstance();
+    connect(FLServerHttp::getInstance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
@@ -112,7 +115,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initialiazing Remote Drop Server
 #ifndef _WIN32
-    fServerHttp = NULL;
     launch_Server();
 #endif
     fCompilingMessage = NULL;
@@ -148,7 +150,9 @@ FLApp::~FLApp(){
     delete fErrorWindow;
     delete fExportDialog;
     
-    delete FLSettings::getInstance();
+    FLSettings::deleteInstance();
+    FLSessionManager::deleteInstance();
+    FLServerHttp::deleteInstance();
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -584,7 +588,6 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
 void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
-    connect(win, SIGNAL(migrate(const QString&, int)), this, SLOT(migrate_ProcessingInWin(const QString&, int)));
     connect(win, SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
@@ -621,7 +624,7 @@ void FLApp::cleanSHAFolder(){
     }
 }
 
-bool FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
+FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
     
     if(FLW_List.size() >= numberWindows){
         error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
@@ -673,12 +676,12 @@ bool FLApp::createWindow(int index, const QString& mySource, FLWinSettings* wind
         
         cleanSHAFolder();
         
-        return true;
+        return win;
     }
     else{
         delete windowSettings;
         delete win;
-        return false;
+        return NULL;
     }
 }
 
@@ -698,10 +701,10 @@ void FLApp::create_New_Window(const QString& source){
     FLWinSettings* windowSettings = new FLWinSettings(val, settingPath, QSettings::IniFormat);
     windowSettings->setValue("Position/x", x);
     windowSettings->setValue("Position/y", y);
-    windowSettings->setValue("FaustOptions", FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString());
-    windowSettings->setValue("OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toString());
     
-    if(!createWindow(val, source, windowSettings, error))
+    FLWindow* win = createWindow(val, source, windowSettings, error);
+    
+    if(!win)
         fErrorWindow->print_Error(error);
 }
 
@@ -1587,38 +1590,40 @@ void FLApp::StopProgressSlot(){
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
 #ifndef _WIN32
+FLWindow* FLApp::httpPortToWin(int port){
+    
+    for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
+        if((*it)->get_Port() == port)
+            return *it;
+    }
+    return NULL;
+}
+
 //Start FaustLive Server that wraps HTTP interface in droppable environnement 
 void FLApp::launch_Server(){
     
     bool returning = true;
     
-    if(fServerHttp == NULL){
+    int i = 0;
         
-        fServerHttp = new FLServerHttp();
+    while(!FLServerHttp::getInstance()->start()){
+            
+        QString s("Server Could Not Start On Port ");
+        s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
+            
+        fErrorWindow->print_Error(s);
+            
+        FLSettings::getInstance()->setValue("General/Network/HttpDropPort", FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
         
-        int i = 0;
-        
-        while(!fServerHttp->start()){
-            
-            QString s("Server Could Not Start On Port ");
-            s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
-            
-            fErrorWindow->print_Error(s);
-            
-            FLSettings::getInstance()->setValue("General/Network/HttpDropPort", FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
-            
-            if(i > 15){
-                returning = false;
-                break;
-            }
-            else
-                i++;
+        if(i > 15){
+            returning = false;
+            break;
         }
+        else
+            i++;
+    } 
         
-        connect(fServerHttp, SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-    }
-    else
-        returning = false;
+//        connect(FLServerHttp::getInstance(), SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
     
     if(!returning)
         fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
@@ -1632,35 +1637,53 @@ void FLApp::launch_Server(){
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-    if(fServerHttp != NULL){
-        fServerHttp->stop();
-        delete fServerHttp;
-        fServerHttp = NULL;
-    }
+        FLServerHttp::getInstance()->stop();
 }
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
-    
-    string error("");
-    
-	QString source(data);
-    
-    FLWindow* win = getWinFromHttp(port);
-    
-    if(win != NULL){
         
-        win->update_Window(source);
+    FLWindow* win;
+    
+    QString source(data);
+    QString error("");
+    
+    bool success = false;
+    
+    if(port == 0){
         
-        win->resetHttpInterface();
+        int val = find_smallest_index(get_currentIndexes());
         
-        string url = win->get_HttpUrl().toStdString();
+        int x, y;
+        calculate_position(val, &x, &y);
         
-        fServerHttp->compile_Successfull(url);
+        QString windowPath = createWindowFolder(fSessionFolder, val);
+        
+        QString settingPath = windowPath + "/Settings.ini";
+        FLWinSettings* windowSettings = new FLWinSettings(val, settingPath, QSettings::IniFormat);
+        windowSettings->setValue("Position/x", x);
+        windowSettings->setValue("Position/y", y);
+        windowSettings->setValue("isHttpOn", true);
+        
+        win = createWindow(val, source, windowSettings, error);
+            
+        if(win != NULL)
+            success = true;
     }
     else{
-        fServerHttp->compile_Failed(error);
-    }  
+        win = httpPortToWin(port);
+        
+        if(win->update_Window(source))
+            success = true;
+    }
+    
+//The server has to know whether the compilation is successfull, to stop blocking the answer to its client
+    if(success){
+        string url = win->get_HttpUrl().toStdString();
+        FLServerHttp::getInstance()->compile_Successfull(url);
+    }
+    else
+        FLServerHttp::getInstance()->compile_Failed(error.toStdString());
 }
 
 void FLApp::changeDropPort(){

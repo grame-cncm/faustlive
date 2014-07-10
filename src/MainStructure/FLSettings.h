@@ -26,8 +26,8 @@ public:
     ~FLSettings();
 
     static FLSettings* getInstance();
-    static void initInstance(const QString homePath);
     static FLSettings* _settingsInstance;
+    static void createInstance(const QString homePath);
     static void deleteInstance();
 };
 

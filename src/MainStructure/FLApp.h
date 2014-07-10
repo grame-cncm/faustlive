@@ -151,9 +151,10 @@ class FLApp : public QApplication
         FLWindow*           getWinFromHttp(int port);
     
     private slots :
-        
+    
 #ifndef _WIN32
 //--------Server Response
+        FLWindow*           httpPortToWin(int port);
         void                changeDropPort();
         void                launch_Server();
         void                compile_HttpData(const char* data, int port);
@@ -171,7 +172,7 @@ class FLApp : public QApplication
     //---------File
         void                connectWindowSignals(FLWindow* win);
         void                create_Empty_Window();
-        bool                createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
+        FLWindow*                createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
         void                open_New_Window();
         void                open_Example_From_FileMenu();
         void                open_Recent_File();

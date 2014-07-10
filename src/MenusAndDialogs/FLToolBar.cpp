@@ -80,7 +80,7 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
     
     connect(fHttpBox, SIGNAL(toggled(bool)), this, SLOT(redirectHttp(bool)));
     
-    fHttpBox->setChecked(false);
+    fHttpBox->setChecked(settings->value("isHttpOn", false).toBool());
     
     fPortLine = new QLineEdit(tr(""), fWidget1);
     httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
@@ -114,7 +114,7 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
 #ifdef REMOTE
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
-    fRemoteButton->setText(fSettings->value("MachineName", "local processing").toString());
+    setRemote(fSettings->value("MachineName", "local processing").toString(), fSettings->value("MachineIP", "").toString(), fSettings->value("MachinePort", "").toInt());
     
     fRemoteMenu = new QMenu();
     fRemoteButton->setMenu(fRemoteMenu);
@@ -153,13 +153,11 @@ void FLToolBar::openRemoteBox(){
     if(getRemoteMachinesAvailable(&fIPToHostName)){
         
         // Add localhost to the machine list
-        fIPToHostName[string("local processing")] = make_pair("localhost", 0);
+        fIPToHostName[string("local processing")] = make_pair("", 0);
         
         map<string, pair <string, int> >::iterator it = fIPToHostName.begin();
         
         while(it!= fIPToHostName.end()){
-            
-            printf("IPOFHOSTNAME = %s\n", it->second.first.c_str());
             
             // Add the machines to the menu passed in parameter 
             QAction* machineAction = new QAction(it->first.c_str(), fRemoteButton->menu());
@@ -174,7 +172,9 @@ void FLToolBar::openRemoteBox(){
 #endif
 }
 
-void FLToolBar::setRemoteButtonName(const QString& name, const QString& ipServer){
+void FLToolBar::setRemote(const QString& name, const QString& ipServer, int port){
+    
+    printf("SET REMOTE WITH NAME = %s\n", name.toStdString().c_str());
     
     fRemoteButton->setText(name);
     fSettings->setValue("MachineName", name);
@@ -184,24 +184,9 @@ void FLToolBar::setRemoteButtonName(const QString& name, const QString& ipServer
 //Reaction to a click cancellation
 void FLToolBar::remoteFailed(){
 
-    fSettings->setValue("MachineIP", fFormerIp);
-    fSettings->setValue("MachinePort", fFormerPort);
-}
-
-void FLToolBar::remoteSuccessfull(){
-    setRemoteButtonName(fNewName, fSettings->value("MachineIP", "127.0.0.1").toString());
-}
-
-void FLToolBar::setNewOptions(const QString& ip, int port, const QString& newName){
+    printf("Remote Failed with name = %s\n", fFormerName.toStdString().c_str());
     
-    fFormerIp = fSettings->value("MachineIP", "127.0.0.1").toString();
-    fFormerPort = fSettings->value("MachinePort", 7777).toInt();
-    fFormerName = fRemoteButton->text();
-    
-    fSettings->setValue("MachineIP", ip);
-    fSettings->setValue("MachinePort", port);
-    fNewName = newName;
-    
+    setRemote(fFormerName, fFormerIp, fFormerPort);
 }
 
 void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
@@ -214,7 +199,11 @@ void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     setOrientation(Qt::Horizontal);
 }
 
-FLToolBar::~FLToolBar(){}
+FLToolBar::~FLToolBar(){
+
+    fSettings->setValue("isHttpOn", fHttpBox->isChecked());
+
+}
 
 //Reaction to enter one of the QLineEdit
 void FLToolBar::modifiedOptions(){
@@ -324,22 +313,15 @@ void FLToolBar::update_remoteMachine(){
     string toto(action->text().toStdString());
     
     //    If the server is the same, there is no update
-    if((fSettings->value("MachineIP", "127.0.0.1").toString().toStdString()).compare((fIPToHostName[toto]).first) == 0)
-        return;
-    else{
+    if(fSettings->value("MachineName", "local processing").toString() != action->text()){
         
-        fFormerIp = fSettings->value("MachineIP", "127.0.0.1").toString();
-        fFormerPort = fSettings->value("MachinePort", 7777).toInt();
+        fFormerIp = fSettings->value("MachineIP", "").toString();
+        fFormerPort = fSettings->value("MachinePort", 0).toInt();
         fFormerName = fRemoteButton->text();
         
-        fSettings->setValue("MachineIP", fIPToHostName[toto].first.c_str());
-        fSettings->setValue("MachinePort", fIPToHostName[toto].second);
+        setRemote(toto.c_str(), fIPToHostName[toto].first.c_str(), fIPToHostName[toto].second);
         
-//        printf("IP clicked = %s || %i\n", fIpRemoteServer.toLatin1().data(), fPortRemoteServer);
-        
-        fNewName = toto.c_str();
-        
-        emit switchMachine(fSettings->value("MachineIP", "127.0.0.1").toString(), fSettings->value("MachinePort", 7777).toInt());
+        emit switchMachine();
     }
     
 #endif

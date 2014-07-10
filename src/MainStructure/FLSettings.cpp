@@ -19,7 +19,7 @@ FLSettings* FLSettings::getInstance(){
     return FLSettings::_settingsInstance;
 }
 
-void FLSettings::initInstance(const QString homePath){
+void FLSettings::createInstance(const QString homePath){
 
     QString settingPath = homePath + "/Settings.ini";
     
