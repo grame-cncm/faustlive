@@ -99,6 +99,7 @@ void FLPreferenceWindow::init(){
     
 #ifdef  HTTPCTRL
     fPortLine = new QLineEdit(styleTab);
+    fHttpAuto = new QCheckBox;
 #endif
     
     generalTabStructure->addTab(styleTab, tr("Network"));
@@ -107,7 +108,11 @@ void FLPreferenceWindow::init(){
 #ifdef HTTPCTRL
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
+
+    networkLayout->addRow(new QLabel(tr("")));
+    networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
 #endif
+    
     
     styleTab->setLayout(networkLayout);
     
@@ -221,6 +226,9 @@ void FLPreferenceWindow::save(){
         settings->setValue("General/Network/HttpDropPort", value);
         emit dropPortChange();
     }
+    
+    settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
+    
 #endif
     
     hide();
@@ -236,6 +244,13 @@ void FLPreferenceWindow::resetVisualObjects(){
     
 #ifdef  HTTPCTRL
     fPortLine->setText(QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()));
+    
+    bool checked = FLSettings::getInstance()->value("General/Network/HttpDefaultChecked", false).toBool();
+    
+    if(checked)
+        fHttpAuto->setCheckState(Qt::Checked);
+    else
+        fHttpAuto->setCheckState(Qt::Unchecked);
 #endif
 }
 

@@ -8,7 +8,8 @@
 
 #include "FLToolBar.h"
 
-#include <sstream>
+#include "FLSettings.h"
+
 #include "utilities.h"
 
 #ifdef REMOTE
@@ -80,7 +81,7 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
     
     connect(fHttpBox, SIGNAL(toggled(bool)), this, SLOT(redirectHttp(bool)));
     
-    fHttpBox->setChecked(settings->value("isHttpOn", false).toBool());
+    fHttpBox->setChecked(settings->value("isHttpOn", FLSettings::getInstance()->value("General/Network/HttpDefaultChecked", false).toBool()).toBool());
     
     fPortLine = new QLineEdit(tr(""), fWidget1);
     httpLayout->addWidget(new QLabel(tr("Http Port"), fWidget1));
@@ -199,11 +200,7 @@ void FLToolBar::collapseAction(QTreeWidgetItem* /*item*/){
     setOrientation(Qt::Horizontal);
 }
 
-FLToolBar::~FLToolBar(){
-
-    fSettings->setValue("isHttpOn", fHttpBox->isChecked());
-
-}
+FLToolBar::~FLToolBar(){}
 
 //Reaction to enter one of the QLineEdit
 void FLToolBar::modifiedOptions(){
@@ -260,19 +257,13 @@ void FLToolBar::setOptions(QString options){
 
 void FLToolBar::setVal(int value){
     
-    stringstream ss;
-    ss<<value;
-    
-    fOptValLine->setText(ss.str().c_str());
+    fOptValLine->setText(QString::number(value));
 }
 
 void FLToolBar::setPort(int port){
 
 #ifdef HTTPCTRL
-    stringstream ss;
-    ss<<port;
-    
-    fPortLine->setText(ss.str().c_str());
+    fPortLine->setText(QString::number(port));
 #endif
 }
 
@@ -280,10 +271,7 @@ void FLToolBar::setPortOsc(int port){
     
 //#ifndef _WIN32 || OSCVAR
 #ifdef OSCVAR
-    stringstream ss;
-    ss<<port;
-    
-    fPortOscLine->setText(ss.str().c_str());
+    fPortOscLine->setText(QString::number(port));
 #endif
 }
 

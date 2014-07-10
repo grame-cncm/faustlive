@@ -1606,8 +1606,12 @@ void FLApp::launch_Server(){
     
     int i = 0;
         
+    bool started = true;
+    
     while(!FLServerHttp::getInstance()->start()){
-            
+        
+        started = false;
+        
         QString s("Server Could Not Start On Port ");
         s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
             
@@ -1622,13 +1626,12 @@ void FLApp::launch_Server(){
         else
             i++;
     } 
-        
-//        connect(FLServerHttp::getInstance(), SIGNAL(compile_Data(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
     
     if(!returning)
         fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
-    //    That way, it doesn't say it when the application is started
-    else if(FLW_List.size() != 0){
+    
+//    That way, it doesn't say it when it starts normally
+    else if(!started){
         QString s("Server Started On Port ");
         s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
         fErrorWindow->print_Error(s);

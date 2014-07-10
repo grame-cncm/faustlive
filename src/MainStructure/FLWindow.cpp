@@ -813,6 +813,8 @@ void FLWindow::save_Window(){
     QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
     
     fAudioManager->save_Connections(connectFile.toStdString());
+    
+    fSettings->setValue("isHttpOn", fToolBar->isHttpOn());
 }
 
 void FLWindow::recall_Window(){
@@ -925,15 +927,9 @@ void FLWindow::viewQrCode(){
     
     if(fHttpdWindow){
         
-        QString fullUrl("");
+        int dropPort = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
         
-        fullUrl = "http://";
-        fullUrl += searchLocalIP();
-        fullUrl += ":";
-        
-        fullUrl += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
-        fullUrl += "/";
-        fullUrl += QString::number(fHttpInterface->getTCPPort());
+        QString fullUrl = "http://" + searchLocalIP() + ":" + QString::number(dropPort) + "/" + QString::number(fHttpInterface->getTCPPort());
         
         fInterface->displayQRCode(fullUrl, fHttpdWindow);
         fHttpdWindow->move(calculate_Coef()*10, 0);
@@ -968,16 +964,10 @@ QString FLWindow::get_HttpUrl() {
 
     QString url("");
     
-    if(fToolBar->isHttpOn()){
-
-        url = "http://";
-        url += searchLocalIP();   
-        url += ":";
-        url += QString::number(fHttpInterface->getTCPPort());
-        url += "/";
-    }
-    else
-        return url;
+    if(fToolBar->isHttpOn())
+        url = "http://" + searchLocalIP() + ":" + QString::number(fHttpInterface->getTCPPort()) + "/";
+    
+    return url;
 }
 #endif
 
