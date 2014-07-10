@@ -79,6 +79,7 @@ class FLWindow : public QMainWindow
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 #endif
 		void            allocateHttpInterface();
+        void            deleteHttpInterface();
     
         AudioManager*   fAudioManager;
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
@@ -93,9 +94,6 @@ class FLWindow : public QMainWindow
     //Calculate a multiplication coefficient to place the window (and httpdWindow) on screen (avoiding overlapping of the windows)
         int             calculate_Coef();
 
-    //Delete user interface + savings interfaces (FUI, FJUI)
-        void            deleteInterfaces();
-        
     //Diplays the default interface with Message : Drop a DSP or Edit Me
         void            print_initWindow(int typeInit);
     
@@ -153,13 +151,11 @@ class FLWindow : public QMainWindow
     //Called when the X button of a window is triggered
         virtual void    closeEvent ( QCloseEvent * event );
     
-    //Creates dsp and interface corresponding to effect
-    //Init = 1 --> if the window is created with default process
-    //Init = 0 --> if the window is created with other dsp
-    //Recalled = 1 --> the window is recalled from a session and needs its parameter
-    //Recalled = 0 --> the window is a new one without parameters
-
-        bool           buildInterfaces(dsp* dsp, const QString& nameEffect);
+    //-- 4 steps in a interface's life
+        bool            allocateInterfaces(const QString& nameEffect); 
+        bool            buildInterfaces(dsp* dsp);
+        void            runInterfaces();
+        void            deleteInterfaces();
     
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
@@ -207,11 +203,8 @@ class FLWindow : public QMainWindow
     
     //Functions to create an httpd interface
         void            viewQrCode();
-    
-        bool            is_httpdWindow_active();
-        void            hide_httpdWindow();
+
         QString         get_HttpUrl();
-        void            resetHttpInterface();
 #endif
     
     //In case of a right click, it is called

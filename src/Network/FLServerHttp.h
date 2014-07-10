@@ -112,9 +112,7 @@ private:
     void            compile_Successfull(const string& url);
     void            compile_Failed(const string& error);
     
-    
-    void            createJson();
-    void            createHtml();
+    void            updateAvailableInterfaces();
     
     signals:
         void        compile(const char*, int);

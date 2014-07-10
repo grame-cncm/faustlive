@@ -112,8 +112,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
     
-    printf("ERROR OF CREATE FACTORY = %s\n", errorMsg.toStdString().c_str());
-    
     if(factorySetts.second == NULL)
         return false;
     
@@ -125,7 +123,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     if (fCurrent_DSP == NULL)
         return false;
     
-    if(buildInterfaces(fCurrent_DSP, fSettings->value("Name", "").toString())){
+    if(allocateInterfaces(fSettings->value("Name", "").toString())){
+       
+        buildInterfaces(fCurrent_DSP);
         
         if(init != kNoInit){
             fIsDefault = true;
@@ -137,23 +137,10 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             start_Audio();
             frontShow();
                         
-#ifdef _WIN32  
-            if(fOscInterface)
-                fOscInterface->run();
+            runInterfaces();
             
-            if(fHttpInterface){
-                fHttpInterface->run();
-                FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
-            }
-                        setWindowsOptions();
-#endif
-            fInterface->run();
-            fInterface->installEventFilter(this);
             fCreationDate = fCreationDate.currentDateTime();
             FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
-            
-            if(fToolBar->isHttpOn())
-                resetHttpInterface();
             
             return true;
         } 
@@ -258,7 +245,9 @@ bool FLWindow::update_Window(const QString& source){
                 deleteInterfaces();
                 
                 //Set the new interface & Recall the parameters of the window
-                if(buildInterfaces(charging_DSP, newName)){
+                if(allocateInterfaces(newName)){
+                   
+                    buildInterfaces(charging_DSP);
                     recall_Window();
                     
                     //Start crossfade and wait for its end
@@ -285,17 +274,16 @@ bool FLWindow::update_Window(const QString& source){
                     isUpdateSucessfull = true;
                 }
                 else{
-                    buildInterfaces(fCurrent_DSP, savedName);
-                    recall_Window();
+                    if(allocateInterfaces(savedName)){
+                        buildInterfaces(fCurrent_DSP);
+                        recall_Window();
                     
-                    errorMsg = "Impossible to allocate new interface";
+                        errorMsg = "Impossible to allocate new interface";
+                    }
                 }
                 
                 //Step 12 : Launch User Interface
-                fInterface->run();
-                fInterface->installEventFilter(this);
-
-                setWindowsOptions();
+                runInterfaces();
             }
         }
         
@@ -306,9 +294,7 @@ bool FLWindow::update_Window(const QString& source){
             errorPrint(errorMsg);
         else
             emit windowNameChanged();
-        
-        
-        resetHttpInterface();
+    
         return isUpdateSucessfull;
     }
     else
@@ -347,13 +333,21 @@ void FLWindow::setWindowsOptions(){
     fSettings->setValue("OptValue", fSettings->value("OptValue", 3).toInt());
     fToolBar->setVal(fSettings->value("OptValue", 3).toInt());
     
+    int port = 5510;
+    
     if(fHttpInterface)
-        fSettings->setValue("HttpPort", fHttpInterface->getTCPPort());
-    fToolBar->setPort(fSettings->value("HttpPort", 5510).toInt());
+        port = fHttpInterface->getTCPPort();
+    
+    fSettings->setValue("HttpPort", port);
+    fToolBar->setPort(port);
+    
+    int oscPort = 5510;
     
     if(fOscInterface)
-        fSettings->setValue("OscPort", fOscInterface->getUDPPort());
-    fToolBar->setPortOsc(fSettings->value("OscPort", 5510).toInt());
+        oscPort = fOscInterface->getUDPPort();
+    
+    fSettings->setValue("OscPort", oscPort);
+    fToolBar->setPortOsc(oscPort);
 }
 
 #ifndef _WIN32
@@ -366,21 +360,6 @@ void FLWindow::updateOSCInterface(){
     fCurrent_DSP->buildUserInterface(fOscInterface);
     recall_Window();
     fOscInterface->run();
-    
-    setWindowsOptions();
-}
-
-void FLWindow::updateHTTPInterface(){
-    
-    save_Window();
-    
-    allocateHttpInterface();
-    
-    fCurrent_DSP->buildUserInterface(fHttpInterface);
-    recall_Window();
-    fHttpInterface->run();
-    FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
-    
     
     setWindowsOptions();
 }
@@ -477,13 +456,25 @@ void FLWindow::allocateOscInterface(){
     }
 }
 
-//Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
-bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
-    
-    //Set parameters in ToolBar
-    setWindowsOptions();
+//----4 STEP OF THE INTERFACES LIFE
+
+bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
     fRCInterface = new FUI;
+    
+    if(!fRCInterface)
+        return false;
+    
+    //Window tittle is build with the window Name + effect Name
+    QString intermediate = fWindowName + " : " + nameEffect;
+    
+    fInterface = new QTGUI(this, intermediate.toStdString().c_str());
+    
+    if(!fInterface){
+        delete fRCInterface;
+        fRCInterface = NULL;
+        return false;
+    }
     
 #ifndef _WIN32
     if(fToolBar->isOscOn())
@@ -492,46 +483,51 @@ bool FLWindow::buildInterfaces(dsp* dsp, const QString& nameEffect){
     if(fToolBar->isHttpOn())
         allocateHttpInterface();
 #endif
-    
-    if(fRCInterface){
-        
-        //Window tittle is build with the window Name + effect Name
-        QString intermediate = fWindowName + " : " + nameEffect;
-        
-        fInterface = new QTGUI(this, intermediate.toStdString().c_str());
-        
-        if(fInterface){
-            
-            dsp->buildUserInterface(fInterface);
-            dsp->buildUserInterface(fRCInterface);
+    return true;
+}
+
+//Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
+bool FLWindow::buildInterfaces(dsp* dsp){
+      
+    dsp->buildUserInterface(fInterface);
+    dsp->buildUserInterface(fRCInterface);
             
 #ifndef _WIN32
-            if(fOscInterface)
-                dsp->buildUserInterface(fOscInterface);
-            
-            if(fHttpInterface)
-                dsp->buildUserInterface(fHttpInterface);
+    if(fOscInterface)
+        dsp->buildUserInterface(fOscInterface);
+        
+    if(fHttpInterface)
+        dsp->buildUserInterface(fHttpInterface);
 #endif
-            return true;
-        }
-    }  
-    return false;
+}
+
+void FLWindow::runInterfaces(){
+    
+#ifndef _WIN32  
+    if(fOscInterface)
+        fOscInterface->run();
+    
+    if(fHttpInterface){
+        fHttpInterface->run();
+        FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+    }
+#endif
+    setWindowsOptions();
+    
+    fInterface->run();
+    fInterface->installEventFilter(this);
 }
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
     
 #ifndef _WIN32
-    if(fToolBar->isOscOn()){
+    if(fOscInterface){
         delete fOscInterface;
         fOscInterface = NULL;
     }
-    if(fToolBar->isHttpOn()){
-        
-        FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
-        delete fHttpInterface;
-        
-        fHttpInterface = NULL;
+    if(fHttpInterface){
+        deleteHttpInterface();
     }
 #endif
     
@@ -867,48 +863,56 @@ int FLWindow::calculate_Coef(){
 }
 
 #ifndef _WIN32
-void FLWindow::resetHttpInterface(){
-    
-    fToolBar->switchHttp(false);
-    fToolBar->switchHttp(true);
-}
-
 void FLWindow::allocateHttpInterface(){
     
-    if(fToolBar->isHttpOn()){
+    QString optionPort = "-port";
+    QString windowTitle = fWindowName + ":" + getName();
         
-        if(fHttpInterface != NULL){  
-            FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
-            delete fHttpInterface;
-        }
+    char* argv[3];
         
-        QString optionPort = "-port";
-        QString windowTitle = fWindowName + ":" + getName();
+    argv[0] = (char*)(windowTitle.toLatin1().data());
+    argv[1] = (char*)(optionPort.toLatin1().data());
+    argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
         
-        char* argv[3];
-        
-        argv[0] = (char*)(windowTitle.toLatin1().data());
-        argv[1] = (char*)(optionPort.toLatin1().data());
-        argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
-        
-        fHttpInterface = new httpdUI(argv[0], 3, argv);
-    }
+    fHttpInterface = new httpdUI(argv[0], 3, argv);
+}
+
+void FLWindow::deleteHttpInterface(){
+    
+    FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
+    delete fHttpInterface;
+    fHttpInterface = NULL;
+}
+
+void FLWindow::updateHTTPInterface(){
+    
+    save_Window();
+    
+    if(fHttpInterface)
+        deleteHttpInterface();
+    
+    allocateHttpInterface();
+    
+    fCurrent_DSP->buildUserInterface(fHttpInterface);
+    recall_Window();
+    fHttpInterface->run();
+    FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+    
+    setWindowsOptions();
 }
 
 void FLWindow::switchHttp(bool on){
+
     if(on)
         updateHTTPInterface();
-    else{
-        FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
-        delete fHttpInterface;
-        fHttpInterface = NULL;
-    } 
+    else
+        deleteHttpInterface();
 }
 
 void FLWindow::viewQrCode(){
     
     if(fHttpInterface == NULL){
-        allocateHttpInterface();
+        fToolBar->switchHttp(true);
     }
     
     if(fHttpdWindow != NULL){
@@ -958,17 +962,6 @@ void FLWindow::exportToPNG(){
     
     if(!fInterface->toPNG(filename, errorMsg))
         emit error(errorMsg.toStdString().c_str());
-}
-
-bool FLWindow::is_httpdWindow_active() {
-    
-    if(fHttpdWindow)
-        return fHttpdWindow->isActiveWindow();
-}
-
-void FLWindow::hide_httpdWindow() {
-    if(fHttpdWindow)
-        fHttpdWindow->hide();
 }
 
 QString FLWindow::get_HttpUrl() {

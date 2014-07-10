@@ -56,7 +56,7 @@ bool FLServerHttp::start(){
     unsigned short port = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
    
     fServerAddress = "http://" + searchLocalIP().toStdString() + ":" + QString::number(port).toStdString() + "/";
-    
+
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -89,16 +89,15 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     
     stringstream ss;
     
-    string responseHead = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerHead.txt").toStdString();
+    string responseHead = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerHead.html").toStdString();
+    string responseTail = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerTail.html").toStdString();
     
-    string responseTail = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerTail.txt").toStdString();
-    
-    if(strcmp(url,"/availableInterfaces") == 0){
+    if(strcmp(url,"/availableInterfaces") == 0)
         return send_page(connection, fHtml.c_str (), fHtml.size(), MHD_HTTP_OK, "text/html");
-    }
-    else if(strcmp(url,"/availableInterfaces/Json") == 0){
+    
+    else if(strcmp(url,"/availableInterfaces/Json") == 0)
         return send_page(connection, fJson.c_str (), fJson.size(), MHD_HTTP_OK, "application/json");
-    }
+    
     else if(strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")){
         
         string portNumber(url);
@@ -269,7 +268,6 @@ void FLServerHttp::request_completed(void */*cls*/, MHD_Connection */*connection
     *con_cls = NULL;
 }
 
-
 //Callback that parses the content of a post request
 int FLServerHttp::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
 {
@@ -309,43 +307,29 @@ void FLServerHttp::compile_Failed(const string& error){
 void FLServerHttp::declareHttpInterface(int port,  const string& name){
     
     fDeclaredNames[port] = name;
-    createJson();
-    createHtml();
+    updateAvailableInterfaces();
 }
 
 void FLServerHttp::removeHttpInterface(int port){
     fDeclaredNames.erase(port);
-    createJson();
-    createHtml();
+    updateAvailableInterfaces();
 }
 
-void FLServerHttp::createJson(){
-
+void FLServerHttp::updateAvailableInterfaces(){
+    
     stringstream json;
+    stringstream html;
     
     json << '{';
+    html << readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesHead.html").toStdString();
+    
+    html<<"<table width=\"90%\" border=\"0\" cellspacing=\"10\" cellpadding=\"10\" align=\"center\">";
     
     for (map<int, string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++) {
         
         json << std::endl << '"' << it->second << '"' << ": [" << '"' << it->first << '"' << ']';
         if(it != fDeclaredNames.end())
             json<<',';
-    }
-    
-    json << std::endl << "}";
-    
-    fJson = json.str();
-}
-
-void FLServerHttp::createHtml(){
-    
-    stringstream html;
-    
-    html << readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesHead.txt").toStdString();
-
-    html<<"<table width=\"90%\" border=\"0\" cellspacing=\"10\" cellpadding=\"10\" align=\"center\">";
-    
-    for(map<int, string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++){
         
         html<<"<tr>"<<std::endl;
         html<<"<td>"<<it->second<<"</td>";
@@ -354,11 +338,13 @@ void FLServerHttp::createHtml(){
         html<<"</tr>"<<std::endl;
     }
     
+    json << std::endl << "}";
+    fJson = json.str();
+    
     html<<"</table>"<<std::endl;
-    
-    html<<std::endl<<readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesTail.txt").toStdString();
-    
+    html<<std::endl<<readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesTail.html").toStdString();
     fHtml = html.str();
+    
 }
 
 //Accessor to Max Client Number
