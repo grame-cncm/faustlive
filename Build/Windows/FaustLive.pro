@@ -292,6 +292,7 @@ else{
 
 }
 
+<<<<<<< HEAD
 SOURCES += 	src/Audio/AudioCreator.cpp \
             src/Audio/AudioFader_Implementation.cpp \
         	src/MenusAndDialogs/FLToolBar.cpp \
@@ -305,6 +306,19 @@ SOURCES += 	src/Audio/AudioCreator.cpp \
             src/MainStructure/FLSettings.cpp \
             src/MenusAndDialogs/FLPreferenceWindow.cpp \
             src/MainStructure/FLApp.cpp
+=======
+SOURCES += 	src/AudioCreator.cpp \
+            src/AudioFader_Implementation.cpp \
+        	src/FLToolBar.cpp \
+            src/FLrenameDialog.cpp \
+            src/FLErrorWindow.cpp \
+            src/FLExportManager.cpp \
+            src/FLEffect.cpp \
+            src/FLWindow.cpp \
+            src/FLComponentWindow.cpp \
+            src/FLSettings.cpp \
+            src/FLApp.cpp
+>>>>>>> 996e52e2db956117aa98f01297c6de6116dc56cf
 win32{
 	equals(HTTPDVAR, 1){
 		SOURCES +=	src/Network/HTTPWindow.cpp
