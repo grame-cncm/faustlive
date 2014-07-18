@@ -19,7 +19,7 @@
 #endif
 
 #define DEFAULTNAME "DefaultName"
-#define kMaxSHAFolders 5
+#define kMaxSHAFolders 100
 
 
 FLSessionManager* FLSessionManager::_sessionManager = 0;
@@ -263,7 +263,7 @@ QString FLSessionManager::ifWavToString(const QString& source){
 }
 
 //--Fill argv parameters with -I/-O/etc...
-const char** FLSessionManager::getLocalArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc){
+const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc){
     
     //--------Compilation Options 
     
@@ -344,18 +344,46 @@ const char** FLSessionManager::getLocalArgv(const QString& sourcePath, const QSt
     return argv;
 }
 
-const char** FLSessionManager::getRemoteArgv(QSettings* winSettings, int& argc){
+const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc){
     
-    argc = 6;
+    argc = 8;
     const char** argv = new const char*[argc];
     
     argv[0] = "--NJ_ip";
-    string localString = searchLocalIP().toStdString();
-    argv[1] = localString.c_str();
+    QString localString = searchLocalIP();
+    string ip(localString.toStdString());
+    argv[1] = ip.c_str();
+    
     argv[2] = "--NJ_latency";
-    argv[3] = "10";
+    QString latency = winSettings->value("RemoteProcessing/Latency", "10").toString();
+//    string lat(latency.toStdString());
+    char* lat = new char[latency.length()];
+    lat = (char*)latency.toStdString().c_str();
+    
+    printf("Latency = %s\n", lat);
+    argv[3] = (const char*)lat;
+    
     argv[4] = "--NJ_compression";
-    argv[5] = "64";
+    QString cv = winSettings->value("RemoteProcessing/CV", "64").toString();
+//    string compression(cv.toStdString());
+    char* compression = new char[cv.length()];
+    compression = (char*) cv.toStdString().c_str();
+    
+    printf("Compression = %s\n", compression);
+    argv[5] = (const char*)compression;
+    
+    argv[6] = "--NJ_mtu";
+    QString mtu = winSettings->value("RemoteProcessing/MTU", "1500").toString();
+//    string mtuVal(mtu.toStdString()); 
+    char* mtuVal = new char[mtu.length()];
+    mtuVal = (char*) mtu.toStdString().c_str();
+    
+    printf("MTU = %s\n", mtuVal);
+    argv[7] = (const char*)mtuVal;
+    
+    
+    for(int i=0; i<argc; i++)
+        printf("ARGV INSTANCE %i = %s\n", i, argv[i]);
     
     return argv;
 }
@@ -409,10 +437,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     //--------Calculation of SHA Key
     
-    QString faustOptions = settings->value("FaustOptions", FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString()).toString(); 
+    QString faustOptions = settings->value("Compilation/FaustOptions", FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString()).toString(); 
     string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
-    int optLevel = settings->value("OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt()).toInt();
+    int optLevel = settings->value("Compilation/OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt()).toInt();
     string optvalue = QString::number(optLevel).toStdString();
     
     string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
@@ -441,9 +469,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     factory* toCompile = new factory;
     string error;
     
-    printf("VALUE OF MACHINE NAME = %s\n", settings->value("MachineName", "local processing").toString().toStdString().c_str());
+    int argc;
+    const char** argv = getFactoryArgv(path, factoryFolder, faustOptions, argc);
     
-    if(settings->value("MachineName", "local processing").toString() == "local processing"){
+    if(settings->value("RemoteProcessing/MachineName", "local processing").toString() == "local processing"){
         
         mySetts->fType = TYPE_LOCAL;
         
@@ -453,9 +482,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
-            
-            int argc;
-            const char** argv = getLocalArgv(path, factoryFolder, faustOptions, argc);
             
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
             
@@ -474,15 +500,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 #ifdef REMOTE
         mySetts->fType = TYPE_REMOTE;
         
-        int argc;
-        const char** argv = getRemoteArgv(settings, argc);
+        string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
+        int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
-        string ip_server = settings->value("MachineIP", "").toString().toStdString();
-        int port_server = settings->value("MachinePort", "").toInt();
-        
-        toCompile->fRemoteFactory = createRemoteDSPFactoryFromFile(fileToCompile, argc, argv, "192.168.1.176", 7777, error, optLevel);
-        
-        printf("Compilation Problem = %s\n", error.c_str());
+        toCompile->fRemoteFactory = createRemoteDSPFactoryFromFile( fileToCompile, 0, NULL, ip_server, port_server, error, optLevel);
         
         if(!toCompile->fRemoteFactory){
             errorMsg = error.c_str();
@@ -528,51 +549,28 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, FLWinSettin
         int errorToCatch;
         
         int argc;
-        const char** argv = getRemoteArgv(settings, argc);
+        const char** argv = getRemoteInstanceArgv(settings, argc);
+        
+        for(int i=0; i<argc; i++)
+            printf("ARGV %i FROM HERE = %s\n", i, argv[i]);
         
         compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, sampleRate,bufferSize, error_callback, error_callback_arg, errorToCatch);
         
-        
-        
-        //        FLSessionManager* sessionManager = FLSessionManager::_Instance();
-        
-        //        createFactory(source, fSettings, errorMsg);
-        
-        //        charging_DSP = sessionManager->createDSP(source, fSettings, errorMsg);
-        
-        //#ifdef REMOTE
-        //    else{
-        //        int argc = 6;
-        //        const char* argv[6];
-        //        
-        //        argv[0] = "--NJ_ip";
-        //        string localString = searchLocalIP().toStdString();
-        //        argv[1] = localString.c_str();
-        //        argv[2] = "--NJ_latency";
-        //        argv[3] = "10";
-        //        argv[4] = "--NJ_compression";
-        //        argv[5] = "64";
-        //        
-        //        int errorMsg;
-        //        
-        //        charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-        //
-        ////        IN CASE FACTORY WAS LOST ON THE SERVER'S SIDE, IT IS RECOMPILED
-        //        if(charging_DSP == NULL){
-        //            
-        //            if(errorMsg == ERROR_FACTORY_NOTFOUND){
-        //                newEffect->reset();
-        //                
-        //                if(newEffect->reinit(error)){
-        //                    charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-        //                }
-        //            }
-        //            error = getErrorFromCode(errorMsg);
-        //        }
-        //    }
-        //#endif
-        
-        
+//        
+//        if(compiledDSP == NULL){
+//        
+//            if(errorMsg == ERROR_FACTORY_NOTFOUND){
+//                
+////                Remettre à zéro mySetts + 
+//                
+//                newEffect->reset();
+//                  
+//                if(newEffect->reinit(error)){
+//                    charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
+//                }
+//                error = getErrorFromCode(errorMsg);
+//            }
+//        }
         
         if(compiledDSP == NULL)
             errorMsg = getErrorFromCode(errorToCatch);

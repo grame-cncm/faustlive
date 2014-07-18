@@ -16,7 +16,13 @@
 
 list<GUI*>               GUI::fGuiList;
 
+
 #include "FLToolBar.h"
+
+#ifdef REMOTE
+#include "FLStatusBar.h"
+#endif
+
 #include "utilities.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
@@ -25,6 +31,9 @@ list<GUI*>               GUI::fGuiList;
 #include "FLServerHttp.h"
 
 #include "FLFileWatcher.h"
+
+#include "FLErrorWindow.h"
+#include "FLMessageWindow.h"
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
@@ -66,7 +75,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fCurrent_DSP = NULL;
     
     fToolBar = NULL;
-    
+
     fIPToHostName = new map<QString, std::pair<QString, int> >;
     
     //    Creating Window Folder
@@ -80,8 +89,15 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Set Menu & ToolBar
     fLastMigration = QDateTime::currentDateTime();
-    setToolBar();
+    set_ToolBar();
+#ifdef REMOTE
+    fStatusBar = NULL;
+    set_StatusBar();
+#endif
     set_MenuBar(appMenus);
+    
+    connect(this, SIGNAL(remoteCnxLost(int error_code)), this, SLOT(RemoteCallback(int error_code)));
+
 }
 
 FLWindow::~FLWindow(){}
@@ -153,46 +169,11 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     return false;
 }
 
-void FLWindow::pressEvent()
-{
-    QDrag* reverseDrag = new QDrag(this);
-    QMimeData* mimeData = new QMimeData;
-    reverseDrag->setMimeData(mimeData);
-    
-    QPixmap fileIcon;
-    fileIcon.load(":/Images/FileIcon.png");
-    
-    reverseDrag->setPixmap(fileIcon);
-    
-    if(QApplication::keyboardModifiers() == Qt::AltModifier){
-        //        mimeData->setText(pathToContent(fEffect->getSource()));
-    }
-    else{
-        //        QList<QUrl> listUrls;
-        //        QUrl newURL(fEffect->getSource());
-        //        listUrls.push_back(newURL);
-        //        mimeData->setUrls(listUrls);
-    }
-    
-    if (reverseDrag->exec(Qt::CopyAction) == Qt::CopyAction){}
-    
-}
-
-bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
-    
-    if (ev->type() == QEvent::MouseMove && QApplication::mouseButtons()==Qt::LeftButton){
-        
-        pressEvent();
-        return true;
-    }
-    else
-        return QMainWindow::eventFilter(obj, ev);
-}
-
 //Modification of the process in the window
 //@param : source = source that reemplaces the current one
 bool FLWindow::update_Window(const QString& source){
 
+    
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
     bool update = true;
@@ -213,6 +194,11 @@ bool FLWindow::update_Window(const QString& source){
     
     if(update){
 
+        FLMessageWindow::_getInstance()->displayMessage("Updating DSP...");
+        FLMessageWindow::_getInstance()->show();
+        FLMessageWindow::_getInstance()->raise();
+        hide();
+        
         QString savedName = fSettings->value("Name", "").toString();
         
         save_Window();
@@ -236,7 +222,6 @@ bool FLWindow::update_Window(const QString& source){
         bool isUpdateSucessfull = false;
         
         if(charging_DSP){
-//            fToolBar->switchHttp(false);
             
             QString newName =  fSettings->value("Name", "").toString();
             
@@ -252,14 +237,7 @@ bool FLWindow::update_Window(const QString& source){
                     
                     //Start crossfade and wait for its end
                     fAudioManager->start_Fade();
-                    
-//                    setGeometry(fSettings->value("Position/x", 0).toInt(), fSettings->value("Position/y", 0).toInt(), 0, 0);
-                    adjustSize();
-                    show();
-                    
                     fAudioManager->wait_EndFade();
-                    
-                    
                     
                     //SWITCH the current DSP as the dropped one
                     
@@ -286,8 +264,7 @@ bool FLWindow::update_Window(const QString& source){
                 runInterfaces();
             }
         }
-        
-        show();
+
         FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
         
         if(!isUpdateSucessfull)
@@ -295,6 +272,11 @@ bool FLWindow::update_Window(const QString& source){
         else
             emit windowNameChanged();
     
+        FLMessageWindow::_getInstance()->hide();
+        
+        adjustSize();
+        show();
+        
         return isUpdateSucessfull;
     }
     else
@@ -304,50 +286,45 @@ bool FLWindow::update_Window(const QString& source){
 //------------TOOLBAR RELATED ACTIONS
 
 //Set up of the Window ToolBar
-void FLWindow::setToolBar(){
+void FLWindow::set_ToolBar(){
     
     fToolBar = new FLToolBar(fSettings, this);
     
-    addToolBar(fToolBar);
+    addToolBar(Qt::TopToolBarArea, fToolBar);
     
     connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
-    connect(fToolBar, SIGNAL(httpPortChanged()), this, SLOT(updateHTTPInterface()));
     connect(fToolBar, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-    connect(fToolBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
     connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
     connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
+    connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
+}
+
+void FLWindow::set_StatusBar(){
+#ifdef REMOTE
+    fStatusBar = new FLStatusBar(fSettings, this);
+    
+    connect(fStatusBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
+    
+    setStatusBar(fStatusBar);
+#endif
 }
 
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
     
-    QString textOptions = fSettings->value("FaustOptions", "").toString();
-    if(textOptions.compare(" ") == 0)
-        textOptions = "";
-    
-    fSettings->setValue("FaustOptions", textOptions);
-    fToolBar->setOptions(textOptions);
-    
-    fSettings->setValue("OptValue", fSettings->value("OptValue", 3).toInt());
-    fToolBar->setVal(fSettings->value("OptValue", 3).toInt());
-    
-    int port = 5510;
-    
     if(fHttpInterface)
-        port = fHttpInterface->getTCPPort();
+        fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
+
+    if(fOscInterface){        
+        fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
+        fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
+        fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
+        fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
+    }
     
-    fSettings->setValue("HttpPort", port);
-    fToolBar->setPort(port);
-    
-    int oscPort = 5510;
-    
-    if(fOscInterface)
-        oscPort = fOscInterface->getUDPPort();
-    
-    fSettings->setValue("OscPort", oscPort);
-    fToolBar->setPortOsc(oscPort);
+    fToolBar->syncVisualParams();
 }
 
 #ifndef _WIN32
@@ -375,27 +352,33 @@ void FLWindow::resizingSmall(){
     
     setMinimumSize(QSize(0,0));
     adjustSize();
+    
+    addToolBar(Qt::TopToolBarArea, fToolBar);
 }
 
 void FLWindow::resizingBig(){
+    
+    addToolBar(Qt::LeftToolBarArea, fToolBar);
     
     //    QSize winSize = fToolBar->geometry().size();
     //    winSize += fToolBar->minimumSize();
     //   
     //    
-    QSize winMinSize = minimumSize();
-    winMinSize += fToolBar->geometry().size();
+//    QSize winMinSize = minimumSize();
+//    winMinSize += fToolBar->geometry().size();
     
     //    setGeometry(0,0,winSize.width(), winSize.height());
-    setMinimumSize(winMinSize);
+//    setMinimumSize(winMinSize);
     //
     adjustSize();
 }
 
 //Redirection machine switch
 void FLWindow::redirectSwitch(){
+#ifdef REMOTE
     if(!update_Window(fSource))
-        fToolBar->remoteFailed();
+        fStatusBar->remoteFailed();
+#endif
 }
 
 //Accessor to Http & Osc Port
@@ -444,14 +427,29 @@ void FLWindow::allocateOscInterface(){
     
     if(fOscInterface == NULL){
         
-        char* argv[3];
+        int argc = 11;
+        
+        char* argv[argc];
         argv[0] = (char*)(fWindowName.toStdString().c_str());
         argv[1] = "-port";
         
-        argv[2] = (char*) (QString::number(fSettings->value("OscPort", 5510).toInt()).toLatin1().data());
+        
+        string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
+        argv[2] = (char*) (inport.c_str());
+        argv[3] = "-xmit";
+        argv[4] = "1";
+        argv[5] = "-outport";
+        string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
+        argv[6] = (char*) (outport.c_str());
+        argv[7] = "desthost";
+        string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
+        argv[8] = (char*) (dest.c_str());
+        argv[9] = "-errport";
+        string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
+        argv[10] = (char*) (errport.c_str());
         
 #ifndef WIN32
-        fOscInterface = new OSCUI(argv[0], 3, argv, NULL, &catch_OSCError, this);
+        fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this);
 #endif
     }
 }
@@ -477,10 +475,10 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     }
     
 #ifndef _WIN32
-    if(fToolBar->isOscOn())
+    if(fSettings->value("Osc/Enabled", false).toBool())
         allocateOscInterface();
     
-    if(fToolBar->isHttpOn())
+    if(fSettings->value("Http/Enabled", false).toBool())
         allocateHttpInterface();
 #endif
     return true;
@@ -700,6 +698,43 @@ void FLWindow::dragLeaveEvent ( QDragLeaveEvent * /*event*/ ){
     centralWidget()->show();
 }
 
+//---Reversed DnD
+void FLWindow::pressEvent()
+{
+    QDrag* reverseDrag = new QDrag(this);
+    QMimeData* mimeData = new QMimeData;
+    reverseDrag->setMimeData(mimeData);
+    
+    QPixmap fileIcon;
+    fileIcon.load(":/Images/FileIcon.png");
+    
+    reverseDrag->setPixmap(fileIcon);
+    
+    if(QApplication::keyboardModifiers() == Qt::AltModifier){
+        //        mimeData->setText(pathToContent(fEffect->getSource()));
+    }
+    else{
+        //        QList<QUrl> listUrls;
+        //        QUrl newURL(fEffect->getSource());
+        //        listUrls.push_back(newURL);
+        //        mimeData->setUrls(listUrls);
+    }
+    
+    if (reverseDrag->exec(Qt::CopyAction) == Qt::CopyAction){}
+    
+}
+
+bool FLWindow::eventFilter( QObject *obj, QEvent *ev ){
+    
+    if (ev->type() == QEvent::MouseMove && QApplication::mouseButtons()==Qt::LeftButton){
+        
+        pressEvent();
+        return true;
+    }
+    else
+        return QMainWindow::eventFilter(obj, ev);
+}
+
 //-------------------------AUDIO FUNCTIONS
 
 //Start/Stop of audio
@@ -798,8 +833,6 @@ bool FLWindow::setDSP(QString& error){
 
 //Read/Write window properties in saving file
 void FLWindow::save_Window(){
-
-    setWindowsOptions();
     
     //Save the parameters of the actual interface
     fSettings->setValue("Position/x", this->geometry().x());
@@ -813,8 +846,6 @@ void FLWindow::save_Window(){
     QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
     
     fAudioManager->save_Connections(connectFile.toStdString());
-    
-    fSettings->setValue("isHttpOn", fToolBar->isHttpOn());
 }
 
 void FLWindow::recall_Window(){
@@ -867,16 +898,13 @@ int FLWindow::calculate_Coef(){
 #ifndef _WIN32
 void FLWindow::allocateHttpInterface(){
     
-    QString optionPort = "-port";
     QString windowTitle = fWindowName + ":" + getName();
         
-    char* argv[3];
+    char* argv[1];
         
     argv[0] = (char*)(windowTitle.toLatin1().data());
-    argv[1] = (char*)(optionPort.toLatin1().data());
-    argv[2] = (char*)(QString::number(fSettings->value("HttpPort", 5510).toInt()).toStdString().c_str());
         
-    fHttpInterface = new httpdUI(argv[0], 3, argv);
+    fHttpInterface = new httpdUI(argv[0], 1, argv);
 }
 
 void FLWindow::deleteHttpInterface(){
@@ -964,7 +992,7 @@ QString FLWindow::get_HttpUrl() {
 
     QString url("");
     
-    if(fToolBar->isHttpOn())
+    if(fHttpInterface)
         url = "http://" + searchLocalIP() + ":" + QString::number(fHttpInterface->getTCPPort()) + "/";
     
     return url;
@@ -1145,9 +1173,7 @@ void FLWindow::svg_View(){
     
     QString error = pathToOpen + " could not be opened!";
         
-//    if(!b)
-//        fErrorWindow->print_Error(error);
-    
+    errorPrint(error);
 }
 
 void FLWindow::exportManage(){
@@ -1161,31 +1187,45 @@ void FLWindow::shut(){
 
 //Redirection of a received error
 void FLWindow::errorPrint(const QString& msg){
-    emit error(msg);
+    FLErrorWindow::_getInstance()->print_Error(msg);
 }
 
+#ifdef REMOTE
+//---We have to separate into 2 functions because the action cannot be done in the audio thread that why RemoteDSPCallback has to send a signal, received in the graphical thread.
 int FLWindow::RemoteDSPCallback(int error_code, void* arg){
     
-#ifdef REMOTE
+    FLWindow* errorWin = (FLWindow*) arg;
+    errorWin->emit remoteCnxLost(error_code);
+}
+
+void FLWindow::RemoteCallback(int error_code){
+    
     QDateTime currentTime(QDateTime::currentDateTime());
     
-    FLWindow* errorWin = (FLWindow*) arg;
-    
-    if(errorWin->fLastMigration.secsTo(currentTime) > 3){
+    if(fLastMigration.secsTo(currentTime) > 3){
         
         if(error_code == WRITE_ERROR || error_code == READ_ERROR){
             
-            errorWin->errorPrint("Remote Connection Error.\n Switching back to local processing.");
+            errorPrint("Remote Connection Error.\n Switching back to local processing.");
             
-            errorWin->fToolBar->setRemote("local processing", "", 0);
-            errorWin->redirectSwitch();
+            fStatusBar->setRemoteSettings("local processing", "127.0.0.1", 7777);
+            redirectSwitch();
         }
     }
     
-    errorWin->fLastMigration = currentTime;
-#endif
-    return -1;
+    fLastMigration = currentTime;
+    
 }
+#else
+int FLWindow::RemoteDSPCallback(int error_code, void* arg){
+    return -1;   
+}
+#endif
+
+
+
+
+
 
 
 

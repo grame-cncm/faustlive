@@ -10,8 +10,19 @@
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
+FLErrorWindow* FLErrorWindow::_errorWindow = NULL;
+
 FLErrorWindow::FLErrorWindow(){
     fErrorText = new QTextEdit(this);
+    init_Window();
+    setWindowTitle("MESSAGE_WINDOW");
+}
+
+FLErrorWindow* FLErrorWindow::_getInstance(){
+    if(_errorWindow == NULL)
+        _errorWindow = new FLErrorWindow;
+    
+    return _errorWindow;
 }
 
 FLErrorWindow::~FLErrorWindow(){

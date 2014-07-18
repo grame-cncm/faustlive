@@ -95,10 +95,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     recall_Recent_Sessions();
     
     //Initializing OutPut Window
-    fErrorWindow = new FLErrorWindow();
-    fErrorWindow->setWindowTitle("MESSAGE_WINDOW");
-    fErrorWindow->init_Window();
-    connect(fErrorWindow, SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    connect(FLErrorWindow::_getInstance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 
 
     // Presentation Window Initialization
@@ -412,7 +409,6 @@ QMenu* FLApp::create_HelpMenu(){
     presentationAction->setToolTip(tr("Show the presentation Menu"));
     connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
     
-    
     helpMenu->addAction(aboutQtAction);
     helpMenu->addSeparator();
     helpMenu->addAction(aboutAction);
@@ -469,7 +465,7 @@ void FLApp::init_Timer_Action(){
 
 //--Print errors in errorWindow
 void FLApp::errorPrinting(const QString& msg){
-    fErrorWindow->print_Error(msg);
+    FLErrorWindow::_getInstance()->print_Error(msg);
 }
 
 //--------- OPERATIONS ON WINDOWS INDEXES
@@ -678,9 +674,9 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
         
         return win;
     }
-    else{
-        delete windowSettings;
+    else{        
         delete win;
+        delete windowSettings;
         return NULL;
     }
 }
@@ -705,7 +701,7 @@ void FLApp::create_New_Window(const QString& source){
     FLWindow* win = createWindow(val, source, windowSettings, error);
     
     if(!win)
-        fErrorWindow->print_Error(error);
+        errorPrinting(error);
 }
 
 //--Creation of Default Window from Menu
@@ -1053,7 +1049,7 @@ void FLApp::tarFolder(const QString& folder){
     QString errorMsg("");
     
     if(!executeInstruction(systemInstruct, errorMsg))
-        fErrorWindow->print_Error(errorMsg);
+        errorPrinting(errorMsg);
     
     deleteDirectoryAndContent(folder);
 
@@ -1067,7 +1063,7 @@ void FLApp::untarFolder(const QString& folder){
     QString errorMsg("");
     
     if(!executeInstruction(systemInstruct, errorMsg))
-        fErrorWindow->print_Error(errorMsg);
+        errorPrinting(errorMsg);
 }
 #endif
 
@@ -1122,7 +1118,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
         
         QString error;
         if(!createWindow(it->second, restoredSources[it->first], windowSettings, error))
-            fErrorWindow->print_Error(error);
+            errorPrinting(error);
     }
     
 #ifndef _WIN32
@@ -1152,7 +1148,7 @@ bool FLApp::recall_CurrentSession(){
         
         QString error;
         if(!createWindow(it->first, it->second, windowSettings, error))
-            fErrorWindow->print_Error(error);
+            errorPrinting(error);
     }
     
     return true;
@@ -1346,7 +1342,7 @@ void FLApp::duplicate(FLWindow* window){
     
     QString error("");
     if(!createWindow(val, window->get_source(), windowSettings, error))
-        fErrorWindow->print_Error(error);
+        errorPrinting(error);
 }
 
 //Duplication window from Menu
@@ -1433,7 +1429,7 @@ void FLApp::styleClicked(const QString& style){
     QFile file;
     FLSettings::getInstance()->setValue("General/Style", style);
     
-    QString styleFile = ":/Styles/" + style + ".qss";    
+    QString styleFile = ":/usr/local/include/faust/gui/Styles/" + style + ".qss";    
     file.setFileName(styleFile);
     
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1494,8 +1490,8 @@ void FLApp::update_AudioArchitecture(){
         
         errorToPrint = "Update not successfull";
         
-        fErrorWindow->print_Error(errorToPrint);
-        fErrorWindow->print_Error(error);
+        errorPrinting(errorToPrint);
+        errorPrinting(error);
         
 //        If some audio did start before the failure, they have to be stopped again
         for(it = FLW_List.begin() ; it != updateFailPointer; it++)
@@ -1521,8 +1517,8 @@ void FLApp::update_AudioArchitecture(){
             errorToPrint += fAudioCreator->get_ArchiName();
             errorToPrint = " could not be reinitialize";
             
-            fErrorWindow->print_Error(errorToPrint);
-            fErrorWindow->print_Error(error);
+            errorPrinting(errorToPrint);
+            errorPrinting(error);
         }
         else{
             
@@ -1531,7 +1527,7 @@ void FLApp::update_AudioArchitecture(){
             
             errorToPrint = fAudioCreator->get_ArchiName();
             errorToPrint += " was reinitialized";
-            fErrorWindow->print_Error(errorToPrint);
+            errorPrinting(errorToPrint);
             
         }
         
@@ -1546,7 +1542,7 @@ void FLApp::update_AudioArchitecture(){
         //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
             errorToPrint = "Update successfull";
-            fErrorWindow->print_Error(errorToPrint);
+            errorPrinting(errorToPrint);
         }
     }
     
@@ -1615,7 +1611,7 @@ void FLApp::launch_Server(){
         QString s("Server Could Not Start On Port ");
         s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
             
-        fErrorWindow->print_Error(s);
+        errorPrinting(s);
             
         FLSettings::getInstance()->setValue("General/Network/HttpDropPort", FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
         
@@ -1628,13 +1624,13 @@ void FLApp::launch_Server(){
     } 
     
     if(!returning)
-        fErrorWindow->print_Error("Server Did Not Start.\n Please Choose another port.");
+        errorPrinting("Server Did Not Start.\n Please Choose another port.");
     
 //    That way, it doesn't say it when it starts normally
     else if(!started){
         QString s("Server Started On Port ");
         s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
-        fErrorWindow->print_Error(s);
+        errorPrinting(s);
     }
 }
 

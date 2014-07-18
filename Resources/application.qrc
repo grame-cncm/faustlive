@@ -50,9 +50,9 @@
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
 <file>Libs/TestLibs.dsp</file>
-<file>Styles/Default.qss</file>
-<file>Styles/Blue.qss</file>
-<file>Styles/Grey.qss</file>
-<file>Styles/Salmon.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Default.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Blue.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Grey.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Salmon.qss</file>
 </qresource>
 </RCC>

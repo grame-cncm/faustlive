@@ -71,6 +71,8 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h \
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp \
 }
 
 equals(CAVAR, 1){
@@ -181,12 +183,13 @@ HEADERS +=  ../../src/Utilities/utilities.h \
 			../../src/Audio/AudioCreator.h \
 			../../src/Audio/AudioFader_Interface.h \
             ../../src/Audio/AudioFader_Implementation.h \
-			../../src/Audio/JA/FJUI.h \
+			../../src/Audio/FJUI.h \
 			../../src/MenusAndDialogs/FLToolBar.h \
 			../../src/MenusAndDialogs/FLrenameDialog.h \
 			../../src/MenusAndDialogs/FLHelpWindow.h \
 			../../src/MenusAndDialogs/FLPresentationWindow.h \
 			../../src/MenusAndDialogs/FLErrorWindow.h \
+			../../src/MenusAndDialogs/FLMessageWindow.h \
             ../../src/MenusAndDialogs/FLExportManager.h \
             ../../src/MenusAndDialogs/FLPreferenceWindow.h \
             ../../src/MainStructure/FLWindow.h \
@@ -208,6 +211,7 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/MenusAndDialogs/FLHelpWindow.cpp \
 			../../src/MenusAndDialogs/FLPresentationWindow.cpp \
             ../../src/MenusAndDialogs/FLErrorWindow.cpp \
+            ../../src/MenusAndDialogs/FLMessageWindow.cpp \
             ../../src/MenusAndDialogs/FLExportManager.cpp \
             ../../src/MainStructure/FLWindow.cpp \
             ../../src/MainStructure/FLSettings.cpp \

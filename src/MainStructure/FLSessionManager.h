@@ -81,9 +81,9 @@ private:
     
     void            copySHAFolder(const QString& snapshotFolder);
     
-    const char**           getLocalArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc);
+    const char**           getFactoryArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc);
     
-    const char**           getRemoteArgv(QSettings* winSettings, int& argc);
+    const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
     
     QMap<dsp*, factorySettings*>  fDSPToFactory;
     

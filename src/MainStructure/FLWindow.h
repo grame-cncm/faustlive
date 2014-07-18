@@ -35,6 +35,7 @@
 class httpdUI;
 class QTGUI;
 class FLToolBar;
+class FLStatusBar;
 class OSCUI;
 class FLWindow;
 class FLWinSettings;
@@ -59,7 +60,11 @@ class FLWindow : public QMainWindow
         QString          fHome;        //Folder of currentSession
     
         FLToolBar*      fToolBar;
-        void            setToolBar();
+        void            set_ToolBar();
+
+        FLStatusBar*    fStatusBar;
+        void            set_StatusBar();
+    
         QMenu*          fWindowMenu;
         void            set_MenuBar(QList<QMenu*> appMenus);
     
@@ -114,8 +119,9 @@ class FLWindow : public QMainWindow
         void            edit_Action();
         void            duplicate_Action();
         void            export_Win();
-        void            migrate(const QString& ip, int port);
+        void            migrate(const QString&, int);
         void            windowNameChanged();
+        void            remoteCnxLost(int);
     
     private slots :
         void            edit();
@@ -203,7 +209,6 @@ class FLWindow : public QMainWindow
     
     //Functions to create an httpd interface
         void            viewQrCode();
-
         QString         get_HttpUrl();
 #endif
     
@@ -216,15 +221,17 @@ class FLWindow : public QMainWindow
         void            resizingBig();
         void            resizingSmall();
 #ifndef _WIN32
-        void            switchHttp(bool on);
+        void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
         void            updateOSCInterface();
 #endif
-        void            switchOsc(bool on);
+        void            switchOsc(bool);
         void            disableOSCInterface();
         void            shut();
-
+#ifdef REMOTE
+        void            RemoteCallback(int);
+#endif
     
     //Raises and shows the window
         void            frontShow();

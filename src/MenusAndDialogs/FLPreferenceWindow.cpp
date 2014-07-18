@@ -100,6 +100,7 @@ void FLPreferenceWindow::init(){
 #ifdef  HTTPCTRL
     fPortLine = new QLineEdit(styleTab);
     fHttpAuto = new QCheckBox;
+    fOscAuto = new QCheckBox;
 #endif
     
     generalTabStructure->addTab(styleTab, tr("Network"));
@@ -111,6 +112,9 @@ void FLPreferenceWindow::init(){
 
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
+    
+    networkLayout->addRow(new QLabel(tr("")));
+    networkLayout->addRow(new QLabel(tr("Enable Osc Interface Automatically")), fOscAuto);
 #endif
     
     
@@ -229,6 +233,7 @@ void FLPreferenceWindow::save(){
     
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
     
+    settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
 #endif
     
     hide();
@@ -251,6 +256,14 @@ void FLPreferenceWindow::resetVisualObjects(){
         fHttpAuto->setCheckState(Qt::Checked);
     else
         fHttpAuto->setCheckState(Qt::Unchecked);
+    
+    checked = FLSettings::getInstance()->value("General/Network/OscDefaultChecked", false).toBool();
+    
+    if(checked)
+        fOscAuto->setCheckState(Qt::Checked);
+    else
+        fOscAuto->setCheckState(Qt::Unchecked);
+    
 #endif
 }
 

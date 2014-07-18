@@ -35,6 +35,9 @@ bool CA_audioManager::initAudio(QString& /*error*/, const char* name){
 
 bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs){
     
+    if(numInputs == 0 && numOutputs == 0)
+        return initAudio(error, port_name);
+    
     if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
         fInit = true;
         return true;

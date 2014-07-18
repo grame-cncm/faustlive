@@ -11,87 +11,89 @@
 #ifndef _FLToolBar_h
 #define _FLToolBar_h
 
-#include <string>
-
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
-using namespace std;
+
+enum{
+    fFold,
+    fUnFold
+};
 
 class FLToolBar : public QToolBar{
     
     Q_OBJECT
     
     private:
+    
+        int                 fButtonState;
+        QPushButton*        fWindowOptions;
+    
         QSettings*          fSettings;
     
-        QTreeWidget*        fTreeWidget;
-        QTreeWidgetItem *   fItem;
-        QTreeWidgetItem *   fItem2;
-
+        QPushButton*        fSaveButton;
+        
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
-        QGroupBox*          fHttpBox;
-        QLineEdit*          fPortLine;      //Edit port http
         
-        QGroupBox*          fOscBox;
-        QLineEdit*          fPortOscLine;   //Edit osc port
+        QCheckBox*          fHttpCheckBox;
+        QLabel*             fHttpPort;      //Edit port http
+        
+        QCheckBox*          fOSCCheckBox;
+        QLineEdit*          fPortInOscLine;   //Edit osc port
+        QLineEdit*          fPortOutOscLine;   //Edit osc port
+        QLineEdit*          fPortErrOscLine;
     
-        QMenu*              fRemoteMenu;
-        QPushButton*        fRemoteButton;
-        bool                fRemoteEnabled;
-        map<string, pair<string, int> > fIPToHostName;  //Correspondance of remote machine IP to its name
+        QLineEdit*          fCVLine;  
+        QLineEdit*          fMTULine;   
+        QLineEdit*          fLatLine;  
+        QLineEdit*          fDestHostLine;
     
-        QString             fFormerIp;
-        int                 fFormerPort;
-        QString             fFormerName;
+        QCheckBox*          fPublishBox;
     
-        QWidget*            fWidget1;;  
-        QVBoxLayout*        fLayout1;
+        QToolBox*           fContainer;  
+    
         QAction*            fAction1;
+        QAction*            fAction2;
+    
+        void                init();
+    
+        bool                hasStateChanged();
+        bool                hasCompilationOptionsChanged();
+        bool                wasOscSwitched();
+        bool                hasOscOptionsChanged();
+        bool                wasHttpSwitched();
+        bool                hasRemoteOptionsChanged();
+        bool                hasReleaseOptionsChanged();;
     
     public:
     
-    FLToolBar(QSettings* settings, QWidget* parent = NULL);
-    ~FLToolBar();
+        FLToolBar(QSettings* settings, QWidget* parent = NULL);
+        ~FLToolBar();
     
-    void    setOptions(QString options);
-    void    setVal(int value);
-    void    switchHttp(bool on);
-    void    switchOsc(bool on);
-    void    setPort(int port);
-    void    setPortOsc(int port);
-    void    setNewOptions(const QString& ip, int port, const QString& newName);
+        void                syncVisualParams();
     
-    void    remoteFailed();
-    void    setRemote(const QString& name, const QString& ipServer, int port);
-    QString  machineName();
-    QString ipServer();
+        void    switchHttp(bool on);
+        void    switchOsc(bool on);
     
-    bool    isHttpOn();
-    bool    isOscOn();
-    
-public slots: 
-    void    modifiedOptions();
-    void    expansionAction(QTreeWidgetItem * item);
-    void    collapseAction(QTreeWidgetItem* item);
-    void    openRemoteBox();
-    void    update_remoteMachine();
-    void    redirectHttp(bool);
-    void    redirectOsc(bool);
+    public slots: 
+        void    modifiedOptions();
+        void    expansionAction();
+        void    collapseAction();
+        void    buttonStateChanged();
+        void    enableButton(const QString&);
+        void    enableButton(int);
     
     signals :
     
-        void  oscPortChanged();
-        void  httpPortChanged();
-        void  compilationOptionsChanged();
-        void sizeGrowth();
-        void sizeReduction();
-        void remoteStateChanged(int state);
-        void switchMachine();
-        void switch_http(bool on);
-        void switch_osc(bool on);
+        void    oscPortChanged();
+        void    compilationOptionsChanged();
+        void    sizeGrowth();
+        void    sizeReduction();
+        void    switch_http(bool on);
+        void    switch_osc(bool on);
+        void    switch_release(bool on);
 };
 
 #endif
