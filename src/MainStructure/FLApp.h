@@ -181,6 +181,7 @@ class FLApp : public QApplication
         void                display_Progress();
         void                close_Window_Action();
 
+        void                deleteComponent();
     //--Session
         void                take_Snapshot();
 #ifndef _WIN32
@@ -226,13 +227,14 @@ class FLApp : public QApplication
                             FLApp(int& argc, char** argv);
         virtual             ~FLApp();
     
-        void                create_New_Window(const QString& name);
-    
     public slots :
+    
+        void                create_New_Window(const QString& name);
     
         virtual void        closeAllWindows();
         void                shut_AllWindows();
         void                update_CurrentSession();
+        void                create_Component_Window();
 
     //--------Error received
         void                errorPrinting(const QString& msg);

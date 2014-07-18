@@ -193,6 +193,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/MenusAndDialogs/FLExportManager.h \
             ../../src/MenusAndDialogs/FLPreferenceWindow.h \
             ../../src/MainStructure/FLWindow.h \
+            ../../src/MainStructure/FLComponentWindow.h \
             ../../src/MainStructure/FLSettings.h \
             ../../src/MainStructure/FLWinSettings.h \
             ../../src/MainStructure/FLFileWatcher.h \
@@ -214,6 +215,7 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
             ../../src/MenusAndDialogs/FLMessageWindow.cpp \
             ../../src/MenusAndDialogs/FLExportManager.cpp \
             ../../src/MainStructure/FLWindow.cpp \
+            ../../src/MainStructure/FLComponentWindow.cpp \
             ../../src/MainStructure/FLSettings.cpp \
             ../../src/MainStructure/FLWinSettings.cpp \
             ../../src/MainStructure/FLFileWatcher.cpp \

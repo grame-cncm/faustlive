@@ -437,10 +437,21 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     //--------Calculation of SHA Key
     
-    QString faustOptions = settings->value("Compilation/FaustOptions", FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString()).toString(); 
+//-----Extracting compilation Options from general options Or window options
+    QString defaultOptions = FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString();
+    int defaultOptLevel = FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt();
+    
+    QString faustOptions = defaultOptions;
+    int optLevel = defaultOptLevel;
+    
+    if(settings){
+        faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
+        
+        optLevel = settings->value("Compilation/OptValue", defaultOptions).toInt();
+    }
+    
     string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
-    int optLevel = settings->value("Compilation/OptValue", FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt()).toInt();
     string optvalue = QString::number(optLevel).toStdString();
     
     string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
@@ -472,7 +483,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     int argc;
     const char** argv = getFactoryArgv(path, factoryFolder, faustOptions, argc);
     
-    if(settings->value("RemoteProcessing/MachineName", "local processing").toString() == "local processing"){
+    QString machineName = "local processing";
+    
+    if(settings)
+        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
+    
+    
+    if(machineName == "local processing"){
         
         mySetts->fType = TYPE_LOCAL;
         
@@ -485,8 +502,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
             
-            settings->setValue("InputNumber", 0);
-            settings->setValue("OutputNumber", 0);
+            if(settings){
+                settings->setValue("InputNumber", 0);
+                settings->setValue("OutputNumber", 0);
+            }
             
             if(toCompile->fLLVMFactory)
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
@@ -496,7 +515,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             }
         }
     }
-    else{
+    else if(settings){
 #ifdef REMOTE
         mySetts->fType = TYPE_REMOTE;
         
@@ -542,7 +561,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, FLWinSettin
             errorMsg = "Impossible to compile DSP";
     }
 #ifdef REMOTE
-    else{
+    else if(settings){
         int sampleRate = settings->value("SampleRate", 44100).toInt();
         int bufferSize = settings->value("BufferSize", 512).toInt();
         
@@ -580,7 +599,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, FLWinSettin
     fDSPToFactory[compiledDSP] = mySetts;
     
     //-----Save settings
-    if(compiledDSP != NULL){
+    if(compiledDSP != NULL && settings){
         settings->setValue("Path", path);
         settings->setValue("Name", name);
         settings->setValue("SHA", factorySetts.first);

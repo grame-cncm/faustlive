@@ -465,8 +465,11 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
     //Window tittle is build with the window Name + effect Name
     QString intermediate = fWindowName + " : " + nameEffect;
+    setWindowTitle(intermediate);
     
-    fInterface = new QTGUI(this, intermediate.toStdString().c_str());
+    fInterface = new QTGUI(this);
+    setCentralWidget(fInterface);
+    fInterface->installEventFilter(this);
     
     if(!fInterface){
         delete fRCInterface;
@@ -485,17 +488,17 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
-bool FLWindow::buildInterfaces(dsp* dsp){
+bool FLWindow::buildInterfaces(dsp* compiledDSP){
       
-    dsp->buildUserInterface(fInterface);
-    dsp->buildUserInterface(fRCInterface);
+    compiledDSP->buildUserInterface(fInterface);
+    compiledDSP->buildUserInterface(fRCInterface);
             
 #ifndef _WIN32
     if(fOscInterface)
-        dsp->buildUserInterface(fOscInterface);
+        compiledDSP->buildUserInterface(fOscInterface);
         
     if(fHttpInterface)
-        dsp->buildUserInterface(fHttpInterface);
+        compiledDSP->buildUserInterface(fHttpInterface);
 #endif
 }
 

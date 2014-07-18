@@ -16,6 +16,7 @@
 #endif
 #include "FLSessionManager.h"
 #include "FLWindow.h"
+#include "FLComponentWindow.h"
 #include "FLErrorWindow.h"
 #include "FLHelpWindow.h"
 #include "FLPresentationWindow.h"
@@ -237,6 +238,11 @@ void FLApp::create_Session_Hierarchy(){
     QDir shaFolder(factoryFolder);
     shaFolder.mkdir(factoryFolder);
     
+    QString pathWindows = fSessionFolder + "/Windows";
+    
+    QDir windowsDir(pathWindows);
+    if(!windowsDir.exists())
+        windowsDir.mkdir(pathWindows);
     
     QString sched(":/usr/local/lib/faust/scheduler.ll");
     if(QFileInfo(sched).exists()){
@@ -263,6 +269,11 @@ QMenu* FLApp::create_FileMenu(){
     connect(openAction, SIGNAL(triggered()), this, SLOT(open_New_Window()));
     
     //SESSION
+    
+    QAction* componentAction = new QAction(tr("New Component Creator"), fileMenu);
+    //    componentAction->setShortcut(tr("Ctrl"));
+    componentAction->setToolTip(tr("Open a new window to create a 2 dsp component"));
+    connect(componentAction, SIGNAL(triggered()), this, SLOT(create_Component_Window()));
     
     QAction* takeSnapshotAction = new QAction(tr("&Take Snapshot"),NULL);
     takeSnapshotAction->setShortcut(tr("Ctrl+S"));
@@ -296,6 +307,8 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addAction(openAction);
     fileMenu->addAction(create_ExampleMenu()->menuAction());
     fileMenu->addAction(create_RecentFileMenu()->menuAction());
+    fileMenu->addSeparator();
+    fileMenu->addAction(componentAction);
     fileMenu->addSeparator();
     fileMenu->addAction(takeSnapshotAction);
     fileMenu->addSeparator();
@@ -591,7 +604,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
 }
 
-//---------------NEW
+//---------------NEW WINDOW
 
 void FLApp::cleanSHAFolder(){
     
@@ -708,6 +721,23 @@ void FLApp::create_New_Window(const QString& source){
 void FLApp::create_Empty_Window(){ 
     QString empty("");
     create_New_Window(empty);
+}
+
+//--------------NEW COMPONENT
+
+void FLApp::create_Component_Window(){
+    
+    FLComponentWindow* componentWindow = new FLComponentWindow();
+    
+    connect(componentWindow, SIGNAL(newComponent(const QString&)), this, SLOT(create_New_Window(const QString&)));
+    connect(componentWindow, SIGNAL(deleteIt()), this, SLOT(deleteComponent()));
+    componentWindow->show();
+}
+
+void FLApp::deleteComponent(){
+    FLComponentWindow* senderWindow = qobject_cast<FLComponentWindow*>(sender());
+    senderWindow->hide();
+    senderWindow->deleteLater();
 }
 
 //--------------OPEN

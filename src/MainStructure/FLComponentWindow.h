@@ -21,30 +21,65 @@
 #include <QtWidgets>
 #endif
 
+class MyLabel : public QLabel{
+    Q_OBJECT
+
+public:
+    MyLabel(QWidget* parent = NULL){}
+    ~MyLabel(){}
+    
+    virtual void mouseReleaseEvent( QMouseEvent * event ){
+        emit imageClicked();
+    }
+    
+    signals:
+        void imageClicked();
+};
+
+class FLComponentItem : public QGroupBox{
+    
+    Q_OBJECT
+        
+    private:;
+        
+        QString         fSource;
+    
+        QVBoxLayout*    fLayout;
+        QWidget*        fCurrentWidget;
+    
+        QString         handleDrop(QDropEvent * event);
+    
+    public:
+        FLComponentItem(QWidget* parent);
+        ~FLComponentItem();
+            
+        QString     source();
+    
+        void        createInterfaceInRect(const QString& source);
+    
+    virtual void dropEvent ( QDropEvent * event );
+    virtual void dragEnterEvent ( QDragEnterEvent * event );
+    
+};
+
 class FLComponentWindow : public QMainWindow
 {
     Q_OBJECT
     
     private : 
     
-        QRectF fFirstRect;
-        QRectF fSecondRect;
+        QGridLayout*    fLayout;
     
-        QString         fFirstSource;
-        QString         fSecondSource;
-        QString         fSourceFolder;
+        QList< QList<FLComponentItem*> >    fItems; 
     
         QPushButton*    fSaveB;
     
-        QLabel*          fFirstLabel;
-        QLabel*          fSecondLabel;
-    
         void            init();
-    
-        QString         handleDrop(QDropEvent * event);
     
     private slots:
     
+        void            addComponentRow();
+        void            addComponentColumn();
         void            createComponent();
         void            cancel();
     
@@ -52,14 +87,9 @@ class FLComponentWindow : public QMainWindow
     
     //####CONSTRUCTOR
 
-    FLComponentWindow(const QString& sourceFolder);
+    FLComponentWindow();
         virtual ~FLComponentWindow();   
     
-//    void paintEvent(QPaintEvent *e);
-    
-    virtual void dropEvent ( QDropEvent * event );
-    
-    virtual void dragEnterEvent ( QDragEnterEvent * event );
         
     signals :
         void            newComponent(const QString&);
