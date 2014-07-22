@@ -21,6 +21,8 @@
 #include <QtWidgets>
 #endif
 
+class dsp;
+
 class MyLabel : public QLabel{
     Q_OBJECT
 
@@ -36,13 +38,14 @@ public:
         void imageClicked();
 };
 
-class FLComponentItem : public QGroupBox{
+class FLComponentItem : public QWidget{
     
     Q_OBJECT
         
     private:;
         
         QString         fSource;
+        dsp*            fCompiledDSP;
     
         QVBoxLayout*    fLayout;
         QWidget*        fCurrentWidget;
@@ -68,9 +71,10 @@ class FLComponentWindow : public QMainWindow
     
     private : 
     
-        QGridLayout*    fLayout;
-    
         QList< QList<FLComponentItem*> >    fItems; 
+    
+        QVector<QPair<QLabel*, QGroupBox*> > fVerticalElements;
+        QHBoxLayout*                        fHComponentLayout;
     
         QPushButton*    fSaveB;
     
@@ -80,7 +84,11 @@ class FLComponentWindow : public QMainWindow
     
         void            addComponentRow();
         void            addComponentColumn();
+        void            deleteComponentRow();
+    
+        void            deleteComponentColumn();
         void            createComponent();
+        virtual void    closeEvent(QCloseEvent* event);
         void            cancel();
     
     public :
@@ -88,7 +96,7 @@ class FLComponentWindow : public QMainWindow
     //####CONSTRUCTOR
 
     FLComponentWindow();
-        virtual ~FLComponentWindow();   
+    virtual ~FLComponentWindow();   
     
         
     signals :

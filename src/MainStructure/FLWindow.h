@@ -123,6 +123,7 @@ class FLWindow : public QMainWindow
         void            remoteCnxLost(int);
     
     private slots :
+        QString         saveSource(const QString& sourceContent);
         void            edit();
         void            paste();
         void            duplicate();

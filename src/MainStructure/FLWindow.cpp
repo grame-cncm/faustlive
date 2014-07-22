@@ -71,6 +71,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fHttpInterface = NULL;
     fOscInterface = NULL;
 #endif
+    fInterface = NULL;
     fRCInterface = NULL;
     fCurrent_DSP = NULL;
     
@@ -173,7 +174,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
 //@param : source = source that reemplaces the current one
 bool FLWindow::update_Window(const QString& source){
 
-    
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
     bool update = true;
@@ -190,10 +190,10 @@ bool FLWindow::update_Window(const QString& source){
 //    else
 //        update = true; 
     
-    FLFileWatcher::getInstance()->stopWatcher(fSettings->value("Path", "").toString(), this);
-    
     if(update){
-
+        
+        FLFileWatcher::getInstance()->stopWatcher(fSettings->value("Path", "").toString(), this);
+        
         FLMessageWindow::_getInstance()->displayMessage("Updating DSP...");
         FLMessageWindow::_getInstance()->show();
         FLMessageWindow::_getInstance()->raise();
@@ -214,57 +214,60 @@ bool FLWindow::update_Window(const QString& source){
         
         QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
         
+        bool isUpdateSucessfull = true;
+        
         if(factorySetts.second == NULL)
-            return false;
+            isUpdateSucessfull = false;
         
-        charging_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
-        
-        bool isUpdateSucessfull = false;
-        
-        if(charging_DSP){
+        if(isUpdateSucessfull){
             
-            QString newName =  fSettings->value("Name", "").toString();
+            charging_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
             
-            if(fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)){
+            if(charging_DSP){
                 
-                deleteInterfaces();
+                QString newName =  fSettings->value("Name", "").toString();
                 
-                //Set the new interface & Recall the parameters of the window
-                if(allocateInterfaces(newName)){
-                   
-                    buildInterfaces(charging_DSP);
-                    recall_Window();
+                if(fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)){
                     
-                    //Start crossfade and wait for its end
-                    fAudioManager->start_Fade();
-                    fAudioManager->wait_EndFade();
+                    deleteInterfaces();
                     
-                    //SWITCH the current DSP as the dropped one
-                    
-                    dsp* VecInt = fCurrent_DSP;
-                    fCurrent_DSP = charging_DSP;
-                    charging_DSP = VecInt;
-                    
-                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
-                    
-                    fSource = source;
-                    fIsDefault = false;
-                    isUpdateSucessfull = true;
-                }
-                else{
-                    if(allocateInterfaces(savedName)){
-                        buildInterfaces(fCurrent_DSP);
+                    //Set the new interface & Recall the parameters of the window
+                    if(allocateInterfaces(newName)){
+                        
+                        buildInterfaces(charging_DSP);
                         recall_Window();
-                    
-                        errorMsg = "Impossible to allocate new interface";
+                        
+                        //Start crossfade and wait for its end
+                        fAudioManager->start_Fade();
+                        fAudioManager->wait_EndFade();
+                        
+                        //SWITCH the current DSP as the dropped one
+                        
+                        dsp* VecInt = fCurrent_DSP;
+                        fCurrent_DSP = charging_DSP;
+                        charging_DSP = VecInt;
+                        
+                        FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
+                        
+                        fSource = source;
+                        fIsDefault = false;
+                        isUpdateSucessfull = true;
                     }
+                    else{
+                        if(allocateInterfaces(savedName)){
+                            buildInterfaces(fCurrent_DSP);
+                            recall_Window();
+                            
+                            errorMsg = "Impossible to allocate new interface";
+                        }
+                    }
+                    
+                    //Step 12 : Launch User Interface
+                    runInterfaces();
                 }
-                
-                //Step 12 : Launch User Interface
-                runInterfaces();
             }
         }
-
+        
         FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
         
         if(!isUpdateSucessfull)
@@ -532,9 +535,10 @@ void FLWindow::deleteInterfaces(){
     }
 #endif
     
-    delete fInterface;
-    fInterface = NULL;
-    
+    if(fInterface){
+        delete fInterface;
+        fInterface = NULL;
+    }
     delete fRCInterface;
     fRCInterface = NULL;
 }
@@ -601,7 +605,6 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-    
 #ifndef _WIN32
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
@@ -944,36 +947,39 @@ void FLWindow::switchHttp(bool on){
 
 void FLWindow::viewQrCode(){
     
-    if(fHttpInterface == NULL){
-        fToolBar->switchHttp(true);
+    if(!fIsDefault){
+        
+        if(fHttpInterface == NULL){
+            fToolBar->switchHttp(true);
+        }
+        
+        if(fHttpdWindow != NULL){
+            delete fHttpdWindow;
+            fHttpdWindow = NULL;
+        }
+        
+        fHttpdWindow = new HTTPWindow();
+        connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
+        
+        if(fHttpdWindow){
+            
+            int dropPort = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
+            
+            QString fullUrl = "http://" + searchLocalIP() + ":" + QString::number(dropPort) + "/" + QString::number(fHttpInterface->getTCPPort());
+            
+            fInterface->displayQRCode(fullUrl, fHttpdWindow);
+            fHttpdWindow->move(calculate_Coef()*10, 0);
+            
+            QString windowTitle = fWindowName + ":" + fSettings->value("Name", "").toString().toStdString().c_str();
+            
+            fHttpdWindow->setWindowTitle(windowTitle);
+            fHttpdWindow->raise();
+            fHttpdWindow->show();
+            fHttpdWindow->adjustSize();
+        }
+        else
+            emit error("Enable Http Before Asking for Qr Code");
     }
-    
-    if(fHttpdWindow != NULL){
-        delete fHttpdWindow;
-        fHttpdWindow = NULL;
-    }
-    
-    fHttpdWindow = new HTTPWindow();
-    connect(fHttpdWindow, SIGNAL(toPNG()), this, SLOT(exportToPNG()));
-    
-    if(fHttpdWindow){
-        
-        int dropPort = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
-        
-        QString fullUrl = "http://" + searchLocalIP() + ":" + QString::number(dropPort) + "/" + QString::number(fHttpInterface->getTCPPort());
-        
-        fInterface->displayQRCode(fullUrl, fHttpdWindow);
-        fHttpdWindow->move(calculate_Coef()*10, 0);
-        
-        QString windowTitle = fWindowName + ":" + fSettings->value("Name", "").toString().toStdString().c_str();
-        
-        fHttpdWindow->setWindowTitle(windowTitle);
-        fHttpdWindow->raise();
-        fHttpdWindow->show();
-        fHttpdWindow->adjustSize();
-    }
-    else
-        emit error("Enable Http Before Asking for Qr Code");
 }
 
 void FLWindow::exportToPNG(){
@@ -1090,19 +1096,46 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     }
 }
 
-//------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
+QString FLWindow::saveSource(const QString& sourceContent){
+    
+    //------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
+    QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP is readOnly, do you want to save it in a new location ?");
+    
+    QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
+    QPushButton* cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+    
+    existingNameMessage->exec();
+    if (existingNameMessage->clickedButton() != cancel_Button){
+        QFileDialog* fileDialog = new QFileDialog;
+        fileDialog->setConfirmOverwrite(true);
+        
+        QString filename;
+        
+        filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
+        
+        if(QFileInfo(filename).suffix().indexOf("dsp") == -1)
+            filename += ".dsp";
+        
+        writeFile(filename, sourceContent);
+    }
+}
 
 void FLWindow::edit(){
     
-//    ATTENTION IL FAUT PRENDRE EN COMPTE LE RESTE DES CAS ET CREER UN FICHIER TEMP !! 
+//    ATTENTION IL FAUT PRENDRE EN COMPTE LE RESTE DES CAS ET CREER UN FICHIER TEMP !!
     
-    QString source = fSettings->value("Path", "").toString();
+    QString sourcePath = fSettings->value("Path", "").toString();
     
-    QString pathToOpen = source;
+    QString pathToOpen = sourcePath;
     
-    if(source == ""){
+    printf("path to open before dialog = %s\n", pathToOpen.toStdString().c_str());
+    
+    if(sourcePath != "" && !QFileInfo(sourcePath).isWritable()){
+        pathToOpen = saveSource(pathToContent(fSource));
+    }
+    
+    if(sourcePath == ""){
 
-        QString tempPath = fHome + "/Windows/" + fWindowName + "/_TEMP_" + fSettings->value("Name", "").toString() + ".dsp";
 //        
 //        QFile f(tempPath);
 //        
@@ -1115,21 +1148,22 @@ void FLWindow::edit(){
 //            f.close();
 //        }
 //        f.setPermissions(QFile::ReadOwner);
+//        
+//        FLFileWatcher::getInstance()->startWatcher(tempPath, this);
         
-        FLFileWatcher::getInstance()->startWatcher(tempPath, this);
+        pathToOpen = saveSource(fSource);
         
-        pathToOpen = tempPath;
+        printf("PATH TO OPEN = %s\n", pathToOpen.toStdString().c_str());
     }
     
     QString shaFolder = fHome + "/SHAFolder/" + fSettings->value("SHA", "").toString();
     
     touchFolder(shaFolder);
     
-    
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    QString error = source + " could not be opened!";
+    QString error = sourcePath + " could not be opened!";
     
     if(!b)
         errorPrint(error);
