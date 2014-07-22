@@ -14,6 +14,9 @@
 	<file>Images/DropYourFaustLife_Blue.png</file>
 	<file>Images/DropYourFaustLife_White.png</file>
 	<file>Images/FileIcon.png</file>
+	<file>Images/plus.png</file>
+	<file>Images/minus.png</file>
+	<file>Images/fleche.png</file>
     <file>Examples/cubic_distortion.dsp</file>
     <file>Examples/dbmeter.dsp</file>
     <file>Examples/echo.dsp</file>
@@ -54,5 +57,7 @@
 <file>/usr/local/include/faust/gui/Styles/Blue.qss</file>
 <file>/usr/local/include/faust/gui/Styles/Grey.qss</file>
 <file>/usr/local/include/faust/gui/Styles/Salmon.qss</file>
+<file>buildVersion.txt</file>
+<file>distVersion.txt</file>
 </qresource>
 </RCC>

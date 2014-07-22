@@ -412,11 +412,11 @@ QMenu* FLApp::create_HelpMenu(){
     aboutAction->setToolTip(tr("Show the library's About Box"));
     connect(aboutAction, SIGNAL(triggered()), fHelpWindow, SLOT(show()));
     
-    //    fVersionWindow = new QDialog;
-    //    
-    //    fVersionAction = new QAction(tr("&Version"), this);
-    //    fVersionAction->setToolTip(tr("Show the version of the libraries used"));
-    //    connect(fVersionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
+    fVersionWindow = new QDialog;
+        
+    QAction* versionAction = new QAction(tr("&Version"), this);
+    versionAction->setToolTip(tr("Show the version of the libraries used"));
+    connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
     
     QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
     presentationAction->setToolTip(tr("Show the presentation Menu"));
@@ -425,8 +425,8 @@ QMenu* FLApp::create_HelpMenu(){
     helpMenu->addAction(aboutQtAction);
     helpMenu->addSeparator();
     helpMenu->addAction(aboutAction);
-    //    fHelpMenu->addAction(fVersionAction);
-    //    fHelpMenu->addSeparator();
+    helpMenu->addAction(versionAction);
+    helpMenu->addSeparator();
     helpMenu->addAction(presentationAction);
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
@@ -435,16 +435,6 @@ QMenu* FLApp::create_HelpMenu(){
 }
 
 void FLApp::setup_Menu(){
-    
-    //----------------FILE
-    fMenuBar->addMenu(create_FileMenu());
-    fMenuBar->addSeparator();
-    
-    fNavigateMenu = create_NavigateMenu();
-    fMenuBar->addMenu(fNavigateMenu);
-    fMenuBar->addSeparator();
-    
-    fMenuBar->addMenu(create_HelpMenu());
     
     //---------------------Presentation MENU
     
@@ -464,6 +454,16 @@ void FLApp::setup_Menu(){
     //    EXPORT MANAGER
     
     fExportDialog = new FLExportManager(fSessionFolder);
+    
+    //----------------MenuBar setups
+    fMenuBar->addMenu(create_FileMenu());
+    fMenuBar->addSeparator();
+    
+    fNavigateMenu = create_NavigateMenu();
+    fMenuBar->addMenu(fNavigateMenu);
+    fMenuBar->addSeparator();
+    
+    fMenuBar->addMenu(create_HelpMenu());
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
@@ -1049,7 +1049,7 @@ void FLApp::recallSnapshotFromMenu(){
 #ifndef _WIN32
     fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Snapshot"), "",tr("Files (*.tar)"));
 #else
-	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), "", QFileDialog::ShowDirsOnly);
 #endif
     
     if(fileName != "")
@@ -1062,7 +1062,7 @@ void FLApp::importSnapshotFromMenu(){
 #ifndef _WIN32
     fileName = QFileDialog::getOpenFileName(NULL, tr("Import a Snapshot"), "",tr("Files (*.tar)"));
 #else
-	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), "/home", QFileDialog::ShowDirsOnly);
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), "", QFileDialog::ShowDirsOnly);
 #endif
     
     if(fileName != "")
@@ -1421,26 +1421,30 @@ void FLApp::drop_Action(QList<QString> sources){
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
     
-    //    QVBoxLayout* layoutGeneral = new QVBoxLayout;
-    //    
-    //    string text = "This application is using ""\n""- Jack 2";
-    ////    text += jack_get_version_string();
-    //    text += "\n""- NetJack ";
-    //    text += "2.1";
-    //    text += "\n""- CoreAudio API ";
-    //    text += "4.0";
-    //    text += "\n""- LLVM Compiler ";
-    //    text += "3.1";
-    //    
-    //    QPlainTextEdit* versionText = new QPlainTextEdit(tr(text), fVersionWindow);
-    //    
-    //    layoutGeneral->addWidget(versionText);
-    //    fVersionWindow->setLayout(layoutGeneral);
-    //    
-    //    fVersionWindow->exec();
-    //    
-    //    delete versionText;
-    //    delete layoutGeneral;
+    QVBoxLayout* layoutGeneral = new QVBoxLayout;
+    
+    QString text = "FAUSTLIVE \n- Dist version ";
+    text += readFile(":/distVersion.txt");
+    text += "- Build version ";
+    text += readFile(":/buildVersion.txt");
+    text += "\nThis application is using ""\n""- Jack 2";
+//    text += jack_get_version_string();
+    text += "\n""- NetJack ";
+    text += "2.1";
+    text += "\n""- CoreAudio API ";
+    text += "4.0";
+    text += "\n""- LLVM Compiler ";
+    text += "3.1";
+        
+    QPlainTextEdit* versionText = new QPlainTextEdit(text, fVersionWindow);
+        
+    layoutGeneral->addWidget(versionText);
+    fVersionWindow->setLayout(layoutGeneral);
+        
+    fVersionWindow->exec();
+
+    delete versionText;
+    delete layoutGeneral;
 }
 
 //-------------------------------PRESENTATION WINDOW-----------------------------

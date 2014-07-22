@@ -71,8 +71,8 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h \
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp \
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
 }
 
 equals(CAVAR, 1){

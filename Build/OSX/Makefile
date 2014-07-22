@@ -27,8 +27,8 @@ endif
 ####### Targets
 
 all : Makefile.qt4
-	mkdir -p src/objectsFolder
 	make -f Makefile.qt4
+	./buildversion
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
@@ -42,10 +42,14 @@ deploy:
 
 # make a binary distribution .dmg file for OSX
 dist: 	
+	rm -f FaustLive.dmg
+	rm -rf FaustLive.app
+	make
 	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
 	macdeployqt FaustLive.app
 	cp -R FaustLive.app Distribution_OSX/FaustLive
 	hdiutil create -volname FaustLive.dmg -srcfolder Distribution_OSX -ov -format UDZO FaustLive.dmg
+	./distversion
 
 # make a distribution .zip file for FaustLive sources
 dist-sources :

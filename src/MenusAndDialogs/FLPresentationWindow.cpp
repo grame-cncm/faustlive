@@ -7,6 +7,7 @@
 //
 
 #include "FLPresentationWindow.h"
+#include "utilities.h"
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
@@ -199,7 +200,7 @@ void FLPresentationWindow::init(){
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
     QString grame = "<p>Version ";
-    grame   += APP_VERSION;
+    grame   += readFile(":/distVersion.txt");
     grame   += " by GRAME, Centre de Creation Musicale";
     QLabel* more = new QLabel(grame);  
     more->setAlignment(Qt::AlignRight);
