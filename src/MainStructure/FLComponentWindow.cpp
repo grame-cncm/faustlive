@@ -12,9 +12,96 @@
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
 
+/****************************LAYOUT OPTIMIZATION TREE*****************/
+
+binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2){
+    
+    int hWidth = node1->rectSurface().width() + node2->rectSurface().width();
+    int hHeight = max(node1->rectSurface().height(), node2->rectSurface().height());
+    int hSurface = hWidth * hHeight;
+    
+    int vWidth = max(node1->rectSurface().width(), node2->rectSurface().width());
+    int vHeight = node1->rectSurface().height() + node2->rectSurface().height();
+    int vSurface = vWidth * vHeight;
+    
+    if(vSurface < hSurface)
+        return new verticalNode(node1, node2, QRect( 0, 0, vWidth, vHeight));
+    else
+        return new horizontalNode(node1, node2, QRect( 0, 0, hWidth, hHeight));
+}
+
+//Returns a list of Root Nodes
+QList<binaryNode*> createListTrees(QList<FLComponentItem*> components){
+    
+    QList<binaryNode*> newListTrees;
+    
+    if(components.size() == 0){}
+    else if(components.size() == 1){
+        newListTrees.push_back(new leafNode(*(components.begin())));
+    }
+    else if(components.size() == 2){
+        
+        binaryNode* componentNode1 = new leafNode(*(components.begin()));
+        binaryNode* componentNode2 = new leafNode(*(components.begin()+1));
+        
+        binaryNode* rootNode = createBestContainerTree(componentNode1, componentNode2);
+        newListTrees.push_back(rootNode);
+    }
+    else{
+        
+        QList<FLComponentItem*> restOfComponents(components);
+        restOfComponents.pop_front();
+        
+        newListTrees = dispatchComponentOnListOfTrees(*(components.begin()), createListTrees(restOfComponents));
+    }
+    
+    return newListTrees;
+}
+
+QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QList<binaryNode*> existingTrees){
+    
+    QList<binaryNode*>newListTrees;
+    
+    for(QList<binaryNode*>::iterator it = existingTrees.begin(); it != existingTrees.end(); it++){
+        
+        //        FIRST DISPACTH TREE
+        binaryNode* componentNode1 = new leafNode(component);
+        
+        binaryNode* newRoot1 = createBestContainerTree(componentNode1, *it);
+        
+        newListTrees.push_back(newRoot1);
+        
+        //        SECOND DISPATCH TREE
+        binaryNode* componentNode2 = new leafNode(component);
+        
+        binaryNode* intermediateNode = createBestContainerTree(componentNode2, (*it)->left);
+        
+        binaryNode* newRoot2 = createBestContainerTree(intermediateNode, (*it)->right);
+        
+        newListTrees.push_back(newRoot2);
+    }
+}
+
+binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
+    
+    QList<binaryNode*> binaryTrees = createListTrees(components);
+    
+    binaryNode* minSurfaceTree = *(binaryTrees.begin());
+    
+    for(QList<binaryNode*>::iterator it = binaryTrees.begin(); it != binaryTrees.end(); it++){
+        
+        if((*it)->surface() < minSurfaceTree->surface())
+            minSurfaceTree = *it;
+    }
+    
+    return minSurfaceTree;
+}
+
 /****************************COMPONENT ITEM***************************/
-FLComponentItem::FLComponentItem(QWidget* parent = NULL) : QWidget(parent){
+FLComponentItem::FLComponentItem(const QString& index, QWidget* parent = NULL) : QWidget(parent){
    
+    fIndex = index;
+    
     setAcceptDrops(true);
     
     fSource = "";
@@ -30,12 +117,19 @@ FLComponentItem::FLComponentItem(QWidget* parent = NULL) : QWidget(parent){
     fCompiledDSP = NULL;
 }
 
+FLComponentItem::FLComponentItem(const QString& source, QRect rect, QWidget* parent = NULL) : QWidget(parent){
+    fSource = source;
+    setGeometry(rect);
+}
+
 FLComponentItem::~FLComponentItem(){
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     
     if(fCompiledDSP)
         sessionManager->deleteDSPandFactory(fCompiledDSP);
+    
+    delete fLayout;
 }
 
 QString FLComponentItem::source(){
@@ -136,6 +230,18 @@ void FLComponentItem::dropEvent ( QDropEvent * event ){
     }
 }
 
+QString FLComponentItem::faustComponent(){
+    
+    if(QFileInfo(fSource).exists()){
+        QString faustCode = "vgroup(\"component" + fIndex + "\", component(\"" + fSource + "\"))";
+        return faustCode;
+    }
+    else{
+        return fSource;
+    }
+}
+
+
 /****************************COMPONENT WINDOW***************************/
 FLComponentWindow::FLComponentWindow(){
     
@@ -161,8 +267,8 @@ FLComponentWindow::~FLComponentWindow(){
     delete fHComponentLayout;
 }
 
-void FLComponentWindow::init()
-{
+void FLComponentWindow::init(){
+ 
     QWidget* vcontainer = new QWidget;
     QVBoxLayout* vlayout = new QVBoxLayout;
     QWidget* hcontainer = new QWidget;
@@ -179,38 +285,15 @@ void FLComponentWindow::init()
     QVBoxLayout* newVboxLayout = new QVBoxLayout;
     newVbox->setLayout(newVboxLayout);
     
-    FLComponentItem* item = new FLComponentItem();
+    FLComponentItem* item = new FLComponentItem("11");
     newVboxLayout->addWidget(item);
     fHComponentLayout->addWidget(newVbox);
     
     newColumn.push_back(item);
-    
-//    
-//    QPixmap flecheImage(":/Images/fleche.png");
-//    
-//    QLabel* flecheLabel = new QLabel;
-//    flecheLabel->setPixmap(flecheImage.scaled(30, 30, Qt::KeepAspectRatio));
-//    
-//    fHComponentLayout->addWidget(flecheLabel);
-//    
-//    
-//    QList<FLComponentItem*> newColumn2;
-//    QGroupBox* newVbox2 = new QGroupBox;
-//    QVBoxLayout* newVboxLayout2 = new QVBoxLayout;
-//    newVbox2->setLayout(newVboxLayout2);
-//    
-//    FLComponentItem* item2 = new FLComponentItem();
-//    newVboxLayout2->addWidget(item2);
-//    fHComponentLayout->addWidget(newVbox2);
-//    
-//    newColumn2.push_back(item2);
-    
     fItems.push_back(newColumn);
-//    fItems.push_back(newColumn2);
-    
     fVerticalElements.push_back(qMakePair(new QLabel(""), newVbox));
-//    fVerticalElements.push_back(qMakePair(flecheLabel, newVbox2));
     
+    addComponentColumn();
 //-------PLUS/MOINS IMAGES
     QPixmap plusImage(":/Images/plus.png");
     QPixmap minusImage(":/Images/minus.png");
@@ -288,27 +371,20 @@ void FLComponentWindow::createComponent(){
     
     QString faustToCompile = "import(\"music.lib\");\n\n\nprocess = ";
     
-    faustToCompile += "(";
+    QList<FLComponentItem*> parallelItems;
     
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
-        if(it != fItems.begin())
-            faustToCompile+=":";
+        binaryNode* rootDisposition = calculateBestDisposition(*it);
+        QString composition = "stereoize(" + rootDisposition->renderToFaust(",") + ")";
         
-        QString composition("");
+        FLComponentItem* parallelItem = new FLComponentItem(composition, rootDisposition->rectSurface());
+        parallelItems.push_back(parallelItem);
         
-        for(QList<FLComponentItem*>::iterator it2=it->begin(); it2 != it->end(); it2++){
-            
-            if(it2 != it->begin())
-                composition+=",";
-            
-            composition += "component(\"" + (*it2)->source() + "\")";
-        }
-        
-        faustToCompile += "stereoize(" + composition + ")";
     }
     
-    faustToCompile+=")";
+    faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":");
+    
     faustToCompile += ";";
 
     hide();
@@ -319,37 +395,47 @@ void FLComponentWindow::createComponent(){
 
 void FLComponentWindow::addComponentRow(){
     
-    int index = 0;
+    int verticalIndex = 0;
     
     printf("SIZE OF VertivalElements = %i\n", fVerticalElements.size());
     
+    int horizontalIndex = 0;
+    
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
-        FLComponentItem* item = new FLComponentItem();
+        QString winIndex = QString::number(horizontalIndex+1) + QString::number(verticalIndex+1);
         
-        fVerticalElements[index].second->layout()->addWidget(item);
+        FLComponentItem* item = new FLComponentItem(winIndex);
+        
+        fVerticalElements[verticalIndex].second->layout()->addWidget(item);
         it->push_back(item);
-        index++;
+        verticalIndex++;
+        horizontalIndex++;
     }
 }
 
 void FLComponentWindow::deleteComponentRow(){
-//    
-////    First Row cannot be deleted
-//    if(fItems.begin()->size() == 1)
-//        return;
-//    
-//    for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
-//        
-//        QList<FLComponentItem*>::iterator it2 = it->end();
-//        it2--;
-//        FLComponentItem* item = *(it2);
-//        it->removeOne(item);
-//        fLayout->removeWidget(item);
-//        delete item;
-//    }
-//    
-//    adjustSize();
+    
+//    First Row cannot be deleted
+    if(fItems.begin()->size() == 1)
+        return;
+    
+    int index = 0;
+    
+    for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
+        
+        QList<FLComponentItem*>::iterator it2 = it->end()-1;
+        FLComponentItem* item = *(it2);
+        it->removeOne(item);
+        
+        QGroupBox* vBox = fVerticalElements[index].second;
+        
+        vBox->layout()->removeWidget(item);
+        delete item;
+        index++;
+    }
+    
+    adjustSize();
 }
 
 void FLComponentWindow::addComponentColumn(){
@@ -362,17 +448,22 @@ void FLComponentWindow::addComponentColumn(){
     fHComponentLayout->addWidget(flecheLabel);
     
     QList<FLComponentItem*> newColumn;
+    
     QGroupBox* newVbox = new QGroupBox;
     QVBoxLayout* newVboxLayout = new QVBoxLayout;
-    newVbox->setLayout(newVboxLayout);
+
     
     for(int i=0; i<fItems.begin()->size(); i++){
-        FLComponentItem* item = new FLComponentItem();
+        
+        QString index = QString::number(fItems.begin()->size()) + QString::number(i+1);
+        
+        FLComponentItem* item = new FLComponentItem(index);
         newVboxLayout->addWidget(item);
         
         newColumn.push_back(item);
     }
-
+    
+    newVbox->setLayout(newVboxLayout);
     fHComponentLayout->addWidget(newVbox);
     
     fItems.push_back(newColumn);
@@ -386,24 +477,33 @@ void FLComponentWindow::deleteComponentColumn(){
     if(fItems.size() == 1)
         return;
     
-    QList<QList<FLComponentItem*> >::iterator it2 = fItems.end();
-    it2--;
+    QList<QList<FLComponentItem*> >::iterator it2 = fItems.end()-1;
     
     QList<FLComponentItem*> itemList = *it2;
     
     fItems.removeOne(itemList);
     
-    for(QList<FLComponentItem*>::iterator it = itemList.begin(); it != itemList.end(); it++){
+    QList<FLComponentItem*>::iterator it = itemList.begin();
+    
+    while(itemList.size() != 0){
         
         FLComponentItem* item = *it;
-        QLabel* toEraseLabel = fVerticalElements[fVerticalElements.size()-1].first;
-        QGroupBox* toEraseBox = fVerticalElements[fVerticalElements.size()-1].second;
-        
-        fHComponentLayout->removeWidget(toEraseBox);
-        fHComponentLayout->removeWidget(toEraseLabel);
+        itemList.removeOne(item);
         delete item;
+        it = itemList.begin();
     }
     
+    QLabel* toEraseLabel = fVerticalElements[fVerticalElements.size()-1].first;
+    QGroupBox* toEraseBox = fVerticalElements[fVerticalElements.size()-1].second;
+    
+    fHComponentLayout->removeWidget(toEraseBox);
+    fHComponentLayout->removeWidget(toEraseLabel);
+    
+    delete toEraseBox->layout();
+    delete toEraseBox;
+    delete toEraseLabel;
+    
+    fVerticalElements.pop_back();
     adjustSize();
 }
 

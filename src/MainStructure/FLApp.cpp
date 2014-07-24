@@ -20,7 +20,6 @@
 #include "FLErrorWindow.h"
 #include "FLHelpWindow.h"
 #include "FLPresentationWindow.h"
-#include "FLExportManager.h"
 #include "utilities.h"
 
 #ifdef REMOTE
@@ -125,6 +124,9 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
 FLApp::~FLApp(){
     
+    QString tempPath = fSessionFolder + "/Temp";
+    deleteDirectoryAndContent(tempPath);
+    
     save_Recent_Files();
     save_Recent_Sessions();
     
@@ -146,7 +148,6 @@ FLApp::~FLApp(){
     delete fPresWin;
     delete fHelpWindow;
     delete fErrorWindow;
-    delete fExportDialog;
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
@@ -237,6 +238,10 @@ void FLApp::create_Session_Hierarchy(){
     QString factoryFolder = fSessionFolder + "/SHAFolder";
     QDir shaFolder(factoryFolder);
     shaFolder.mkdir(factoryFolder);
+    
+    QString tempPath = fSessionFolder + "/Temp";
+    QDir tempFolder(tempPath);
+    tempFolder.mkdir(tempPath);
     
     QString pathWindows = fSessionFolder + "/Windows";
     
@@ -451,10 +456,6 @@ void FLApp::setup_Menu(){
     
     fHelpWindow->move((fScreenWidth-fHelpWindow->width())/2, (fScreenHeight-fHelpWindow->height())/2);
     
-    //    EXPORT MANAGER
-    
-    fExportDialog = new FLExportManager(fSessionFolder);
-    
     //----------------MenuBar setups
     fMenuBar->addMenu(create_FileMenu());
     fMenuBar->addSeparator();
@@ -600,7 +601,6 @@ void FLApp::connectWindowSignals(FLWindow* win){
     connect(win, SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
-    connect(win, SIGNAL(export_Win()), this, SLOT(export_Action()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
 }
 
@@ -806,12 +806,14 @@ void FLApp::openExampleAction(const QString& exampleName){
     
     QString pathInSession = fExamplesFolder + "/" + exampleName + ".dsp";
     
+    QString codeToCompile = pathToContent(pathInSession);
+    
     FLWindow* win = getActiveWin();
     
     if(win != NULL && win->is_Default())
-        win->update_Window(pathInSession);
+        win->update_Window(codeToCompile);
     else
-        create_New_Window(pathInSession);    
+        create_New_Window(codeToCompile);    
 }
 
 //-------------RECENT FILES MANAGEMENT
@@ -1382,25 +1384,6 @@ void FLApp::duplicate_Window(){
     
     if(win != NULL)
         duplicate(win);
-}
-
-//---------------Export
-
-//Open ExportManager for a specific Window
-void FLApp::export_Win(FLWindow* win){
-    //    
-    //    QString expanded_code = win->get_Effect()->get_expandedVersion().c_str();
-    //    
-    //    fExportDialog->exportFile(win->get_Effect()->getSource(), expanded_code);
-}
-
-//Export From Menu
-void FLApp::export_Action(){ 
-    
-    FLWindow* win = (FLWindow*)QObject::sender();
-    
-    if(win != NULL)
-        export_Win(win);
 }
 
 //---------------Drop

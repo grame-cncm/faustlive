@@ -20,14 +20,12 @@
 #define kMaxSHAFolders 100
 
 class FLServerHttp;
-class FLExportManager;
 class FLErrorWindow;
 class FLHelpWindow;
 class FLPresentationWindow;
 class FLPreferenceWindow;
 class FLWindow;
 class FLWinSettings;
-class FLEffect;
 class AudioCreator;
 
 #include <map>
@@ -72,14 +70,11 @@ class FLApp : public QApplication
         FLPresentationWindow*            fPresWin;           //Presentation Window
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
         QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
-        FLExportManager*    fExportDialog;      //Manager for web service use
     
         FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
     
     //List of windows currently running in the application
         QList<FLWindow*>     FLW_List;           //Container of the opened windows
-        QList<FLEffect*>     fExecutedEffects;    //This way, the effects already compiled can be recycled if their used further in the execution
-        QList<FLEffect*>     fRemoteEffects;     //List of effects used in remote processing
     
     //Screen parameters
         int                 fScreenWidth;
@@ -202,9 +197,6 @@ class FLApp : public QApplication
 
         void                duplicate(FLWindow* window);
         void                duplicate_Window();
-    
-        void                export_Win(FLWindow* Win);
-        void                export_Action();
     
     //---------Preferences
         void                styleClicked(const QString& style);
