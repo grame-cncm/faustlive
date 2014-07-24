@@ -27,6 +27,7 @@ list<GUI*>               GUI::fGuiList;
 #include "FLSettings.h"
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
+#include "FLExportManager.h"
 
 #include "FLServerHttp.h"
 
@@ -140,14 +141,14 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     if (fCurrent_DSP == NULL)
         return false;
     
+    if(init != kNoInit){
+        fIsDefault = true;
+        print_initWindow(init);
+    }
+    
     if(allocateInterfaces(fSettings->value("Name", "").toString())){
        
         buildInterfaces(fCurrent_DSP);
-        
-        if(init != kNoInit){
-            fIsDefault = true;
-            print_initWindow(init);
-        }
         
         if(setDSP(errorMsg)){
         
@@ -229,6 +230,8 @@ bool FLWindow::update_Window(const QString& source){
                 
                 if(fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)){
                     
+                    fIsDefault = false;
+                    
                     deleteInterfaces();
                     
                     //Set the new interface & Recall the parameters of the window
@@ -250,7 +253,6 @@ bool FLWindow::update_Window(const QString& source){
                         FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
                         
                         fSource = source;
-                        fIsDefault = false;
                         isUpdateSucessfull = true;
                     }
                     else{
@@ -348,6 +350,18 @@ void FLWindow::updateOSCInterface(){
 //Reaction to the modifications of the ToolBar options
 void FLWindow::modifiedOptions(){
     update_Window(fSource);
+}
+
+void FLWindow::source_Deleted(){
+
+    QString msg = "Warning your file : " + fSource + " was deleted. You are now working on an internal copy of this file.";
+    
+    fSource = FLSessionManager::_Instance()->contentOfShaSource(fSettings->value("SHA", "").toString());
+    
+    fSettings->setValue("Path", "");
+    
+    FLErrorWindow::_getInstance()->print_Error(msg);
+    
 }
 
 //Reaction to the resizing the toolbar
@@ -461,24 +475,23 @@ void FLWindow::allocateOscInterface(){
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
-    fRCInterface = new FUI;
-    
-    if(!fRCInterface)
-        return false;
-    
     //Window tittle is build with the window Name + effect Name
     QString intermediate = fWindowName + " : " + nameEffect;
     setWindowTitle(intermediate);
     
-    fInterface = new QTGUI(this);
-    setCentralWidget(fInterface);
-    fInterface->installEventFilter(this);
-    
-    if(!fInterface){
-        delete fRCInterface;
-        fRCInterface = NULL;
-        return false;
+    if(!fIsDefault){
+        
+        fInterface = new QTGUI(this);
+        setCentralWidget(fInterface);
+        fInterface->installEventFilter(this);
+        
+        if(!fInterface)
+            return false;
     }
+    
+    fRCInterface = new FUI;
+    if(!fRCInterface)
+        return false;
     
 #ifndef _WIN32
     if(fSettings->value("Osc/Enabled", false).toBool())
@@ -493,8 +506,11 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
 bool FLWindow::buildInterfaces(dsp* compiledDSP){
       
-    compiledDSP->buildUserInterface(fInterface);
-    compiledDSP->buildUserInterface(fRCInterface);
+    if(fInterface)
+        compiledDSP->buildUserInterface(fInterface);
+    
+    if(fRCInterface)
+        compiledDSP->buildUserInterface(fRCInterface);
             
 #ifndef _WIN32
     if(fOscInterface)
@@ -518,8 +534,10 @@ void FLWindow::runInterfaces(){
 #endif
     setWindowsOptions();
     
-    fInterface->run();
-    fInterface->installEventFilter(this);
+    if(fInterface){
+        fInterface->run();
+        fInterface->installEventFilter(this);
+    }
 }
 
 //Delete of QTinterface and of saving graphical interface
@@ -1008,13 +1026,15 @@ QString FLWindow::get_HttpUrl() {
 }
 #endif
 
-//------------------------Right Click Reaction
+//------------------------MENUS ACTIONS
 
+//Right-click
 void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
     
     fWindowMenu->exec(ev->globalPos());
 }
 
+//Menu Bar
 void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     
     //----------------FILE
@@ -1063,7 +1083,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     QAction* exportAction = new QAction(tr("&Export As..."), this);
     exportAction->setShortcut(tr("Ctrl+P"));
     exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
-    connect(exportAction, SIGNAL(triggered()), this, SLOT(exportManage()));
+    connect(exportAction, SIGNAL(triggered()), this, SLOT(exportFile()));
     
     QAction* shutAction = new QAction(tr("&Close Window"),this);
     shutAction->setShortcut(tr("Ctrl+W"));
@@ -1096,64 +1116,26 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     }
 }
 
-QString FLWindow::saveSource(const QString& sourceContent){
-    
-    //------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
-    QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP is readOnly, do you want to save it in a new location ?");
-    
-    QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
-    QPushButton* cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
-    
-    existingNameMessage->exec();
-    if (existingNameMessage->clickedButton() != cancel_Button){
-        QFileDialog* fileDialog = new QFileDialog;
-        fileDialog->setConfirmOverwrite(true);
-        
-        QString filename;
-        
-        filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
-        
-        if(QFileInfo(filename).suffix().indexOf("dsp") == -1)
-            filename += ".dsp";
-        
-        writeFile(filename, sourceContent);
-    }
-}
-
+//----SLOTS
 void FLWindow::edit(){
-    
-//    ATTENTION IL FAUT PRENDRE EN COMPTE LE RESTE DES CAS ET CREER UN FICHIER TEMP !!
     
     QString sourcePath = fSettings->value("Path", "").toString();
     
     QString pathToOpen = sourcePath;
-    
-    printf("path to open before dialog = %s\n", pathToOpen.toStdString().c_str());
-    
-    if(sourcePath != "" && !QFileInfo(sourcePath).isWritable()){
-        pathToOpen = saveSource(pathToContent(fSource));
-    }
-    
-    if(sourcePath == ""){
 
-//        
-//        QFile f(tempPath);
-//        
-//        if(f.open(QFile::WriteOnly)){
-//            
-//            QTextStream textWriting(&f);
-//            
-//            textWriting<<fSource;
-//            
-//            f.close();
-//        }
-//        f.setPermissions(QFile::ReadOwner);
-//        
-//        FLFileWatcher::getInstance()->startWatcher(tempPath, this);
+    if(sourcePath == ""){
         
-        pathToOpen = saveSource(fSource);
+        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
         
-        printf("PATH TO OPEN = %s\n", pathToOpen.toStdString().c_str());
+//    In case user has saved his file in a new location
+        if(pathToOpen != "")
+            FLFileWatcher::getInstance()->startWatcher(pathToOpen, this);
+//    Otherwise, a temp file is created and watched
+        else{
+            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
+            
+            FLFileWatcher::getInstance()->startTempWatcher(pathToOpen, this);
+        }
     }
     
     QString shaFolder = fHome + "/SHAFolder/" + fSettings->value("SHA", "").toString();
@@ -1167,7 +1149,6 @@ void FLWindow::edit(){
     
     if(!b)
         errorPrint(error);
-
 }
 
 void FLWindow::paste(){
@@ -1213,8 +1194,17 @@ void FLWindow::svg_View(){
     errorPrint(error);
 }
 
-void FLWindow::exportManage(){
-    emit export_Win();
+void FLWindow::exportFile(){
+    
+    FLTargetChooser* targetDialog = FLTargetChooser::_Instance();
+    
+    if(targetDialog->exec()){
+        
+        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, fSource);
+        
+        FLExportManager* exportDialog = FLExportManager::_Instance();
+        exportDialog->exportFile(getName(), expandedCode, targetDialog->platform(), targetDialog->architecture(), targetDialog->binOrSource());
+    }
 }
 
 void FLWindow::shut(){

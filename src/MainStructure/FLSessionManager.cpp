@@ -301,12 +301,10 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argv[iteratorParams] = "-O";
     iteratorParams++;
     
-    QString svgPath = destPath;
+    QDir direct(destPath);
+    direct.mkdir(destPath);
     
-    QDir direct(svgPath);
-    direct.mkdir(svgPath);
-    
-    string pathSVG = svgPath.toStdString();
+    string pathSVG = destPath.toStdString();
     
     argv[iteratorParams] = pathSVG.c_str();
     iteratorParams++;
@@ -649,6 +647,56 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
         
 }
 
+//--Ask the user if he wants to save its DSP in an new location
+QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
+    
+    //------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
+    QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP has no origin file.\n Do you want to save your code in a new file?");
+    
+    QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
+    QPushButton* cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+    
+    existingNameMessage->exec();
+    if (existingNameMessage->clickedButton() == yes_Button){
+        
+        QFileDialog* fileDialog = new QFileDialog;
+        fileDialog->setConfirmOverwrite(true);
+        
+        QString filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
+        
+        if(QFileInfo(filename).suffix().indexOf("dsp") == -1)
+            filename += ".dsp";
+        
+        writeFile(filename, sourceContent);
+        
+        return filename;
+    }
+    else
+        return "";
+}
+
+//--Save temporary file from sha file
+QString FLSessionManager::saveTempFile(const QString& shaSource){
+    
+    QString tempShaPath = fSessionFolder + "/Temp/temp_" + shaSource + ".dsp";
+
+    QString shaPath = fSessionFolder + "/SHAFolder/" + shaSource + "/" + shaSource + ".dsp";
+    
+    QFile src(shaPath);    
+    src.copy(tempShaPath);
+    
+    return tempShaPath;
+    
+}
+
+//--Returns the content of sha file contained in the SHAFolder
+QString FLSessionManager::contentOfShaSource(const QString& shaSource){
+   
+    QString shaPath = fSessionFolder + "/SHAFolder/" + shaSource + "/" + shaSource + ".dsp";
+    
+    return pathToContent(shaPath);
+}
+
 //--Restoration Menu
 bool FLSessionManager::viewRestorationMsg(const QString& msg, const QString& yesMsg, const QString& noMsg){
     
@@ -844,8 +892,28 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     
 }
                                 
-
-
+QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString& source){
+    
+    string name_app = settings->value("Name", "").toString().toStdString();
+    string sha_key = settings->value("SHA", "").toString().toStdString();
+    
+    string dsp_content = source.toStdString();
+    
+    if(QFileInfo(source).exists())
+        dsp_content = pathToContent(source).toStdString();
+    
+    int argc = 0;
+    
+    QString defaultOptions = FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString();
+    
+    QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
+    
+    const char** argv = getFactoryArgv("", "", faustOptions, argc);
+    
+    string error_msg("");
+    
+    return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
+}
 
 
 

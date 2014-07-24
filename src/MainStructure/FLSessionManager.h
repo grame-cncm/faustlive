@@ -102,6 +102,12 @@ public:
 
     void deleteDSPandFactory(dsp* toDeleteDSP);
     
+    QString                 get_expandedVersion(QSettings* settings, const QString& source);
+    
+    QString                askForSourceSaving(const QString& sourceContent);
+    QString                contentOfShaSource(const QString& shaSource);
+    QString                saveTempFile(const QString& shaSource);
+    
     void                saveCurrentSources(const QString& sessionFolder);
     map<int, QString>   currentSessionRestoration();
     void                createSnapshot(const QString& snapshotFolder);

@@ -115,15 +115,11 @@ class FLWindow : public QMainWindow
         void            error(const QString&);
         void            closeWin();
         void            shut_AllWindows();
-        void            edit_Action();
         void            duplicate_Action();
-        void            export_Win();
-        void            migrate(const QString&, int);
         void            windowNameChanged();
         void            remoteCnxLost(int);
     
     private slots :
-        QString         saveSource(const QString& sourceContent);
         void            edit();
         void            paste();
         void            duplicate();
@@ -131,7 +127,7 @@ class FLWindow : public QMainWindow
         void            httpd_View();
 #endif
         void            svg_View();
-        void            exportManage();
+        void            exportFile();
         void            redirectSwitch();
     
     public :
@@ -237,7 +233,10 @@ class FLWindow : public QMainWindow
         void            frontShow();
     //Error received
         void            errorPrint(const QString& msg);
-
+    
+    //The window has to be warned in case its source file is deleted
+        void            source_Deleted();
+    
         static          int RemoteDSPCallback(int error_code, void* arg);
     
     
