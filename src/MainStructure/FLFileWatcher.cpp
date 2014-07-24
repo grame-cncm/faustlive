@@ -8,6 +8,7 @@
 #include "FLFileWatcher.h"
 
 #include "FLWindow.h"
+#include "utilities.h"
 
 FLFileWatcher* FLFileWatcher::_Instance = 0;
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
@@ -15,10 +16,15 @@ FLFileWatcher* FLFileWatcher::_Instance = 0;
 FLFileWatcher::FLFileWatcher(){
 
     fWatcher = new QFileSystemWatcher;
-    fSynchroTimer = new QTimer(fWatcher);
+    fTempWatcher = new QFileSystemWatcher;
+    fSynchroTimer = new QTimer();
     connect(fSynchroTimer, SIGNAL(timeout()), this, SLOT(fileChanged()));
     
     connect(fWatcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Timer(const QString)));
+    
+    connect(fTempWatcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Temp_Timer(const QString)));
+    
+    connect(fWatcher, SIGNAL(directoryChanged(const QString&)), this, SLOT(dirChanged(const QString&)));
 }
 
 FLFileWatcher::~FLFileWatcher(){}
@@ -32,11 +38,33 @@ FLFileWatcher* FLFileWatcher::getInstance(){
 }
 
 void FLFileWatcher::startWatcher(const QString& path, FLWindow* win){
-
-    fWatcher->addPath(path);
     
     if(path != ""){
+        fWatcher->addPath(path);
         
+        QList<FLWindow*> list = fMap[path];
+        list.push_back(win);
+        
+        fMap[path] = list;
+        
+//      Watches the changes in the folder containing the file... in case of name changes
+        QString absolutePath = QFileInfo(path).absolutePath();
+        
+        QStringList filters;
+        filters << "*.dsp"<<"*.lib";
+        
+        QDir path(absolutePath);
+        fDirToChildren[absolutePath] = path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
+        
+        fWatcher->addPath(absolutePath);
+    }
+}
+
+void FLFileWatcher::startTempWatcher(const QString& path, FLWindow* win){
+    
+    if(path != ""){
+        fTempWatcher->addPath(path);
+    
         QList<FLWindow*> list = fMap[path];
         list.push_back(win);
         
@@ -55,9 +83,87 @@ void FLFileWatcher::stopWatcher(const QString& path, FLWindow* win){
     }
 }
 
+void FLFileWatcher::dirChanged(const QString& dirModified){
+    
+    QStringList oldChildren = fDirToChildren[dirModified];
+    
+    QStringList filters;
+    filters << "*.dsp"<<"*.lib";
+    
+    QDir path(dirModified);
+    QStringList newChildren =  path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
+    
+//    In case of deleted or renamed file (added file is ignored)
+    if(oldChildren.size()>=newChildren.size()){
+        
+        QStringList filesWatched = fWatcher->files();
+        
+        QString oldName("");
+        QString newName("");
+        
+        for(QStringList::iterator it = filesWatched.begin(); it != filesWatched.end(); it++){
+//        Find deleted file
+            if(!QFileInfo(*it).exists()){
+                oldName = *it;
+                
+//            If a file was deleted, it's not worth going name searching
+                if(oldChildren.size()>newChildren.size())
+                    break;
+                
+//            Search in newList the one File that is not in the old list
+                for(QStringList::iterator it2 = newChildren.begin(); it2 != newChildren.end(); it2++){
+                    if(oldChildren.indexOf(*it2) == -1){
+                        newName = *it2;
+                        break;
+                    }
+                }
+                
+                break;
+            }
+        }
+        
+        QList<FLWindow*> list = fMap[oldName];
+        
+        QList<FLWindow*>::iterator it;
+        
+        for(it = list.begin() ; it != list.end(); it++){
+            
+            if(newName == "")
+                (*it)->source_Deleted();
+            else{
+                newName = dirModified + "/" + newName;
+                (*it)->update_Window(newName);
+            }
+        }
+        
+    }
+    
+    fDirToChildren[dirModified] = newChildren;
+}
+
 void FLFileWatcher::reset_Timer(const QString fileModified){
 
-    fFileChanged = fileModified;
+    if(!QFileInfo(fileModified).exists()){
+        fSynchroTimer->stop();
+        return;
+    }
+    
+    fSourceToChanged = fileModified;
+    fWinChanged =  fMap[fileModified];
+    
+    //If the signal is triggered multiple times in 2 second, only 1 is taken into account
+    if(fSynchroTimer->isActive()){
+        fSynchroTimer->stop();
+        fSynchroTimer->start(2000);
+    }
+    else
+        fSynchroTimer->start(2000);
+}
+
+void FLFileWatcher::reset_Temp_Timer(const QString fileModified){
+    
+    fSourceToChanged = pathToContent(fileModified);
+    fWinChanged =  fMap[fileModified];
     
     //If the signal is triggered multiple times in 2 second, only 1 is taken into account
     if(fSynchroTimer->isActive()){
@@ -71,14 +177,11 @@ void FLFileWatcher::reset_Timer(const QString fileModified){
 void FLFileWatcher::fileChanged(){
     
     fSynchroTimer->stop();
-    
-    QList<FLWindow*> list = fMap[fFileChanged];
-    
+
     QList<FLWindow*>::iterator it;
-    
-    for(it = list.begin() ; it != list.end(); it++){
-        (*it)->update_Window(fFileChanged);
-    }
+        
+    for(it = fWinChanged.begin() ; it != fWinChanged.end(); it++)
+        (*it)->update_Window(fSourceToChanged);
 }
 
 

@@ -16,27 +16,40 @@
 #endif
 
 #include <map>
+#include <iostream>
+#include <string>
+
+using namespace std;
 
 class FLWindow;
+
 
 class FLFileWatcher : public QSettings
 {
     Q_OBJECT
     
     QFileSystemWatcher*             fWatcher;
+    QFileSystemWatcher*             fTempWatcher;
+    
     QTimer*                         fSynchroTimer;
     
-    QString         fFileChanged;
+    QString                         fSourceToChanged;
+    QList<FLWindow*>                fWinChanged;
     
     std::map<QString, QList<FLWindow*> > fMap;
+    
+    
+//    Map the dir 
+    QMap<QString, QList<QString> >       fDirToChildren;
     
     static FLFileWatcher*           _Instance;
     
     private slots:
  
     void         reset_Timer(const QString fileModified);
+    void         reset_Temp_Timer(const QString fileModified);
+    void         dirChanged(const QString&);
     void         fileChanged();
-    
     
 public: 
     
@@ -46,6 +59,7 @@ public:
     static FLFileWatcher*           getInstance();
     
     void    startWatcher(const QString& path, FLWindow* win);
+    void    startTempWatcher(const QString& path, FLWindow* win);
     void    stopWatcher(const QString& path, FLWindow* win);
 };
 
