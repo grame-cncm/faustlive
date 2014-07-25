@@ -18,7 +18,7 @@ FLErrorWindow::FLErrorWindow(){
     setWindowTitle("MESSAGE_WINDOW");
 }
 
-FLErrorWindow* FLErrorWindow::_getInstance(){
+FLErrorWindow* FLErrorWindow::_Instance(){
     if(_errorWindow == NULL)
         _errorWindow = new FLErrorWindow;
     
