@@ -28,11 +28,8 @@ list<GUI*>               GUI::fGuiList;
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
-
 #include "FLServerHttp.h"
-
 #include "FLFileWatcher.h"
-
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
 
@@ -98,7 +95,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #endif
     set_MenuBar(appMenus);
     
-    connect(this, SIGNAL(remoteCnxLost(int error_code)), this, SLOT(RemoteCallback(int error_code)));
+    connect(this, SIGNAL(remoteCnxLost(int)), this, SLOT(RemoteCallback(int)));
 
 }
 
@@ -136,7 +133,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     if(!init_audioClient(errorMsg))
         return false;
     
-    fCurrent_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
+    fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
     
     if (fCurrent_DSP == NULL)
         return false;
@@ -158,7 +155,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             runInterfaces();
             
             fCreationDate = fCreationDate.currentDateTime();
-            FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
+            FLFileWatcher::_Instance()->startWatcher(fSettings->value("Path", "").toString(), this);
             
             return true;
         } 
@@ -193,11 +190,11 @@ bool FLWindow::update_Window(const QString& source){
     
     if(update){
         
-        FLFileWatcher::getInstance()->stopWatcher(fSettings->value("Path", "").toString(), this);
+        FLFileWatcher::_Instance()->stopWatcher(fSettings->value("Path", "").toString(), this);
         
-        FLMessageWindow::_getInstance()->displayMessage("Updating DSP...");
-        FLMessageWindow::_getInstance()->show();
-        FLMessageWindow::_getInstance()->raise();
+        FLMessageWindow::_Instance()->displayMessage("Updating DSP...");
+        FLMessageWindow::_Instance()->show();
+        FLMessageWindow::_Instance()->raise();
         hide();
         
         QString savedName = fSettings->value("Name", "").toString();
@@ -222,7 +219,7 @@ bool FLWindow::update_Window(const QString& source){
         
         if(isUpdateSucessfull){
             
-            charging_DSP = sessionManager->createDSP(factorySetts, fSettings, RemoteDSPCallback, this, errorMsg);
+            charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
             
             if(charging_DSP){
                 
@@ -270,14 +267,14 @@ bool FLWindow::update_Window(const QString& source){
             }
         }
         
-        FLFileWatcher::getInstance()->startWatcher(fSettings->value("Path", "").toString(), this);
+        FLFileWatcher::_Instance()->startWatcher(fSettings->value("Path", "").toString(), this);
         
         if(!isUpdateSucessfull)
             errorPrint(errorMsg);
         else
             emit windowNameChanged();
     
-        FLMessageWindow::_getInstance()->hide();
+        FLMessageWindow::_Instance()->hide();
         
         adjustSize();
         show();
@@ -360,7 +357,7 @@ void FLWindow::source_Deleted(){
     
     fSettings->setValue("Path", "");
     
-    FLErrorWindow::_getInstance()->print_Error(msg);
+    errorPrint(msg);
     
 }
 
@@ -393,8 +390,9 @@ void FLWindow::resizingBig(){
 //Redirection machine switch
 void FLWindow::redirectSwitch(){
 #ifdef REMOTE
-    if(!update_Window(fSource))
+    if(!update_Window(fSource)){
         fStatusBar->remoteFailed();
+    }
 #endif
 }
 
@@ -430,7 +428,7 @@ void catch_OSCError(void* arg){
     
     FLWindow* win = (FLWindow*)(arg);
     
-    win->errorPrint("Too many OSC interfaces opened at the same time! Connection could not start");
+    win->errorPrint("Too many OSC interfaces are opened at the same time! A new connection could not start");
     win->disableOSCInterface();
 }
 
@@ -529,7 +527,7 @@ void FLWindow::runInterfaces(){
     
     if(fHttpInterface){
         fHttpInterface->run();
-        FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+        FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
 #endif
     setWindowsOptions();
@@ -614,7 +612,7 @@ void FLWindow::shut_Window(){
 void FLWindow::close_Window(){
     
     hide();
-    FLFileWatcher::getInstance()->stopWatcher(fSettings->value("Path", "").toString(), this);
+    FLFileWatcher::_Instance()->stopWatcher(fSettings->value("Path", "").toString(), this);
     
     fSettings->sync();
     
@@ -631,7 +629,10 @@ void FLWindow::close_Window(){
 #endif
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
-  
+
+    if(fStatusBar)
+        delete fStatusBar;
+    
     if(fAudioManager)
         delete fAudioManager;
        
@@ -811,7 +812,7 @@ void FLWindow::audioShutDown(const char* msg){
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     
     //    creator->change_Architecture();
-    emit errorPrint(msg);
+    errorPrint(msg);
 }
 
 //Switch of Audio architecture
@@ -933,7 +934,7 @@ void FLWindow::allocateHttpInterface(){
 
 void FLWindow::deleteHttpInterface(){
     
-    FLServerHttp::getInstance()->removeHttpInterface(fHttpInterface->getTCPPort());
+    FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
     delete fHttpInterface;
     fHttpInterface = NULL;
 }
@@ -950,7 +951,7 @@ void FLWindow::updateHTTPInterface(){
     fCurrent_DSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
-    FLServerHttp::getInstance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
+    FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     
     setWindowsOptions();
 }
@@ -981,7 +982,7 @@ void FLWindow::viewQrCode(){
         
         if(fHttpdWindow){
             
-            int dropPort = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
+            int dropPort = FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt();
             
             QString fullUrl = "http://" + searchLocalIP() + ":" + QString::number(dropPort) + "/" + QString::number(fHttpInterface->getTCPPort());
             
@@ -996,7 +997,7 @@ void FLWindow::viewQrCode(){
             fHttpdWindow->adjustSize();
         }
         else
-            emit error("Enable Http Before Asking for Qr Code");
+            errorPrint("Impossible to create Qr Code window");
     }
 }
 
@@ -1012,7 +1013,7 @@ void FLWindow::exportToPNG(){
     QString errorMsg;
     
     if(!fInterface->toPNG(filename, errorMsg))
-        emit error(errorMsg.toStdString().c_str());
+        errorPrint(errorMsg.toStdString().c_str());
 }
 
 QString FLWindow::get_HttpUrl() {
@@ -1129,26 +1130,22 @@ void FLWindow::edit(){
         
 //    In case user has saved his file in a new location
         if(pathToOpen != "")
-            FLFileWatcher::getInstance()->startWatcher(pathToOpen, this);
+            FLFileWatcher::_Instance()->startWatcher(pathToOpen, this);
 //    Otherwise, a temp file is created and watched
         else{
             pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
             
-            FLFileWatcher::getInstance()->startTempWatcher(pathToOpen, this);
+            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
         }
     }
     
-    QString shaFolder = fHome + "/SHAFolder/" + fSettings->value("SHA", "").toString();
-    
-    touchFolder(shaFolder);
-    
+    FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
+
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    QString error = sourcePath + " could not be opened!";
-    
     if(!b)
-        errorPrint(error);
+        errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
 }
 
 void FLWindow::paste(){
@@ -1184,14 +1181,12 @@ void FLWindow::svg_View(){
     QString shaFolder = fHome + "/SHAFolder/" + shaValue;
     QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
     
-    touchFolder(shaFolder);
+    FLSessionManager::_Instance()->updateFolderDate(shaValue);
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
-    bool b = QDesktopServices::openUrl(url);
-    
-    QString error = pathToOpen + " could not be opened!";
-        
-    errorPrint(error);
+
+    if(!QDesktopServices::openUrl(url))
+        errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
 }
 
 void FLWindow::exportFile(){
@@ -1214,15 +1209,16 @@ void FLWindow::shut(){
 
 //Redirection of a received error
 void FLWindow::errorPrint(const QString& msg){
-    FLErrorWindow::_getInstance()->print_Error(msg);
+    FLErrorWindow::_Instance()->print_Error(msg);
 }
 
 #ifdef REMOTE
-//---We have to separate into 2 functions because the action cannot be done in the audio thread that why RemoteDSPCallback has to send a signal, received in the graphical thread.
+//---We have to separate into 2 functions because the action cannot be done in the audio thread that's why RemoteDSPCallback has to send a signal, received in the graphical thread.
 int FLWindow::RemoteDSPCallback(int error_code, void* arg){
     
     FLWindow* errorWin = (FLWindow*) arg;
     errorWin->emit remoteCnxLost(error_code);
+    return -1;
 }
 
 void FLWindow::RemoteCallback(int error_code){
@@ -1233,7 +1229,7 @@ void FLWindow::RemoteCallback(int error_code){
         
         if(error_code == WRITE_ERROR || error_code == READ_ERROR){
             
-            errorPrint("Remote Connection Error.\n Switching back to local processing.");
+            errorPrint("Remote Connection Error.\nSwitching back to local processing.");
             
             fStatusBar->setRemoteSettings("local processing", "127.0.0.1", 7777);
             redirectSwitch();

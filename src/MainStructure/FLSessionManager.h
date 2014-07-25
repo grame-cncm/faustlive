@@ -96,9 +96,12 @@ public:
     static void createInstance(const QString homePath);
     static void deleteInstance();
     
+    void            updateFolderDate(const QString& shaValue);
+    void            cleanSHAFolder();
+    
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     
-    dsp* createDSP(QPair<QString, void*> factorySetts, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);
+    dsp* createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);
 
     void deleteDSPandFactory(dsp* toDeleteDSP);
     

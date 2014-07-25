@@ -112,7 +112,6 @@ class FLWindow : public QMainWindow
     signals :
     //Informing of a drop, a close event, ...
         void            drop(QList<QString>);
-        void            error(const QString&);
         void            closeWin();
         void            shut_AllWindows();
         void            duplicate_Action();

@@ -11,6 +11,8 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 
+#include "FLErrorWindow.h"
+
 #include "FLrenameDialog.h"
 
 #include "faust/llvm-dsp.h"
@@ -43,25 +45,46 @@ void FLSessionManager::deleteInstance(){
     delete FLSessionManager::_sessionManager;
 }
 
+//---Managing SHAFolder content. SHAFolder modified date is updated whenever a file of the folder is used. Then when there are too many folder saved, the most former used folder is deleted
+void FLSessionManager::updateFolderDate(const QString& shaValue){
+    
+    QString shaFolder = fSessionFolder + "/SHAFolder/" + shaValue;
+    touchFolder(shaFolder);
+}
+
+void FLSessionManager::cleanSHAFolder(){
+    QString shaFolder = fSessionFolder + "/SHAFolder";
+    
+    QDir shaDir(shaFolder);
+    
+    QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
+    
+    if(children.size() > kMaxSHAFolders){
+        QString childToDelete = (children.begin())->absoluteFilePath();
+        deleteDirectoryAndContent(childToDelete);
+    }
+        
+}
+
 //Default Names
 QList<QString> FLSessionManager::get_currentDefault(){
     
     QList<QString> currentDefault;
     
-    FLSettings::getInstance()->beginGroup("Windows");
-    QStringList groups  = FLSettings::getInstance()->childKeys();
+    FLSettings::_Instance()->beginGroup("Windows");
+    QStringList groups  = FLSettings::_Instance()->childKeys();
     
     for(int i=0; i<groups.size(); i++){
         
         QString settingPath = QString::number(i) + "/Name";
         
-        QString settingName = FLSettings::getInstance()->value(settingPath, "").toString();
+        QString settingName = FLSettings::_Instance()->value(settingPath, "").toString();
         
         if(settingName.indexOf(DEFAULTNAME) != -1){
             currentDefault.push_back(settingName);
         }
     }
-    FLSettings::getInstance()->endGroup();
+    FLSettings::_Instance()->endGroup();
     
     return currentDefault;
 }
@@ -126,7 +149,7 @@ QString FLSessionManager::nameToUniqueName(const QString& name, const QString& p
     
     QString newName(name);
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
     
     generalSettings->beginGroup("Windows");
     QStringList groups  = generalSettings->childKeys();
@@ -287,15 +310,21 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     
     string libPath = libsFolder;
-    argv[iteratorParams] = libPath.c_str();
+    char* libP = new char[libsFolder.size()+1];
+    strncpy( libP, libPath.c_str(), libsFolder.size()+1);
+    argv[iteratorParams] = (const char*) libP;
     iteratorParams++;
     
     argv[iteratorParams] = "-I";   
     iteratorParams++;
+    
     QString sourceChemin = QFileInfo(sourcePath).absolutePath();
     string path = sourceChemin.toStdString();
     
-    argv[iteratorParams] = path.c_str();
+    char* libP2 = new char[sourceChemin.size()+1];
+    strncpy( libP2, path.c_str(), sourceChemin.size()+1);
+    argv[iteratorParams] = (const char*) libP2;
+    
     iteratorParams++;
     
     argv[iteratorParams] = "-O";
@@ -304,9 +333,14 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     QDir direct(destPath);
     direct.mkdir(destPath);
     
+    printf("MKDIR -O PATH = %s\n", destPath.toStdString().c_str());
+    
     string pathSVG = destPath.toStdString();
     
-    argv[iteratorParams] = pathSVG.c_str();
+    char* svgP = new char[pathSVG.size()+1];
+    strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
+    argv[iteratorParams] = (const char*) svgP;
+    
     iteratorParams++;
     argv[iteratorParams] = "-svg";
     iteratorParams++;
@@ -350,35 +384,33 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     argv[0] = "--NJ_ip";
     QString localString = searchLocalIP();
     string ip(localString.toStdString());
-    argv[1] = ip.c_str();
+    
+    char* ipString = new char[ip.size()+1];
+    strncpy( ipString, ip.c_str(), ip.size()+1);
+    argv[1] = (const char*) ipString;
     
     argv[2] = "--NJ_latency";
     QString latency = winSettings->value("RemoteProcessing/Latency", "10").toString();
-//    string lat(latency.toStdString());
-    char* lat = new char[latency.length()];
-    lat = (char*)latency.toStdString().c_str();
+    string lat = latency.toStdString();
     
-    printf("Latency = %s\n", lat);
-    argv[3] = (const char*)lat;
+    char* latString = new char[lat.size()+1];
+    strncpy( latString, lat.c_str(), lat.size()+1);
+    argv[3] = (const char*) latString;
+
     
     argv[4] = "--NJ_compression";
     QString cv = winSettings->value("RemoteProcessing/CV", "64").toString();
-//    string compression(cv.toStdString());
-    char* compression = new char[cv.length()];
-    compression = (char*) cv.toStdString().c_str();
-    
-    printf("Compression = %s\n", compression);
-    argv[5] = (const char*)compression;
+    string compression = cv.toStdString();
+    char* cvString = new char[compression.size()+1];
+    strncpy( cvString, compression.c_str(), compression.size()+1);
+    argv[5] = (const char*) cvString;
     
     argv[6] = "--NJ_mtu";
     QString mtu = winSettings->value("RemoteProcessing/MTU", "1500").toString();
-//    string mtuVal(mtu.toStdString()); 
-    char* mtuVal = new char[mtu.length()];
-    mtuVal = (char*) mtu.toStdString().c_str();
-    
-    printf("MTU = %s\n", mtuVal);
-    argv[7] = (const char*)mtuVal;
-    
+    string mtuVal = mtu.toStdString();
+    char* mtuString = new char[mtuVal.size()+1];
+    strncpy( mtuString, mtuVal.c_str(), mtuVal.size()+1);
+    argv[7] = (const char*) mtuString;
     
     for(int i=0; i<argc; i++)
         printf("ARGV INSTANCE %i = %s\n", i, argv[i]);
@@ -409,6 +441,9 @@ QString FLSessionManager::getErrorFromCode(int code){
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
     
+    //-------Clean Factory Folder if needed
+    cleanSHAFolder();
+    
     //-------Get Faust Code
     
     QString faustContent = ifUrlToString(source);
@@ -436,8 +471,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     //--------Calculation of SHA Key
     
 //-----Extracting compilation Options from general options Or window options
-    QString defaultOptions = FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString();
-    int defaultOptLevel = FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt();
+    QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
+    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt();
     
     QString faustOptions = defaultOptions;
     int optLevel = defaultOptLevel;
@@ -539,7 +574,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
-dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg){
+dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg){
     
     factorySettings* mySetts = (factorySettings*)(factorySetts.second);
     
@@ -565,29 +600,28 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, FLWinSettin
         
         int errorToCatch;
         
+// -----------CALCULATE ARGUMENTS------------
         int argc;
         const char** argv = getRemoteInstanceArgv(settings, argc);
         
-        for(int i=0; i<argc; i++)
-            printf("ARGV %i FROM HERE = %s\n", i, argv[i]);
+        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, sampleRate, bufferSize, error_callback, error_callback_arg, errorToCatch);
         
-        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, sampleRate,bufferSize, error_callback, error_callback_arg, errorToCatch);
         
-//        
-//        if(compiledDSP == NULL){
-//        
-//            if(errorMsg == ERROR_FACTORY_NOTFOUND){
-//                
-////                Remettre à zéro mySetts + 
-//                
-//                newEffect->reset();
-//                  
-//                if(newEffect->reinit(error)){
-//                    charging_DSP = createRemoteDSPInstance(newEffect->getRemoteFactory(), argc, argv, fAudioManager->get_sample_rate(), fAudioManager->get_buffer_size(),  RemoteDSPErrorCallback, this, errorMsg);
-//                }
-//                error = getErrorFromCode(errorMsg);
-//            }
-//        }
+        if(compiledDSP == NULL){
+        
+//----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
+            if(errorToCatch == ERROR_FACTORY_NOTFOUND){
+                
+                QPair<QString, void*> fS = createFactory(source, settings, errorMsg);
+                
+                if(fS.second == NULL){
+                    errorMsg = "Impossible to find and recompile factory";
+                    return NULL;
+                }
+                    
+                compiledDSP = createDSP(fS, source, settings, error_callback, error_callback_arg, errorMsg);
+            }
+        }
         
         if(compiledDSP == NULL)
             errorMsg = getErrorFromCode(errorToCatch);
@@ -627,7 +661,7 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP){
 //Saving the sources of the windows in their designated folders
 void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
     
     generalSettings->beginGroup("Windows");
             
@@ -726,7 +760,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration(){
 //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
     QMap<QString, int> updated;
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
     
     generalSettings->beginGroup("Windows");
     
@@ -757,18 +791,18 @@ map<int, QString> FLSessionManager::currentSessionRestoration(){
                 
                 //            In Case The Original File Was Deleted
                 if(!QFileInfo(originalPath).exists()){
-                    QString msg = originalPath + " cannot be found! Do you want to reload it from a copied file?";
+                    QString msg = originalPath + " cannot be found! Do you want to reload it from an internal copy of your file?";
                     if(viewRestorationMsg(msg, "Yes", "No"))
                         windowIndexToSource[groups[i].toInt()] = savedContent;
                     else
                         windowIndexToSource[groups[i].toInt()] = "";
                 }
                 //            In Case The Original Content is Modified
-                else if(savedContent != originalContent){
+                else if(QFileInfo(recallingPath).exists() && savedContent != originalContent){
                     
-                    QString msg = "The content of " + originalPath + " was modified. Which file do you want to reload ?";
+                    QString msg = "The content of " + originalPath + " was modified. Do you want to reload your original file or the internal copy?";
                     
-                    if (viewRestorationMsg(msg, "Copied File", "OriginalFile"))
+                    if (viewRestorationMsg(msg, "Copied File", "Original File"))
                         windowIndexToSource[groups[i].toInt()] = savedContent; 
                     else
                         windowIndexToSource[groups[i].toInt()] = originalPath;
@@ -891,7 +925,8 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     saveCurrentSources(snapshotFolder);
     
 }
-                                
+          
+//Calculate the faust expanded version
 QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString& source){
     
     string name_app = settings->value("Name", "").toString().toStdString();
@@ -904,7 +939,7 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     
     int argc = 0;
     
-    QString defaultOptions = FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString();
+    QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     
