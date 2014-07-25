@@ -56,7 +56,7 @@ long PA_audioSettings::get_SampleRate(){
 //Real to Visual
 void PA_audioSettings::setVisualSettings(){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
     stringstream sr, bs;
     bs << settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
@@ -69,7 +69,7 @@ void PA_audioSettings::setVisualSettings(){
 //Visual to Real
 void PA_audioSettings::storeVisualSettings(){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
     int value;
     

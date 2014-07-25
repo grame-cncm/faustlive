@@ -32,7 +32,7 @@ class FLMessageWindow : public QDialog{
         virtual ~FLMessageWindow();   
         
         static FLMessageWindow* _msgWindow;
-        static FLMessageWindow* _getInstance();
+        static FLMessageWindow* _Instance();
     
         void   displayMessage(const QString& msg);
 };

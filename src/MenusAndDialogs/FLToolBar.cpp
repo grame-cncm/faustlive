@@ -270,7 +270,7 @@ bool FLToolBar::hasStateChanged(){
 
 bool FLToolBar::hasCompilationOptionsChanged(){
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
     
     QString val = fOptValLine->text();
     
@@ -289,7 +289,7 @@ bool FLToolBar::hasCompilationOptionsChanged(){
 bool FLToolBar::wasOscSwitched(){
 #ifdef OSCVAR
     
-    if(fSettings->value("Osc/Enabled", FLSettings::getInstance()->value("Network/OscDefaultChecked", false)) != fOSCCheckBox->isChecked())
+    if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("Network/OscDefaultChecked", false)) != fOSCCheckBox->isChecked())
         return true;
 #endif
     return false;
@@ -319,7 +319,7 @@ bool FLToolBar::hasOscOptionsChanged(){
 bool FLToolBar::wasHttpSwitched(){
 
 #ifdef HTTPCTRL   
-    if(fSettings->value("Http/Enabled", FLSettings::getInstance()->value("Network/HttpDefaultChecked", false)) != fHttpCheckBox->isChecked())
+    if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("Network/HttpDefaultChecked", false)) != fHttpCheckBox->isChecked())
         return true;
  #endif    
     return false;
@@ -423,7 +423,7 @@ void FLToolBar::switchOsc(bool on){
 
 void FLToolBar::syncVisualParams(){
     
-    FLSettings* generalSettings= FLSettings::getInstance();
+    FLSettings* generalSettings= FLSettings::_Instance();
     
 //---- Compilation
     fOptionLine->setText(fSettings->value("Compilation/FaustOptions", generalSettings->value("Compilation/FaustOptions", "").toString()).toString());

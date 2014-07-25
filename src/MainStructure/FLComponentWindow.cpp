@@ -196,7 +196,7 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
         return;
     }
     
-    fCompiledDSP = sessionManager->createDSP(factorySetts, NULL, NULL, NULL, errorMsg);
+    fCompiledDSP = sessionManager->createDSP(factorySetts, source, NULL, NULL, NULL, errorMsg);
     
     if (fCompiledDSP == NULL)
         return;

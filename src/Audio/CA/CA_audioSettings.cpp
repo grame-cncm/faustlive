@@ -49,7 +49,7 @@ int CA_audioSettings::get_BufferSize(){
 //Real to Visual
 void CA_audioSettings::setVisualSettings(){
     
-    fBufSize->setText(QString::number(FLSettings::getInstance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
+    fBufSize->setText(QString::number(FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
 }
 
 //Visual to Real
@@ -68,7 +68,7 @@ void CA_audioSettings::storeVisualSettings(){
             value = 512;
     
     fBufSize->setText(QString::number(value));
-    FLSettings::getInstance()->setValue("General/Audio/CoreAudio/BufferSize", value);
+    FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", value);
 }
 
 //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi

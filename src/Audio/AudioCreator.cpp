@@ -103,7 +103,7 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
     savedSettingsToVisualSettings();
     
 //    Initialize temporary settings
-    fTempAudioIndex = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
+    fTempAudioIndex = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
     
     fTempBox = new QGroupBox();
     fTempSettings = fFactory->createAudioSettings(fTempBox);
@@ -222,7 +222,7 @@ QString AudioCreator::get_ArchiName(){
 //Determines if the audio has to be reloaded
 bool AudioCreator::didSettingChanged(){
     
-    if(driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex())
+    if(driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex())
         return true;
     else{
         
@@ -238,7 +238,7 @@ bool AudioCreator::didSettingChanged(){
 // Restoring saved Settings
 void AudioCreator::savedSettingsToVisualSettings(){
     
-    int index = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
+    int index = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
     
     fAudioArchi->setCurrentIndex(index);     
     indexChanged(index);
@@ -247,9 +247,9 @@ void AudioCreator::savedSettingsToVisualSettings(){
 //Storing temporarily the settings to test them
 void AudioCreator::visualSettingsToTempSettings(){
     
-    fTempAudioIndex = driverNameToIndex(FLSettings::getInstance()->value("General/Audio/DriverName", "").toString());
+    fTempAudioIndex = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
     
-    FLSettings::getInstance()->setValue("General/Audio/DriverName", fAudioArchi->currentText());
+    FLSettings::_Instance()->setValue("General/Audio/DriverName", fAudioArchi->currentText());
     
     fCurrentSettings->storeVisualSettings();
 }
@@ -267,7 +267,7 @@ void AudioCreator::tempSettingsToSavedSettings(){
 //Restoring settings
 void AudioCreator::restoreSavedSettings(){
     
-    FLSettings::getInstance()->setValue("General/Audio/DriverName", fAudioArchi->itemText(fTempAudioIndex));
+    FLSettings::_Instance()->setValue("General/Audio/DriverName", fAudioArchi->itemText(fTempAudioIndex));
 
     fAudioArchi->setCurrentIndex(fTempAudioIndex);
     indexChanged(fTempAudioIndex);

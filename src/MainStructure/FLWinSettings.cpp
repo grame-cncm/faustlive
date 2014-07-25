@@ -18,7 +18,7 @@ FLWinSettings::FLWinSettings(int index , const QString & fileName, Format format
 //Deleting the window settings in the general settings
 FLWinSettings::~FLWinSettings(){
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
 
     generalSettings->beginGroup("Windows");
     
@@ -40,7 +40,7 @@ void FLWinSettings::setValue (const QString & key, const QVariant & value ){
     
     QSettings::setValue(key, value);
     
-    FLSettings* generalSettings = FLSettings::getInstance();
+    FLSettings* generalSettings = FLSettings::_Instance();
     
     if(key == "Path" || key == "Name" || key == "SHA"){
     

@@ -49,7 +49,7 @@ NJ_audioSettings::~NJ_audioSettings(){}
 //Real Params TO Visual params
 void NJ_audioSettings::setVisualSettings(){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
     fCVLine->setText(QString::number(settings->value("General/Audio/NetJack/CV", -1).toInt()));
     fIPLine->setText(settings->value("General/Audio/NetJack/IP", "225.3.19.154").toString());
@@ -61,7 +61,7 @@ void NJ_audioSettings::setVisualSettings(){
 //Visual Params TO Real params
 void NJ_audioSettings::storeVisualSettings(){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
     if(isStringInt(fCVLine->text().toStdString().c_str()))
         settings->setValue("General/Audio/NetJack/CV", atoi(fCVLine->text().toStdString().c_str()));

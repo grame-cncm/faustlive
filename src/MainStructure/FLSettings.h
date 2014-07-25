@@ -25,7 +25,7 @@ public:
     FLSettings( const QString & fileName, Format format, QObject * parent = 0);
     ~FLSettings();
 
-    static FLSettings* getInstance();
+    static FLSettings* _Instance();
     static FLSettings* _settingsInstance;
     static void createInstance(const QString homePath);
     static void deleteInstance();

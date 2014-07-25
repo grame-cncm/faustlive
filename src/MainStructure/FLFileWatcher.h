@@ -42,7 +42,7 @@ class FLFileWatcher : public QSettings
 //    Map the dir 
     QMap<QString, QList<QString> >       fDirToChildren;
     
-    static FLFileWatcher*           _Instance;
+    static FLFileWatcher*           _fileWatcher;
     
     private slots:
  
@@ -56,7 +56,7 @@ public:
     FLFileWatcher();
     ~FLFileWatcher();
 
-    static FLFileWatcher*           getInstance();
+    static FLFileWatcher*           _Instance();
     
     void    startWatcher(const QString& path, FLWindow* win);
     void    startTempWatcher(const QString& path, FLWindow* win);

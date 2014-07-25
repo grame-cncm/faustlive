@@ -10,7 +10,7 @@
 #include "FLWindow.h"
 #include "utilities.h"
 
-FLFileWatcher* FLFileWatcher::_Instance = 0;
+FLFileWatcher* FLFileWatcher::_fileWatcher = 0;
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLFileWatcher::FLFileWatcher(){
@@ -29,12 +29,12 @@ FLFileWatcher::FLFileWatcher(){
 
 FLFileWatcher::~FLFileWatcher(){}
 
-FLFileWatcher* FLFileWatcher::getInstance(){
+FLFileWatcher* FLFileWatcher::_Instance(){
     
-    if(FLFileWatcher::_Instance == 0)
-        FLFileWatcher::_Instance = new FLFileWatcher();
+    if(FLFileWatcher::_fileWatcher == 0)
+        FLFileWatcher::_fileWatcher = new FLFileWatcher();
     
-    return FLFileWatcher::_Instance;
+    return FLFileWatcher::_fileWatcher;
 }
 
 void FLFileWatcher::startWatcher(const QString& path, FLWindow* win){

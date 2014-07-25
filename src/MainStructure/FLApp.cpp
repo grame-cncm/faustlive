@@ -44,7 +44,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     
     FLServerHttp::createInstance();
-    connect(FLServerHttp::getInstance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
+    connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
     
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
@@ -54,7 +54,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Base Name of application's windows
     fWindowBaseName = "FLW-";
     
-    styleClicked(FLSettings::getInstance()->value("General/Style", "Default").toString());
+    styleClicked(FLSettings::_Instance()->value("General/Style", "Default").toString());
     
 	//Initializing Recalling 
 	fRecalling = false;
@@ -95,7 +95,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     recall_Recent_Sessions();
     
     //Initializing OutPut Window
-    connect(FLErrorWindow::_getInstance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    connect(FLErrorWindow::_Instance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 
 
     // Presentation Window Initialization
@@ -479,7 +479,7 @@ void FLApp::init_Timer_Action(){
 
 //--Print errors in errorWindow
 void FLApp::errorPrinting(const QString& msg){
-    FLErrorWindow::_getInstance()->print_Error(msg);
+    FLErrorWindow::_Instance()->print_Error(msg);
 }
 
 //--------- OPERATIONS ON WINDOWS INDEXES
@@ -649,7 +649,7 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
         
         source = "process = !,!:0,0;";
         
-        if(QString::compare(FLSettings::getInstance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::getInstance()->value("General/Style", "Grey").toString(), "Blue") == 0)
+        if(QString::compare(FLSettings::_Instance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::_Instance()->value("General/Style", "Grey").toString(), "Blue") == 0)
             init = kInitWhite;
         else
             init = kInitBlue;
@@ -828,7 +828,7 @@ void FLApp::save_Recent(QList<QString>& recents, const QString& pathToSettings){
             
             QString settingPath = pathToSettings + QString::number(index);
             
-            FLSettings::getInstance()->setValue(settingPath, *it);
+            FLSettings::_Instance()->setValue(settingPath, *it);
             
             index++;
         }
@@ -843,7 +843,7 @@ void FLApp::recall_Recent(QList<QString>& recents, const QString& pathToSettings
         
         QString settingPath = pathToSettings + QString::number(i);
         
-        QString path = FLSettings::getInstance()->value(settingPath, "").toString();
+        QString path = FLSettings::_Instance()->value(settingPath, "").toString();
         recents.push_back(path);
     }
     
@@ -1444,7 +1444,7 @@ void FLApp::show_presentation_Action(){
 void FLApp::styleClicked(const QString& style){
     
     QFile file;
-    FLSettings::getInstance()->setValue("General/Style", style);
+    FLSettings::_Instance()->setValue("General/Style", style);
     
     QString styleFile = ":/usr/local/include/faust/gui/Styles/" + style + ".qss";    
     file.setFileName(styleFile);
@@ -1621,16 +1621,16 @@ void FLApp::launch_Server(){
         
     bool started = true;
     
-    while(!FLServerHttp::getInstance()->start()){
+    while(!FLServerHttp::_Instance()->start()){
         
         started = false;
         
         QString s("Server Could Not Start On Port ");
-        s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
+        s += QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt());
             
         errorPrinting(s);
             
-        FLSettings::getInstance()->setValue("General/Network/HttpDropPort", FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
+        FLSettings::_Instance()->setValue("General/Network/HttpDropPort", FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
         
         if(i > 15){
             returning = false;
@@ -1646,14 +1646,14 @@ void FLApp::launch_Server(){
 //    That way, it doesn't say it when it starts normally
     else if(!started){
         QString s("Server Started On Port ");
-        s += QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt());
+        s += QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt());
         errorPrinting(s);
     }
 }
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-        FLServerHttp::getInstance()->stop();
+        FLServerHttp::_Instance()->stop();
 }
 
 //Update when a file is dropped on HTTP interface (= drop in FaustLive window)
@@ -1696,10 +1696,10 @@ void FLApp::compile_HttpData(const char* data, int port){
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
     if(success){
         string url = win->get_HttpUrl().toStdString();
-        FLServerHttp::getInstance()->compile_Successfull(url);
+        FLServerHttp::_Instance()->compile_Successfull(url);
     }
     else
-        FLServerHttp::getInstance()->compile_Failed(error.toStdString());
+        FLServerHttp::_Instance()->compile_Failed(error.toStdString());
 }
 
 void FLApp::changeDropPort(){

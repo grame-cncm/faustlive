@@ -14,7 +14,7 @@
 
 CA_audioManager::CA_audioManager(AudioShutdownCallback cb, void* arg) : AudioManager(cb, arg){
     
-    fBufferSize = FLSettings::getInstance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
+    fBufferSize = FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
     
     fCurrentAudio = new CA_audioFader(fBufferSize);
     

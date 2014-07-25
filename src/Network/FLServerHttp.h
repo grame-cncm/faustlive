@@ -85,7 +85,7 @@ private:
                     ~FLServerHttp();
     static FLServerHttp*    _serverInstance;
     
-    static FLServerHttp*    getInstance();
+    static FLServerHttp*    _Instance();
     static void             createInstance();
     static void             deleteInstance();
     

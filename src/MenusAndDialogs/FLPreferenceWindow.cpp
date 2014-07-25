@@ -204,7 +204,7 @@ void FLPreferenceWindow::init(){
 //Response to save button triggered in preferences
 void FLPreferenceWindow::save(){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
 	if(isStringInt(fOptVal->text().toLatin1().data()))
         settings->setValue("General/Compilation/OptValue", atoi(fOptVal->text().toLatin1().data()));
@@ -241,23 +241,23 @@ void FLPreferenceWindow::save(){
 
 void FLPreferenceWindow::resetVisualObjects(){
     
-    fCompilModes->setText(FLSettings::getInstance()->value("General/Compilation/FaustOptions", "").toString());
+    fCompilModes->setText(FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString());
     
-    fOptVal->setText(QString::number(FLSettings::getInstance()->value("General/Compilation/OptValue", 3).toInt()));
+    fOptVal->setText(QString::number(FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt()));
     
-    fServerLine->setText(FLSettings::getInstance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
+    fServerLine->setText(FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
     
 #ifdef  HTTPCTRL
-    fPortLine->setText(QString::number(FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt()));
+    fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));
     
-    bool checked = FLSettings::getInstance()->value("General/Network/HttpDefaultChecked", false).toBool();
+    bool checked = FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool();
     
     if(checked)
         fHttpAuto->setCheckState(Qt::Checked);
     else
         fHttpAuto->setCheckState(Qt::Unchecked);
     
-    checked = FLSettings::getInstance()->value("General/Network/OscDefaultChecked", false).toBool();
+    checked = FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool();
     
     if(checked)
         fOscAuto->setCheckState(Qt::Checked);

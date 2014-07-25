@@ -40,7 +40,7 @@ FLMessageWindow::FLMessageWindow(){
     adjustSize();
 }
 
-FLMessageWindow* FLMessageWindow::_getInstance(){
+FLMessageWindow* FLMessageWindow::_Instance(){
     if(_msgWindow == NULL)
         _msgWindow = new FLMessageWindow;
     

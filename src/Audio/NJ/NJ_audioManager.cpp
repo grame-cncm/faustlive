@@ -16,7 +16,7 @@
 
 NJ_audioManager::NJ_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg){
     
-    FLSettings* settings = FLSettings::getInstance();
+    FLSettings* settings = FLSettings::_Instance();
     
     fCV = settings->value("General/Audio/NetJack/CV", -1).toInt();
     fIP = settings->value("General/Audio/NetJack/IP", "225.3.19.154").toString();

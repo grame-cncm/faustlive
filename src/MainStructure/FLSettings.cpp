@@ -15,7 +15,7 @@ FLSettings::FLSettings( const QString & fileName, Format format, QObject * paren
 
 FLSettings::~FLSettings(){}
 
-FLSettings* FLSettings::getInstance(){
+FLSettings* FLSettings::_Instance(){
     return FLSettings::_settingsInstance;
 }
 

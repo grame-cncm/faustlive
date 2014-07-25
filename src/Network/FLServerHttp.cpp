@@ -46,14 +46,14 @@ void FLServerHttp::deleteInstance(){
     delete FLServerHttp::_serverInstance;
 }
 
-FLServerHttp* FLServerHttp::getInstance(){
+FLServerHttp* FLServerHttp::_Instance(){
     return FLServerHttp::_serverInstance;
 }
 
 //Start Server Listening
 bool FLServerHttp::start(){
     
-    unsigned short port = FLSettings::getInstance()->value("General/Network/HttpDropPort", 7777).toInt();
+    unsigned short port = FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt();
    
     fServerAddress = "http://" + searchLocalIP().toStdString() + ":" + QString::number(port).toStdString() + "/";
 
@@ -85,6 +85,8 @@ void FLServerHttp::stop()
     fDaemon = 0;
 }
 
+
+
 int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     
     stringstream ss;
@@ -97,7 +99,11 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     
     else if(strcmp(url,"/availableInterfaces/Json") == 0)
         return send_page(connection, fJson.c_str (), fJson.size(), MHD_HTTP_OK, "application/json");
-    
+//    
+//    else if(strcmp(url, "")){
+//        
+//    }
+//    
     else if(strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")){
         
         string portNumber(url);
