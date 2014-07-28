@@ -37,26 +37,33 @@ FLFileWatcher* FLFileWatcher::_Instance(){
     return FLFileWatcher::_fileWatcher;
 }
 
-void FLFileWatcher::startWatcher(const QString& path, FLWindow* win){
+void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
     
-    if(path != ""){
-        fWatcher->addPath(path);
+    for(int i = 0; i<paths.size(); i++){
+    
+        printf("START PATH = %s\n", paths[i].toStdString().c_str());
         
-        QList<FLWindow*> list = fMap[path];
-        list.push_back(win);
+        QString path = paths[i];
         
-        fMap[path] = list;
-        
-//      Watches the changes in the folder containing the file... in case of name changes
-        QString absolutePath = QFileInfo(path).absolutePath();
-        
-        QStringList filters;
-        filters << "*.dsp"<<"*.lib";
-        
-        QDir path(absolutePath);
-        fDirToChildren[absolutePath] = path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
-        
-        fWatcher->addPath(absolutePath);
+        if(path != ""){
+            fWatcher->addPath(path);
+            
+            QList<FLWindow*> list = fMap[path];
+            list.push_back(win);
+            
+            fMap[path] = list;
+            
+            //      Watches the changes in the folder containing the file... in case of name changes
+            QString absolutePath = QFileInfo(path).absolutePath();
+            
+            QStringList filters;
+            filters << "*.dsp"<<"*.lib";
+            
+            QDir path(absolutePath);
+            fDirToChildren[absolutePath] = path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
+            
+            fWatcher->addPath(absolutePath);
+        }
     }
 }
 
@@ -72,14 +79,19 @@ void FLFileWatcher::startTempWatcher(const QString& path, FLWindow* win){
     }
 }
 
-void FLFileWatcher::stopWatcher(const QString& path, FLWindow* win){
+void FLFileWatcher::stopWatcher(QVector<QString> paths, FLWindow* win){
     
-    if(path != ""){
+    for(int i = 0; i<paths.size(); i++){
         
-        QList<FLWindow*> list = fMap[path];
-        list.removeOne(win);
-        
-        fMap[path] = list;
+        QString path = paths[i];
+
+        if(path != ""){
+            
+            QList<FLWindow*> list = fMap[path];
+            list.removeOne(win);
+            
+            fMap[path] = list;
+        }
     }
 }
 

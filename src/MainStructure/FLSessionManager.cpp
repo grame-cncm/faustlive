@@ -155,7 +155,6 @@ QString FLSessionManager::nameToUniqueName(const QString& name, const QString& p
     QStringList groups  = generalSettings->childKeys();
     
     for(int i=0; i<groups.size(); i++){
-        printf("Children = %s\n", groups[i].toStdString().c_str());
         
         QString settingPath = groups[i] + "/Path";
         QString settingName = groups[i] + "/Name";
@@ -333,8 +332,6 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     QDir direct(destPath);
     direct.mkdir(destPath);
     
-    printf("MKDIR -O PATH = %s\n", destPath.toStdString().c_str());
-    
     string pathSVG = destPath.toStdString();
     
     char* svgP = new char[pathSVG.size()+1];
@@ -412,10 +409,15 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     strncpy( mtuString, mtuVal.c_str(), mtuVal.size()+1);
     argv[7] = (const char*) mtuString;
     
-    for(int i=0; i<argc; i++)
-        printf("ARGV INSTANCE %i = %s\n", i, argv[i]);
-    
     return argv;
+}
+
+void    FLSessionManager::deleteArgv(int argc, const char** argv){
+    
+    for(int i=0; i<argc; i++)
+        delete argv[i];
+    
+    delete[] argv;
 }
 
 QString FLSessionManager::getErrorFromCode(int code){
@@ -479,7 +481,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(settings){
         faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-        
         optLevel = settings->value("Compilation/OptValue", defaultOptions).toInt();
     }
     
@@ -950,6 +951,29 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
 
+QVector<QString> FLSessionManager::get_dependencies(dsp* myDSP, const QString& path){
+    
+    factorySettings* setts = fDSPToFactory[myDSP];
+    
+    factory* factoryDependency = setts->fFactory;
+    
+    QVector<QString> dependencies;
+    std::vector<std::string> stdDependendies;
+    
+    if(setts->fType == TYPE_LOCAL)
+       stdDependendies = getLibraryList(factoryDependency->fLLVMFactory);
+//    else
+//        stdDependendies = factoryDependency->fRemoteFactory->getLibraryList();
+    
+    for(int i = 0; i<stdDependendies.size(); i++){
+        dependencies.push_back(stdDependendies[i].c_str());
+    }
+    
+    if(path != "")
+        dependencies.push_back(path);
+    
+    return dependencies;
+}
 
 
 

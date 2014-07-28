@@ -24,6 +24,7 @@
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
+#include "FLRemoteDSPScanner.h"
 #endif
 
 #include "FLSettings.h"
@@ -147,7 +148,6 @@ FLApp::~FLApp(){
     
     delete fPresWin;
     delete fHelpWindow;
-    delete fErrorWindow;
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
@@ -273,6 +273,11 @@ QMenu* FLApp::create_FileMenu(){
     openAction->setToolTip(tr("Open a DSP file"));
     connect(openAction, SIGNAL(triggered()), this, SLOT(open_New_Window()));
     
+    QAction* openRemoteAction = new QAction(tr("&Open remote DSP..."),NULL);
+//    openAction->setShortcut(tr("Ctrl+O"));
+    openRemoteAction->setToolTip(tr("Open a DSP file"));
+    connect(openRemoteAction, SIGNAL(triggered()), this, SLOT(open_Remote_Window())); 
+    
     //SESSION
     
     QAction* componentAction = new QAction(tr("New Component Creator"), fileMenu);
@@ -312,6 +317,7 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addAction(openAction);
     fileMenu->addAction(create_ExampleMenu()->menuAction());
     fileMenu->addAction(create_RecentFileMenu()->menuAction());
+    fileMenu->addAction(openRemoteAction);
     fileMenu->addSeparator();
     fileMenu->addAction(componentAction);
     fileMenu->addSeparator();
@@ -606,33 +612,6 @@ void FLApp::connectWindowSignals(FLWindow* win){
 
 //---------------NEW WINDOW
 
-void FLApp::cleanSHAFolder(){
-    
-//  Touch every window-related SHA Folder in case it was not modified for a long time but is still used  
-    QString shaFolder = fSessionFolder + "/SHAFolder";
-
-    for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
-    
-        QString winShaFolder = shaFolder + "/";
-        winShaFolder += (*it)->getSHA();
-        touchFolder(winShaFolder);
-    }
-        
-    QDir shaDir(shaFolder);
-    
-    shaDir.setSorting(QDir::Time);
-    
-    QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    
-    if(children.size()>kMaxSHAFolders){
-        
-        QFileInfoList::iterator it = children.end();
-        it--;
-        
-        deleteDirectoryAndContent(it->filePath());
-    }
-}
-
 FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
     
     if(FLW_List.size() >= numberWindows){
@@ -682,8 +661,6 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
         
         fFrontWindow[navigate] = win;
         updateNavigateMenus();
-        
-        cleanSHAFolder();
         
         return win;
     }
@@ -916,6 +893,23 @@ void FLApp::open_Recent_File(const QString& toto){
         win->update_Window(toto);
     else
         create_New_Window(toto);
+}
+
+
+//--------------OPEN Remote DSP
+
+void FLApp::open_Remote_Window(){
+//    
+//    FLRemoteDSPScanner* dspScanner = new FLRemoteDSPScanner();
+//    
+//    if(dspScanner->exec()){
+//        QString sha = dspScanner->shaKey();
+//        
+//        printf("SHA KEY TO RECALL = %s\n", sha.toStdString().c_str());
+////        ---> ICI IL FAUT CONSTRUIRE LES SETTINGS DE LA W POUR POUVOIR LA CRÉER SEULEMENT À PARTIR DE LA CLÉ SHA DE SA REMOTE FACTORY
+//    }
+//    
+//    delete dspScanner;
 }
 
 //--------------------------------SESSION

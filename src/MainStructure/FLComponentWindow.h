@@ -176,6 +176,8 @@ class FLComponentWindow : public QMainWindow
     
         void            init();
     
+    QList<QList<FLComponentItem*> > componentListWithoutEmptyItem(QList<QList<FLComponentItem*> > items);
+    
     private slots:
     
         void            addComponentRow();

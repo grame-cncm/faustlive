@@ -204,7 +204,6 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     fSource = source;
 //    setTitle(QFileInfo(fSource).baseName());
     
-    
     QTGUI* interface = new QTGUI(this);
     fCompiledDSP->buildUserInterface(interface);
     interface->setEnabled(false);
@@ -232,7 +231,9 @@ void FLComponentItem::dropEvent ( QDropEvent * event ){
 
 QString FLComponentItem::faustComponent(){
     
-    if(QFileInfo(fSource).exists()){
+//    IL faut pouvoir discerner les cas où on veut rendre le component (file ou URL web), où on veut rendre la source (ensemble de components ou "")
+    
+    if(QFileInfo(fSource).exists() || fSource.indexOf("http://") == 0){
         QString faustCode = "vgroup(\"component" + fIndex + "\", component(\"" + fSource + "\"))";
         return faustCode;
     }
@@ -368,6 +369,8 @@ void FLComponentWindow::init(){
 }
 
 void FLComponentWindow::createComponent(){
+
+    fItems = componentListWithoutEmptyItem(fItems);
     
     QString faustToCompile = "import(\"music.lib\");\n\n\nprocess = ";
     
@@ -396,14 +399,12 @@ void FLComponentWindow::createComponent(){
 void FLComponentWindow::addComponentRow(){
     
     int verticalIndex = 0;
-    
-    printf("SIZE OF VertivalElements = %i\n", fVerticalElements.size());
-    
+
     int horizontalIndex = 0;
     
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
-        QString winIndex = QString::number(horizontalIndex+1) + QString::number(verticalIndex+1);
+        QString winIndex = QString::number(horizontalIndex+1) + QString::number(verticalIndex+2);
         
         FLComponentItem* item = new FLComponentItem(winIndex);
         
@@ -452,10 +453,9 @@ void FLComponentWindow::addComponentColumn(){
     QGroupBox* newVbox = new QGroupBox;
     QVBoxLayout* newVboxLayout = new QVBoxLayout;
 
-    
     for(int i=0; i<fItems.begin()->size(); i++){
         
-        QString index = QString::number(fItems.begin()->size()) + QString::number(i+1);
+        QString index = QString::number(fItems.size()+1) + QString::number(i+1);
         
         FLComponentItem* item = new FLComponentItem(index);
         newVboxLayout->addWidget(item);
@@ -505,6 +505,26 @@ void FLComponentWindow::deleteComponentColumn(){
     
     fVerticalElements.pop_back();
     adjustSize();
+}
+
+QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem(QList<QList<FLComponentItem*> > items){
+    
+    QList<QList<FLComponentItem* > > listWithoutEmptyItem;
+    
+    for(QList<QList<FLComponentItem*> >::iterator it = items.begin(); it != items.end(); it++){
+        
+        QList<FLComponentItem*> newList;
+        
+        for(QList<FLComponentItem*>::iterator it2 = it->begin(); it2 != it->end(); it2++){
+            
+            if((*it2)->faustComponent() != "")
+                newList.push_back(*it2);
+        }
+        
+        listWithoutEmptyItem.push_back(newList);
+    }
+    
+    return listWithoutEmptyItem;
 }
 
 void FLComponentWindow::closeEvent(QCloseEvent* event){

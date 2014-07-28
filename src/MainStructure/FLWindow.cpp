@@ -155,7 +155,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             runInterfaces();
             
             fCreationDate = fCreationDate.currentDateTime();
-            FLFileWatcher::_Instance()->startWatcher(fSettings->value("Path", "").toString(), this);
+            FLFileWatcher::_Instance()->startWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
             
             return true;
         } 
@@ -190,7 +190,7 @@ bool FLWindow::update_Window(const QString& source){
     
     if(update){
         
-        FLFileWatcher::_Instance()->stopWatcher(fSettings->value("Path", "").toString(), this);
+        FLFileWatcher::_Instance()->stopWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
         
         FLMessageWindow::_Instance()->displayMessage("Updating DSP...");
         FLMessageWindow::_Instance()->show();
@@ -267,7 +267,7 @@ bool FLWindow::update_Window(const QString& source){
             }
         }
         
-        FLFileWatcher::_Instance()->startWatcher(fSettings->value("Path", "").toString(), this);
+        FLFileWatcher::_Instance()->startWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
         
         if(!isUpdateSucessfull)
             errorPrint(errorMsg);
@@ -479,6 +479,8 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
     if(!fIsDefault){
         
+        printf("Create QTGUI in allocateInterfaces\n");
+        
         fInterface = new QTGUI(this);
         setCentralWidget(fInterface);
         fInterface->installEventFilter(this);
@@ -612,7 +614,7 @@ void FLWindow::shut_Window(){
 void FLWindow::close_Window(){
     
     hide();
-    FLFileWatcher::_Instance()->stopWatcher(fSettings->value("Path", "").toString(), this);
+    FLFileWatcher::_Instance()->stopWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
     
     fSettings->sync();
     
@@ -735,15 +737,14 @@ void FLWindow::pressEvent()
     
     reverseDrag->setPixmap(fileIcon);
     
-    if(QApplication::keyboardModifiers() == Qt::AltModifier){
-        //        mimeData->setText(pathToContent(fEffect->getSource()));
+    if(QFileInfo(fSource).exists()){
+        QList<QUrl> listUrls;
+        QUrl newURL(fSource);
+        listUrls.push_back(newURL);
+        mimeData->setUrls(listUrls);
     }
-    else{
-        //        QList<QUrl> listUrls;
-        //        QUrl newURL(fEffect->getSource());
-        //        listUrls.push_back(newURL);
-        //        mimeData->setUrls(listUrls);
-    }
+    else
+         mimeData->setText(fSource);
     
     if (reverseDrag->exec(Qt::CopyAction) == Qt::CopyAction){}
     
@@ -1129,8 +1130,9 @@ void FLWindow::edit(){
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
         
 //    In case user has saved his file in a new location
-        if(pathToOpen != "")
-            FLFileWatcher::_Instance()->startWatcher(pathToOpen, this);
+        if(pathToOpen != ""){
+            update_Window(pathToOpen);
+        }
 //    Otherwise, a temp file is created and watched
         else{
             pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());

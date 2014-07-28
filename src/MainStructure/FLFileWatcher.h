@@ -58,9 +58,9 @@ public:
 
     static FLFileWatcher*           _Instance();
     
-    void    startWatcher(const QString& path, FLWindow* win);
+    void    startWatcher(QVector<QString> paths, FLWindow* win);
     void    startTempWatcher(const QString& path, FLWindow* win);
-    void    stopWatcher(const QString& path, FLWindow* win);
+    void    stopWatcher(QVector<QString> paths, FLWindow* win);
 };
 
 #endif

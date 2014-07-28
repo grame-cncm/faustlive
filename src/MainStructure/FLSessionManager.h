@@ -40,7 +40,7 @@ union factory{
 };
 
 struct factorySettings{
-    factory*         fFactory;
+    factory*        fFactory;
     QString         fPath;
     QString         fName;
     int             fType;
@@ -84,7 +84,8 @@ private:
     const char**           getFactoryArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc);
     
     const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
-    
+    void                    deleteArgv(int argc, const char** argv);
+        
     QMap<dsp*, factorySettings*>  fDSPToFactory;
     
 public:
@@ -106,6 +107,9 @@ public:
     void deleteDSPandFactory(dsp* toDeleteDSP);
     
     QString                 get_expandedVersion(QSettings* settings, const QString& source);
+    
+    QVector<QString>        get_dependencies(dsp* myDSP, const QString& path);
+    
     
     QString                askForSourceSaving(const QString& sourceContent);
     QString                contentOfShaSource(const QString& shaSource);

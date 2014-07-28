@@ -1,5 +1,5 @@
 //
-//  FaustLiveApp.h
+//  FLApp.h
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
@@ -66,7 +66,6 @@ class FLApp : public QApplication
     //Appendices Dialogs
         FLHelpWindow*        fHelpWindow;        //Help Dialog
     
-        FLErrorWindow*      fErrorWindow;       //Error Dialog
         FLPresentationWindow*            fPresWin;           //Presentation Window
         QDialog*            fCompilingMessage;   //Entertaining the user during long operations
         QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
@@ -117,9 +116,7 @@ class FLApp : public QApplication
     
     //
         QString             createWindowFolder(const QString& sessionFolder, int index);
-        QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
-    
-        void                cleanSHAFolder();
+    QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
     
     //When the application is launched without parameter, this timer will start a initialized window
         QTimer*             fInitTimer;
@@ -172,6 +169,7 @@ class FLApp : public QApplication
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
+        void                open_Remote_Window();
         void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();
