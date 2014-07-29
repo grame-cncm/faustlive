@@ -98,7 +98,7 @@ binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
 }
 
 /****************************COMPONENT ITEM***************************/
-FLComponentItem::FLComponentItem(const QString& index, QWidget* parent = NULL) : QWidget(parent){
+FLComponentItem::FLComponentItem(const QString& index, QWidget* parent) : QWidget(parent){
    
     fIndex = index;
     
@@ -117,7 +117,7 @@ FLComponentItem::FLComponentItem(const QString& index, QWidget* parent = NULL) :
     fCompiledDSP = NULL;
 }
 
-FLComponentItem::FLComponentItem(const QString& source, QRect rect, QWidget* parent = NULL) : QWidget(parent){
+FLComponentItem::FLComponentItem(const QString& source, QRect rect, QWidget* parent) : QWidget(parent){
     fSource = source;
     setGeometry(rect);
 }

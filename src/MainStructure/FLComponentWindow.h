@@ -58,8 +58,8 @@ class FLComponentItem : public QWidget{
         QString         handleDrop(QDropEvent * event);
     
     public:
-        FLComponentItem(const QString& index, QWidget* parent);
-        FLComponentItem(const QString& source, QRect rect, QWidget* parent);
+        FLComponentItem(const QString& index, QWidget* parent = NULL);
+        FLComponentItem(const QString& source, QRect rect, QWidget* parent = NULL);
         ~FLComponentItem();
             
         QString     source();
