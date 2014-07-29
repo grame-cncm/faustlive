@@ -1,21 +1,21 @@
 //
-//  NJ_audioManager.h
+//  NJs_audioManager.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// NJ_audioManager controls 2 NJ_audioFader. It can switch from one to another with a crossfade or it can act like a simple netjack-dsp
+// NJs_audioManager controls 2 NJs_audioFader. It can switch from one to another with a crossfade or it can act like a simple netjack-dsp
 
-#ifndef _NJ_audioManager_h
-#define _NJ_audioManager_h
+#ifndef _NJs_audioManager_h
+#define _NJs_audioManager_h
 
 #include "AudioManager.h"
 
-class NJ_audioFader;
+class NJs_audioFader;
 
-class NJ_audioManager : public AudioManager{
+class NJs_audioManager : public AudioManager{
 
     Q_OBJECT
     
@@ -32,12 +32,12 @@ class NJ_audioManager : public AudioManager{
     const char*             fName;
     bool                    fInit; //Indicator of which init has been used
     
-    NJ_audioFader*          fCurrentAudio;
-    NJ_audioFader*          fFadeInAudio;
+    NJs_audioFader*          fCurrentAudio;
+    NJs_audioFader*          fFadeInAudio;
     
     public :
-        NJ_audioManager(AudioShutdownCallback cb, void* arg);
-        virtual ~NJ_audioManager();
+        NJs_audioManager(AudioShutdownCallback cb, void* arg);
+        virtual ~NJs_audioManager();
     
         virtual bool init(const char*, dsp* DSP);
         virtual bool start();

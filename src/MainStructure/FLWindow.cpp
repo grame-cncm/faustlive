@@ -653,8 +653,6 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     //The widget was hidden from crossing of an object through the window
     this->centralWidget()->show();
     
-    QList<QString>    sourceList;    
-    
 	int numberCharToErase = 0;
 #ifndef _WIN32
 	numberCharToErase = 8;
@@ -695,6 +693,9 @@ void FLWindow::dropEvent ( QDropEvent * event ){
 
 //That way the drag movement is more visible : the central widget is hidden when an object is crossing the window and reset visible when the object leaves the window
 void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
+    
+    if(event->mimeData()->text() == fSource)
+        return;
     
     if (event->mimeData()->hasFormat("text/uri-list") || event->mimeData()->hasFormat("text/plain")){
         

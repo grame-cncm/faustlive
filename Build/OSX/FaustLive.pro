@@ -120,17 +120,26 @@ equals(NJVAR, 1){
 	LIBS += -ljacknet
 	DEFINES += NETJACK
 	
-	INCLUDEPATH += ../../src/Audio/NJ
+	INCLUDEPATH += ../../src/Audio/NJ_Master \
+					../../src/Audio/NJ_Slave
 	
-	HEADERS += 	../../src/Audio/NJ/NJ_audioFactory.h \
-				../../src/Audio/NJ/NJ_audioSettings.h \
-				../../src/Audio/NJ/NJ_audioManager.h \
-				../../src/Audio/NJ/NJ_audioFader.h 
+	HEADERS += 	../../src/Audio/NJ_Master/NJm_audioFactory.h \
+				../../src/Audio/NJ_Master/NJm_audioSettings.h \
+				../../src/Audio/NJ_Master/NJm_audioManager.h \
+				../../src/Audio/NJ_Master/NJm_audioFader.h \
+				../../src/Audio/NJ_Slave/NJs_audioFactory.h \
+				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
+				../../src/Audio/NJ_Slave/NJs_audioManager.h \
+				../../src/Audio/NJ_Slave/NJs_audioFader.h 
 	
-	SOURCES += 	../../src/Audio/NJ/NJ_audioFactory.cpp \
-				../../src/Audio/NJ/NJ_audioSettings.cpp \
-				../../src/Audio/NJ/NJ_audioManager.cpp \
-				../../src/Audio/NJ/NJ_audioFader.cpp 
+	SOURCES += 	../../src/Audio/NJ_Master/NJm_audioFactory.cpp \
+				../../src/Audio/NJ_Master/NJm_audioSettings.cpp \
+				../../src/Audio/NJ_Master/NJm_audioManager.cpp \
+				../../src/Audio/NJ_Master/NJm_audioFader.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		

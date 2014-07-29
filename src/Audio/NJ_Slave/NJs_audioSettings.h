@@ -1,5 +1,5 @@
 //
-//  NJ_audioSettings.h
+//  NJs_audioSettings.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
@@ -13,23 +13,21 @@
 //  - Its Latencty
 // All of them are described visually by a QLineEdit
 
-#ifndef _NJ_audioSettings_h
-#define _NJ_audioSettings_h
+#ifndef _NJs_audioSettings_h
+#define _NJs_audioSettings_h
 
 #include "AudioSettings.h"
 
-//#include <string>
-//
-//#include <QtGui>
-//#if QT_VERSION >= 0x050000
-//#include <QtWidgets>
-//#endif
-//
-//using namespace std;
+#include <string>
 
-#define NJ_SAVINGFILE "NJ_Settings.rf"
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 
-class NJ_audioSettings : public AudioSettings{
+using namespace std;
+
+class NJs_audioSettings : public AudioSettings{
 
     private :
     
@@ -41,8 +39,8 @@ class NJ_audioSettings : public AudioSettings{
         QLineEdit*          fMTULine;
     
     public :
-        NJ_audioSettings(QGroupBox* parent);
-        virtual ~NJ_audioSettings();
+        NJs_audioSettings(QGroupBox* parent);
+        virtual ~NJs_audioSettings();
     
         virtual void setVisualSettings();
         virtual void storeVisualSettings();

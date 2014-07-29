@@ -1,5 +1,5 @@
 //
-//  NJ_audioFactory.h
+//  NJm_audioFactory.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
@@ -7,18 +7,18 @@
 //
 
 // Concrete factory specific to NetJackAudio
-// It can create 2 "products" : AudioSettings (NJ_AudioSettings) and AudioManager (NJ_audioManager)
+// It can create 2 "products" : AudioSettings (NJm_AudioSettings) and AudioManager (NJm_audioManager)
 
-#ifndef _NJ_audioFactory_h
-#define _NJ_audioFactory_h
+#ifndef _NJm_audioFactory_h
+#define _NJm_audioFactory_h
 
 #include "AudioFactory.h"
 
-class NJ_audioFactory : public AudioFactory{
+class NJm_audioFactory : public AudioFactory{
     
     public :
-    NJ_audioFactory();
-    ~NJ_audioFactory();
+    NJm_audioFactory();
+    ~NJm_audioFactory();
     
     virtual AudioSettings* createAudioSettings(QGroupBox* parent);
     virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);

@@ -1,5 +1,5 @@
 //
-//  NJ_audioFader.h
+//  NJm_audioFader.h
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
@@ -8,8 +8,8 @@
 
 // This class re-implement the netjackaudio calcul process to be adaptated to FadeIn and FadeOut processes
 
-#ifndef _NJ_audioFader_h
-#define _NJ_audioFader_h
+#ifndef _NJm_audioFader_h
+#define _NJm_audioFader_h
 
 #include <QObject>
 #include <string>
@@ -19,7 +19,7 @@
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
 
-class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Interface, public AudioFader_Implementation
+class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public AudioFader_Interface, public AudioFader_Implementation
 {
     Q_OBJECT
         
@@ -31,13 +31,28 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
         
     virtual int set_sample_rate(jack_nframes_t nframes)
     {
-        printf("New sample rate = %u\n", nframes);
+//        printf("New sample rate = %u\n", nframes);
         fDsp->init(nframes);
         return 0;
     }
     
     virtual void error_cb(int error_code)
     {
+        switch (error_code) {
+                
+            case SOCKET_ERROR:
+                printf("NetJack : SOCKET_ERROR\n");
+                break;
+                
+            case SYNC_PACKET_ERROR:
+                printf("NetJack : SYNC_PACKET_ERROR\n");
+                break;
+                
+            case DATA_PACKET_ERROR:
+                printf("NetJack : DATA_PACKET_ERROR\n");
+                break;
+        }
+        
         std::stringstream err;
         err<<error_code;
         
@@ -45,13 +60,13 @@ class NJ_audioFader : public QObject, public netjackaudio, public AudioFader_Int
     
     }
     
-    void process(int count, float** inputs, float** outputs);
+    virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs);
     
     public:
     
-        NJ_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency = 2, QObject* parent = NULL);
+        NJm_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency = 2, QObject* parent = NULL);
     
-        virtual ~NJ_audioFader();
+        virtual ~NJm_audioFader();
     
         virtual bool init(const char* name, dsp* DSP);
         bool         init(const char* name, int numInputs, int numOutputs);

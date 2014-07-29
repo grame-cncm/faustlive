@@ -404,7 +404,9 @@ void FLComponentWindow::addComponentRow(){
     
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
-        QString winIndex = QString::number(horizontalIndex+1) + QString::number(verticalIndex+2);
+        
+        
+        QString winIndex = QString::number(horizontalIndex+1) + QString::number(it->size()+1);
         
         FLComponentItem* item = new FLComponentItem(winIndex);
         

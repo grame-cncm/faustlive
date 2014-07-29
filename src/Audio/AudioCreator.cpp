@@ -29,7 +29,8 @@
 #endif
 
 #ifdef NETJACK
-    #include "NJ_audioFactory.h"
+    #include "NJs_audioFactory.h"
+    #include "NJm_audioFactory.h"
 #endif
 
 #ifdef ALSA
@@ -181,7 +182,7 @@ AudioFactory* AudioCreator::createFactory(int index){
             
 #ifdef NETJACK
         case kNetjackaudio:
-            return new NJ_audioFactory();
+            return new NJs_audioFactory();
             break;
 #endif  
             
