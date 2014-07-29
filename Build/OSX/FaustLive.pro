@@ -71,10 +71,8 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h \
-				../../src/MenusAndDialogs/FLRemoteDSPScanner.h
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp \
-				../../src/MenusAndDialogs/FLRemoteDSPScanner.cpp
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp 
 }
 
 equals(CAVAR, 1){
