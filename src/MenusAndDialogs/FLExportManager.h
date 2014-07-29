@@ -54,7 +54,7 @@ private:
     void                sendTargetRequest();
 public:
     
-    FLTargetChooser(QWidget* parent);
+    FLTargetChooser(QWidget* parent = NULL);
     virtual ~FLTargetChooser();
     
     static FLTargetChooser* _Instance();

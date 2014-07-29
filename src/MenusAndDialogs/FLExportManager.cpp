@@ -31,7 +31,7 @@ FLTargetChooser* FLTargetChooser::_targetChooser = NULL;
 FLExportManager* FLExportManager::_exportManager = NULL;
 
 /*****************************FLTarget Chooser**********************************/
-FLTargetChooser::FLTargetChooser(QWidget* parent = NULL) : QDialog(parent){
+FLTargetChooser::FLTargetChooser(QWidget* parent) : QDialog(parent){
     
     fTargetReply = NULL;
     
