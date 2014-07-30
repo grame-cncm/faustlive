@@ -412,7 +412,7 @@ void FLComponentWindow::createComponent(){
 
     fItems = componentListWithoutEmptyItem(fItems);
     
-    QString faustToCompile = "import(\"music.lib\");\n\n\nprocess = ";
+    QString faustToCompile = "";
     
     QList<FLComponentItem*> parallelItems;
     
@@ -436,13 +436,13 @@ void FLComponentWindow::createComponent(){
     }
     
     faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":", "");
-    
+     
     if(fFeedBackItem->faustComponent("") != ""){
-        faustToCompile += "~stereoize("+ fFeedBackItem->faustComponent("") + ")";
+        faustToCompile = "import(\"music.lib\");\n\n\nprocess = recursivize("+ faustToCompile + "," + fFeedBackItem->faustComponent("") + ")";
     }
     
     faustToCompile += ";";
-
+    
     hide();
 
     emit newComponent(faustToCompile);
