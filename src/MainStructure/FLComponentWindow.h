@@ -175,6 +175,8 @@ class FLComponentWindow : public QMainWindow
         QVector<QPair<QLabel*, QGroupBox*> > fVerticalElements;
         QHBoxLayout*                        fHComponentLayout;
     
+        FLComponentItem* fFeedBackItem;
+    
         QPushButton*    fSaveB;
     
         void            init();

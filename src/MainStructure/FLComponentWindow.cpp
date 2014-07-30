@@ -126,6 +126,7 @@ FLComponentItem::FLComponentItem(const QString& index, QWidget* parent) : QWidge
     fLayout = new QVBoxLayout;
     
     QLabel *image = new QLabel("<h2>DROP YOUR FAUST DSP</h2>");
+    image->setAlignment(Qt::AlignCenter);
     
     fLayout->addWidget(image);
     fCurrentWidget = image;
@@ -256,7 +257,7 @@ void FLComponentItem::dropEvent ( QDropEvent * event ){
 
 QString FLComponentItem::faustComponent(const QString& layoutIndex){
     
-//    IL faut pouvoir discerner les cas où on veut rendre le component (file ou URL web), où on veut rendre la source (ensemble de components ou "")
+//    Il faut pouvoir discerner les cas où on veut rendre le component (file ou URL web), où on veut rendre la source (ensemble de components ou "")
     
     if(QFileInfo(fSource).exists() || fSource.indexOf("http://") == 0){
         QString faustCode = "vgroup(\"[" + layoutIndex + "]component" + fIndex + "\", component(\"" + fSource + "\"))";
@@ -266,7 +267,6 @@ QString FLComponentItem::faustComponent(const QString& layoutIndex){
         return fSource;
     }
 }
-
 
 /****************************COMPONENT WINDOW***************************/
 FLComponentWindow::FLComponentWindow(){
@@ -297,17 +297,32 @@ void FLComponentWindow::init(){
  
     QWidget* vcontainer = new QWidget;
     QVBoxLayout* vlayout = new QVBoxLayout;
+    
+//------Initialize the feedback label
+    QVBoxLayout* feedbackBoxLayout = new QVBoxLayout;
+    QGroupBox* feedbackBox = new QGroupBox("Recursive composition");
+//    QLabel* feedLabel = new QLabel("<h2>FEEDBACK</h2>");
+//    feedLabel->setAlignment(Qt::AlignCenter);
+//    feedLabel->setStyleSheet("*{color:#6C0277;}");
+    
+//    feedbackBoxLayout->addWidget(feedLabel);
+    
+    fFeedBackItem = new FLComponentItem("Feedback");
+    feedbackBoxLayout->addWidget(fFeedBackItem);
+    
+    feedbackBox->setLayout(feedbackBoxLayout);
+    
     QWidget* hcontainer = new QWidget;
     QHBoxLayout* hlayout = new QHBoxLayout;
     
     fHComponentLayout = new QHBoxLayout;
 //    fHComponentLayout->setHorizontalSpacing(10);
-    QGroupBox*  componentGroup = new QGroupBox;
+    QGroupBox*  componentGroup = new QGroupBox("Sequentiel composition");
     componentGroup->setLayout(fHComponentLayout);
     
 //------Initialize with a 2 items row
     QList<FLComponentItem*> newColumn;
-    QGroupBox* newVbox = new QGroupBox;
+    QGroupBox* newVbox = new QGroupBox("Parallel composition");
     QVBoxLayout* newVboxLayout = new QVBoxLayout;
     newVbox->setLayout(newVboxLayout);
     
@@ -382,7 +397,7 @@ void FLComponentWindow::init(){
     hlayout->addWidget(vbuttongroup);
     hcontainer->setLayout(hlayout);
     
-//    vlayout->addWidget(new QLabel("Sequential Composition"));
+    vlayout->addWidget(feedbackBox);
     vlayout->addWidget(hcontainer);
     vlayout->addWidget(hbuttongroup);
     vlayout->addWidget(intermediateWidget);
@@ -421,6 +436,10 @@ void FLComponentWindow::createComponent(){
     }
     
     faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":", "");
+    
+    if(fFeedBackItem->faustComponent("") != ""){
+        faustToCompile += "~stereoize("+ fFeedBackItem->faustComponent("") + ")";
+    }
     
     faustToCompile += ";";
 
@@ -485,7 +504,7 @@ void FLComponentWindow::addComponentColumn(){
     
     QList<FLComponentItem*> newColumn;
     
-    QGroupBox* newVbox = new QGroupBox;
+    QGroupBox* newVbox = new QGroupBox("Parallel composition");
     QVBoxLayout* newVboxLayout = new QVBoxLayout;
 
     for(int i=0; i<fItems.begin()->size(); i++){
