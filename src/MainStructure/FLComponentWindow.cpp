@@ -12,9 +12,16 @@
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
 
+#include "FLErrorWindow.h"
+
 /****************************LAYOUT OPTIMIZATION TREE*****************/
 
 binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2){
+    
+    QSize screenSize = QApplication::desktop()->geometry().size(); 
+    
+    int screenWidth = screenSize.width();
+    int screenHeight = screenSize.height();
     
     int hWidth = node1->rectSurface().width() + node2->rectSurface().width();
     int hHeight = max(node1->rectSurface().height(), node2->rectSurface().height());
@@ -24,10 +31,15 @@ binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2){
     int vHeight = node1->rectSurface().height() + node2->rectSurface().height();
     int vSurface = vWidth * vHeight;
     
-    if(vSurface < hSurface)
-        return new verticalNode(node1, node2, QRect( 0, 0, vWidth, vHeight));
-    else
+//In case vertical group surface is better and doesnt overuse screen space
+    if(hSurface < vSurface && hHeight < screenHeight && hWidth < screenWidth)
         return new horizontalNode(node1, node2, QRect( 0, 0, hWidth, hHeight));
+//In case horizontal group surface is better but overuse screen space
+    else if(vHeight > screenHeight || vWidth > screenWidth)
+        return new horizontalNode(node1, node2, QRect( 0, 0, hWidth, hHeight));
+//Otherwise
+    else
+        return new verticalNode(node1, node2, QRect( 0, 0, vWidth, vHeight));
 }
 
 //Returns a list of Root Nodes
@@ -48,11 +60,13 @@ QList<binaryNode*> createListTrees(QList<FLComponentItem*> components){
         newListTrees.push_back(rootNode);
     }
     else{
-        
+
         QList<FLComponentItem*> restOfComponents(components);
         restOfComponents.pop_front();
         
-        newListTrees = dispatchComponentOnListOfTrees(*(components.begin()), createListTrees(restOfComponents));
+        FLComponentItem* itemToDispatch = *(components.begin());
+        
+        newListTrees = dispatchComponentOnListOfTrees(itemToDispatch, createListTrees(restOfComponents));
     }
     
     return newListTrees;
@@ -80,6 +94,8 @@ QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QL
         
         newListTrees.push_back(newRoot2);
     }
+    
+    return newListTrees;
 }
 
 binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
@@ -90,7 +106,9 @@ binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
     
     for(QList<binaryNode*>::iterator it = binaryTrees.begin(); it != binaryTrees.end(); it++){
         
-        if((*it)->surface() < minSurfaceTree->surface())
+        int nodeSurface = (*it)->surface();
+        
+        if( nodeSurface < minSurfaceTree->surface())
             minSurfaceTree = *it;
     }
     
@@ -186,13 +204,10 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     
-    printf("Source to compile = %s\n", source.toStdString().c_str());
-    
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, NULL, errorMsg);
     
     if(factorySetts.second == NULL){
-        printf("Is factory Not Compiled %s\n", errorMsg.toStdString().c_str());
-        //ICI IL FAUT AFFICHER "COMPILING ERROR DANS LE CARRE"
+        FLErrorWindow::_Instance()->print_Error(errorMsg);
         return;
     }
     
@@ -206,12 +221,22 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     
     QTGUI* interface = new QTGUI(this);
     fCompiledDSP->buildUserInterface(interface);
+    
+//    QPixmap pix(interface->size());
+//    
+//    interface->render(&pix);
+//    
+//    QLabel* inter = new QLabel;
+//    inter->setPixmap(pix);
+//    inter->setSize(interface->size());
+    
     interface->setEnabled(false);
-    interface->resize(150,100);
+//    interface->resize(150,100);
 //    interface->run();
     
     delete fLayout;
     delete fCurrentWidget;
+//    delete interface;
     fLayout = new QVBoxLayout;
     fLayout->addWidget(interface);
     setLayout(fLayout);
@@ -229,12 +254,12 @@ void FLComponentItem::dropEvent ( QDropEvent * event ){
     }
 }
 
-QString FLComponentItem::faustComponent(){
+QString FLComponentItem::faustComponent(const QString& layoutIndex){
     
 //    IL faut pouvoir discerner les cas où on veut rendre le component (file ou URL web), où on veut rendre la source (ensemble de components ou "")
     
     if(QFileInfo(fSource).exists() || fSource.indexOf("http://") == 0){
-        QString faustCode = "vgroup(\"component" + fIndex + "\", component(\"" + fSource + "\"))";
+        QString faustCode = "vgroup(\"[" + layoutIndex + "]component" + fIndex + "\", component(\"" + fSource + "\"))";
         return faustCode;
     }
     else{
@@ -376,23 +401,31 @@ void FLComponentWindow::createComponent(){
     
     QList<FLComponentItem*> parallelItems;
     
+    int layoutIndex = 1;
+    
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
-        binaryNode* rootDisposition = calculateBestDisposition(*it);
-        QString composition = "stereoize(" + rootDisposition->renderToFaust(",") + ")";
+        if(it->size() != 0){
         
-        FLComponentItem* parallelItem = new FLComponentItem(composition, rootDisposition->rectSurface());
-        parallelItems.push_back(parallelItem);
+            binaryNode* rootDisposition = calculateBestDisposition(*it);
+            QString composition = "stereoize(" + rootDisposition->renderToFaust(",", QString::number(layoutIndex)) + ")";
         
+            FLComponentItem* parallelItem = new FLComponentItem(composition, rootDisposition->rectSurface());
+            parallelItems.push_back(parallelItem);
+            
+            if(layoutIndex == 1)
+                layoutIndex++;
+            else
+                layoutIndex--;
+        }
     }
     
-    faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":");
+    faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":", "");
     
     faustToCompile += ";";
 
     hide();
-    
-    printf("CODE TO COMPILE = %s\n", faustToCompile.toStdString().c_str());
+
     emit newComponent(faustToCompile);
 }
 
@@ -519,7 +552,7 @@ QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem
         
         for(QList<FLComponentItem*>::iterator it2 = it->begin(); it2 != it->end(); it2++){
             
-            if((*it2)->faustComponent() != "")
+            if((*it2)->faustComponent("1") != "")
                 newList.push_back(*it2);
         }
         

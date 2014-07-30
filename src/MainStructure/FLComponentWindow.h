@@ -66,7 +66,7 @@ class FLComponentItem : public QWidget{
     
         void        createInterfaceInRect(const QString& source);
     
-        QString     faustComponent();
+        QString     faustComponent(const QString& layoutIndex);
     
     virtual void dropEvent ( QDropEvent * event );
     virtual void dragEnterEvent ( QDragEnterEvent * event );
@@ -84,10 +84,13 @@ public :
     //  Representing the surface of the interface
     virtual QRect rectSurface() = 0;
     
-    virtual QString renderToFaust(const QString& faustOperator) = 0;
+    virtual QString renderToFaust(const QString& faustOperator, const QString& layoutIndex) = 0;
     
     int surface(){
-        return rectSurface().width() * rectSurface().height();
+        
+        int surface =  rectSurface().width() * rectSurface().height();
+        printf("SURFACE CALCULATED = %i\n", surface);
+        return surface;
     }
 };
 
@@ -111,9 +114,9 @@ public :
         rect = r;
     }
     
-    virtual QString renderToFaust(const QString& faustOperator){
+    virtual QString renderToFaust(const QString& faustOperator, const QString& layoutIndex){
         
-        QString faustCode = "vgroup(\"\"," + left->renderToFaust(faustOperator) + faustOperator + right->renderToFaust(faustOperator)+")";
+        QString faustCode = "vgroup(\"["+ layoutIndex + "]\"," + left->renderToFaust(faustOperator, "1") + faustOperator + right->renderToFaust(faustOperator, "2")+")";
         
         return faustCode;
     }
@@ -128,9 +131,9 @@ public :
         rect = r;
     }
     
-    virtual QString renderToFaust(const QString& faustOperator){
+    virtual QString renderToFaust(const QString& faustOperator, const QString& layoutIndex){
         
-        QString faustCode = "hgroup(\"\"," + left->renderToFaust(faustOperator) + faustOperator + right->renderToFaust(faustOperator)+")";
+        QString faustCode = "hgroup(\"["+ layoutIndex + "]\"," + left->renderToFaust(faustOperator, "1") + faustOperator + right->renderToFaust(faustOperator, "2")+")";
         
         return faustCode;
     } 
@@ -147,8 +150,8 @@ public :
         right = NULL;
     }
     
-    virtual QString renderToFaust(const QString& /*faustOperator*/){
-        return item->faustComponent();
+    virtual QString renderToFaust(const QString& /*faustOperator*/, const QString& layoutIndex){
+        return item->faustComponent(layoutIndex);
     }
     
     virtual QRect rectSurface(){
