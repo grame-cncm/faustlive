@@ -85,6 +85,9 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
+	
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
 }
 
 equals(JVAR, 1){
@@ -112,17 +115,26 @@ equals(NJVAR, 1){
 	LIBS += -ljacknet
 	DEFINES += NETJACK
 	
-	INCLUDEPATH += ../../src/Audio/NJ
+	INCLUDEPATH += ../../src/Audio/NJ_Master \
+					../../src/Audio/NJ_Slave
 	
-	HEADERS += 	../../src/Audio/NJ/NJ_audioFactory.h \
-				../../src/Audio/NJ/NJ_audioSettings.h \
-				../../src/Audio/NJ/NJ_audioManager.h \
-				../../src/Audio/NJ/NJ_audioFader.h 
+	HEADERS += 	../../src/Audio/NJ_Master/NJm_audioFactory.h \
+				../../src/Audio/NJ_Master/NJm_audioSettings.h \
+				../../src/Audio/NJ_Master/NJm_audioManager.h \
+				../../src/Audio/NJ_Master/NJm_audioFader.h \
+				../../src/Audio/NJ_Slave/NJs_audioFactory.h \
+				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
+				../../src/Audio/NJ_Slave/NJs_audioManager.h \
+				../../src/Audio/NJ_Slave/NJs_audioFader.h 
 	
-	SOURCES += 	../../src/Audio/NJ/NJ_audioFactory.cpp \
-				../../src/Audio/NJ/NJ_audioSettings.cpp \
-				../../src/Audio/NJ/NJ_audioManager.cpp \
-				../../src/Audio/NJ/NJ_audioFader.cpp 
+	SOURCES += 	../../src/Audio/NJ_Master/NJm_audioFactory.cpp \
+				../../src/Audio/NJ_Master/NJm_audioSettings.cpp \
+				../../src/Audio/NJ_Master/NJm_audioManager.cpp \
+				../../src/Audio/NJ_Master/NJm_audioFader.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
+				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
 }else{
 	message("NETJACK NOT LINKED")
 }		
@@ -171,27 +183,31 @@ equals(PAVAR, 1){
 
 ########## HEADERS AND SOURCES OF PROJECT
 
-HEADERS += 	../../src/Utilities/utilities.h \
+HEADERS +=  ../../src/Utilities/utilities.h \
 			../../src/Audio/AudioSettings.h \
 			../../src/Audio/AudioManager.h \
 			../../src/Audio/AudioFactory.h \
 			../../src/Audio/AudioCreator.h \
 			../../src/Audio/AudioFader_Interface.h \
             ../../src/Audio/AudioFader_Implementation.h \
-			../../src/Audio/JA/FJUI.h \
+			../../src/Audio/FJUI.h \
 			../../src/MenusAndDialogs/FLToolBar.h \
 			../../src/MenusAndDialogs/FLrenameDialog.h \
 			../../src/MenusAndDialogs/FLHelpWindow.h \
 			../../src/MenusAndDialogs/FLPresentationWindow.h \
 			../../src/MenusAndDialogs/FLErrorWindow.h \
+			../../src/MenusAndDialogs/FLMessageWindow.h \
             ../../src/MenusAndDialogs/FLExportManager.h \
             ../../src/MenusAndDialogs/FLPreferenceWindow.h \
-            ../../src/MainStructure/FLEffect.h \
             ../../src/MainStructure/FLWindow.h \
+            ../../src/MainStructure/FLComponentWindow.h \
             ../../src/MainStructure/FLSettings.h \
+            ../../src/MainStructure/FLWinSettings.h \
+            ../../src/MainStructure/FLFileWatcher.h \
+            ../../src/Network/FLServerHttp.h \
+            ../../src/MainStructure/FLSessionManager.h \
             ../../src/MainStructure/FLApp.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
-			../../src/Network/FLServerHttp.h \
 			../../src/Network/HTTPWindow.h \
 			/usr/local/include/faust/gui/faustqt.h
 
@@ -203,14 +219,18 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/MenusAndDialogs/FLHelpWindow.cpp \
 			../../src/MenusAndDialogs/FLPresentationWindow.cpp \
             ../../src/MenusAndDialogs/FLErrorWindow.cpp \
+            ../../src/MenusAndDialogs/FLMessageWindow.cpp \
             ../../src/MenusAndDialogs/FLExportManager.cpp \
-            ../../src/MainStructure/FLEffect.cpp \
             ../../src/MainStructure/FLWindow.cpp \
+            ../../src/MainStructure/FLComponentWindow.cpp \
             ../../src/MainStructure/FLSettings.cpp \
+            ../../src/MainStructure/FLWinSettings.cpp \
+            ../../src/MainStructure/FLFileWatcher.cpp \
             ../../src/MenusAndDialogs/FLPreferenceWindow.cpp \
+            ../../src/MainStructure/FLSessionManager.cpp \
             ../../src/MainStructure/FLApp.cpp \
 			../../src/Network/FLServerHttp.cpp \
-            ../../src/Network/HTTPWindow.cpp \
+			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
-            ../../src/Utilities/main.cpp
+			../../src/Utilities/main.cpp
 

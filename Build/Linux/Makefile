@@ -30,6 +30,7 @@ endif
 all : Makefile.qt4
 	mkdir -p src/objectsFolder
 	make -f Makefile.qt4
+	./buildversion
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
@@ -43,6 +44,7 @@ dist:
 	make NETJACK=1 STATIC=1
 	cp FaustLive Distribution_Linux/FaustLive
 	zip -r FaustLive_Linux.zip Distribution_Linux
+	./distversion
 
 # make a distribution .zip file for FaustLive sources
 dist-sources :
