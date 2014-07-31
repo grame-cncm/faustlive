@@ -33,8 +33,6 @@
 
 #include "FJUI.h"
 
-#include "Server.h"
-
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
@@ -116,7 +114,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Initialiazing Remote Drop Server
 #ifndef _WIN32
     launch_Server();
-    Server::_Instance()->start(7777);
 #endif
     fCompilingMessage = NULL;
     

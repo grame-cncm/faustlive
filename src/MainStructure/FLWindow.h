@@ -32,10 +32,6 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
-#include "NJm_audioManager.h"
-
-#include "tempName.h"
-
 class httpdUI;
 class QTGUI;
 class FLToolBar;
@@ -53,7 +49,7 @@ enum initType{
     kInitWhite
 };
 
-class FLWindow : public QMainWindow, public tempName
+class FLWindow : public QMainWindow
 {
     Q_OBJECT
     
@@ -175,9 +171,6 @@ class FLWindow : public QMainWindow, public tempName
         void            stop_Audio();
         void            start_Audio();
     
-        NJm_audioManager*          fAudio;
-        static void*    startAudioSlave(void* arg);
-    
 //    In case audio architecture collapses
         static void     audioShutDown(const char* msg, void* arg);
         void            audioShutDown(const char* msg);
@@ -203,9 +196,6 @@ class FLWindow : public QMainWindow, public tempName
         int             get_indexWindow();
         QString         getPath();
         QString         getName();
-    
-//        virtual string  getName();
-        virtual string  json();
     
         QString         getSHA();
         QString         get_source();
@@ -238,14 +228,7 @@ class FLWindow : public QMainWindow, public tempName
         void            disableOSCInterface();
         void            shut();
 #ifdef REMOTE
-        void            RemoteCallback(int);
-       
-        void            switchRemoteControl(bool);
-        virtual bool    createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency);
-        virtual bool    startNJdspAudio();
-        void            stopNJdspAudio(const char*);
-        virtual void    cleanInactiveNJdspInstance();
-        
+        void            RemoteCallback(int);        
         void            switchRelease(bool);
 #endif
     
