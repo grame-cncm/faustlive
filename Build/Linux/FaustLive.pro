@@ -42,14 +42,8 @@ INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LLVMLIBS = $$system($$system(which llvm-config) --libs)
-LLVMDIR = $$system($$system(which llvm-config) --ldflags)
-
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust
-LIBS+= $$LLVMDIR
-
-LIBS+=-lfaust
-LIBS+= $$LLVMLIBS
+LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust -L/opt/local/lib
+LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
 	LIBS+=/usr/local/lib/libqrencode.a
@@ -68,11 +62,6 @@ else{
 	LIBS+=-lcrypto
 }
 
-LIBS+=-lHTTPDFaust
-LIBS+=-lOSCFaust -loscpack
-LIBS+=-L/opt/local/lib
-
-LIBS+= $$LLVMDIR
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -181,6 +170,13 @@ equals(PAVAR, 1){
 	message("PORT AUDIO NOT LINKED")
 }		
 
+########## LIBS AND FLAGS
+
+LIBS+=-lfaust
+LIBS+= $$system($$system(which llvm-config) --libs)
+LIBS+= $$system($$system(which llvm-config) --ldflags)
+
+
 ########## HEADERS AND SOURCES OF PROJECT
 
 HEADERS +=  ../../src/Utilities/utilities.h \
@@ -233,4 +229,6 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
 			../../src/Utilities/main.cpp
+
+
 

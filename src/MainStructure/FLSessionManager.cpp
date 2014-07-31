@@ -242,29 +242,29 @@ QString FLSessionManager::ifWavToString(const QString& source){
         destinationFile += ".dsp";
         
         QString systemInstruct;
+
+		// figure out the right name for faust2sound depending of the OS
+
 #ifdef _WIN32
         systemInstruct += "sound2faust.exe ";
-        systemInstruct += "\"" + soundFile + "\"" + " -o " + waveFile;
 #endif
+
 #ifdef __linux__
         if(QFileInfo("/usr/local/bin/sound2faust").exists())
             systemInstruct += "/usr/local/bin/sound2faust ";
         else
-            systemInstruct += "./sound2faust ";
-        
-        systemInstruct += soundFile  + " -o " + waveFile;	
+            systemInstruct += "./sound2faust ";      
 #endif
+
 #ifdef __APPLE__
-        
         QDir base;
         
         if(base.absolutePath().indexOf("Contents/MacOS") != -1)
             systemInstruct += "./sound2faust ";
         else
-            systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";
-        
-        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
+            systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";      
 #endif
+        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
         
         QString errorMsg("");
         if(!executeInstruction(systemInstruct, errorMsg))
