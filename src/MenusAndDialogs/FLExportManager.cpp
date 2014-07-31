@@ -318,7 +318,7 @@ void FLExportManager::init(){
     
     fPrgBar = new QProgressDialog;
     fPrgBar->setRange(0,0);
-    fPrgBar->setCancelButton(false);
+    fPrgBar->setCancelButton(NULL);
     
     fTextZone = new QTextEdit;
     fTextZone->setReadOnly(true);

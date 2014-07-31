@@ -29,7 +29,7 @@ void NJm_audioSettings::setVisualSettings(){}
 void NJm_audioSettings::storeVisualSettings(){}
 
 //Operator== for NetJack Settings
-bool NJm_audioSettings::isEqual(AudioSettings* as){
+bool NJm_audioSettings::isEqual(AudioSettings*){
     return true;
 }
 

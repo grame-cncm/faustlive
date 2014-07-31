@@ -40,7 +40,7 @@ void JA_audioSettings::storeVisualSettings(){
     FLSettings::_Instance()->setValue("General/Audio/Jack/AutoConnect", get_AutoConnect());
 }
 
-bool JA_audioSettings::isEqual(AudioSettings* as){
+bool JA_audioSettings::isEqual(AudioSettings*){
     
     return true;
 }

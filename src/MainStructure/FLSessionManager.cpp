@@ -737,19 +737,14 @@ bool FLSessionManager::viewRestorationMsg(const QString& msg, const QString& yes
     
     QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), msg);
     QPushButton* yes_Button;
-    QPushButton* cancel_Button; 
     
     existingNameMessage->setText(msg);
     yes_Button = existingNameMessage->addButton(yesMsg, QMessageBox::AcceptRole);
-    cancel_Button = existingNameMessage->addButton(noMsg, QMessageBox::RejectRole);
+    existingNameMessage->addButton(noMsg, QMessageBox::RejectRole);
 
     existingNameMessage->exec();
     
-    if (existingNameMessage->clickedButton() == yes_Button)
-        return true;
-    else
-        return false;
-    
+    return (existingNameMessage->clickedButton() == yes_Button);
 }
 
 //Behaviour of session restoration when re-starting the application
@@ -965,7 +960,7 @@ QVector<QString> FLSessionManager::get_dependencies(dsp* myDSP, const QString& p
 //    else
 //        stdDependendies = factoryDependency->fRemoteFactory->getLibraryList();
     
-    for(int i = 0; i<stdDependendies.size(); i++){
+    for(size_t i = 0; i<stdDependendies.size(); i++){
         dependencies.push_back(stdDependendies[i].c_str());
     }
     

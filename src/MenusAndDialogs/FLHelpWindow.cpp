@@ -142,11 +142,11 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     
     metadataDSPFactory(temp, meta);
     
-    for(int i=0; i<meta->datas.size(); i++){
+    for(size_t i=0; i<meta->datas.size(); i++){
         
         string libName, key, value;
         
-        int pos = meta->datas[i].first.find("/");
+        size_t pos = meta->datas[i].first.find("/");
         
         if(pos != string::npos){
             libName = meta->datas[i].first.substr(0, pos);
@@ -169,7 +169,7 @@ void FLHelpWindow::setLibText(){
         
         vector<pair<string, string> > libInfos = fInfoLibs[fTreeLibs->currentItem()->parent()->text(0).toStdString()];
         
-        for(int i=0; i<libInfos.size(); i++){
+        for(size_t i=0; i<libInfos.size(); i++){
             
             if(libInfos[i].first.compare(fTreeLibs->currentItem()->text(0).toStdString()) == 0){
                 
@@ -290,7 +290,7 @@ void FLHelpWindow::init(){
             QString completeName = it->baseName() + "." + it->completeSuffix();
             QTreeWidgetItem* newItem = new QTreeWidgetItem(fTreeLibs, QStringList(completeName));
             
-            for(int i=0; i<fInfoLibs[completeName.toStdString()].size(); i++){
+            for(size_t i=0; i<fInfoLibs[completeName.toStdString()].size(); i++){
                 
                 QTreeWidgetItem* childItem = new QTreeWidgetItem(newItem, QStringList(QString(fInfoLibs[completeName.toStdString()][i].first.c_str())));
                 

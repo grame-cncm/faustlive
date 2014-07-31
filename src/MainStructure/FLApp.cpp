@@ -614,7 +614,7 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
     
     if(FLW_List.size() >= numberWindows){
         error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
-        return false;
+        return NULL;
     }
     
     int init = kNoInit;

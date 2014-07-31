@@ -102,8 +102,12 @@ bool executeInstruction(const QString& instruct, QString& errorMsg){
     
     error = myCmd.readAllStandardError();
     
-    if(myCmd.readChannel() == QProcess::StandardError )
+    if(myCmd.readChannel() == QProcess::StandardError ) {
         errorMsg = error.data();
+		return false;
+	} else {
+		return true;
+	}
 }
 
 
@@ -211,7 +215,7 @@ const char* lopts(char *argv[], const char *name, const char* def)
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 bool parseKey(vector<string> options, const string& key, int& position)
 {
-    for (int i = 0; i < options.size(); i++){
+    for (size_t i = 0; i < options.size(); i++){
         if (key == options[i]){
             position = i;
             return true;
@@ -243,7 +247,7 @@ void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, 
     int position = 0;
     
     if (addKeyIfExisting(options, newoptions, key, "", position)) {
-        if (position+1 < options.size() && options[position+1][0] != '-') {
+        if (position+1 < int(options.size()) && options[position+1][0] != '-') {
             newoptions.push_back(options[position+1]);
             options.erase(options.begin()+position+1);
             position--;
@@ -353,7 +357,7 @@ string FL_reorganize_compilation_options(QString compilationOptions)
     
     string res3;
     string sep;
-    for (int i = 0; i < res2.size(); i++) {
+    for (size_t i = 0; i < res2.size(); i++) {
         res3 = res3 + sep + res2[i];
         sep = " ";
     }
