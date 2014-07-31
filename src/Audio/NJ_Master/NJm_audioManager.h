@@ -55,10 +55,14 @@ class NJm_audioManager : public AudioManager{
     
         virtual int get_buffer_size();
         virtual int get_sample_rate();
+        bool        is_connexion_active();
     
     private slots :
     
         void send_Error(const char*);
+    
+    signals :
+        void errorSignal(const char*);
     
 };
 

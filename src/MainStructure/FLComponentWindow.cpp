@@ -223,16 +223,26 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     QTGUI* interface = new QTGUI(this);
     fCompiledDSP->buildUserInterface(interface);
     
+//    interface->setMinimumSize(300,300);
+    
+//    printf("RECT HEIGHT || WIDTH= %i || %i\n", interface->rect().height(), interface->rect().width());
+    
+//    QPixmap pixmap(interface->minimumSize()); 
+//    interface->render(&pixmap);
+//    pixmap.save("example.png");
+    
+//    pixmap (QSize(15,15), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    
 //    QPixmap pix(interface->size());
 //    
 //    interface->render(&pix);
 //    
 //    QLabel* inter = new QLabel;
-//    inter->setPixmap(pix);
+//    inter->setPixmap(pixmap);
 //    inter->setSize(interface->size());
     
     interface->setEnabled(false);
-//    interface->resize(150,100);
+//    inter->resize(150,150);
 //    interface->run();
     
     delete fLayout;
@@ -301,12 +311,7 @@ void FLComponentWindow::init(){
 //------Initialize the feedback label
     QVBoxLayout* feedbackBoxLayout = new QVBoxLayout;
     QGroupBox* feedbackBox = new QGroupBox("Recursive composition");
-//    QLabel* feedLabel = new QLabel("<h2>FEEDBACK</h2>");
-//    feedLabel->setAlignment(Qt::AlignCenter);
-//    feedLabel->setStyleSheet("*{color:#6C0277;}");
-    
-//    feedbackBoxLayout->addWidget(feedLabel);
-    
+
     fFeedBackItem = new FLComponentItem("Feedback");
     feedbackBoxLayout->addWidget(fFeedBackItem);
     
@@ -316,7 +321,6 @@ void FLComponentWindow::init(){
     QHBoxLayout* hlayout = new QHBoxLayout;
     
     fHComponentLayout = new QHBoxLayout;
-//    fHComponentLayout->setHorizontalSpacing(10);
     QGroupBox*  componentGroup = new QGroupBox("Sequentiel composition");
     componentGroup->setLayout(fHComponentLayout);
     
@@ -382,7 +386,6 @@ void FLComponentWindow::init(){
     
     fSaveB = new QPushButton(tr("Create Component"), this);
     fSaveB->setDefault(true);
-//    fSaveB->hide();
     
     connect(cancel, SIGNAL(released()), this, SLOT(cancel()));
     connect(fSaveB, SIGNAL(released()), this, SLOT(createComponent()));
@@ -408,6 +411,7 @@ void FLComponentWindow::init(){
     adjustSize();
 }
 
+//Create a faust program that puts in parallel each column component then compose them sequentially.
 void FLComponentWindow::createComponent(){
 
     fItems = componentListWithoutEmptyItem(fItems);

@@ -45,6 +45,9 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fPortOutOscLine;   //Edit osc port
         QLineEdit*          fPortErrOscLine;
     
+        QCheckBox*          fRemoteControlCheckBox;
+        QLabel*             fRemoteControlIP;
+    
         QLineEdit*          fCVLine;  
         QLineEdit*          fMTULine;   
         QLineEdit*          fLatLine;  
@@ -64,6 +67,7 @@ class FLToolBar : public QToolBar{
         bool                wasOscSwitched();
         bool                hasOscOptionsChanged();
         bool                wasHttpSwitched();
+        bool                wasRemoteControlSwitched();
         bool                hasRemoteOptionsChanged();
         bool                hasReleaseOptionsChanged();;
     
@@ -93,6 +97,7 @@ class FLToolBar : public QToolBar{
         void    sizeReduction();
         void    switch_http(bool on);
         void    switch_osc(bool on);
+        void    switch_remotecontrol(bool on);    
         void    switch_release(bool on);
 };
 

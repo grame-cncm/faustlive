@@ -33,6 +33,8 @@
 
 #include "FJUI.h"
 
+#include "Server.h"
+
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
@@ -114,6 +116,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Initialiazing Remote Drop Server
 #ifndef _WIN32
     launch_Server();
+    Server::_Instance()->start(7777);
 #endif
     fCompilingMessage = NULL;
     
@@ -604,7 +607,6 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
 void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
-    connect(win, SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));

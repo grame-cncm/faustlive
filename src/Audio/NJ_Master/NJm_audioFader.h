@@ -56,7 +56,7 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
         std::stringstream err;
         err<<error_code;
         
-        emit error(err.str().c_str());
+        emit errorPRINT(err.str().c_str());
     
     }
     
@@ -81,7 +81,7 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
     void        force_stopFade();
     
     signals :
-        void error(const char*);
+        void errorPRINT(const char*);
 };
 
 #endif

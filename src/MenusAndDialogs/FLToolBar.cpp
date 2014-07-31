@@ -126,7 +126,7 @@ void FLToolBar::init(){
     fPortErrOscLine->setMaximumWidth(50);
     connect(fPortErrOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     
-    oscLayout->addRow("Enable Control", fOSCCheckBox);    
+    oscLayout->addRow("Enable Interface", fOSCCheckBox);    
     oscLayout->addRow(new QLabel(tr("In Port")), fPortInOscLine);
     oscLayout->addRow(new QLabel(tr("Out Port")), fPortOutOscLine);
     oscLayout->addRow(new QLabel(tr("Destination Host")), fDestHostLine);
@@ -134,7 +134,7 @@ void FLToolBar::init(){
     
     oscBox->setLayout(oscLayout);
     
-    fContainer->addItem(oscBox, "OSC Control");
+    fContainer->addItem(oscBox, "OSC Interface");
     
 //------- HTTP Control
     
@@ -148,15 +148,31 @@ void FLToolBar::init(){
     
     fHttpPort = new QLabel(tr(""), httpBox);
     
-    httpLayout->addRow(new QLabel(tr("Enable Control")), fHttpCheckBox);
+    httpLayout->addRow(new QLabel(tr("Enable Interface")), fHttpCheckBox);
     httpLayout->addRow(new QLabel(tr("Port")), fHttpPort);
     
     httpBox->setLayout(httpLayout);
-    fContainer->addItem(httpBox, "Http Control");
+    fContainer->addItem(httpBox, "Http Interface");
     
 #endif
  
 #ifdef REMOTE
+//-------- Remote Control
+    QWidget* remoteControlBox = new QWidget;
+    QFormLayout* remoteControlLayout = new QFormLayout;
+    
+    fRemoteControlCheckBox = new QCheckBox;
+    connect(fRemoteControlCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+    
+    fRemoteControlIP = new QLabel(tr(""), remoteControlBox);
+    
+    remoteControlLayout->addRow(new QLabel(tr("Enable Control")), fRemoteControlCheckBox);
+    remoteControlLayout->addRow(new QLabel(tr("Remote IP")), fRemoteControlIP);
+    
+    remoteControlBox->setLayout(remoteControlLayout);
+    fContainer->addItem(remoteControlBox, "Remote Control");
+    
+    
 //-------- Remote Processing
     
     QWidget* remoteBox = new QWidget;
@@ -250,6 +266,7 @@ FLToolBar::~FLToolBar(){}
 
 //Changes in parameters = enable save changes button
 void FLToolBar::enableButton(const QString& /*newText*/){
+
     fSaveButton->setEnabled(hasStateChanged());
 }
 
@@ -263,9 +280,9 @@ bool FLToolBar::hasStateChanged(){
         wasOscSwitched() ||
         hasOscOptionsChanged() ||
         wasHttpSwitched() ||
+        wasRemoteControlSwitched() ||
         hasRemoteOptionsChanged() ||
-        hasReleaseOptionsChanged();
-    
+        hasReleaseOptionsChanged();    
 }
 
 bool FLToolBar::hasCompilationOptionsChanged(){
@@ -325,6 +342,14 @@ bool FLToolBar::wasHttpSwitched(){
     return false;
 }
 
+bool FLToolBar::wasRemoteControlSwitched(){
+#ifdef REMOTE  
+    if(fSettings->value("RemoteControl/Enabled", false) != fRemoteControlCheckBox->isChecked())
+        return true;
+#endif    
+    return false;
+}
+
 bool FLToolBar::hasRemoteOptionsChanged(){
 #ifdef REMOTE
     if(fCVLine->text() != fSettings->value("RemoteProcessing/CV", "64").toString())
@@ -348,7 +373,7 @@ bool FLToolBar::hasReleaseOptionsChanged(){
     return false;
 }
 
-//Reaction to enter one of the QLineEdit
+//Reaction to Apply Changes Button
 void FLToolBar::modifiedOptions(){
     
 #ifdef OSCVAR   
@@ -388,6 +413,11 @@ void FLToolBar::modifiedOptions(){
         emit switch_http(fHttpCheckBox->isChecked());
     }
 #ifdef REMOTE
+    if(wasRemoteControlSwitched()){
+       fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
+        
+        emit switch_remotecontrol(fHttpCheckBox->isChecked());
+    }
     if(hasRemoteOptionsChanged()){
         
         fSettings->setValue("RemoteProcessing/CV", fCVLine->text());  

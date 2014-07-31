@@ -26,7 +26,9 @@ NJm_audioManager::NJm_audioManager(AudioShutdownCallback cb, void* arg): AudioMa
     
     fCurrentAudio = new NJm_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     
-    connect(fCurrentAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
+    connect(fCurrentAudio, SIGNAL(errorPRINT(const char*)), this, SLOT(send_Error(const char*)));
+    
+    printf("FCURRENTAUDIO = %p\n", fCurrentAudio);
     
     fInit = false; //Indicator of which init has been used
 }
@@ -86,7 +88,7 @@ bool NJm_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP
     
     fFadeInAudio = new NJm_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     
-    connect(fFadeInAudio, SIGNAL(error(const char*)), this, SLOT(send_Error(const char*)));
+    connect(fFadeInAudio, SIGNAL(errorPRINT(const char*)), this, SLOT(send_Error(const char*)));
     
     if(fFadeInAudio->init(name, DSP)){
         return true;
@@ -126,6 +128,7 @@ void NJm_audioManager::wait_EndFade(){
 
 //In case of Network failure, the application is notified
 void NJm_audioManager::send_Error(const char* msg){
+    printf("NJm_audioManager::send_Error\n");
     emit errorSignal(msg);
 }
 
@@ -137,4 +140,7 @@ int NJm_audioManager::get_sample_rate(){
     return fCurrentAudio->get_sample_rate();
 }
 
+bool NJm_audioManager::is_connexion_active(){
+    return fCurrentAudio->is_connexion_active();
+}
 

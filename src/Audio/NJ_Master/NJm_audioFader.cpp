@@ -22,15 +22,18 @@ NJm_audioFader::~NJm_audioFader(){}
 //CallBack in case of network failure
 int NJm_audioFader::restart_cb()
 {
+    printf("NJm_audioFader::RESTART = %i\n", fNumberRestartAttempts);
+    
     // printf("Network failure, restart...\n");
     
-    if(fNumberRestartAttempts < 10){
-        emit error("Network failure, restart...");    
+    if(fNumberRestartAttempts < 9){
+//        emit error("Network failure, restart...");    
         fNumberRestartAttempts++;
         return 0;
     }
     else{
-        emit error("Impossible to restart Network");
+        printf("IMPOSSIBLE TO RESTART = %p\n", this);
+        emit errorPRINT("Impossible to restart Network");
         fNumberRestartAttempts = 0;
     }
     

@@ -32,6 +32,10 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
+#include "NJm_audioManager.h"
+
+#include "tempName.h"
+
 class httpdUI;
 class QTGUI;
 class FLToolBar;
@@ -49,7 +53,7 @@ enum initType{
     kInitWhite
 };
 
-class FLWindow : public QMainWindow
+class FLWindow : public QMainWindow, public tempName
 {
     Q_OBJECT
     
@@ -87,8 +91,11 @@ class FLWindow : public QMainWindow
         void            deleteHttpInterface();
     
         AudioManager*   fAudioManager;
+        bool            fAudioManagerStopped;
+    
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
+        string          fInstanceKey;
         dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
 
         map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
@@ -101,7 +108,6 @@ class FLWindow : public QMainWindow
 
     //Diplays the default interface with Message : Drop a DSP or Edit Me
         void            print_initWindow(int typeInit);
-    
     
         QList<std::pair<QString, QString> > fRecentFiles;
         QStringList                 fRecentSessions;
@@ -169,6 +175,9 @@ class FLWindow : public QMainWindow
         void            stop_Audio();
         void            start_Audio();
     
+        NJm_audioManager*          fAudio;
+        static void*    startAudioSlave(void* arg);
+    
 //    In case audio architecture collapses
         static void     audioShutDown(const char* msg, void* arg);
         void            audioShutDown(const char* msg);
@@ -194,6 +203,10 @@ class FLWindow : public QMainWindow
         int             get_indexWindow();
         QString         getPath();
         QString         getName();
+    
+//        virtual string  getName();
+        virtual string  json();
+    
         QString         getSHA();
         QString         get_source();
         int             get_Port();
@@ -226,6 +239,14 @@ class FLWindow : public QMainWindow
         void            shut();
 #ifdef REMOTE
         void            RemoteCallback(int);
+       
+        void            switchRemoteControl(bool);
+        virtual bool    createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency);
+        virtual bool    startNJdspAudio();
+        void            stopNJdspAudio(const char*);
+        virtual void    cleanInactiveNJdspInstance();
+        
+        void            switchRelease(bool);
 #endif
     
     //Raises and shows the window
