@@ -28,9 +28,9 @@ endif
 ####### Targets
 
 all : Makefile.qt4
+	./buildversion
 	mkdir -p src/objectsFolder
 	make -f Makefile.qt4
-	./buildversion
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
@@ -54,9 +54,9 @@ dist-sources :
 install:
 	install FaustLive $(PREFIX)/bin
 	install FaustLive.desktop $(PREFIX)/share/applications/
-	install Resources/Images/Faustlive.xpm $(PREFIX)/share/pixmaps/
-	install Resources/Images/Faustlive.png $(PREFIX)/share/icons/hicolor/32x32/apps/
-	install Resources/Images/Faustlive.svg $(PREFIX)/share/icons/hicolor/scalable/apps/
+	install ../../Resources/Images/Faustlive.xpm $(PREFIX)/share/pixmaps/
+	install ../../Resources/Images/Faustlive.png $(PREFIX)/share/icons/hicolor/32x32/apps/
+	install ../../Resources/Images/Faustlive.svg $(PREFIX)/share/icons/hicolor/scalable/apps/
 
 uninstall:
 	rm -f $(PREFIX)/bin/FaustLive
