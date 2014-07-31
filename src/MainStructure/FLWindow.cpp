@@ -10,9 +10,10 @@
 #include "faust/gui/faustqt.h"
 #ifndef _WIN32
 #include "faust/gui/OSCUI.h"
+#ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
 #endif
-
+#endif
 
 list<GUI*>               GUI::fGuiList;
 
@@ -37,7 +38,7 @@ list<GUI*>               GUI::fGuiList;
 #include "faust/remote-dsp.h"
 #endif
 
-#include "faust/llvm-dsp.h"
+#include "faust/audio/dsp.h"
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
@@ -64,11 +65,12 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Initializing class members
     
-#ifndef _WIN32
+#ifdef HTTPCTRL
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
-    fOscInterface = NULL;
 #endif
+
+    fOscInterface = NULL;
     fInterface = NULL;
     fRCInterface = NULL;
     fCurrent_DSP = NULL;
@@ -315,10 +317,10 @@ void FLWindow::set_StatusBar(){
 
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
-    
+#ifdef HTTPCTRL
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
-
+#endif
     if(fOscInterface){        
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
@@ -399,7 +401,7 @@ void FLWindow::redirectSwitch(){
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifndef _WIN32
+#ifdef HTTPCTRL
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
@@ -493,10 +495,10 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     if(!fRCInterface)
         return false;
     
-#ifndef _WIN32
     if(fSettings->value("Osc/Enabled", false).toBool())
         allocateOscInterface();
     
+#ifdef HTTPCTRL
     if(fSettings->value("Http/Enabled", false).toBool())
         allocateHttpInterface();
 #endif
@@ -512,21 +514,21 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
     if(fRCInterface)
         compiledDSP->buildUserInterface(fRCInterface);
             
-#ifndef _WIN32
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
         
+#ifdef HTTPCTRL
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);
 #endif
 }
 
 void FLWindow::runInterfaces(){
-    
-#ifndef _WIN32  
+      
     if(fOscInterface)
         fOscInterface->run();
     
+#ifdef HTTPCTRL
     if(fHttpInterface){
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
@@ -542,12 +544,13 @@ void FLWindow::runInterfaces(){
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
-    
-#ifndef _WIN32
+
     if(fOscInterface){
         delete fOscInterface;
         fOscInterface = NULL;
     }
+
+#ifdef HTTPCTRL
     if(fHttpInterface){
         deleteHttpInterface();
     }
@@ -623,7 +626,7 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#ifndef _WIN32
+#ifdef HTTPCTRL
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
@@ -632,9 +635,11 @@ void FLWindow::close_Window(){
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
+#ifdef REMOTE
     if(fStatusBar)
         delete fStatusBar;
-    
+#endif    
+
     if(fAudioManager)
         delete fAudioManager;
        
@@ -922,7 +927,7 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#ifndef _WIN32
+#ifdef HTTPCTRL
 void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
@@ -967,7 +972,7 @@ void FLWindow::switchHttp(bool on){
 }
 
 void FLWindow::viewQrCode(){
-    
+
     if(!fIsDefault){
         
         if(fHttpInterface == NULL){
@@ -1004,7 +1009,6 @@ void FLWindow::viewQrCode(){
 }
 
 void FLWindow::exportToPNG(){
-    
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
     
@@ -1169,7 +1173,7 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#ifndef _WIN32
+#ifdef HTTPCTRL
 void FLWindow::httpd_View(){
     
     fToolBar->switchHttp(true);    

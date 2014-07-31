@@ -8,6 +8,7 @@
 
 #include "FLHelpWindow.h"
 
+#include "faust/llvm-dsp.h"
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLHelpWindow::FLHelpWindow(const QString& libsFolder){

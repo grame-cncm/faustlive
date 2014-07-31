@@ -45,12 +45,6 @@ INCLUDEPATH += ../../src/Utilities
 LLVMLIBS = $$system($$system(which llvm-config) --libs)
 LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust
-LIBS+= $$LLVMDIR
-
-LIBS+=-lfaust
-LIBS+= $$LLVMLIBS
-
 equals(static, 1){
 	LIBS+=/usr/local/lib/libqrencode.a
 	LIBS+=/usr/lib/x86_64-linux-gnu/libmicrohttpd.a
@@ -71,8 +65,6 @@ else{
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust -loscpack
 LIBS+=-L/opt/local/lib
-
-LIBS+= $$LLVMDIR
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -233,4 +225,10 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
 			../../src/Utilities/main.cpp
+
+LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust
+LIBS+= $$LLVMDIR
+
+LIBS+=-lfaust
+LIBS+= $$LLVMLIBS
 
