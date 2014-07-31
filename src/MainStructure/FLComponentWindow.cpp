@@ -444,11 +444,16 @@ void FLComponentWindow::createComponent(){
     if(fFeedBackItem->faustComponent("") != ""){
         faustToCompile = "import(\"music.lib\");\n\n\nprocess = recursivize("+ faustToCompile + "," + fFeedBackItem->faustComponent("") + ")";
     }
+    else{
+        faustToCompile = "import(\"music.lib\");\n\n\nprocess = " + faustToCompile;
+    }
     
     faustToCompile += ";";
     
     hide();
 
+    printf("Component code = %s\n", faustToCompile.toStdString().c_str());
+    
     emit newComponent(faustToCompile);
 }
 
