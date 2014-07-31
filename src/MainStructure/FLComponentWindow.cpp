@@ -5,7 +5,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "faust/llvm-dsp.h"
+#include "faust/audio/dsp.h"
 #include "faust/gui/faustqt.h"
 
 #include "FLComponentWindow.h"

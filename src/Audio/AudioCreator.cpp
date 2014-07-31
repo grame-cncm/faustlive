@@ -16,11 +16,11 @@
 #include "AudioManager.h"
 #include "AudioFactory.h"
 
-#include "CA_audioSettings.h"
 
 #include "FLSettings.h"
 
 #ifdef COREAUDIO
+	#include "CA_audioSettings.h"
     #include "CA_audioFactory.h"
 #endif
 

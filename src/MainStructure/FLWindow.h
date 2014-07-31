@@ -83,13 +83,13 @@ class FLWindow : public QMainWindow, public tempName
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
     
-#ifndef _WIN32
+#ifdef HTTPCTRL
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-#endif
+
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
-    
+#endif    
         AudioManager*   fAudioManager;
         bool            fAudioManagerStopped;
     
@@ -128,7 +128,8 @@ class FLWindow : public QMainWindow, public tempName
         void            edit();
         void            paste();
         void            duplicate();
-#ifndef _WIN32
+
+#ifdef HTTPCTRL
         void            httpd_View();
 #endif
         void            svg_View();
@@ -213,7 +214,7 @@ class FLWindow : public QMainWindow, public tempName
         bool            is_Default();
     
     //Accessors to httpd Window
-#ifndef _WIN32    
+#ifdef HTTPCTRL    
     
     //Functions to create an httpd interface
         void            viewQrCode();
@@ -228,12 +229,12 @@ class FLWindow : public QMainWindow, public tempName
         void            modifiedOptions();
         void            resizingBig();
         void            resizingSmall();
-#ifndef _WIN32
+#ifdef HTTPCTRL
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-        void            updateOSCInterface();
 #endif
+        void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
         void            shut();

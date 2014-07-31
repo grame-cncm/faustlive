@@ -9,7 +9,6 @@
 #include "FLrenameDialog.h"
 #ifndef _WIN32
 #include "FLServerHttp.h"
-#include "faust/remote-dsp.h"
 #else
 #include <windows.h>
 #include <shlobj.h>
@@ -114,7 +113,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
     
     //Initialiazing Remote Drop Server
-#ifndef _WIN32
+#ifdef HTTPCTRL
     launch_Server();
     Server::_Instance()->start(7777);
 #endif
@@ -1598,7 +1597,7 @@ void FLApp::StopProgressSlot(){
 
 //--------------------------FAUSTLIVE SERVER ------------------------------
 
-#ifndef _WIN32
+#ifdef HTTPCTRL
 FLWindow* FLApp::httpPortToWin(int port){
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){

@@ -20,7 +20,6 @@
 
 using namespace std;
 
-#include "faust/llvm-dsp.h"
 #include "faust/gui/meta.h"
 
 struct MyMeta: public Meta{

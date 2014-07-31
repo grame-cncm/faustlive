@@ -144,7 +144,7 @@ class FLApp : public QApplication
     
     private slots :
     
-#ifndef _WIN32
+#ifdef HTTPCTRL
 //--------Server Response
         FLWindow*           httpPortToWin(int port);
         void                changeDropPort();

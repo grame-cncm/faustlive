@@ -100,7 +100,7 @@ char **argv = __argv;
 #endif
 
 #ifndef _WIN32
-    qInstallMsgHandler(myMessageOutput);
+    //qInstallMessageHandler(myMessageOutput);
     
     int filecount = 0;
     if(GetMaximumFiles(filecount)){
