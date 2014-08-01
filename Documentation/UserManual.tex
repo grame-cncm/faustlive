@@ -1,0 +1,206 @@
+
+\documentclass[a4paper]{article}
+\usepackage{pslatex}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\setlength\parskip{\medskipamount}
+\setlength\parindent{0pt}
+\usepackage{graphicx}
+\usepackage{amssymb}
+%\usepackage{hyperref}
+
+\makeatletter
+
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+\newcommand{\ASL}			{ASL}
+\newcommand{\OSC}[1]		{\texttt{#1}}
+\newcommand{\lra}			{$\leftrightarrow$}
+\newcommand{\seg}[1]		{Seg(#1)}
+
+\setlength{\parskip}{1mm}
+
+\makeatother
+
+\begin{document}
+
+\title{FaustLive - User Manual \\ v.1.2}
+
+\author{Grame, Centre National de Création Musicale\\
+{\small <research@grame.fr>} \\
+\vspace{2mm}
+[ANR-12-CORD- 0009] and [ANR-13-BS02-0008]
+}
+
+\maketitle
+
+\topskip0pt
+
+\vspace{\fill}
+
+FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. \\
+
+FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running without sound interruption or Jack disconnection.
+\vspace{\fill}
+%==================================================================================================
+\newpage
+\tableofcontents
+
+\newpage
+\section{Dynamic Compilation}
+FaustLive embeds a full compilation chain to provide an ultra-short edit-compile-run cycle.
+The ensuing features are :
+
+\subsection{Open a DSP}
+The Faust file you choose to open is compiled and runs into FaustLive.
+\begin{itemize}
+\item Open ... : you can open a file saved on your disk
+\item Open Example : you can open an example from the list
+\item Open Recent File : the recently closed DSP are saved in this list
+\item Open Remote DSP : FaustLive can scan the DSPs published by another user (c.f. publish DSP) and allows you to get an instance of them. If the owner of the DSP shut his connection or unpublishes his DSP, yours will be closed too. 
+\end{itemize}
+
+
+\subsection{Drag and Drop}
+On a running application, you can drop Faust code as :
+\begin{itemize}
+\item A string \\process=+;
+\item A file \\/Users/you/Desktop/plus.dsp
+\item A URL \\http://faust.grame.fr/www/vumeter.dsp
+\end{itemize}
+The dropped code is compiled and the new application replaces the previous one.
+
+\subsection{Paste} 
+You can also paste Faust code with the same result as Drag and Drop.
+
+\subsection{Dynamic source edition}
+You can choose to edit your Faust code. The file is opened in the default application for .dsp files (Don't forget to configure file association : c.f README). Everytime you will save your code in the editor, your running DSP will be updated. \\
+
+Three cases exist, depending on the origin of your application. In case the origin of your application is
+	\begin{itemize}
+		\item A file :  it is opened
+		\item Not a file (string, url, example, ...) : you are asked to save your Faust content in a new file.
+		\begin{itemize}
+		\item If you choose to save it, your new file is opened and becomes the new origin of your DSP.
+		\item If you don't want to save it on disk, a temporary file is created and opened. The origin of your DSP remains a string.
+	\end{itemize}
+
+	\end{itemize}
+
+\section{Actions on a Window}
+
+\subsection{Crossfade Characteristic}
+
+When the DSP is modified or switched within a window (drag and drop, source edition, ...), the two applications are crossfaded to avoid brutal interruption in the sound. If you are using Jack as audio driver, the connection remain for the common ports. If there are new ports, it is left to the user to connect them. 
+
+\subsection{Reversed Drag and Drop}
+You can drag your Faust code from your window to another window or another application like your Desktop, Browser, Text editor, ...
+
+\subsection{View SVG Diagram}
+You can view your SVG Diagram in the default appplication for .svg (Don't forget to configure file association : c.f README). Everytime your DSP is modified, the SVG diagram is updated.
+
+\subsection{Duplicate Window}
+A Window can be duplicated with all it's parameters (graphical params, audio connections, compilation options, etc)
+
+\subsection{Export}
+Thanks to the remote compilation service, FaustWeb, you can export your Faust code into any kind of available application or plugin. 
+
+\subsection{Control Interfaces}
+You can duplicate the control interface of your application. The local and remote interfaces are synchronized.
+
+\subsubsection{Http Interface}
+	You can control your application on a browser through an Html interface. To enable this feature, you have two possibilities :
+	\begin{itemize}
+	\item In "Parameters", in the tab "HTTP Interface", check "Enable"
+	\item In "Preferences", in the tab "Network", check "Enable HTTP Interface automatically" (any new window will be enabled for HTTP control)
+	\end{itemize}
+	
+The port it starts on is updated in the parameters. The default port is 5510.\\
+	To access the interface, you can enter the address in your browser : http://yourIPaddress:port.	
+	Or, you can choose view QrCode then scan the code with your device to access the page directly. 
+
+\subsubsection{Osc Interface}
+	You can control your application remotly with the OSC protocol. 
+	To enable this feature, you have two possibilities :
+	\begin{itemize}
+	\item In "Parameters", in the tab "OSC Interface", check "Enable"
+	\item In "Preferences", in the tab "Network", check "Enable OSC Interface automatically" (any new window will be enabled for OSC control)
+	\end{itemize}
+	You can choose the port for incoming/outcoming and error messages. The destination IP for outcoming messages will be automatically set when the first message is received. 
+
+\subsection{Remote Control}
+You can control your application remotly with a native application for iOS, android that you can download from Faust directory on sourceforge.  To enable this feature, go to "Parameters", in the tab "Remote Control", check "Enable". The destination IP will be automatically set when the first message is received. \\
+
+With this feature, you can choose whether the sound is rendered on FaustLive's machine or on the remote device. 
+
+\subsection{Publish DSP}
+You can publish your DSP for any FaustLive user to see. This way, another user can get an instance of your application from his own machine (c.f Open Remote DSP...). The local and remote instance are totally independent. Both have an independent access to the interface and audio rendering.
+
+\subsection{Remote Processing}
+You can choose to send your code to another machine, presenting the remote server service. A discovery shows you the available machines. Once you have switched, your Faust processing will be done on the remote machine. The control interface and sound rendering stay on the local machine.
+
+\subsection{Compilation Options}
+In the parameters, you can change the compilation options of your DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
+
+\section{General Actions}
+
+\subsection{Take Snapshot}
+ When you take a snapshot, the state of your application is saved : all the windows, their parameters (graphical parameters, connections, position on screen, compilation options, etc, ...). The created archive is a .tar that you can then reload on any FaustLive : it is platform-independent. 
+
+\subsection{Recall/Import Snapshot}
+You have two different ways to reload a snapshot into FaustLive : 
+\begin{itemize}
+\item Recall Snapshot : closes all the current windows to restore the exact state that you saved in your snapshot.
+\item Import Snapshot : adds the content of your snapshot to the current state of the application. 
+
+--> In case of modification or deletion : 
+\end{itemize}
+
+\subsection{Open Component Creator}
+The component creator is a tool to combine your DSPs. The columns represent parallel composition and the rows sequential composition. You can add as many rows and columns as you like. You can also have a feedback DSP. The resulting DSP is a sequence of parallel components. \\
+
+The parallel composition is "stereoized" before being put it sequence. And the recursive composition with the feedback DSP is "recursivized". This way, the resulting DSP always has 2 inputs and 2 outputs. To know the detail of the functions stereoize and recursivize, see music.lib. 
+
+
+\subsection{Close All Windows}
+You can close every window without quitting FaustLive and without saving them.
+
+\subsection{Quit FaustLive}
+
+When you quit FaustLive, the state of the application is saved, so that it can be recalled at the next execution of FaustLive.
+
+\subsection{General preferences}
+\subsubsection{Compilation Options}
+Any changes in the compilation options will be taken into account for all the new windows created. The one already running keep their parameters.
+\subsubsection{Audio}
+ 
+Depending on your operating system and on your version of FaustLive. Certain drivers are or not available.
+The default drivers are :
+\begin{itemize}
+\item Coreaudio on OSX
+\item Jack on Linux
+\item Portaudio on Windows
+\end{itemize}
+
+When you switch the audio architecture or its parameters, every running window is switching. The audio clients stop, the architecture is switched and the audio clients are restarted. If the update is not successfull, the previous architecture is restored. If it cannot be restored, the windows are closed. 
+
+\subsubsection{Network}
+\begin{itemize}
+\item Enable HTTP interface automatically
+\item Enable OSC interface automatically
+\item Remote Compilation service : by default, FaustLive uses faustservice.grame.fr as compilation service but you can choose any another faustweb service.
+\item Remote Dropping Port
+
+\end{itemize}
+
+\subsubsection{Style}
+The style is automatically changed when you click the style button. You don't have to save the changes to keep the style preference. 
+
+%\subsection{DNS OSC}
+%
+%\subsection{DNS HTTP}
+
+\end{document}
+
+
+
+
