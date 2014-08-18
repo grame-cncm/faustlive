@@ -506,6 +506,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     }
     
         string fileToCompile(faustFile.toStdString());
+    
         string nameToCompile(name.toStdString());
         
     //----CreateFactory
@@ -667,6 +668,7 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
     generalSettings->beginGroup("Windows");
             
     QStringList groups = generalSettings->childGroups();
+    
     for(int i=0; i<groups.size(); i++){
                 
         QString settingsPath = groups[i] + "/SHA";
@@ -831,6 +833,7 @@ void FLSessionManager::copySHAFolder(const QString& snapshotFolder){
     QFileInfoList::iterator it;
     
     for(it = children.begin(); it != children.end(); it++){
+        
         QString destinationFolder = shaFolder + "/" +  it->baseName();
         cpDir(it->absoluteFilePath(), destinationFolder);
     }
@@ -905,7 +908,30 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     QString shaFolder = fSessionFolder + "/SHAFolder";
     QString shaSnapshotFolder = snapshotFolder + "/SHAFolder";
     
-    cpDir(shaFolder, shaSnapshotFolder);
+    QDir shaDir(shaSnapshotFolder);
+    shaDir.mkdir(shaSnapshotFolder);
+    
+    QSettings* generalSettings = FLSettings::_Instance();
+    
+    generalSettings->beginGroup("Windows");
+    
+    QStringList groups = generalSettings->childGroups();
+    
+    for(int i=0; i<groups.size(); i++){
+        
+        QString shaCS = groups[i] + "/SHA";
+        QString shaSF = generalSettings->value(shaCS, "").toString();
+
+        QString srcFolder = shaFolder + "/" + shaSF;
+        QString dstFolder = shaSnapshotFolder + "/" + shaSF;
+        
+        QDir dstDir(dstFolder);
+        dstDir.mkdir(dstFolder);
+        
+        cpDir(srcFolder, dstFolder);
+    }
+    
+    generalSettings->endGroup();
     
     QString winFolder = fSessionFolder + "/Windows";
     QString winSnapshotFolder = snapshotFolder + "/Windows";
@@ -919,6 +945,7 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     f.copy(settingsSnapshotFile);
     
     saveCurrentSources(snapshotFolder);
+
     
 }
           
