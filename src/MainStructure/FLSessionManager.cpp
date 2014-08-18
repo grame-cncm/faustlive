@@ -60,8 +60,16 @@ void FLSessionManager::cleanSHAFolder(){
     QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
     
     if(children.size() > kMaxSHAFolders){
-        QString childToDelete = (children.begin())->absoluteFilePath();
-        deleteDirectoryAndContent(childToDelete);
+        
+        for(QFileInfoList::iterator it = children.begin(); it != children.end(); it++){
+//            printf("DATE OF CHILDREN = %s\n", it->lastModified().toString().toStdString().c_str());
+            
+            if(it == (children.end()-1)){
+                
+                QString childToDelete = it->absoluteFilePath();
+                deleteDirectoryAndContent(childToDelete);
+            }
+        }
     }
         
 }
