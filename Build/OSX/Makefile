@@ -27,8 +27,8 @@ endif
 ####### Targets
 
 all : Makefile.qt4
-	make -f Makefile.qt4
 	./buildversion
+	make -f Makefile.qt4
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
