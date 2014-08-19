@@ -1671,7 +1671,7 @@ void FLApp::compile_HttpData(const char* data, int port){
         FLWinSettings* windowSettings = new FLWinSettings(val, settingPath, QSettings::IniFormat);
         windowSettings->setValue("Position/x", x);
         windowSettings->setValue("Position/y", y);
-        windowSettings->setValue("isHttpOn", true);
+        windowSettings->setValue("Http/Enabled", true);
         
         win = createWindow(val, source, windowSettings, error);
             
