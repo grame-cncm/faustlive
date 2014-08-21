@@ -40,8 +40,9 @@ bool AudioFader_Implementation::get_doWeFadeOut(){
 }
 
 void AudioFader_Implementation::reset_Values(){
+
     fNumberOfFadeProcess = 0;
-    fInCoef = 0.01;
+    fInCoef = 1;
     fOutCoef = 1;
     fDoWeFadeOut = false;
     fDoWeFadeIn = false;
@@ -49,11 +50,11 @@ void AudioFader_Implementation::reset_Values(){
 
 void AudioFader_Implementation::increment_crossFade(){
     
-    if(fNumberOfFadeProcess != kNumberOfCrossFadeProcess){
-        if(fInCoef < 1)
-            fInCoef = fInCoef*kFadeInCoefficient;  
+    if(fNumberOfFadeProcess != kNumberOfCrossFadeProcess && fOutCoef > 0){
+
+        fInCoef = fInCoef - kFadeCoefficient;  
+        fOutCoef = fInCoef;
         
-        fOutCoef = fOutCoef*kFadeOutCoefficient;
         fNumberOfFadeProcess++;
     }
     else{
@@ -64,24 +65,29 @@ void AudioFader_Implementation::increment_crossFade(){
 void AudioFader_Implementation::crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer){
     
     if(fDoWeFadeOut){
-//        printf("Fade OUt");
+        
         for(int j = 0; j < numFrames ; j++){
-            for(int i = 0; i < numOutputs; i++){
-                outBuffer[i][j] = outBuffer[i][j] /fOutCoef;
-            }
             
-            fOutCoef = fOutCoef*kFadeOutCoefficient; 
+            for(int i = 0; i < numOutputs; i++)
+                outBuffer[i][j] = outBuffer[i][j] * fOutCoef;
+            
+            if(fOutCoef > 0){
+                fOutCoef = fOutCoef - kFadeCoefficient;
+                fInCoef = fOutCoef;
+            }
         }
     }
     else if(fDoWeFadeIn){
-//        printf("Fade In");   
+        
         for(int j = 0; j < numFrames ; j++){
             
-            for(int i = 0; i < numOutputs; i++){
-                outBuffer[i][j] = outBuffer[i][j] * fInCoef;
-            } 
-            if(fInCoef < 1)   
-                fInCoef = fInCoef*kFadeInCoefficient;      
+            for(int i = 0; i < numOutputs; i++)
+                outBuffer[i][j] = outBuffer[i][j] * (1-fInCoef);
+            
+            if((1-fInCoef) < 1){
+                fInCoef = fInCoef - kFadeCoefficient;
+                fOutCoef = fInCoef;
+            }
         }  
     }
     

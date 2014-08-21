@@ -37,11 +37,11 @@ float JA_audioFader::crossfade_calculation(int i, int j){
     }
     
     if(connectFadeIn && connectFadeOut)
-        return (fIntermediateFadeIn[j][i]*fInCoef) + (fIntermediateFadeOut[j][i]/fOutCoef);
+        return (fIntermediateFadeIn[j][i]*(1-fInCoef)) + (fIntermediateFadeOut[j][i]*fOutCoef);
     else if(connectFadeIn)
-        return (fIntermediateFadeIn[j][i]*fInCoef);
+        return (fIntermediateFadeIn[j][i]*(1-fInCoef));
     else if(connectFadeOut)
-        return (fIntermediateFadeOut[j][i]/fOutCoef);
+        return (fIntermediateFadeOut[j][i]*fOutCoef);
     else
         return 0;
 }
@@ -284,11 +284,12 @@ int	JA_audioFader::process(jack_nframes_t nframes)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 
                 for (int j = fNumOutChans; j < fNumOutDspFade; j++)
-                    fOutFinal[j][i] = fIntermediateFadeIn[j][i]*fInCoef;
+                    fOutFinal[j][i] = fIntermediateFadeIn[j][i]*(1-fInCoef);
                 
-                if(fInCoef < 1)
-                    fInCoef = fInCoef*kFadeInCoefficient;  
-                fOutCoef = fOutCoef*kFadeOutCoefficient;  
+                if((1-fInCoef) < 1)
+                    fInCoef = fInCoef - kFadeCoefficient;
+                
+                fOutCoef = fInCoef;  
             }
         } 
         
@@ -298,11 +299,12 @@ int	JA_audioFader::process(jack_nframes_t nframes)
                     fOutFinal[j][i] = crossfade_calculation(i, j);
                 
                 for (int j = fNumOutDspFade; j < fNumOutChans; j++)
-                    fOutFinal[j][i] = fIntermediateFadeOut[j][i]/fOutCoef;
+                    fOutFinal[j][i] = fIntermediateFadeOut[j][i]*fOutCoef;
                 
-                if(fInCoef < 1)   
-                    fInCoef = fInCoef*kFadeInCoefficient;  
-                fOutCoef = fOutCoef*kFadeOutCoefficient;        
+                if((1-fInCoef) < 1)
+                    fInCoef = fInCoef - kFadeCoefficient;
+                
+                fOutCoef = fInCoef;        
             }   
         }
         increment_crossFade();
