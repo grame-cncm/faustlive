@@ -109,6 +109,8 @@ private:
     void            declareHttpInterface(int port, const string& name);
     void            removeHttpInterface(int port);
     
+    int             redirectJsonRequest(struct MHD_Connection *connection, string portNumber);
+    
     void            compile_Successfull(const string& url);
     void            compile_Failed(const string& error);
     
