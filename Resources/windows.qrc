@@ -1,5 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>Libs/llvm_math.ll</file>
+<file>C:\Users\Sarah\faudiostream-code\architecture\faust\gui\Styles/Default.qss</file>
+<file>C:\Users\Sarah\faudiostream-code\architecture\faust\gui\Styles/Blue.qss</file>
+<file>C:\Users\Sarah\faudiostream-code\architecture\faust\gui\Styles/Grey.qss</file>
+<file>C:\Users\Sarah\faudiostream-code\architecture\faust\gui\Styles/Salmon.qss</file>
 </qresource>
 </RCC>

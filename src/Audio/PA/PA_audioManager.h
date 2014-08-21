@@ -21,9 +21,6 @@ class PA_audioManager : public AudioManager{
 
     Q_OBJECT
     
-    long            fBufferSize;
-    long            fSampleRate;
-    
     bool                    fInit;
     
     PA_audioFader*          fCurrentAudio;

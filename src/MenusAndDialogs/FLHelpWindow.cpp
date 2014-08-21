@@ -124,7 +124,11 @@ void FLHelpWindow::setWinPropertiesText(const QString& currentText){
 //Set Faust Lib Text in Help Menu
 void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLibs){
     
-    const char** argv = new const char*[2];
+	int argc = 2;
+#ifdef _WIN32
+	argc+2;
+#endif
+    const char** argv = new const char*[argc];
     
     argv[0] = "-I";
     
@@ -132,35 +136,42 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     string libPath = fLibsFolder.toStdString();
     argv[1] = libPath.c_str();
     
+#ifdef _WIN32
+	argv[2] = "-l";
+	argv[3] = "llvm_math.ll";
+#endif
     string getError;
     
     string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
+
+    llvm_dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
+
+	if(temp != NULL){
+
+		MyMeta* meta = new MyMeta;
     
-    llvm_dsp_factory* temp = createDSPFactoryFromFile(file, 2, argv, "", getError, 3);
+		metadataDSPFactory(temp, meta);
     
-    MyMeta* meta = new MyMeta;
+		for(size_t i=0; i<meta->datas.size(); i++){
+        
+			string libName, key, value;
+        
+			size_t pos = meta->datas[i].first.find("/");
+        
+			if(pos != string::npos){
+				libName = meta->datas[i].first.substr(0, pos);
+				key = meta->datas[i].first.substr(pos+1);
+			}
+			else
+				key = meta->datas[i].first;
+        
+			value = meta->datas[i].second;
+        
+			infoLibs[libName].push_back(make_pair(key, value));
+		}
     
-    metadataDSPFactory(temp, meta);
-    
-    for(size_t i=0; i<meta->datas.size(); i++){
-        
-        string libName, key, value;
-        
-        size_t pos = meta->datas[i].first.find("/");
-        
-        if(pos != string::npos){
-            libName = meta->datas[i].first.substr(0, pos);
-            key = meta->datas[i].first.substr(pos+1);
-        }
-        else
-            key = meta->datas[i].first;
-        
-        value = meta->datas[i].second;
-        
-        infoLibs[libName].push_back(make_pair(key, value));
-    }
-    
-    deleteDSPFactory(temp);
+		deleteDSPFactory(temp);
+	}
 }
 
 void FLHelpWindow::setLibText(){

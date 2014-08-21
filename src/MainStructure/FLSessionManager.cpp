@@ -13,7 +13,7 @@
 
 #include "FLErrorWindow.h"
 
-#include "FLrenameDialog.h"
+//#include "FLrenameDialog.h"
 
 #include "faust/llvm-dsp.h"
 #ifdef REMOTE
@@ -161,7 +161,7 @@ QString FLSessionManager::nameToUniqueName(const QString& name, const QString& p
         
         QString tempPath = generalSettings->value(settingPath, "").toString();
         QString tempName = generalSettings->value(settingName, "").toString();
-        
+        /*
         while(tempName == name && path != "" && path != tempPath){
             
             FLrenameDialog* Msg = new FLrenameDialog(newName, 0);
@@ -173,7 +173,7 @@ QString FLSessionManager::nameToUniqueName(const QString& name, const QString& p
                 newName.remove(newName.indexOf(' '), 1);
             
             break;
-        }
+        }*/
     }
     generalSettings->endGroup();
     
@@ -442,7 +442,6 @@ QString FLSessionManager::getErrorFromCode(int code){
 }
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
-    
     //-------Clean Factory Folder if needed
     cleanSHAFolder();
     
@@ -468,7 +467,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     if(name == "")
         name = find_smallest_defaultName();
     
-    //    name = nameToUniqueName(name, path);
+    //name = nameToUniqueName(name, path);
     
     //--------Calculation of SHA Key
     
@@ -481,10 +480,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(settings){
         faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-        optLevel = settings->value("Compilation/OptValue", defaultOptions).toInt();
+        optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
     }
     
-    string organizedOptions = FL_reorganize_compilation_options(faustOptions);
+	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
     string optvalue = QString::number(optLevel).toStdString();
     
@@ -505,32 +504,30 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         writeFile(faustFile, faustContent);
     }
     
-        string fileToCompile(faustFile.toStdString());
-        string nameToCompile(name.toStdString());
-        
-    //----CreateFactory
+    string fileToCompile(faustFile.toStdString());
+    string nameToCompile(name.toStdString());
+  
+	//----CreateFactory
     
     factorySettings* mySetts = new factorySettings;
     factory* toCompile = new factory;
     string error;
-    
+	
     int argc;
-    const char** argv = getFactoryArgv(path, factoryFolder, faustOptions, argc);
+	const char** argv = getFactoryArgv(path, factoryFolder, faustOptions, argc);
     
     QString machineName = "local processing";
     
     if(settings)
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
     
-    
     if(machineName == "local processing"){
-        
-        mySetts->fType = TYPE_LOCAL;
+       mySetts->fType = TYPE_LOCAL;
         
         //----Use IR Saving if possible
         if(QFileInfo(irFile.c_str()).exists())
             toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", 0);
-        
+
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
             
@@ -545,7 +542,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
             else{
                 errorMsg = error.c_str();
-                return qMakePair(QString(""), (void*)NULL);
+			    return qMakePair(QString(""), (void*)NULL);
             }
         }
     }
@@ -572,7 +569,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     mySetts->fPath = path;
     mySetts->fName = name;
 
-    return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
+   return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
 dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg){
@@ -591,7 +588,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         //----Create DSP Instance
         compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
-        if(compiledDSP == NULL)
+		if(compiledDSP == NULL)
             errorMsg = "Impossible to compile DSP";
     }
 #ifdef REMOTE
@@ -636,7 +633,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         settings->setValue("Path", path);
         settings->setValue("Name", name);
         settings->setValue("SHA", factorySetts.first);
-    }
+	}
     
     return compiledDSP;
 }

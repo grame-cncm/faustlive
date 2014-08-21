@@ -459,6 +459,7 @@ void FLToolBar::syncVisualParams(){
     fOptionLine->setText(fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString());
     fOptValLine->setText(QString::number(fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt()));
     
+#ifdef HTTPCTRL
 //------ OSC
     bool checked = fSettings->value("Osc/Enabled", generalSettings->value("General/Network/OscDefaultChecked", false)).toBool();
     
@@ -475,7 +476,7 @@ void FLToolBar::syncVisualParams(){
     fHttpCheckBox->setChecked(checked);
     
     fHttpPort->setText(fSettings->value("Http/Port", "5510").toString());
-
+#endif
 #ifdef REMOTE
 //------ RemoteProcessing
     fCVLine->setText(fSettings->value("RemoteProcessing/CV", "64").toString());  

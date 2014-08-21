@@ -18,10 +18,10 @@
 
 PA_audioManager::PA_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg){
     
-    fBufferSize = settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
-    fSampleRate = settings->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
+	long bs = FLSettings::_Instance()->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
+    long sr = FLSettings::_Instance()->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     
-    fCurrentAudio = new PA_audioFader(fSampleRate, fBufferSize);
+    fCurrentAudio = new PA_audioFader(sr, bs);
 }
 PA_audioManager::~PA_audioManager(){
 
@@ -82,10 +82,11 @@ void PA_audioManager::stop(){
 
 //Init new dsp, that will fade in current audio
 bool PA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
-
-    printf("PA_audioManager::init_FadeAudio\n");
     
-    fFadeInAudio = new PA_audioFader(fSettings->get_SampleRate(), fSettings->get_BufferSize());
+	long bs = FLSettings::_Instance()->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
+    long sr = FLSettings::_Instance()->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
+   
+    fFadeInAudio = new PA_audioFader(sr, bs);
     
 	if(fFadeInAudio->init(name, DSP/*->getNumInputs(), DSP->getNumOutputs(), fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)){
 		//fFadeInAudio->set_dsp_aux(DSP);

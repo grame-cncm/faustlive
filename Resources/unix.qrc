@@ -1,5 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>/usr/local/lib/faust/scheduler.ll</file>
+<file>/usr/local/include/faust/gui/Styles/Default.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Blue.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Grey.qss</file>
+<file>/usr/local/include/faust/gui/Styles/Salmon.qss</file>
 </qresource>
 </RCC>

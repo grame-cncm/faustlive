@@ -42,10 +42,11 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
     connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
-    
+   
+#ifndef _WIN32
     FLServerHttp::createInstance();
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-    
+#endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->geometry().size(); 
     fScreenWidth = screenSize.width();
@@ -150,7 +151,9 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
+#ifndef _WIN32
     FLServerHttp::deleteInstance();
+#endif
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -1106,9 +1109,9 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     
     if(QFileInfo(filename).completeSuffix() != "tar")
         filename += ".tar";
-    
+#ifndef _WIN32
     untarFolder(filename);
-    
+#endif
     if(!importOption)
         shut_AllWindows();
     

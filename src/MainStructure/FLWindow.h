@@ -75,11 +75,10 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
-        
+
+#ifdef HTTPCTRL        
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
-    
-#ifdef HTTPCTRL
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 
@@ -223,10 +222,10 @@ class FLWindow : public QMainWindow
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-#endif
         void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
+#endif
         void            shut();
 #ifdef REMOTE
         void            RemoteCallback(int);        

@@ -53,10 +53,6 @@
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
 <file>Libs/TestLibs.dsp</file>
-<file>/usr/local/include/faust/gui/Styles/Default.qss</file>
-<file>/usr/local/include/faust/gui/Styles/Blue.qss</file>
-<file>/usr/local/include/faust/gui/Styles/Grey.qss</file>
-<file>/usr/local/include/faust/gui/Styles/Salmon.qss</file>
 <file>buildVersion.txt</file>
 <file>distVersion.txt</file>
 </qresource>

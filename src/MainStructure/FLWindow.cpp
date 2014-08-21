@@ -29,7 +29,9 @@ list<GUI*>               GUI::fGuiList;
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
+#ifndef _WIN32
 #include "FLServerHttp.h"
+#endif
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
@@ -69,9 +71,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #ifdef HTTPCTRL
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
+    fOscInterface = NULL;
 #endif
 
-    fOscInterface = NULL;
     fInterface = NULL;
     fRCInterface = NULL;
     fCurrent_DSP = NULL;
@@ -129,15 +131,15 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
-    
+
     if(factorySetts.second == NULL)
         return false;
-    
+  	
     if(!init_audioClient(errorMsg))
         return false;
-    
+
     fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
-    
+	
     if (fCurrent_DSP == NULL)
         return false;
     
@@ -145,12 +147,12 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
         fIsDefault = true;
         print_initWindow(init);
     }
-    
+
     if(allocateInterfaces(fSettings->value("Name", "").toString())){
        
         buildInterfaces(fCurrent_DSP);
-        
-        if(setDSP(errorMsg)){
+
+		if(setDSP(errorMsg)){
         
             start_Audio();
             frontShow();
@@ -163,7 +165,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             return true;
         } 
         else
-            deleteInterfaces();
+          deleteInterfaces();
     }
     else
         errorMsg = "Interface could not be allocated";
@@ -322,13 +324,15 @@ void FLWindow::setWindowsOptions(){
 #ifdef HTTPCTRL
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
-#endif
-    if(fOscInterface){        
+	
+	if(fOscInterface){        
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
         fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
     }
+    
+#endif
     
     fToolBar->syncVisualParams();
 }
@@ -413,7 +417,7 @@ int FLWindow::get_Port(){
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
-
+#ifndef WIN32
 void FLWindow::disableOSCInterface(){
     fToolBar->switchOsc(false);
 }
@@ -435,7 +439,7 @@ void catch_OSCError(void* arg){
     win->errorPrint("Too many OSC interfaces are opened at the same time! A new connection could not start");
     win->disableOSCInterface();
 }
-
+        
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
@@ -466,13 +470,12 @@ void FLWindow::allocateOscInterface(){
         argv[9] = "-errport";
         string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
         argv[10] = (char*) (errport.c_str());
-        
-#ifndef WIN32
+
         fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this);
-#endif
+
     }
 }
-
+#endif
 //----4 STEP OF THE INTERFACES LIFE
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
@@ -485,7 +488,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
         
         printf("Create QTGUI in allocateInterfaces\n");
         
-        fInterface = new QTGUI(this);
+        fInterface = new QTGUI((QWidget*)this);
         setCentralWidget(fInterface);
         fInterface->installEventFilter(this);
         
@@ -496,11 +499,11 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     fRCInterface = new FUI;
     if(!fRCInterface)
         return false;
+
     
+#ifdef HTTPCTRL    
     if(fSettings->value("Osc/Enabled", false).toBool())
         allocateOscInterface();
-    
-#ifdef HTTPCTRL
     if(fSettings->value("Http/Enabled", false).toBool())
         allocateHttpInterface();
 #endif
@@ -515,22 +518,23 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
     
     if(fRCInterface)
         compiledDSP->buildUserInterface(fRCInterface);
-            
+
+#ifdef HTTPCTRL
+    if(fHttpInterface)
+        compiledDSP->buildUserInterface(fHttpInterface);            
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
         
-#ifdef HTTPCTRL
-    if(fHttpInterface)
-        compiledDSP->buildUserInterface(fHttpInterface);
 #endif
+	return true;
 }
 
 void FLWindow::runInterfaces(){
-      
+ 
+#ifdef HTTPCTRL     
     if(fOscInterface)
         fOscInterface->run();
     
-#ifdef HTTPCTRL
     if(fHttpInterface){
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
@@ -547,12 +551,13 @@ void FLWindow::runInterfaces(){
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
 
-    if(fOscInterface){
+
+#ifdef HTTPCTRL
+	if(fOscInterface){
         delete fOscInterface;
         fOscInterface = NULL;
     }
 
-#ifdef HTTPCTRL
     if(fHttpInterface){
         deleteHttpInterface();
     }

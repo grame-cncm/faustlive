@@ -219,9 +219,9 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     
     fSource = source;
 //    setTitle(QFileInfo(fSource).baseName());
-    
-    QTGUI* interface = new QTGUI(this);
-    fCompiledDSP->buildUserInterface(interface);
+    QWidget* parent = (QWidget*) this;
+    QTGUI* inter = new QTGUI(parent);
+    fCompiledDSP->buildUserInterface(inter);
     
 //    interface->setMinimumSize(300,300);
     
@@ -241,7 +241,7 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
 //    inter->setPixmap(pixmap);
 //    inter->setSize(interface->size());
     
-    interface->setEnabled(false);
+    inter->setEnabled(false);
 //    inter->resize(150,150);
 //    interface->run();
     
@@ -249,10 +249,10 @@ void FLComponentItem::createInterfaceInRect(const QString& source){
     delete fCurrentWidget;
 //    delete interface;
     fLayout = new QVBoxLayout;
-    fLayout->addWidget(interface);
+    fLayout->addWidget(inter);
     setLayout(fLayout);
     
-    fCurrentWidget = interface;
+    fCurrentWidget = inter;
 }
 
 void FLComponentItem::dropEvent ( QDropEvent * event ){
