@@ -67,7 +67,6 @@ class FLApp : public QApplication
         FLHelpWindow*        fHelpWindow;        //Help Dialog
     
         FLPresentationWindow*            fPresWin;           //Presentation Window
-        QDialog*            fCompilingMessage;   //Entertaining the user during long operations
         QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
     
         FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
@@ -177,10 +176,6 @@ class FLApp : public QApplication
         void                deleteComponent();
     //--Session
         void                take_Snapshot();
-#ifndef _WIN32
-        void                tarFolder(const QString& folder);
-        void                untarFolder(const QString& folder);
-#endif
         void                recall_Snapshot(const QString& filename, bool importOption);
         void                recallSnapshotFromMenu();
         void                importSnapshotFromMenu();

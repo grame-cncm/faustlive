@@ -451,36 +451,32 @@ QString FLSessionManager::getErrorFromCode(int code){
 
 bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSettings* settings){
     
-    if(settings->value("AutomaticExport/Enabled", false).toBool()){
-    
-        QString faustOptions = settings->value("AutomaticExport/Options", "").toString();
+    QString faustOptions = settings->value("AutomaticExport/Options", "").toString();
 
-        int argc = get_numberParameters(faustOptions);
+    int argc = get_numberParameters(faustOptions);
         
-        const char** argv = new const char*[argc];
+    const char** argv = new const char*[argc];
         
-        QString copy = faustOptions;
+    QString copy = faustOptions;
         
-        for(int i=0; i<argc; i++){
+    for(int i=0; i<argc; i++){
             
-            string parseResult = parse_compilationParams(copy);
+        string parseResult = parse_compilationParams(copy);
             
-            char* intermediate = new char[parseResult.size()+1];
-            
-            strcpy(intermediate,parseResult.c_str());
-            
-            argv[i] = (const char*)intermediate;
-            printf("ARGV = %s\n", argv[i]);
-         }
-
-        string error;
-    
-        string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
-
-        printf("generate Aux Files From file : %s\n", sourceFile.c_str());
+        char* intermediate = new char[parseResult.size()+1];
         
-        generateAuxFilesFromFile(sourceFile, argc, argv, error);
+        strcpy(intermediate,parseResult.c_str());
+            
+        argv[i] = (const char*)intermediate;
+        printf("ARGV = %s\n", argv[i]);
     }
+
+    string error;
+    string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
+
+    printf("generate Aux Files From file : %s\n", sourceFile.c_str());
+        
+    generateAuxFilesFromFile(sourceFile, argc, argv, error);
 }
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
@@ -879,7 +875,20 @@ void FLSessionManager::copySHAFolder(const QString& snapshotFolder){
     }
 }
 
-map<int, QString>   FLSessionManager::snapshotRestoration(const QString& snapshotFolder){
+map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file){
+    
+    QString filename = file;
+    
+    if(QFileInfo(filename).completeSuffix() != "tar")
+        filename += ".tar";
+    
+#ifndef _WIN32
+    QString error;
+    if(!untarFolder(filename, error))
+        FLErrorWindow::_Instance()->print_Error(error);
+#endif
+    
+    QString snapshotFolder = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
     copySHAFolder(snapshotFolder);
     
@@ -986,7 +995,13 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     
     saveCurrentSources(snapshotFolder);
 
-    
+#ifndef _WIN32
+    QString error("");
+    if(tarFolder(snapshotFolder, error))
+        deleteDirectoryAndContent(snapshotFolder);
+    else
+        FLErrorWindow::_Instance()->print_Error(error);
+#endif
 }
           
 //Calculate the faust expanded version

@@ -17,6 +17,7 @@
 #include "FLWindow.h"
 #include "FLComponentWindow.h"
 #include "FLErrorWindow.h"
+#include "FLMessageWindow.h"
 #include "FLHelpWindow.h"
 #include "FLPresentationWindow.h"
 #include "utilities.h"
@@ -115,7 +116,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifdef HTTPCTRL
     launch_Server();
 #endif
-    fCompilingMessage = NULL;
     
     //If no event opened a window half a second after the application was created, a initialized window is created
     fInitTimer = new QTimer(this);
@@ -547,19 +547,6 @@ FLWindow* FLApp::getActiveWin(){
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
         
         if((*it)->isActiveWindow())
-            return *it;
-    }
-    
-    return NULL;
-}
-
-FLWindow* FLApp::getWinFromHttp(int port){
-    
-    QList<FLWindow*>::iterator it;
-    
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        
-        if(port == (*it)->get_Port())
             return *it;
     }
     
@@ -1031,9 +1018,7 @@ void FLApp::take_Snapshot(){
         FLSessionManager::_Instance()->createSnapshot(filename);
         
         set_Current_Session(filename);
-#ifndef _WIN32
-        tarFolder(filename);
-#endif
+
         StopProgressSlot();
     }
 }
@@ -1067,33 +1052,6 @@ void FLApp::importSnapshotFromMenu(){
     
 }
 
-#ifndef _WIN32
-void FLApp::tarFolder(const QString& folder){
-
-    QString systemInstruct("tar cfv ");
-    systemInstruct += folder + ".tar " + folder;
-
-    QString errorMsg("");
-    
-    if(!executeInstruction(systemInstruct, errorMsg))
-        errorPrinting(errorMsg);
-    
-    deleteDirectoryAndContent(folder);
-
-}
-
-void FLApp::untarFolder(const QString& folder){
-
-    QString systemInstruct("tar xfv ");
-    systemInstruct += folder +" -C /";
-    
-    QString errorMsg("");
-    
-    if(!executeInstruction(systemInstruct, errorMsg))
-        errorPrinting(errorMsg);
-}
-#endif
-
 //----Recall or Import a Snapshot
 //@param : filename = snapshot that is loaded
 //@param : importOption = false for recalling | true for importing
@@ -1106,22 +1064,18 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
 	fRecalling = true;
     
     set_Current_Session(filename);
-    
-    if(QFileInfo(filename).completeSuffix() != "tar")
-        filename += ".tar";
-#ifndef _WIN32
-    untarFolder(filename);
-#endif
+
     if(!importOption)
         shut_AllWindows();
     
     QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
-    map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(folderName);
+    map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename);
     
     map<int, int> indexChanges;
     
     QList<int> currentIndexes = get_currentIndexes();
+    
 //    Creating mapping between saved index and new index
     for(map<int, QString>::iterator it = restoredSources.begin(); it != restoredSources.end(); it++){
         
@@ -1135,6 +1089,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
         indexChanges[it->first] = indexValue;
         currentIndexes.push_back(indexValue);
     }
+    
 //    Restore windows with new index
     for(map<int, int>::iterator it = indexChanges.begin(); it != indexChanges.end(); it++){
         
@@ -1269,8 +1224,7 @@ void FLApp::closeAllWindows(){
     
     FLW_List.clear();
     
-    FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    sessionManager->saveCurrentSources(fSessionFolder);
+    FLSessionManager::_Instance()->saveCurrentSources(fSessionFolder);
 }
 
 //Shut all Windows from Menu
@@ -1565,37 +1519,30 @@ void FLApp::update_AudioArchitecture(){
 
 //Display Messages like "Compiling..." / "Connection with server..."
 void FLApp::display_CompilingProgress(const QString& msg){
-    fCompilingMessage = new QDialog();
-    fCompilingMessage->setWindowFlags(Qt::FramelessWindowHint);
-    
-    QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
-    tittle->setAlignment(Qt::AlignCenter);
-    QLabel* text = new QLabel(msg, fCompilingMessage);
-    text->setAlignment(Qt::AlignCenter);
-    text->setStyleSheet("*{color: black}");
-    
-    QVBoxLayout* layoutSave = new QVBoxLayout;
-    
-    layoutSave->addWidget(tittle);
-    layoutSave->addWidget(new QLabel(tr("")));
-    layoutSave->addWidget(text);
-    layoutSave->addWidget(new QLabel(tr("")));
-    fCompilingMessage->setLayout(layoutSave);
-    
-    fCompilingMessage->move((fScreenWidth-fCompilingMessage->width())/2, (fScreenHeight-fCompilingMessage->height())/2);
-    fCompilingMessage->adjustSize();
-    fCompilingMessage->show();
-    fCompilingMessage->raise();
+    FLMessageWindow::_Instance()->displayMessage(msg);
+    FLMessageWindow::_Instance()->show();
+    FLMessageWindow::_Instance()->raise();
 }
 
 //Stop displaying the message
 void FLApp::StopProgressSlot(){
-    
-    fCompilingMessage->hide();
-    delete fCompilingMessage;
+    FLMessageWindow::_Instance()->hide();
 }
 
 //--------------------------FAUSTLIVE SERVER ------------------------------
+
+FLWindow* FLApp::getWinFromHttp(int port){
+    
+    QList<FLWindow*>::iterator it;
+    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
+        
+        if(port == (*it)->get_Port())
+            return *it;
+    }
+    
+    return NULL;
+}
 
 #ifdef HTTPCTRL
 FLWindow* FLApp::httpPortToWin(int port){

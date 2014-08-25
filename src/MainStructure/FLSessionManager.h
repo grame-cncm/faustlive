@@ -120,7 +120,7 @@ public:
     void                saveCurrentSources(const QString& sessionFolder);
     map<int, QString>   currentSessionRestoration();
     void                createSnapshot(const QString& snapshotFolder);
-    map<int, QString>   snapshotRestoration(const QString& snapshotFolder);
+    map<int, QString>   snapshotRestoration(const QString& filename);
     
 signals:
     void                error(const QString&);
