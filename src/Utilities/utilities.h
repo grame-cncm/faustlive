@@ -22,8 +22,10 @@ bool executeInstruction(const QString& instruct, QString& errorMsg);
 
 void deleteDirectoryAndContent(const QString& directory);
 
-bool rmDir(const QString &dirPath);
+bool tarFolder(const QString& folder, QString& errorMsg);
+bool untarFolder(const QString& folder, QString& errorMsg);
 
+bool rmDir(const QString &dirPath);
 bool cpDir(const QString &srcPath, const QString &dstPath);
 
 bool isStringInt(const char* word);

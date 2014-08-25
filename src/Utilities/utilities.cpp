@@ -122,6 +122,22 @@ void deleteDirectoryAndContent(const QString& directory){
     executeInstruction(rmInstruct, errorMsg);
 }
 
+bool tarFolder(const QString& folder, QString& errorMsg){
+    
+    QString systemInstruct("tar cfv ");
+    systemInstruct += folder + ".tar " + folder;
+    
+    return executeInstruction(systemInstruct, errorMsg);
+}
+
+bool untarFolder(const QString& folder, QString& errorMsg){
+    
+    QString systemInstruct("tar xfv ");
+    systemInstruct += folder +" -C /";
+    
+    return executeInstruction(systemInstruct, errorMsg);
+}
+
 //Remove a directory
 bool rmDir(const QString &dirPath){
     QDir dir(dirPath);

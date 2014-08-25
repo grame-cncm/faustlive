@@ -130,10 +130,16 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
 
+    FLMessageWindow::_Instance()->displayMessage("Compiling DSP...");
+    FLMessageWindow::_Instance()->show();
+    FLMessageWindow::_Instance()->raise();
+    
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
 
+    FLMessageWindow::_Instance()->hide();
+    
     if(factorySetts.second == NULL)
         return false;
   	
@@ -292,6 +298,19 @@ bool FLWindow::update_Window(const QString& source){
         return false;
 }
 
+//Reaction to source deletion
+void FLWindow::source_Deleted(){
+    
+    QString msg = "Warning your file : " + fSource + " was deleted. You are now working on an internal copy of this file.";
+    
+    fSource = FLSessionManager::_Instance()->contentOfShaSource(fSettings->value("SHA", "").toString());
+    
+    fSettings->setValue("Path", "");
+    
+    errorPrint(msg);
+    
+}
+
 //------------TOOLBAR RELATED ACTIONS
 
 //Set up of the Window ToolBar
@@ -310,16 +329,6 @@ void FLWindow::set_ToolBar(){
     connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
     connect(fToolBar, SIGNAL(switch_remotecontrol(bool)), this, SLOT(switchRemoteControl(bool)));
-}
-
-void FLWindow::set_StatusBar(){
-#ifdef REMOTE
-    fStatusBar = new FLStatusBar(fSettings, this);
-    
-    connect(fStatusBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
-    
-    setStatusBar(fStatusBar);
-#endif
 }
 
 //Set the windows options with current values
@@ -342,36 +351,9 @@ void FLWindow::setWindowsOptions(){
     fToolBar->syncVisualParams();
 }
 
-#ifndef _WIN32
-void FLWindow::updateOSCInterface(){
-    
-    save_Window();
-    
-    allocateOscInterface();
-    
-    fCurrent_DSP->buildUserInterface(fOscInterface);
-    recall_Window();
-    fOscInterface->run();
-    
-    setWindowsOptions();
-}
-#endif
-
 //Reaction to the modifications of the ToolBar options
 void FLWindow::modifiedOptions(){
     update_Window(fSource);
-}
-
-void FLWindow::source_Deleted(){
-
-    QString msg = "Warning your file : " + fSource + " was deleted. You are now working on an internal copy of this file.";
-    
-    fSource = FLSessionManager::_Instance()->contentOfShaSource(fSettings->value("SHA", "").toString());
-    
-    fSettings->setValue("Path", "");
-    
-    errorPrint(msg);
-    
 }
 
 //Reaction to the modification of outfile options
@@ -405,6 +387,18 @@ void FLWindow::resizingBig(){
     adjustSize();
 }
 
+//------------STATUSBAR RELATED ACTIONS
+
+void FLWindow::set_StatusBar(){
+#ifdef REMOTE
+    fStatusBar = new FLStatusBar(fSettings, this);
+    
+    connect(fStatusBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
+    
+    setStatusBar(fStatusBar);
+#endif
+}
+
 //Redirection machine switch
 void FLWindow::redirectSwitch(){
 #ifdef REMOTE
@@ -412,18 +406,6 @@ void FLWindow::redirectSwitch(){
         fStatusBar->remoteFailed();
     }
 #endif
-}
-
-//Accessor to Http & Osc Port
-int FLWindow::get_Port(){
-    
-#ifndef _WIN32
-    if(fHttpInterface != NULL)
-        return fHttpInterface->getTCPPort();
-    else
-#endif
-        // If the interface is not enabled, it's not running on any port
-        return 0;
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
@@ -485,6 +467,20 @@ void FLWindow::allocateOscInterface(){
 
     }
 }
+
+void FLWindow::updateOSCInterface(){
+    
+    save_Window();
+    
+    allocateOscInterface();
+    
+    fCurrent_DSP->buildUserInterface(fOscInterface);
+    recall_Window();
+    fOscInterface->run();
+    
+    setWindowsOptions();
+}
+
 #endif
 //----4 STEP OF THE INTERFACES LIFE
 
@@ -495,8 +491,6 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     setWindowTitle(intermediate);
     
     if(!fIsDefault){
-        
-        printf("Create QTGUI in allocateInterfaces\n");
         
         fInterface = new QTGUI((QWidget*)this);
         setCentralWidget(fInterface);
@@ -1051,6 +1045,18 @@ QString FLWindow::get_HttpUrl() {
     return url;
 }
 #endif
+
+//Accessor to Http & Osc Port
+int FLWindow::get_Port(){
+    
+#ifndef _WIN32
+    if(fHttpInterface != NULL)
+        return fHttpInterface->getTCPPort();
+    else
+#endif
+        // If the interface is not enabled, it's not running on any port
+        return 0;
+}
 
 //------------------------MENUS ACTIONS
 

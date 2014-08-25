@@ -166,6 +166,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
+    //@param : source = DSP to be compiled in the window
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
     
