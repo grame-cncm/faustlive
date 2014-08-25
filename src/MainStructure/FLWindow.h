@@ -32,6 +32,10 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
+#include "NJm_audioManager.h"
+
+//#include "tempName.h"
+
 class httpdUI;
 class QTGUI;
 class FLToolBar;
@@ -49,7 +53,7 @@ enum initType{
     kInitWhite
 };
 
-class FLWindow : public QMainWindow
+class FLWindow : public QMainWindow/*, public tempName*/
 {
     Q_OBJECT
     
@@ -75,16 +79,17 @@ class FLWindow : public QMainWindow
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
-
-#ifdef HTTPCTRL        
+    
+#ifndef _WIN32
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
+
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-
+#endif
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
-#endif    
+    
         AudioManager*   fAudioManager;
         bool            fAudioManagerStopped;
     
@@ -123,8 +128,7 @@ class FLWindow : public QMainWindow
         void            edit();
         void            paste();
         void            duplicate();
-
-#ifdef HTTPCTRL
+#ifndef _WIN32
         void            httpd_View();
 #endif
         void            svg_View();
@@ -171,6 +175,9 @@ class FLWindow : public QMainWindow
         void            stop_Audio();
         void            start_Audio();
     
+        NJm_audioManager*          fAudio;
+        static void*    startAudioSlave(void* arg);
+    
 //    In case audio architecture collapses
         static void     audioShutDown(const char* msg, void* arg);
         void            audioShutDown(const char* msg);
@@ -197,13 +204,16 @@ class FLWindow : public QMainWindow
         QString         getPath();
         QString         getName();
     
+//        virtual string  getName();
+        virtual string  json();
+    
         QString         getSHA();
         QString         get_source();
         int             get_Port();
         bool            is_Default();
     
     //Accessors to httpd Window
-#ifdef HTTPCTRL    
+#ifndef _WIN32    
     
     //Functions to create an httpd interface
         void            viewQrCode();
@@ -216,19 +226,28 @@ class FLWindow : public QMainWindow
     public slots :
     //Modification of the compilation options
         void            modifiedOptions();
+        void            generateAuxFiles();
         void            resizingBig();
         void            resizingSmall();
-#ifdef HTTPCTRL
+#ifndef _WIN32
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
         void            updateOSCInterface();
+
         void            switchOsc(bool);
         void            disableOSCInterface();
 #endif
         void            shut();
 #ifdef REMOTE
-        void            RemoteCallback(int);        
+        void            RemoteCallback(int);
+       
+        void            switchRemoteControl(bool);
+        virtual bool    createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency);
+        virtual bool    startNJdspAudio();
+        void            stopNJdspAudio(const char*);
+        virtual void    cleanInactiveNJdspInstance();
+        
         void            switchRelease(bool);
 #endif
     

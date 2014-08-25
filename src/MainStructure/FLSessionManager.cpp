@@ -449,6 +449,37 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
+bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSettings* settings){
+    
+    if(settings->value("AutomaticExport/Enabled", false).toBool()){
+    
+        QString faustOptions = settings->value("AutomaticExport/Options", "").toString();
+
+        int argc = get_numberParameters(faustOptions);
+        
+        const char** argv = new const char*[argc];
+        
+        QString copy = faustOptions;
+        
+        for(int i=0; i<argc; i++){
+            
+            string parseResult = parse_compilationParams(copy);
+            
+            char* intermediate = new char[parseResult.size()+1];
+            
+            strcpy(intermediate,parseResult.c_str());
+            
+            argv[i] = (const char*)intermediate;
+         }
+
+        string error;
+    
+        string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
+
+        generateAuxFilesFromFile(sourceFile, argc, argv, error);
+    }
+}
+
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
     //-------Clean Factory Folder if needed
     cleanSHAFolder();
@@ -528,6 +559,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(settings)
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
+    
+    generateAuxFiles(shaKey, settings);
     
     if(machineName == "local processing"){
        mySetts->fType = TYPE_LOCAL;

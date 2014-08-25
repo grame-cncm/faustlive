@@ -100,6 +100,8 @@ public:
     void            updateFolderDate(const QString& shaValue);
     void            cleanSHAFolder();
     
+    bool            generateAuxFiles(const std::string& shaKey, FLWinSettings* settings);
+    
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     
     dsp* createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);

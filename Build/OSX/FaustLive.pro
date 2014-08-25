@@ -37,6 +37,7 @@ QMAKE_INFO_PLIST = FaustLiveInfo.plist
 DEPENDPATH += /usr/local/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include
+INCLUDEPATH += /usr/local/include
 INCLUDEPATH += ../../src/Audio
 INCLUDEPATH += ../../src/MenusAndDialogs
 INCLUDEPATH += ../../src/MainStructure
@@ -46,7 +47,7 @@ INCLUDEPATH += ../../src/Utilities
 LLVMLIBS = $$system($$system(which llvm-config) --libs)
 LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust
+LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust -L/usr/local/lib
 LIBS+= $$LLVMDIR
 LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
@@ -75,9 +76,19 @@ equals(REMVAR, 1){
 	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
 					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
 	
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/tempName.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/TMutex.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.h \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.h
 				
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.cpp \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.cpp \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.cpp \
+				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.cpp
 }
 
 equals(CAVAR, 1){

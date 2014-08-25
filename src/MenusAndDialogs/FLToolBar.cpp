@@ -92,6 +92,23 @@ void FLToolBar::init(){
     compilationOptions->setLayout(compilationLayout);
     fContainer->addItem(compilationOptions, tr("Compilation"));
 
+//------ Automatic Export
+    QWidget* automaticExportBox = new QWidget();
+    QFormLayout* automaticExportLayout = new QFormLayout;
+    
+    fExportCheckBox = new QCheckBox;
+    connect(fExportCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+    
+    fAutomaticExportLine = new QLineEdit(tr(""), automaticExportBox);
+    fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
+    
+    automaticExportLayout->addRow("Enable Export", fExportCheckBox);
+    automaticExportLayout->addRow(new QLabel("Automatic Export Options"));
+    automaticExportLayout->addRow(fAutomaticExportLine);
+    
+    automaticExportBox->setLayout(automaticExportLayout);
+    fContainer->addItem(automaticExportBox, tr("Automatic Export"));
+    
 //------- OSC Control
 #ifdef HTTPCTRL
     
@@ -277,12 +294,22 @@ void FLToolBar::enableButton(int /*state*/){
 bool FLToolBar::hasStateChanged(){
     return 
         hasCompilationOptionsChanged()||
+        wasAutomaticExportSwitched() ||
+        hasAutomaticExportChanged() ||
         wasOscSwitched() ||
         hasOscOptionsChanged() ||
         wasHttpSwitched() ||
         wasRemoteControlSwitched() ||
         hasRemoteOptionsChanged() ||
         hasReleaseOptionsChanged();    
+}
+
+bool FLToolBar::wasAutomaticExportSwitched(){
+    
+    if(fExportCheckBox->isChecked() != fSettings->value("AutomaticExport/Enabled", false))
+        return true;
+    else
+        return false;
 }
 
 bool FLToolBar::hasCompilationOptionsChanged(){
@@ -299,6 +326,13 @@ bool FLToolBar::hasCompilationOptionsChanged(){
     if(fOptionLine->text() != (fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString()) || 
        value != fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt())
             return true;
+    else
+        return false;
+}
+
+bool FLToolBar::hasAutomaticExportChanged(){
+    if(fAutomaticExportLine->text() != (fSettings->value("AutomaticExport/Options", "-lang ajs -O /Users/denoux/Desktop").toString()))
+        return true;
     else
         return false;
 }
@@ -375,6 +409,13 @@ bool FLToolBar::hasReleaseOptionsChanged(){
 
 //Reaction to Apply Changes Button
 void FLToolBar::modifiedOptions(){
+    
+    if(hasAutomaticExportChanged() || wasAutomaticExportSwitched()){
+        fSettings->setValue("AutomaticExport/Options", fAutomaticExportLine->text());
+        fSettings->setValue("AutomaticExport/Enabled", fExportCheckBox->isChecked());
+        if(fExportCheckBox->isChecked())
+            emit generateNewAuxFiles();
+    }
     
 #ifdef OSCVAR   
     if(hasCompilationOptionsChanged()){
@@ -458,6 +499,10 @@ void FLToolBar::syncVisualParams(){
 //---- Compilation
     fOptionLine->setText(fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString());
     fOptValLine->setText(QString::number(fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt()));
+    
+//---- Automatic Export
+    fExportCheckBox->setChecked(fSettings->value("AutomaticExport/Enabled", false).toBool());
+    fAutomaticExportLine->setText(fSettings->value("AutomaticExport/Options", "-lang ajs -O /Users/denoux/Desktop").toString());
     
 #ifdef HTTPCTRL
 //------ OSC

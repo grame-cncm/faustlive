@@ -10,10 +10,9 @@
 #include "faust/gui/faustqt.h"
 #ifndef _WIN32
 #include "faust/gui/OSCUI.h"
-#ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
 #endif
-#endif
+
 
 list<GUI*>               GUI::fGuiList;
 
@@ -38,9 +37,11 @@ list<GUI*>               GUI::fGuiList;
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
+#include "faust/gui/JSONUI.h"
+#include "Server.h"
 #endif
 
-#include "faust/audio/dsp.h"
+#include "faust/llvm-dsp.h"
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
@@ -64,11 +65,12 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fWindowName = baseName +  QString::number(fWindowIndex);
     
     fIsDefault = false;
+    fAudio = NULL;
     fAudioManagerStopped = false;
     
     //    Initializing class members
     
-#ifdef HTTPCTRL
+#ifndef _WIN32
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
     fOscInterface = NULL;
@@ -301,6 +303,7 @@ void FLWindow::set_ToolBar(){
     
     connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
     connect(fToolBar, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
+    connect(fToolBar, SIGNAL(generateNewAuxFiles()), this, SLOT(generateAuxFiles()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
@@ -321,11 +324,13 @@ void FLWindow::set_StatusBar(){
 
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
-#ifdef HTTPCTRL
+    
+#ifndef _WIN32
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
-	
+    
 	if(fOscInterface){        
+    
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
@@ -369,6 +374,11 @@ void FLWindow::source_Deleted(){
     
 }
 
+//Reaction to the modification of outfile options
+void FLWindow::generateAuxFiles(){
+    FLSessionManager::_Instance()->generateAuxFiles(getSHA().toStdString(), fSettings);
+}
+
 //Reaction to the resizing the toolbar
 void FLWindow::resizingSmall(){
     
@@ -407,7 +417,7 @@ void FLWindow::redirectSwitch(){
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifdef HTTPCTRL
+#ifndef _WIN32
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
@@ -500,10 +510,10 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     if(!fRCInterface)
         return false;
 
-    
 #ifdef HTTPCTRL    
     if(fSettings->value("Osc/Enabled", false).toBool())
         allocateOscInterface();
+    
     if(fSettings->value("Http/Enabled", false).toBool())
         allocateHttpInterface();
 #endif
@@ -524,14 +534,13 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
         compiledDSP->buildUserInterface(fHttpInterface);            
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
-        
 #endif
 	return true;
 }
 
 void FLWindow::runInterfaces(){
- 
-#ifdef HTTPCTRL     
+
+#ifdef HTTPCTRL
     if(fOscInterface)
         fOscInterface->run();
     
@@ -551,9 +560,8 @@ void FLWindow::runInterfaces(){
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
 
-
-#ifdef HTTPCTRL
-	if(fOscInterface){
+#ifndef _WIN32
+    if(fOscInterface){
         delete fOscInterface;
         fOscInterface = NULL;
     }
@@ -633,7 +641,7 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#ifdef HTTPCTRL
+#ifndef _WIN32
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
@@ -642,11 +650,9 @@ void FLWindow::close_Window(){
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
-#ifdef REMOTE
     if(fStatusBar)
         delete fStatusBar;
-#endif    
-
+    
     if(fAudioManager)
         delete fAudioManager;
        
@@ -939,7 +945,7 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#ifdef HTTPCTRL
+#ifndef _WIN32
 void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
@@ -984,7 +990,7 @@ void FLWindow::switchHttp(bool on){
 }
 
 void FLWindow::viewQrCode(){
-
+    
     if(!fIsDefault){
         
         if(fHttpInterface == NULL){
@@ -1021,6 +1027,7 @@ void FLWindow::viewQrCode(){
 }
 
 void FLWindow::exportToPNG(){
+    
     QFileDialog* fileDialog = new QFileDialog;
     fileDialog->setConfirmOverwrite(true);
     
@@ -1185,7 +1192,7 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#ifdef HTTPCTRL
+#ifndef _WIN32
 void FLWindow::httpd_View(){
     
     fToolBar->switchHttp(true);    
@@ -1261,6 +1268,96 @@ void FLWindow::RemoteCallback(int error_code){
 }
 
 //----------------REMOTE CONTROL
+void FLWindow::switchRemoteControl(bool){
+        
+//    printf("");
+    
+//    Server::_Instance()->declareRemoteControl(fSettings->value("SHA", "").toString().toStdString(), getName().toStdString(), this);
+}
+
+bool    FLWindow::createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency){
+    
+    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/CV", celt.c_str());
+    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/IP", ip.c_str());
+    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Port", port.c_str());
+    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/MTU", mtu.c_str());
+    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Latency", latency.c_str());
+}
+
+void FLWindow::stopNJdspAudio(const char* errorMsg){
+    
+    printf("FLWindow::stopNJdspAudio\n");
+    
+    fAudio->stop();
+    
+    fAudioManager->start();
+    fAudioManagerStopped = false;
+    
+    errorPrint(errorMsg);
+}
+
+void* FLWindow::startAudioSlave(void* arg){
+    
+    FLWindow * dspToStart = (FLWindow*) arg;
+    
+    bool success = false;
+    
+//    if(Slave_DSP::fLocker.Lock()){
+        
+        dspToStart->fAudio = new NJm_audioManager(NULL, NULL);
+    connect(dspToStart->fAudio, SIGNAL(errorSignal(const char*)), dspToStart, SLOT(stopNJdspAudio(const char*)));
+    
+        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrent_DSP)) {
+            if (!dspToStart->fAudio->start())
+                printf("Start slave audio failed\n");
+            else{
+//                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrent_DSP->getNumInputs(), dspToStart->fCurrent_DSP->getNumOutputs());
+                success = true;
+            }
+        }
+        else
+            printf("Init slave audio failed\n");
+        
+//        if(!success)
+//            deleteSlaveDSPInstance(dspToStart);
+        
+//        Slave_DSP::fLocker.Unlock();
+//    }
+    
+}
+
+bool FLWindow::startNJdspAudio(){
+    
+    fAudioManager->stop();
+    fAudioManagerStopped = true;
+    
+    pthread_t myNewThread;
+    
+    if(!pthread_create(&myNewThread, NULL, FLWindow::startAudioSlave, this)){
+        return true;
+    }
+    else 
+        return false;
+}
+
+void    FLWindow::cleanInactiveNJdspInstance(){
+    
+    if(fAudio && !fAudio->is_connexion_active() && fAudioManagerStopped){
+        fAudioManager->start();
+        fAudioManagerStopped = false;
+    }
+
+    printf("CLEAN INACTIVE\n");
+}
+
+string FLWindow::json(){
+    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
+    fCurrent_DSP->buildUserInterface(&json);    
+    string answer = json.JSON();
+    
+    return answer;
+}
+
 void FLWindow::switchRelease(bool){
     
 }

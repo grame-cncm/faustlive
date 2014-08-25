@@ -74,11 +74,11 @@ FLApp reimplements QApplication. For that matter, it contains the main event loo
 
 The menus are handled differently, depending on the platform. \\
 On OSX, the menu of the application appears in the system external menu-bar. Depending on the front window, the specific menus will show. \\
-On Windows and Linux, each window of the application has its own menu-bar. There is no general menu-bar. That is why, when the last window is closed, the application quits : no more actions are available. \\
+On Windows and Linux, each window of the application has its own menu-bar. There is no general menu-bar. That is why, when the last window is closed, the application quits. \\
 
-While some actions are specific to the windows (edit, export, ...), others  are to be treated by the application (new, open, ...). The application-related menus and actions have to be created by the application to be connected to its SLOT. When a window is created, it receives its menus created by the application. 
+While some actions are specific to the windows (edit, export, ...), others  are to be treated by the application (new, open, ...). The application-related menus and actions have to be created by the application to be connected to its SLOT. 
 
-So, FLApp contains the following functions :
+So, FLApp contains the following functions, for menu creation :
 \begin{itemize}
 \item create\_FileMenu() : QMenu* 
 \item create\_ExampleMenu() : QMenu*
@@ -86,6 +86,8 @@ So, FLApp contains the following functions :
 \item create\_NavigateMenu() : QMenu*
 \item create\_HelpMenu() : QMenu*
 \end{itemize}
+
+In order to appear in the window menu-bar, a list of menus is passed to the window when it is created.
 
 \subsection{Create FLWindow}
 
@@ -101,6 +103,8 @@ Help Dialog
 \subsubsection{}
 %%%%%%%%%%%%%%%%%WINDOW%%%%%%%%%%%%%%%%%
 \section{FLWindow}
+
+
 
 %%%%%%%%%%%%%%%%%SESSION MANAGER%%%%%%%%%%%%%%%%%
 \section{FLSessionManager}
@@ -121,16 +125,17 @@ The current session is composed of :
 		\item Settings.ini : the window specific settings as described in FLWinSettings
 		\item Graphics.rc : file saving the graphical parameters of the last DSP contained in the window
 		\item Connections.jc : file saving the last known Jack connections of the window
-		\item SHAKey.dsp : copy of the faust code of the last DSP contained in the window (in case the original file is deleted or modified outside of FaustLive execution)
+		\item SHAKey.dsp* : copy of the faust code of the last DSP contained in the window (in case the original file is deleted or modified outside of FaustLive execution)
 	\end{itemize}
 \item SHAFolder : folder containing the DSP-specific folders, containing : 
 	\begin{itemize}
-		\item SHAKey : LLVM intermediate representation of the DSP, to accelerate compilation when the same DSP is reused.
-		\item SHAKey.dsp : copy of the Faust code corresponding to this SHAKey
-		\item SHAKey-svg : folder containing the svg diagram resources
+		\item SHAKey* : LLVM intermediate representation of the DSP, to accelerate compilation when the same DSP is reused.
+		\item SHAKey.dsp*: copy of the Faust code corresponding to this SHAKey
+		\item SHAKey-svg* : folder containing the svg diagram resources
 	\end{itemize}
 \end{itemize}
 
+*To establish a unique link between a DSP and its saving files, the SHA-1 hash function is used. This SHAKey is calculated from the faust code before compilation and its compilation options. That way, one code, compiled with different options is always saved. 
 
 \subsection{DSP compilation}
 
@@ -148,10 +153,10 @@ The classes that will need compilation will only receive a pointer to a dsp, wit
 
 Still, the two steps cannot be united in the same function, because some audio initialization is needed between the two steps (for the remote case where the sample rate and buffer size are needed to create the instance and only available once the factory is created...).
 
-In conclusion, to create a dsp, you have to call :
+In conclusion, to create a dsp, there are those two functions :
 \begin{itemize}
-\item createFactory(const QString\& source, QString\& errorMsg, FLWinSettings* settings = NULL) : returns QPair<QString, void*> ;
-\item createDSP(QPair<QString, void*> factorySetts, const QString\& source, QString\& errorMsg, FLWinSettings* settings = NULL, RemoteDSPErrorCallback error\_callback = NULL, void* error\_callback\_arg = NULL) : returns dsp*;
+\item createFactory(const QString\& source, QString\& errorMsg, FLWinSettings* settings = NULL) \\ returns QPair<QString, void*> ;
+\item createDSP(QPair<QString, void*> factorySetts, const QString\& source, QString\& errorMsg, FLWinSettings* settings = NULL, RemoteDSPErrorCallback error\_callback = NULL, void* error\_callback\_arg = NULL) \\ returns dsp*;
 \end{itemize}
 
 \subsubsection{create Factory}
@@ -172,7 +177,7 @@ FLSettings is a singleton.
 To save settings, the class FLSettings reimplements QSettings. A hierarchy, presented {Figure \ref{fig:FLSettings}, allows us to access the settings easily. \\
 
 The setting file is saved at the root of the current session (/Users/you/.FaustLiveCurrentSession-version).
-
+ 
 \begin{figure}[!h]
 \begin{center}
 \includegraphics[width=\columnwidth]{images/FLSettings}
@@ -180,65 +185,8 @@ The setting file is saved at the root of the current session (/Users/you/.FaustL
 \label{fig:FLSettings}
 \end{center}
 \end{figure}
-
-\begin{multicols}{2}
-\begin{itemize}
-\item General
-	\begin{itemize}
-	\item Compilation
-		\begin{itemize}
-		\item FaustOptions <QString>
-		\item OptValue <Int>
-		\end{itemize}
-	\item Style <QString>
-	\item Network
-		\begin{itemize}
-		\item FaustWebUrl <QString>
-		\item HttpDropPort <Int>
-		\item HttpDefaultChecked <Bool>
-		\item OscDefaultChecked <Bool>
-		\end{itemize}
-	\item RecentFiles
-		\begin{itemize}
-		\item 1/2/.../n <QString>
-		\end{itemize}
-	\item RecentSession
-		\begin{itemize}
-		\item 1/2/.../n <QString>
-		\end{itemize}
-	\item Audio
-		\begin{itemize}
-		\item DriverName <QString>
-		\item SampleRate <Int>
-		\item BufferSize <Int>
-		\item Jack
-			\begin{itemize}
-			\item AutoConnect <Bool>
-			\end{itemize}
-		\item NetJack
-			\begin{itemize}
-			\item IP <QString>
-			\item MTU <Int>
-			\item CV <Int>
-			\item Latency <Int>
-			\item Port <Int>
-			\end{itemize}
-		\end{itemize}
-	\end{itemize}
-\item{Windows}
-	\begin{itemize}
-	\item FLW-i
-		\begin{itemize}
-		\item Name <QString>
-		\item SHA <QString>
-		\item Path <QString>
-		\end{itemize}
-	\end{itemize}
-\end{itemize}
-\end{multicols}
-
  
-For example, you can access the value like this :\\
+For example, the value is accessible like this :\\
 \textit{int httpPort = FLSettings::\_Instance()->value("General/Network/HttpDropPort", defaultValue);}
 
 %%%%%%%%%%%%%%%%%WINDOW SETTINGS%%%%%%%%%%%%%%%%%
@@ -254,103 +202,96 @@ FLWinSettings reimplements QSettings. But, this class is not a singleton, each F
 \end{center}
 \end{figure}
 
-\begin{itemize}
-\begin{multicols}{2}
-\item NumOutputs <Int>
-\item NumInputs <Int>
-\item Name <QString> ***
-\item SHA <QString> ***
-\item Path <QString> ***
 
-\item Compilation
-	\begin{itemize}
-		\item FaustOptions <QString>
-		\item OptValue <Int>
-	\end{itemize}
-
-\item Http
-	\begin{itemize}
-		\item Enabled <Bool>
-	\end{itemize}
-	
-\item Position
-	\begin{itemize}
-		\item x <Int>
-		\item y <Int>
-	\end{itemize}
-	
-\item Osc
-	\begin{itemize}
-		\item Enabled <Bool>
-		\item InPort <QString>
-		\item OutPort <QString>
-		\item ErrPort <QString>
-		\item DestHost <QString>
-	\end{itemize}
-	
-\item Release
-	\begin{itemize}
-		\item Enabled <Bool>
-	\end{itemize}
-	
-\item RemoteProcessing
-	\begin{itemize}
-		\item CV <QString>
-		\item MTU <QString>
-		\item Latency <QString>
-		\item MachineName <QString>
-		\item MachineIP <QString>
-		\item MachinePort <QString>
-	\end{itemize}
-		
-\end{multicols}
-\end{itemize}
-
-For example, you can access the value like this :\\
+For example, the value is accesible like this :\\
 \textit{int oscInPort = fSettings->value("Osc/InPort", defaultValue);} \\
 
- *** The added feature of FLWinSettings, compared to QSettings, is to synchronize three parameters of the window with the general settings. That way, Name, SHA and Path are accessible from the general settings. This feature is really usefull for snaspshot and session restoration, to have a global vision of the existing windows.
+ *** The added feature of FLWinSettings, compared to QSettings, is to synchronize three parameters of the window with the general settings. That way, Name, SHA and Path are also accessible from the general settings. This feature is really usefull for snaspshot and session restoration, to have a global vision of the existing windows.
 
 %%%%%%%%%%%%%%%%%AUDIO STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Audio}
 
 \subsection{Audio drivers used by FaustLive}
  
-Depending on the operating system and the compiling options, it is possible to embed different audio architectures to FaustLive.
+Depending on the operating system and the compiling options, it is possible to embed different audio architectures in FaustLive.
 Default drivers are :
-- Coreaudio on OSX
-- Jack on Linux
-- Portaudio on Windows
+\begin{itemize}
+\item Coreaudio on OSX
+\item Jack on Linux
+\item Portaudio on Windows
+\end{itemize}
 
 Then Jack, NetJack and PortAudio can be added with make options : JACK=1 NETJACK=1 PORTAUDIO=1.
 
 \subsection{Code Organisation}
---> General
---> Crossfade
---> 
+
+The general structure of the code is based on the "abstract factory" pattern. That way, the class "AudioCreator" is the only class knowing which type of driver is used, creating the driver-specific factory.  \\
+
+The abstract factory contains the following pure virtual functions :
+\begin{itemize}
+\item createAudioSettings(QGroupBox* parent)
+\item createAudioManager(AudioShutDownCallaback, void* arg)
+\end{itemize}
+
+Then each audio driver has its own set of classes :
+\begin{itemize}
+\item audioFactory : creates the driver-specific elements (audioSettings and audioManager)
+\item audioSettings : contains the settings needed by the driver and their graphical representation
+\item audioFader : mixes the audio and crossfade features
+\item audioManager : manipulates the audio faders and manage their crossfades 
+\end{itemize}
+
+\subsection{Crossfade implementation}
+
+Some basic functions are common to all implementations and are divided into two classes :
+\begin{itemize}
+\item AudioFader\_Interface : containing the basic instructions needed by the client to launch a crossfade and know when it stopped. 
+\item AudioFader\_Implementation : containing the calculation functions of the crossfade.
+\end{itemize}
+
+In order to add the crossfade feature to the audio clients, a reimplementation of the audio classes was made.
+The doble inheritance of these "audioFader" permits to mix the audio features and the crossfade features. \\
+The separation between interface and implementation sometimes had to be made because some audio classes (like coreaudio-dsp) already made the difference (coreaudio/TCoreAudioRenderer). 
+
+\subsection{AudioManager}
+
+There are two approach of the audio manager structure :
+\begin{itemize}
+\item the one managing one current client and fading the DSPs in one only client
+\item the one managing one current client and creating a second one fading in to replace the current one
+\end{itemize}
 
 \subsection{How to add a new audio architecture}
 
-1) Implement the classes : \\
-	- audioFader\\
-	- audioFactory\\
-	- audioManager\\
-	- audioSettings\\
+To add a new type of driver audio in FaustLive, the first step is to implement the driver-specific set of classes :
+\begin{itemize}
+\item audioFactory
+\item audioSettings
+\item audioManager
+\item audioFader
+\end{itemize}
 
-2) Modify AudioCreator to add the architecture in\\
-	- enum audioArchitecture\\
-	- add item in fAudioArchitecture\\
-	- add case in createFactory\\
-	- add case in read/write Settings\\
+Then, some elements have to be added to the class "AudioCreator" : 
+\begin{itemize}
+\item add the new architecture to the enum "AudioArchitecture"
+\item add a new item in the comboBox "fAudioArchitecture"
+\item add a new case in createFactory
+\end{itemize}
 
-3) Modify FaustLive.pro to add the libraries through conditional Compilation
+Finally, FaustLive.pro has to be modified (for each platform compatible with the new driver), in order to add the librairies (through conditional compilation or not).
+
+%%%%%%%%%%%%%%%%%HTTP INTERFACES%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%OSC INTERFACES%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%REMOTE CONTROL%%%%%%%%%%%%%%%%%
 
 
+%%%%%%%%%%%%%%%%%DISTRIBUTION STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Distribution Structure}
 
 --> Build Folder with targets
 --> 
-
 
 \subsection{Create a new distribution}
 
