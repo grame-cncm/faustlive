@@ -280,7 +280,29 @@ void FLToolBar::collapseAction(){
     setOrientation(Qt::Horizontal);
 }
 
-FLToolBar::~FLToolBar(){}
+FLToolBar::~FLToolBar(){
+
+    delete fWindowOptions;
+    delete fSaveButton;
+    delete fOptionLine;
+    delete fOptValLine;
+    delete fExportCheckBox;
+    delete fAutomaticExportLine;
+    delete fHttpCheckBox;
+    delete fHttpPort;
+    delete fOSCCheckBox;
+    delete fPortInOscLine;
+    delete fPortOutOscLine;
+    delete fPortErrOscLine;
+    delete fRemoteControlIP;
+    delete fRemoteControlCheckBox;
+    delete fCVLine;
+    delete fMTULine;
+    delete fLatLine;
+    delete fDestHostLine;
+    delete fPublishBox;
+    delete fContainer;
+}
 
 //Changes in parameters = enable save changes button
 void FLToolBar::enableButton(const QString& /*newText*/){
