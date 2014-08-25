@@ -74,22 +74,22 @@ equals(REMVAR, 1){
 	LIBS+=-lcurl
 	LIBS+=-llo
 
-	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
-					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
-	
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/tempName.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/TMutex.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.h \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.h
-				
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.cpp \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.cpp \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.cpp \
-				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.cpp
+#	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
+#					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
+#	
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/tempName.h \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/TMutex.h \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.h \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.h \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.h \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.h
+#				
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp 
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.cpp \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.cpp \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.cpp \
+#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.cpp
 }
 
 equals(CAVAR, 1){
