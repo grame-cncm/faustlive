@@ -205,7 +205,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         QString         getName();
     
 //        virtual string  getName();
-        virtual string  json();
+//        virtual string  json();
     
         QString         getSHA();
         QString         get_source();

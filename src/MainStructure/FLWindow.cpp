@@ -1349,14 +1349,14 @@ void    FLWindow::cleanInactiveNJdspInstance(){
 //
 //    printf("CLEAN INACTIVE\n");
 }
-
-string FLWindow::json(){
-    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
-    fCurrent_DSP->buildUserInterface(&json);    
-    string answer = json.JSON();
-    
-    return answer;
-}
+//
+//string FLWindow::json(){
+//    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
+//    fCurrent_DSP->buildUserInterface(&json);    
+//    string answer = json.JSON();
+//    
+//    return answer;
+//}
 
 void FLWindow::switchRelease(bool){
     
