@@ -38,7 +38,8 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
     
     fSaveButton = new QPushButton("Apply Changes");
     fSaveButton->setFlat(true);
-    fSaveButton->setEnabled(false);
+//    fSaveButton->setEnabled(false);
+    fSaveButton->setEnabled(true);
     connect(fSaveButton, SIGNAL(clicked()), this, SLOT(modifiedOptions()));
     
     fSaveButton->setStyleSheet("*:flat{"
@@ -284,11 +285,11 @@ FLToolBar::~FLToolBar(){}
 //Changes in parameters = enable save changes button
 void FLToolBar::enableButton(const QString& /*newText*/){
 
-    fSaveButton->setEnabled(hasStateChanged());
+//    fSaveButton->setEnabled(hasStateChanged());
 }
 
 void FLToolBar::enableButton(int /*state*/){
-    fSaveButton->setEnabled(hasStateChanged());
+//    fSaveButton->setEnabled(hasStateChanged());
 }
 
 bool FLToolBar::hasStateChanged(){
@@ -473,7 +474,7 @@ void FLToolBar::modifiedOptions(){
         emit switch_release(fPublishBox->isChecked());
     }
 #endif
-    fSaveButton->setEnabled(false);
+//    fSaveButton->setEnabled(false);
 }
                              
 void FLToolBar::switchHttp(bool on){
@@ -533,7 +534,7 @@ void FLToolBar::syncVisualParams(){
     
     fPublishBox->setChecked(checked);
 #endif
-    fSaveButton->setEnabled(false);
+//    fSaveButton->setEnabled(false);
 }
 
 

@@ -470,12 +470,15 @@ bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSetti
             strcpy(intermediate,parseResult.c_str());
             
             argv[i] = (const char*)intermediate;
+            printf("ARGV = %s\n", argv[i]);
          }
 
         string error;
     
         string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
+        printf("generate Aux Files From file : %s\n", sourceFile.c_str());
+        
         generateAuxFilesFromFile(sourceFile, argc, argv, error);
     }
 }
