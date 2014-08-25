@@ -32,7 +32,7 @@
 #include "AudioCreator.h"
 #include "AudioManager.h"
 
-#include "NJm_audioManager.h"
+//#include "NJm_audioManager.h"
 
 //#include "tempName.h"
 
@@ -175,7 +175,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            stop_Audio();
         void            start_Audio();
     
-        NJm_audioManager*          fAudio;
+//        NJm_audioManager*          fAudio;
         static void*    startAudioSlave(void* arg);
     
 //    In case audio architecture collapses

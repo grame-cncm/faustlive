@@ -65,7 +65,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fWindowName = baseName +  QString::number(fWindowIndex);
     
     fIsDefault = false;
-    fAudio = NULL;
+//    fAudio = NULL;
     fAudioManagerStopped = false;
     
     //    Initializing class members
@@ -1286,38 +1286,38 @@ bool    FLWindow::createNJdspInstance(const string& name, const string& key, con
 
 void FLWindow::stopNJdspAudio(const char* errorMsg){
     
-    printf("FLWindow::stopNJdspAudio\n");
-    
-    fAudio->stop();
-    
-    fAudioManager->start();
-    fAudioManagerStopped = false;
-    
-    errorPrint(errorMsg);
+//    printf("FLWindow::stopNJdspAudio\n");
+//    
+//    fAudio->stop();
+//    
+//    fAudioManager->start();
+//    fAudioManagerStopped = false;
+//    
+//    errorPrint(errorMsg);
 }
 
 void* FLWindow::startAudioSlave(void* arg){
-    
-    FLWindow * dspToStart = (FLWindow*) arg;
-    
-    bool success = false;
-    
+//    
+//    FLWindow * dspToStart = (FLWindow*) arg;
+//    
+//    bool success = false;
+//    
 //    if(Slave_DSP::fLocker.Lock()){
-        
-        dspToStart->fAudio = new NJm_audioManager(NULL, NULL);
-    connect(dspToStart->fAudio, SIGNAL(errorSignal(const char*)), dspToStart, SLOT(stopNJdspAudio(const char*)));
-    
-        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrent_DSP)) {
-            if (!dspToStart->fAudio->start())
-                printf("Start slave audio failed\n");
-            else{
+//        
+//        dspToStart->fAudio = new NJm_audioManager(NULL, NULL);
+//    connect(dspToStart->fAudio, SIGNAL(errorSignal(const char*)), dspToStart, SLOT(stopNJdspAudio(const char*)));
+//    
+//        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrent_DSP)) {
+//            if (!dspToStart->fAudio->start())
+//                printf("Start slave audio failed\n");
+//            else{
 //                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrent_DSP->getNumInputs(), dspToStart->fCurrent_DSP->getNumOutputs());
-                success = true;
-            }
-        }
-        else
-            printf("Init slave audio failed\n");
-        
+//                success = true;
+//            }
+//        }
+//        else
+//            printf("Init slave audio failed\n");
+//        
 //        if(!success)
 //            deleteSlaveDSPInstance(dspToStart);
         
@@ -1327,27 +1327,27 @@ void* FLWindow::startAudioSlave(void* arg){
 }
 
 bool FLWindow::startNJdspAudio(){
-    
-    fAudioManager->stop();
-    fAudioManagerStopped = true;
-    
-    pthread_t myNewThread;
-    
-    if(!pthread_create(&myNewThread, NULL, FLWindow::startAudioSlave, this)){
-        return true;
-    }
-    else 
-        return false;
+//    
+//    fAudioManager->stop();
+//    fAudioManagerStopped = true;
+//    
+//    pthread_t myNewThread;
+//    
+//    if(!pthread_create(&myNewThread, NULL, FLWindow::startAudioSlave, this)){
+//        return true;
+//    }
+//    else 
+//        return false;
 }
 
 void    FLWindow::cleanInactiveNJdspInstance(){
-    
-    if(fAudio && !fAudio->is_connexion_active() && fAudioManagerStopped){
-        fAudioManager->start();
-        fAudioManagerStopped = false;
-    }
-
-    printf("CLEAN INACTIVE\n");
+//    
+//    if(fAudio && !fAudio->is_connexion_active() && fAudioManagerStopped){
+//        fAudioManager->start();
+//        fAudioManagerStopped = false;
+//    }
+//
+//    printf("CLEAN INACTIVE\n");
 }
 
 string FLWindow::json(){
