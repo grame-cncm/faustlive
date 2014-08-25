@@ -68,7 +68,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
 
         FLStatusBar*    fStatusBar;
         void            set_StatusBar();
-    
+
         QMenu*          fWindowMenu;
         void            set_MenuBar(QList<QMenu*> appMenus);
     

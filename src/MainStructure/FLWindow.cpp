@@ -37,8 +37,8 @@ list<GUI*>               GUI::fGuiList;
 
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
-#include "faust/gui/JSONUI.h"
-#include "Server.h"
+//#include "faust/gui/JSONUI.h"
+//#include "Server.h"
 #endif
 
 #include "faust/llvm-dsp.h"
