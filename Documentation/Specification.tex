@@ -37,20 +37,19 @@
 
 \topskip0pt
 
-\vspace{\fill}
-
-%==================================================================================================
-FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running without sound interruption or Jack disconnection. \\
-\\
-FaustLive is based on QT. Most classes are a reimplementation of QObjects. 
-To know more about these base-objects, see QT documentation : http://qt-project.org/doc/qt-5/classes.html
-\vspace{\fill}
-
 \newpage
 \tableofcontents
 
 \newpage
 \section{General Considerations}
+
+\subsection{FaustLive}
+FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running without sound interruption or Jack disconnection. \\
+\\
+FaustLive is based on QT. Most classes are a reimplementation of QObjects. 
+To know more about these base-objects, see QT documentation : http://qt-project.org/doc/qt-5/classes.html
+
+\subsection{Code Structure}
 
 The structure of FaustLive is based on three main classes : FLApp, FLWindow and FLSessionManager.
 
@@ -76,7 +75,7 @@ The menus are handled differently, depending on the platform. \\
 On OSX, the menu of the application appears in the system external menu-bar. Depending on the front window, the specific menus will show. \\
 On Windows and Linux, each window of the application has its own menu-bar. There is no general menu-bar. That is why, when the last window is closed, the application quits. \\
 
-While some actions are specific to the windows (edit, export, ...), others  are to be treated by the application (new, open, ...). The application-related menus and actions have to be created by the application to be connected to its SLOT. 
+While some actions are specific to the windows (edit, export, ...), others have to be treated by the application (new, open, ...). The application-related menus and actions have to be created by the application to be connected to its SLOT. 
 
 So, FLApp contains the following functions, for menu creation :
 \begin{itemize}
@@ -87,31 +86,123 @@ So, FLApp contains the following functions, for menu creation :
 \item create\_HelpMenu() : QMenu*
 \end{itemize}
 
-In order to appear in the window menu-bar, a list of menus is passed to the window when it is created.
+In order to appear in the window menu-bar, the list of menus is then passed to the window when it is created.
 
 \subsection{Create FLWindow}
 
-To create a new FLWindow, the application has to choose two things
-- The index of the window (the smallest not currently used)
-- The position (depending on the index)
+FLWindows are characterized by their settings. So that FLApp has to choose them before creating a new FLWindow. Their are different ways to get the settings :
 
-\subsection{Menus and Dialogs}
+\begin{itemize}
+\item Create new settings
+\item Recall existing settings
+\item Copy existing settings
+\end{itemize}
 
-Help Dialog
+In case the settings are new, some parameters have to be initialized like the index of the window (smallest not currently used), the position of the window on screen, ...
 
+Once the Window is created, it has to be initialized with the Faust source (see createWindow).
 
-\subsubsection{}
+\section{Menus and Dialogs}
+
+\subsection{FLErrorWindow}
+
+FLErrorWindow reimplements QMainWindow. Its role is to displays all errors occurring in the program.
+FLErrorWindow is a singleton.
+
+\subsection{FLMessageWindow}
+
+FLMessageWindow reimplements QDialog. Its role is to displays messages printed by the program, like (Compiling DSP..., etc)
+FLMessageWindow is a singleton.
+
+\subsection{FLHelpDialog}
+
+FLHelpDialog reimplements QDialog. Its role is to display the help menu, for the user to get information of FaustLive uses. 
+
+\subsection{FLPreferenceWindow}
+
+FLPreferenceWindow reimplements QMainWindow. Its role is to display the preferences of FaustLive and handle the changes of settings. 
+
+\subsection{FLPresentationWindow}
+
+FLPresentationWindow reimplements QMainWindow. Its role is to display the presentation menu.
+
+\subsection{FLExportManager}
+
+FLExportManager contains two classes classes describing the two dialogs used in the export process. The first dialog presents all the targets available. The second one shows the steps of the evolution of the export.
+
 %%%%%%%%%%%%%%%%%WINDOW%%%%%%%%%%%%%%%%%
 \section{FLWindow}
 
+FLWindow reimplements QMainwindow. Its role is to display the DSPs QTinterface and to wrap it with its specific toolbars and menus to access some more interactive features. 
 
+\subsection{Interface-related functions}
+
+One FLWindow contains multiple types of interface, from which some are optional. 
+
+\begin{itemize}
+\item QTGUI : interface displayed in FLWindow
+\item FUI : interface saving the interface parameters
+\item HTTPUI : interface handling the HTTP protocol for remote control
+\item OSCUI : interface handling the OSC protocol for remote control 
+\end{itemize}
+
+Each type of interface has its set of function to run in FLWindow (allocate, buildUserInterface, run, delete);
+
+\subsection{Audio-related functions}
+
+To create an audio client, corresponding to the DSP, running in FLWindow, FLWindow has to create an audio manager through audioclient (only class able to create the right audioManager : see AUDIO).
+
+\begin{itemize}
+\item init\_audioClient : init audioManger. The type of manager is not known in FLWindow, it is the AudioCreator that returns 
+\item setDSP : setDSP 
+\item audioShutDown
+\item start/stop\_Audio
+
+\end{itemize}
+\subsection{ToolBar-related functions}
+
+\begin{itemize}
+\item set\_ToolBar : the toolbar has to be created and its signals connected to the window SLOT
+\item resizingSmall/Big : close/open toolbar
+\item setWindowsOptions : the options contained in FLToolBar can be modified outside of the toolbar (OSCUI ports for example when already used), so they have to be synchronized
+\item modifiedOptions : reaction to the modification of the compilation options from toolbar
+\item generateAuxFiles : reaction to the modification of the automatic export options from toolbar
+\item switchOsc : enable/disable OSC interface
+\item updateOSCInterface : update OSC interface with new port options
+\item switchHttp : enable/disable HTTP interface
+\item switchRelease : enable/disable factory publication
+\item switchRemoteControl : enable/disable remote control interface
+\end{itemize}
+
+\subsection{StatusBar-related functions}
+
+\begin{itemize}
+\item set\_StatusBar : the status bar has to be created
+\item redirectSwitch : update the window with new machine options
+\end{itemize}
+
+\subsection{Menu-related functions}
+
+
+
+\subsection{Drag and Drop related functions}
+
+A window has to be set up for Drag and Drop, so that setAcceptDrops is set to "true" in FLWindow constructor.
+
+\begin{itemize}
+\item dragEnterEvent : describes the filters 
+\item dragLeaveEvent : 
+\item dropEvent
+\item pressEvent
+\item eventFilter
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%SESSION MANAGER%%%%%%%%%%%%%%%%%
 \section{FLSessionManager}
 
 FLSessionManager is a singleton.\\
 
-The role of FLSessionManager is to be the link with libfaust and libfaustremote, to compile the DSPs. Moreover, it has the function to maintain the hierarchy of the current session and be able to save/recall sessions and snapshots. 
+The role of FLSessionManager is to be the link with libfaust and libfaustremote, to compile the DSPs. Moreover, it has the purpose to maintain the hierarchy of the current session and be able to save/recall sessions and snapshots. 
 
 \subsection{Current Session Hierarchy}
 
@@ -135,7 +226,7 @@ The current session is composed of :
 	\end{itemize}
 \end{itemize}
 
-*To establish a unique link between a DSP and its saving files, the SHA-1 hash function is used. This SHAKey is calculated from the faust code before compilation and its compilation options. That way, one code, compiled with different options is always saved. 
+*To establish an injection between a DSP and its saving files, the SHA-1 hash function is used. This SHAKey is calculated from the faust code before compilation and its compilation options. That way, one code, compiled with different options is always saved. 
 
 \subsection{DSP compilation}
 
@@ -161,7 +252,8 @@ In conclusion, to create a dsp, there are those two functions :
 
 \subsubsection{create Factory}
 
-Depending on the machine name, 
+The creation of the factory is done from a file, saved in the current session and named after the SHAKey (see footnote (1)). So the first step of factory creation is to get the faust content to compile (from the source )
+
 
 \subsubsection{create Instance}
 
@@ -211,6 +303,8 @@ For example, the value is accesible like this :\\
 %%%%%%%%%%%%%%%%%AUDIO STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Audio}
 
+There are two aspects that have to be managed in the audio section. First what kind of driver is used/usable to take care of the audio rendering ? Then, how do we want to manage the transition between two DSPs relaying in the same window. To respond to that particuliar problem, it was chosen to fade out the out-going DSP while fading in the in-coming DSP. That way, a smooth transition is ensured. 
+
 \subsection{Audio drivers used by FaustLive}
  
 Depending on the operating system and the compiling options, it is possible to embed different audio architectures in FaustLive.
@@ -243,7 +337,8 @@ Then each audio driver has its own set of classes :
 
 \subsection{Crossfade implementation}
 
-Some basic functions are common to all implementations and are divided into two classes :
+The constraint is to smooth the transition between two relaying DSP in a situation of drag and drop or source edition. If a DSP is not changed, the transition should not be hearable. \\
+Now, to implement this, some basic functions are common to all implementations and are divided into two classes :
 \begin{itemize}
 \item AudioFader\_Interface : containing the basic instructions needed by the client to launch a crossfade and know when it stopped. 
 \item AudioFader\_Implementation : containing the calculation functions of the crossfade.
@@ -280,12 +375,30 @@ Then, some elements have to be added to the class "AudioCreator" :
 
 Finally, FaustLive.pro has to be modified (for each platform compatible with the new driver), in order to add the librairies (through conditional compilation or not).
 
-%%%%%%%%%%%%%%%%%HTTP INTERFACES%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%REMOTE INTERFACES%%%%%%%%%%%%%%%%%
+\section{Remote Interfaces}
+\subsection{HTTP interface}
+\subsection{OSC interface}
+\subsection{Remote interface}
 
-%%%%%%%%%%%%%%%%%OSC INTERFACES%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%REMOTE INTERFACES%%%%%%%%%%%%%%%%%
+\section{FLComponentWindow}
 
-%%%%%%%%%%%%%%%%%REMOTE CONTROL%%%%%%%%%%%%%%%%%
+The component window is a feature allowing the user to compose DSPs in a parallel/sequence/recursive way to create a new DSP. 
+As in the FLWindow, it is possible to drop files and urls, so that you can combine elements from the web with local DSPs to create a new one. \\ 
 
+The resulting DSP is a sequence of "stereoized parallel DSPs" : DSPs are first composed in parallel, then stereoized (see stereoize in music.lib) and finally put in sequence. \\
+
+\subsection{Layout Optimization}
+
+An "optimized" layout for the resulting DSP is calculated, taking as goal to reduce the surface of the interface. In order to do that, a binary tree of items is created. In this tree there are three types of elements : 
+\begin{itemize}
+\item leaf nodes : containing the real faust element
+\item vertical containers, putting in a vertical group it's two sub-nodes
+\item horizontal containers, putting in a horizontal group it's two sub-nodes. 
+\end{itemize}
+
+Each element of the tree has a function render, so that called on the root node, the whole layout is calculated.
 
 %%%%%%%%%%%%%%%%%DISTRIBUTION STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Distribution Structure}
