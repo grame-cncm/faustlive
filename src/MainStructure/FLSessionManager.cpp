@@ -298,6 +298,10 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     //--------Compilation Options 
     
     int numberFixedParams = 7;
+    
+    if(sourcePath == "")
+        numberFixedParams = numberFixedParams-2;
+    
     int iteratorParams = 0;
     
 #ifdef _WIN32
@@ -321,18 +325,20 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     strncpy( libP, libPath.c_str(), libsFolder.size()+1);
     argv[iteratorParams] = (const char*) libP;
     iteratorParams++;
-    
-    argv[iteratorParams] = "-I";   
-    iteratorParams++;
-    
-    QString sourceChemin = QFileInfo(sourcePath).absolutePath();
-    string path = sourceChemin.toStdString();
-    
-    char* libP2 = new char[sourceChemin.size()+1];
-    strncpy( libP2, path.c_str(), sourceChemin.size()+1);
-    argv[iteratorParams] = (const char*) libP2;
-    
-    iteratorParams++;
+
+    if(sourcePath != ""){
+        argv[iteratorParams] = "-I";   
+        iteratorParams++;
+        
+        QString sourceChemin = QFileInfo(sourcePath).absolutePath();
+        string path = sourceChemin.toStdString();
+        
+        char* libP2 = new char[sourceChemin.size()+1];
+        strncpy( libP2, path.c_str(), sourceChemin.size()+1);
+        argv[iteratorParams] = (const char*) libP2;
+        
+        iteratorParams++;
+    }
     
     argv[iteratorParams] = "-O";
     iteratorParams++;
@@ -593,7 +599,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
-        toCompile->fRemoteFactory = createRemoteDSPFactoryFromFile( fileToCompile, 0, NULL, ip_server, port_server, error, optLevel);
+        toCompile->fRemoteFactory = createRemoteDSPFactoryFromFile( fileToCompile, argc, argv, ip_server, port_server, error, optLevel);
         
         if(!toCompile->fRemoteFactory){
             errorMsg = error.c_str();

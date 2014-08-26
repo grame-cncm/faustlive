@@ -185,7 +185,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
         bool            init_audioClient(QString& error);
         bool            setDSP(QString& error);
-    
+        void            update_AudioParams();
     //Drag and drop operations
         virtual void    dropEvent ( QDropEvent * event );
         virtual void    dragEnterEvent ( QDragEnterEvent * event );

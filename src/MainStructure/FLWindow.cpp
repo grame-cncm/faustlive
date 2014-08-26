@@ -853,9 +853,8 @@ bool FLWindow::init_audioClient(QString& error){
 //        return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
     
 	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)){
-     
-        fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
-        fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
+        
+        update_AudioParams();
         
         return true;
     }
@@ -864,8 +863,17 @@ bool FLWindow::init_audioClient(QString& error){
     
 }
 
+void FLWindow::update_AudioParams(){
+    
+    fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
+    fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
+}
+
 bool FLWindow::setDSP(QString& error){
-    return fAudioManager->setDSP(error, fCurrent_DSP, fSettings->value("Name", "").toString().toStdString().c_str());
+    bool success = fAudioManager->setDSP(error, fCurrent_DSP, fSettings->value("Name", "").toString().toStdString().c_str());
+    
+    update_AudioParams();
+    return success;
 }
 
 //------------------------SAVING WINDOW ACTIONS
