@@ -70,6 +70,8 @@ private:
     string          fJson;
     string          fHtml;
     
+    string          fHome;
+    
     int             handleGet(MHD_Connection *connection, const char* url);
     int             handlePost(MHD_Connection *connection, const char* url, void *info);
     

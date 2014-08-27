@@ -45,8 +45,9 @@ FLServerHttp::FLServerHttp(){
 
 FLServerHttp::~FLServerHttp(){}
 
-void FLServerHttp::createInstance(){
+void FLServerHttp::createInstance(const string& homeFolder){
     FLServerHttp::_serverInstance = new FLServerHttp;
+    fHome = homeFolder;
 }
 
 void FLServerHttp::deleteInstance(){
@@ -97,8 +98,11 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     
     stringstream ss;
     
-    string responseHead = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerHead.html").toStdString();
-    string responseTail = readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerTail.html").toStdString();
+    string head = fHome + "/ServerHead.html";
+    string tail = fHome + "/ServerTail.html";
+    
+    string responseHead = readFile(head.c_str()).toStdString();
+    string responseTail = readFile(tail.c_str()).toStdString();
     
 //    Request for the server
     if(strcmp(url,"/availableInterfaces") == 0)
@@ -342,8 +346,10 @@ void FLServerHttp::updateAvailableInterfaces(){
     stringstream json;
     stringstream html;
     
+    string interfacesHead = fHome + "/ServerAvailableInterfacesHead.html";
+    
     json << '{';
-    html << readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesHead.html").toStdString();
+    html << readFile(interfacesHead).toStdString();
     
     html<<"<table width=\"90%\" border=\"0\" cellspacing=\"10\" cellpadding=\"10\" align=\"center\">";
     
@@ -363,8 +369,10 @@ void FLServerHttp::updateAvailableInterfaces(){
     json << std::endl << "}";
     fJson = json.str();
     
+    string interfacesTail = fHome + "/ServerAvailableInterfacesTail.html";
+    
     html<<"</table>"<<std::endl;
-    html<<std::endl<<readFile("/Users/denoux/FLReconstruct/Resources/Html/ServerAvailableInterfacesTail.html").toStdString();
+    html<<std::endl<<readFile(interfacesTail).toStdString();
     fHtml = html.str();
     
 }

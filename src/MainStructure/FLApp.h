@@ -92,6 +92,7 @@ class FLApp : public QApplication
     
         QString              fSessionFolder; //Path to currentSession Folder
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
+        QString              fHtmlFolder;
         QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
     //Save/Recall the recent Files/Sessions 

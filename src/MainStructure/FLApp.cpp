@@ -45,7 +45,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
    
 #ifndef _WIN32
-    FLServerHttp::createInstance();
+    FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 #endif
     //Initializing screen parameters
@@ -217,11 +217,36 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fLibsFolder);
     }  
     
+    fHtmlFolder = fSessionFolder + separationChar  + "Html";
+    if(!QFileInfo(fHtmlFolder).exists()){
+        QDir direct(fHtmlFolder);
+        direct.mkdir(fHtmlFolder);
+    }  
+    
     QDir libsDir(":/");
     
     if(libsDir.cd("Libs")){
         
         QFileInfoList children = libsDir.entryInfoList(QDir::Files);
+        
+        QFileInfoList::iterator it;
+        
+        for(it = children.begin(); it != children.end(); it++){
+            
+			QString pathInSession = fHtmlFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+            
+            if(!QFileInfo(pathInSession).exists()){
+                
+                QFile file(it->absoluteFilePath());
+                file.copy(pathInSession);
+            }
+        }
+    }
+    
+    QDir htmlDir(":/");
+    
+    if(htmlDir.cd("Html")){
+        QFileInfoList children = htmlDir.entryInfoList(QDir::Files);
         
         QFileInfoList::iterator it;
         
