@@ -47,7 +47,7 @@ FLServerHttp::~FLServerHttp(){}
 
 void FLServerHttp::createInstance(const string& homeFolder){
     FLServerHttp::_serverInstance = new FLServerHttp;
-    fHome = homeFolder;
+    FLServerHttp::_serverInstance->fHome = homeFolder;
 }
 
 void FLServerHttp::deleteInstance(){
@@ -349,7 +349,7 @@ void FLServerHttp::updateAvailableInterfaces(){
     string interfacesHead = fHome + "/ServerAvailableInterfacesHead.html";
     
     json << '{';
-    html << readFile(interfacesHead).toStdString();
+    html << readFile(interfacesHead.c_str()).toStdString();
     
     html<<"<table width=\"90%\" border=\"0\" cellspacing=\"10\" cellpadding=\"10\" align=\"center\">";
     
@@ -372,7 +372,7 @@ void FLServerHttp::updateAvailableInterfaces(){
     string interfacesTail = fHome + "/ServerAvailableInterfacesTail.html";
     
     html<<"</table>"<<std::endl;
-    html<<std::endl<<readFile(interfacesTail).toStdString();
+    html<<std::endl<<readFile(interfacesTail.c_str()).toStdString();
     fHtml = html.str();
     
 }

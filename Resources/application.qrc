@@ -53,10 +53,10 @@
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
 <file>Libs/TestLibs.dsp</file>
-<file>Html/ServerAvailableInterfacesHead</file>
-<file>Html/ServerAvailableInterfacesTail</file>
-<file>Html/ServerHead</file>
-<file>Html/ServerTail</file>
+<file>Html/ServerAvailableInterfacesHead.html</file>
+<file>Html/ServerAvailableInterfacesTail.html</file>
+<file>Html/ServerHead.html</file>
+<file>Html/ServerTail.html</file>
 <file>buildVersion.txt</file>
 <file>distVersion.txt</file>
 </qresource>

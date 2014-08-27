@@ -88,7 +88,7 @@ private:
     static FLServerHttp*    _serverInstance;
     
     static FLServerHttp*    _Instance();
-    static void             createInstance();
+    static void             createInstance(const string& homeFolder);
     static void             deleteInstance();
     
     int             getMaxClients();
