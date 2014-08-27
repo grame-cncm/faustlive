@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC>
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<style type="text/css">
+
+#filedrag{
+font-weight: bold;
+text-align: center;
+padding: 1em 0;
+margin: 1em 0;
+color: #CECECE;
+border: 8px dashed #CECECE;
+border-radius: 7px;
+cursor: default;
+font-size : 20px;
+}
+
+#filedrag.hover{
+color: #FF7F00;
+border-color: #FF7F00;
+border-style: solid;
+}
+
+</style>
+
+</head>
+<body bgcolor= black>
+<div id="filedrag">
+Drop your .dsp file here
+</div>
+<form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
+<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+</form>
+
+<iframe id="httpInterface" src="

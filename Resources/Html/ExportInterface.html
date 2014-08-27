@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC>
+<html>
+	<head>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+		<style type="text/css">
+
+			#filedrag{
+			font-weight: bold;
+			text-align: center;
+			padding: 1em 0;
+			margin: 1em 0;
+			color: #CECECE;
+			border: 8px dashed #CECECE;
+			border-radius: 7px;
+			cursor: default;
+			font-size : 20px;
+			}
+
+			#filedrag.hover{
+			color: #FF7F00;
+			border-color: #FF7F00;
+			border-style: solid;
+			}
+			
+			#export{
+			text-align: center;
+			padding: 1em 0;
+			margin: 1em 0;
+			color: #CECECE;
+			border: 3px solid #CECECE;
+			cursor: default;
+			font-size : 16px;
+			}
+
+			h1{
+				font-size : 20px;
+				font-weight: bold;
+				color: #CECECE;
+			}
+
+		</style>
+		<script language="javascript"> 
+			function addItem(id, itemText){
+				var e2=document.getElementById(id);
+				var o=document.createElement('option');
+				o.text=itemText;
+				e2.options.add(o);
+			}
+			
+			function clearComboBox(id){
+				while(document.getElementById(id).childNodes.length>0) 
+				{
+				    document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
+				}
+			}
+		
+			function updateArchitectures(){
+				clearComboBox("architectures");
+			
+				var data = JSON.parse(window.jsonText);
+				
+				var e = document.getElementById("platforms");//get the combobox
+			    var selPlatform = e.options[e.selectedIndex].value;
+								
+    			var dataCopy = data[selPlatform];
+							
+				for (data in dataCopy) {
+					var mainData = dataCopy[data];
+        						
+   					addItem('architectures', mainData);
+				}
+			}
+			
+			function getSHAKey(){
+				
+				var newRequest = new XMLHttpRequest();
+
+				var params = new FormData();
+				params.append('file', window.file);
+				
+				var urlToTarget = document.getElementById("serverUrl").value;
+				
+				newRequest.open("POST", urlToTarget, true);
+
+				newRequest.onreadystatechange = function() {
+					if(newRequest.readyState == 4 && newRequest.status == 200) {
+						exportFaustCode(newRequest.responseText);
+    				}
+				}
+				
+				newRequest.send(params);
+			}
+			
+			function exportFaustCode(shaKey){
+			
+				var xhr = new XMLHttpRequest();
+				
+				var e = document.getElementById("platforms");//get the combobox
+			    var selPlatform = e.options[e.selectedIndex].value;
+			    
+			    e = document.getElementById("architectures");//get the combobox
+			    var selArch = e.options[e.selectedIndex].value;
+			    
+			    var serverUrl = document.getElementById("serverUrl").value;
+				
+				var url = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/binary.zip";
+				
+				xhr.open("GET", url, true);
+
+// 				xhr.onreadystatechange = function() {
+// 					if(xhr.readyState == 4 && xhr.status == 200) {
+//     				}
+// 				}
+				xhr.send(null);
+			}
+			
+		 </script>
+	</head>
+	<body bgcolor= black>
+		<div id="filedrag">
+			Drop your .dsp file here
+		</div>
+		<form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
+			<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+		</form>
+		<iframe id="httpInterface" src="" style="width:100%; height:80%;" frameBorder="0" >
+		</iframe>
+		<div id="export">
+			<h1>Export your DSP as...</h1> <br />
+			FaustWeb server 
+			<input type="text" name="item" id="serverUrl" value="http://localhost:8888"/><br />
+			<select id="platforms" onChange="updateArchitectures()">		
+	   		</select>
+			<select id="architectures">		
+   			</select>
+		    <input type="submit" value=" Export " onClick="getSHAKey()">
+		</div>
+		<script type=text/javascript>
+		(function(){	
+
+			function FileDragHover(e) {
+
+				e.stopPropagation();
+				e.preventDefault();
+				e.target.className = (e.type == "dragover" ? "hover" : "");
+			}
+
+			function FileSelectHandler(e) {
+
+				FileDragHover(e);
+				var files = e.target.files || e.dataTransfer.files;
+				f = files[0];
+
+				UploadFile(f);
+			}
+
+			function UploadFile(e) {
+
+				FileDragHover(e);
+				var files = e.target.files || e.dataTransfer.files;
+				window.file = files[0];
+
+				if (location.host.indexOf("sitepointstatic") >= 0) return
+
+				var request = new XMLHttpRequest();
+				if (request.upload && window.file.size <= document.getElementById("MAX_FILE_SIZE").value) {
+
+					var reader = new FileReader();
+
+					var ext = window.file.name.split('.').pop();
+
+					if(ext == "dsp"){
+
+					reader.readAsText(window.file);  
+				}
+
+					reader.onloadend = function(e) {
+						window.faustCode = reader.result;
+						var xhr = new XMLHttpRequest();
+						var params = "var=" + encodeURIComponent(window.faustCode) + "&interfaceurl=" + document.getElementById("httpInterface").src;
+						xhr.open("POST", '', true);
+						xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+						xhr.onreadystatechange = function() {
+					    if(xhr.readyState == 4 && xhr.status == 200) {
+					        document.getElementById("httpInterface").src = xhr.responseText;
+    					}
+					}
+					xhr.send(params);
+				};
+}
+}
+
+			function Init() {
+				var filedrag1 = document.getElementById("filedrag");
+
+				var xx = new XMLHttpRequest();
+				if (xx.upload) {
+					filedrag1.addEventListener("dragover", FileDragHover, false);
+					filedrag1.addEventListener("dragleave", FileDragHover, false);
+					filedrag1.addEventListener("drop", UploadFile, false);
+				}
+			}
+			
+			function UploadTargets(){
+				
+				var getrequest = new XMLHttpRequest();
+				
+				getrequest.onreadystatechange = function() {
+				    if(getrequest.readyState == 4 && getrequest.status == 200) {
+				    	window.jsonText = getrequest.responseText;
+				    	
+				    	var data = JSON.parse(window.jsonText);
+
+						for (var event in data) {						
+						    addItem('platforms', event);
+    					
+    						var dataCopy = data[event];
+							
+							for (data in dataCopy) {
+        						var mainData = dataCopy[data];
+        						
+   								addItem('architectures', mainData);
+        					}	
+        				}
+    				}
+				}
+				
+				var targetsUrl = document.getElementById("serverUrl").value;
+				targetsUrl += "/targets";
+				
+				getrequest.open("GET", targetsUrl, true);
+				getrequest.send(null);
+			}
+
+			if (window.File && window.FileList && window.FileReader) {
+				Init();
+				UploadTargets();
+			}
+		})();
+		</script>
+
+	</body>
+</html>
