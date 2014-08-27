@@ -102,7 +102,7 @@ void FLToolBar::init(){
     
     connect(fAutomaticExportLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     
-    automaticExportLayout->addRow(new QLabel("Automatic Export Options"));
+    automaticExportLayout->addRow(new QLabel("Compiler Options"));
     automaticExportLayout->addRow(fAutomaticExportLine);
     
     automaticExportBox->setLayout(automaticExportLayout);
