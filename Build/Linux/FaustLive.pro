@@ -28,6 +28,7 @@ DEFINES += APP_VERSION=\\\"1.1\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES = ../../Resources/application.qrc
+RESOURCES += ../../Resources/styles.qrc
 ICON = Resources/Images/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
@@ -60,6 +61,7 @@ else{
 	LIBS+=-lqrencode
 	LIBS+=-lmicrohttpd
 	LIBS+=-lcrypto
+	LIBS+=-lcurl
 }
 
 
@@ -74,6 +76,7 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
+	LIBS+=-ldbus-1 -lrt
 	
 	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
@@ -104,23 +107,14 @@ equals(NJVAR, 1){
 	LIBS += -ljacknet
 	DEFINES += NETJACK
 	
-	INCLUDEPATH += ../../src/Audio/NJ_Master \
-					../../src/Audio/NJ_Slave
+	INCLUDEPATH += ../../src/Audio/NJ_Slave
 	
-	HEADERS += 	../../src/Audio/NJ_Master/NJm_audioFactory.h \
-				../../src/Audio/NJ_Master/NJm_audioSettings.h \
-				../../src/Audio/NJ_Master/NJm_audioManager.h \
-				../../src/Audio/NJ_Master/NJm_audioFader.h \
-				../../src/Audio/NJ_Slave/NJs_audioFactory.h \
+	HEADERS += 	../../src/Audio/NJ_Slave/NJs_audioFactory.h \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
 				../../src/Audio/NJ_Slave/NJs_audioManager.h \
 				../../src/Audio/NJ_Slave/NJs_audioFader.h 
 	
-	SOURCES += 	../../src/Audio/NJ_Master/NJm_audioFactory.cpp \
-				../../src/Audio/NJ_Master/NJm_audioSettings.cpp \
-				../../src/Audio/NJ_Master/NJm_audioManager.cpp \
-				../../src/Audio/NJ_Master/NJm_audioFader.cpp \
-				../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
+	SOURCES += 	../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
@@ -172,7 +166,7 @@ equals(PAVAR, 1){
 
 ########## LIBS AND FLAGS
 
-LIBS+=-lfaust
+LIBS+=/usr/local/lib/faust/libfaust.a
 LIBS+= $$system($$system(which llvm-config) --libs)
 LIBS+= $$system($$system(which llvm-config) --ldflags)
 

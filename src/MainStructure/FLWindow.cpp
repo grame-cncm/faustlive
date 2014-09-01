@@ -644,9 +644,11 @@ void FLWindow::close_Window(){
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
+#ifdef REMOTE
     if(fStatusBar)
         delete fStatusBar;
-    
+#endif
+
     if(fAudioManager)
         delete fAudioManager;
        
