@@ -24,6 +24,8 @@ void FLSettings::createInstance(const QString homePath){
     QString settingPath = homePath + "/Settings.ini";
     
     FLSettings::_settingsInstance = new FLSettings(settingPath, QSettings::IniFormat);
+    
+    //new FLSettings(QSettings::IniFormat, QSettings::UserScope, "FaustList", "Grame");
 }
 
 void FLSettings::deleteInstance(){

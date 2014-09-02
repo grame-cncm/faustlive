@@ -48,7 +48,7 @@ LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
 	LIBS+=/usr/local/lib/libqrencode.a
-	LIBS+=/usr/lib/x86_64-linux-gnu/libmicrohttpd.a
+	LIBS+=/usr/local/lib/libmicrohttpd.a
 	LIBS+=-lgnutls
 	LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
@@ -56,6 +56,7 @@ equals(static, 1){
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
+	LIBS+=-lcurl
 }
 else{
 	LIBS+=-lqrencode

@@ -216,13 +216,7 @@ void FLApp::create_Session_Hierarchy(){
         QDir direct(fLibsFolder);
         direct.mkdir(fLibsFolder);
     }  
-    
-    fHtmlFolder = fSessionFolder + separationChar  + "Html";
-    if(!QFileInfo(fHtmlFolder).exists()){
-        QDir direct(fHtmlFolder);
-        direct.mkdir(fHtmlFolder);
-    }  
-    
+
     QDir libsDir(":/");
     
     if(libsDir.cd("Libs")){
@@ -233,7 +227,7 @@ void FLApp::create_Session_Hierarchy(){
         
         for(it = children.begin(); it != children.end(); it++){
             
-			QString pathInSession = fHtmlFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+			QString pathInSession = fLibsFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
             if(!QFileInfo(pathInSession).exists()){
                 
@@ -242,6 +236,12 @@ void FLApp::create_Session_Hierarchy(){
             }
         }
     }
+        
+    fHtmlFolder = fSessionFolder + separationChar  + "Html";
+    if(!QFileInfo(fHtmlFolder).exists()){
+        QDir direct(fHtmlFolder);
+        direct.mkdir(fHtmlFolder);
+    }  
     
     QDir htmlDir(":/");
     
@@ -252,7 +252,7 @@ void FLApp::create_Session_Hierarchy(){
         
         for(it = children.begin(); it != children.end(); it++){
             
-			QString pathInSession = fLibsFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+			QString pathInSession = fHtmlFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
             if(!QFileInfo(pathInSession).exists()){
                 

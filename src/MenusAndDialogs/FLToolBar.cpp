@@ -280,17 +280,23 @@ void FLToolBar::collapseAction(){
 
 FLToolBar::~FLToolBar(){
 
+printf("delete window options \n");
     delete fWindowOptions;
+    printf("save button\n");
     delete fSaveButton;
     delete fOptionLine;
     delete fOptValLine;
     delete fAutomaticExportLine;
+#ifndef _WIN32
     delete fHttpCheckBox;
     delete fHttpPort;
     delete fOSCCheckBox;
     delete fPortInOscLine;
     delete fPortOutOscLine;
     delete fPortErrOscLine;
+#endif
+
+#ifdef REMOTE
     delete fRemoteControlIP;
     delete fRemoteControlCheckBox;
     delete fCVLine;
@@ -298,6 +304,7 @@ FLToolBar::~FLToolBar(){
     delete fLatLine;
     delete fDestHostLine;
     delete fPublishBox;
+#endif
     delete fContainer;
 }
 
@@ -421,20 +428,40 @@ bool FLToolBar::hasReleaseOptionsChanged(){
 //Reaction to Apply Changes Button
 void FLToolBar::modifiedOptions(){
     
+//	It's obliged to pass through variables. Otherwise, while one signal is emitted, some toolbar variables are modified from the outside and change the wanted behavior
+    bool automaticExportOpt = false;
+    bool compilationOpt= false;
+#ifdef OSCVAR
+    bool oscSwitchOpt = false;
+    bool oscSwitchVal = fOSCCheckBox->isChecked();
+    bool oscOpt= false;
+#endif
+#ifdef HTTPCTRL
+    bool httpOpt= false;
+    bool httpSwitchVal = fHttpCheckBox->isChecked();
+#endif
+#ifdef REMOTE
+    bool remoteControlOpt= false;
+    bool remoteControlVal = fRemoteControlCheckBox->isChecked();
+    bool remoteOpt= false;
+    bool releaseOpt= false;
+    bool releaseVal = fPublishBox->isChecked();
+#endif
     if(hasAutomaticExportChanged()){
         fSettings->setValue("AutomaticExport/Options", fAutomaticExportLine->text());
 
-        emit generateNewAuxFiles();
+		automaticExportOpt = true;
     }
     
-#ifdef OSCVAR   
     if(hasCompilationOptionsChanged()){
         
         fSettings->setValue("Compilation/OptValue", fOptValLine->text()); 
         fSettings->setValue("Compilation/FaustOptions", fOptionLine->text()); 
 
-        emit compilationOptionsChanged();
+		compilationOpt = true;
     }
+
+#ifdef OSCVAR   
 
     if(hasOscOptionsChanged()){
         
@@ -446,28 +473,33 @@ void FLToolBar::modifiedOptions(){
         if(wasOscSwitched()){
             
             fSettings->setValue("Osc/Enabled", fOSCCheckBox->isChecked());
-            emit switch_osc(fOSCCheckBox->isChecked());
-        
+            
+            oscSwitchOpt = true;        
         }
 //-- Port changes are declared only if osc isn't switched & if osc is on
         else
-            emit oscPortChanged();
+			oscOpt = true;
     }
     else if(wasOscSwitched()){
         fSettings->setValue("Osc/Enabled", fOSCCheckBox->isChecked());
-        emit switch_osc(fOSCCheckBox->isChecked());
+        
+        oscSwitchOpt = true;
     }
 
 #endif
+
+#ifdef HTTPCTRL
     if(wasHttpSwitched()){
         fSettings->setValue("Http/Enabled", fHttpCheckBox->isChecked());
-        emit switch_http(fHttpCheckBox->isChecked());
+        
+        httpOpt = true;
     }
+#endif
 #ifdef REMOTE
     if(wasRemoteControlSwitched()){
        fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
         
-        emit switch_remotecontrol(fHttpCheckBox->isChecked());
+        remoteControlOpt = true;
     }
     if(hasRemoteOptionsChanged()){
         
@@ -475,14 +507,39 @@ void FLToolBar::modifiedOptions(){
         fSettings->setValue("RemoteProcessing/MTU", fMTULine->text());   
         fSettings->setValue("RemoteProcessing/Latency", fLatLine->text());  
         
-        emit compilationOptionsChanged();
+        remoteOpt = true;
     }
     
     if(hasReleaseOptionsChanged()){
         fSettings->setValue("Release/Enabled", fPublishBox->isChecked()); 
-        emit switch_release(fPublishBox->isChecked());
+        releaseOpt = true;
     }
 #endif
+
+    //	Now emit signals if needed
+	if(automaticExportOpt)
+        emit generateNewAuxFiles();
+	if(compilationOpt)
+        emit compilationOptionsChanged();
+#ifdef OSCVAR
+	if(oscSwitchOpt)
+        emit switch_osc(oscSwitchVal);
+	if(oscOpt)
+        emit oscPortChanged();
+#endif
+#ifdef HTTPCTRL
+	if(httpOpt)
+        emit switch_http(httpSwitchVal);
+#endif
+#ifdef REMOTE
+	if(remoteControlOpt)
+        emit switch_remotecontrol(remoteControlVal);
+    if(remoteOpt)
+        emit compilationOptionsChanged();
+    if(releaseOpt)
+        emit switch_release(releaseVal);
+#endif
+
     fSaveButton->setEnabled(false);
 }
                              
