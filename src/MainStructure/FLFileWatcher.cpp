@@ -114,7 +114,7 @@ void FLFileWatcher::dirChanged(const QString& dirModified){
         QString newName("");
         
         for(QStringList::iterator it = filesWatched.begin(); it != filesWatched.end(); it++){
-//        Find deleted file
+//        Find modified file
             if(!QFileInfo(*it).exists()){
                 oldName = *it;
                 

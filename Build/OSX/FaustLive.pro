@@ -28,7 +28,8 @@ DEFINES += APP_VERSION=\\\"1.2\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES   = ../../Resources/application.qrc
-RESOURCES 	+= ../../Resources/unix.qrc
+RESOURCES 	+= ../../Resources/styles.qrc
+RESOURCES 	+= ../../Resources/scheduler.qrc
 ICON = ../../Resources/Images/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 

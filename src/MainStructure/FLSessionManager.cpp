@@ -562,10 +562,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     QString machineName = "local processing";
     
-    if(settings)
+    if(settings){
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
-    
-    generateAuxFiles(shaKey, settings);
+        generateAuxFiles(shaKey, settings);
+    }
     
     if(machineName == "local processing"){
        mySetts->fType = TYPE_LOCAL;
