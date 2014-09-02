@@ -44,7 +44,7 @@ dist:
 	make NETJACK=1 STATIC=1
 	cp FaustLive Distribution_Linux/FaustLive
 	zip -r FaustLive_Linux.zip Distribution_Linux
-	./distversion
+	#./distversion
 
 # make a distribution .zip file for FaustLive sources
 dist-sources :
