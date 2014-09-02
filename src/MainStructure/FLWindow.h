@@ -129,10 +129,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            paste();
         void            duplicate();
 #ifndef _WIN32
-        void            httpd_View();
+        void            view_qrcode();
 #endif
-        void            svg_View();
-        void            exportFile();
+        void            view_svg();
+        void            export_file();
         void            redirectSwitch();
     
     public :

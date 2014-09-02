@@ -311,6 +311,188 @@ void FLWindow::source_Deleted(){
     
 }
 
+
+//------------------------MENUS ACTIONS
+
+//Right-click
+void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
+    
+    fWindowMenu->exec(ev->globalPos());
+}
+
+//Menu Bar
+void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
+    
+    //----------------FILE
+    //    
+    QMenuBar *myMenuBar = new QMenuBar(NULL);
+    
+    setMenuBar(myMenuBar);
+    
+    QList<QMenu*>::iterator it = appMenus.begin();
+    
+    myMenuBar->addMenu(*it);
+    myMenuBar->addSeparator();
+    it++;
+    
+    //-----------------Window
+    
+    QAction* editAction = new QAction(tr("&Edit Faust Source"), this);
+    editAction->setShortcut(tr("Ctrl+E"));
+    editAction->setToolTip(tr("Edit the source"));
+    connect(editAction, SIGNAL(triggered()), this, SLOT(edit()));
+    
+    QAction* pasteAction = new QAction(tr("&Paste"),this);
+    pasteAction->setShortcut(tr("Ctrl+V"));
+    pasteAction->setToolTip(tr("Paste a DSP"));
+    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+    
+    QAction* duplicateAction = new QAction(tr("&Duplicate"),this);
+    duplicateAction->setShortcut(tr("Ctrl+D"));
+    duplicateAction->setToolTip(tr("Duplicate current DSP"));
+    connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
+    
+    //#if-group:
+#ifndef _WIN32
+    //#ifdef HTTPCTRL
+    QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
+    httpdViewAction->setShortcut(tr("Ctrl+K"));
+    httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
+    connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(view_qrcode()));
+#endif
+    
+    QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
+    svgViewAction->setShortcut(tr("Ctrl+G"));
+    svgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
+    connect(svgViewAction, SIGNAL(triggered()), this, SLOT(view_svg()));
+    
+    QAction* exportAction = new QAction(tr("&Export As..."), this);
+    exportAction->setShortcut(tr("Ctrl+P"));
+    exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
+    connect(exportAction, SIGNAL(triggered()), this, SLOT(export_file()));
+    
+    QAction* shutAction = new QAction(tr("&Close Window"),this);
+    shutAction->setShortcut(tr("Ctrl+W"));
+    shutAction->setToolTip(tr("Close the current Window"));
+    connect(shutAction, SIGNAL(triggered()), this, SLOT(shut()));
+    
+    fWindowMenu = new QMenu(tr("&Window"), NULL);
+    fWindowMenu->addAction(editAction);
+    fWindowMenu->addAction(pasteAction);
+    fWindowMenu->addAction(duplicateAction);
+    fWindowMenu->addSeparator();
+#if !defined (_WIN32) /*|| defined HTTPCTRL*/    
+    fWindowMenu->addAction(httpdViewAction);
+#endif
+    fWindowMenu->addAction(svgViewAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(exportAction);
+    fWindowMenu->addSeparator();
+    fWindowMenu->addAction(shutAction);
+    
+    myMenuBar->addMenu(fWindowMenu);
+    myMenuBar->addSeparator();
+    
+    while(it != appMenus.end()){
+        
+        myMenuBar->addMenu(*it);
+        myMenuBar->addSeparator();
+        
+        it++;
+    }
+}
+
+//----SLOTS
+void FLWindow::edit(){
+    
+    QString sourcePath = fSettings->value("Path", "").toString();
+    
+    QString pathToOpen = sourcePath;
+    
+    if(sourcePath == ""){
+        
+        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
+        
+        //    In case user has saved his file in a new location
+        if(pathToOpen != ""){
+            update_Window(pathToOpen);
+        }
+        //    Otherwise, a temp file is created and watched
+        else{
+            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
+            
+            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
+        }
+    }
+    
+    FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
+    
+    QUrl url = QUrl::fromLocalFile(pathToOpen);
+    bool b = QDesktopServices::openUrl(url);
+    
+    if(!b)
+        errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
+}
+
+void FLWindow::paste(){
+    
+    //Recuperation of Clipboard Content
+    const QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+    
+    if (mimeData->hasText()) {
+        QString clipText = clipboard->text();
+        
+        update_Window(clipText);
+    }
+    
+}
+
+void FLWindow::duplicate(){
+    emit duplicate_Action();
+}
+
+#ifndef _WIN32
+void FLWindow::view_qrcode(){
+    
+    fToolBar->switchHttp(true);    
+    viewQrCode();
+}
+#endif
+
+void FLWindow::view_svg(){
+    
+    QString shaValue = fSettings->value("SHA", "").toString();
+    
+    QString shaFolder = fHome + "/SHAFolder/" + shaValue;
+    QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
+    
+    FLSessionManager::_Instance()->updateFolderDate(shaValue);
+    
+    QUrl url = QUrl::fromLocalFile(pathToOpen);
+    
+    if(!QDesktopServices::openUrl(url))
+        errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
+}
+
+void FLWindow::export_file(){
+    
+    FLTargetChooser* targetDialog = FLTargetChooser::_Instance();
+    
+    if(targetDialog->exec()){
+        
+        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, fSource);
+        
+        FLExportManager* exportDialog = FLExportManager::_Instance();
+        exportDialog->exportFile(getName(), expandedCode, targetDialog->platform(), targetDialog->architecture(), targetDialog->binOrSource());
+    }
+}
+
+void FLWindow::shut(){
+    emit close();
+    //    emit closeWin();
+}
+
 //------------TOOLBAR RELATED ACTIONS
 
 //Set up of the Window ToolBar
@@ -1066,187 +1248,6 @@ int FLWindow::get_Port(){
 #endif
         // If the interface is not enabled, it's not running on any port
         return 0;
-}
-
-//------------------------MENUS ACTIONS
-
-//Right-click
-void FLWindow::contextMenuEvent(QContextMenuEvent* ev) {
-    
-    fWindowMenu->exec(ev->globalPos());
-}
-
-//Menu Bar
-void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
-    
-    //----------------FILE
-//    
-    QMenuBar *myMenuBar = new QMenuBar(NULL);
-    
-    setMenuBar(myMenuBar);
-    
-    QList<QMenu*>::iterator it = appMenus.begin();
-    
-    myMenuBar->addMenu(*it);
-    myMenuBar->addSeparator();
-    it++;
-
-    //-----------------Window
-  
-    QAction* editAction = new QAction(tr("&Edit Faust Source"), this);
-    editAction->setShortcut(tr("Ctrl+E"));
-    editAction->setToolTip(tr("Edit the source"));
-    connect(editAction, SIGNAL(triggered()), this, SLOT(edit()));
-    
-    QAction* pasteAction = new QAction(tr("&Paste"),this);
-    pasteAction->setShortcut(tr("Ctrl+V"));
-    pasteAction->setToolTip(tr("Paste a DSP"));
-    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
-    
-    QAction* duplicateAction = new QAction(tr("&Duplicate"),this);
-    duplicateAction->setShortcut(tr("Ctrl+D"));
-    duplicateAction->setToolTip(tr("Duplicate current DSP"));
-    connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
-    
-    //#if-group:
-#ifndef _WIN32
-    //#ifdef HTTPCTRL
-    QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
-    httpdViewAction->setShortcut(tr("Ctrl+K"));
-    httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
-    connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(httpd_View()));
-#endif
-    
-    QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
-    svgViewAction->setShortcut(tr("Ctrl+G"));
-    svgViewAction->setToolTip(tr("Open the SVG Diagram in a browser"));
-    connect(svgViewAction, SIGNAL(triggered()), this, SLOT(svg_View()));
-    
-    QAction* exportAction = new QAction(tr("&Export As..."), this);
-    exportAction->setShortcut(tr("Ctrl+P"));
-    exportAction->setToolTip(tr("Export the DSP in whatever architecture you choose"));
-    connect(exportAction, SIGNAL(triggered()), this, SLOT(exportFile()));
-    
-    QAction* shutAction = new QAction(tr("&Close Window"),this);
-    shutAction->setShortcut(tr("Ctrl+W"));
-    shutAction->setToolTip(tr("Close the current Window"));
-    connect(shutAction, SIGNAL(triggered()), this, SLOT(shut()));
-    
-    fWindowMenu = new QMenu(tr("&Window"), NULL);
-    fWindowMenu->addAction(editAction);
-    fWindowMenu->addAction(pasteAction);
-    fWindowMenu->addAction(duplicateAction);
-    fWindowMenu->addSeparator();
-#if !defined (_WIN32) /*|| defined HTTPCTRL*/    
-    fWindowMenu->addAction(httpdViewAction);
-#endif
-    fWindowMenu->addAction(svgViewAction);
-    fWindowMenu->addSeparator();
-    fWindowMenu->addAction(exportAction);
-    fWindowMenu->addSeparator();
-    fWindowMenu->addAction(shutAction);
-    
-    myMenuBar->addMenu(fWindowMenu);
-    myMenuBar->addSeparator();
-    
-    while(it != appMenus.end()){
-        
-        myMenuBar->addMenu(*it);
-        myMenuBar->addSeparator();
-        
-        it++;
-    }
-}
-
-//----SLOTS
-void FLWindow::edit(){
-    
-    QString sourcePath = fSettings->value("Path", "").toString();
-    
-    QString pathToOpen = sourcePath;
-
-    if(sourcePath == ""){
-        
-        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
-        
-//    In case user has saved his file in a new location
-        if(pathToOpen != ""){
-            update_Window(pathToOpen);
-        }
-//    Otherwise, a temp file is created and watched
-        else{
-            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
-            
-            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
-        }
-    }
-    
-    FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
-
-    QUrl url = QUrl::fromLocalFile(pathToOpen);
-    bool b = QDesktopServices::openUrl(url);
-    
-    if(!b)
-        errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
-}
-
-void FLWindow::paste(){
-    
-    //Recuperation of Clipboard Content
-    const QClipboard *clipboard = QApplication::clipboard();
-    const QMimeData *mimeData = clipboard->mimeData();
-    
-    if (mimeData->hasText()) {
-        QString clipText = clipboard->text();
-        
-        update_Window(clipText);
-    }
-    
-}
-
-void FLWindow::duplicate(){
-    emit duplicate_Action();
-}
-
-#ifndef _WIN32
-void FLWindow::httpd_View(){
-    
-    fToolBar->switchHttp(true);    
-    viewQrCode();
-}
-#endif
-
-void FLWindow::svg_View(){
-    
-    QString shaValue = fSettings->value("SHA", "").toString();
-    
-    QString shaFolder = fHome + "/SHAFolder/" + shaValue;
-    QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
-    
-    FLSessionManager::_Instance()->updateFolderDate(shaValue);
-    
-    QUrl url = QUrl::fromLocalFile(pathToOpen);
-
-    if(!QDesktopServices::openUrl(url))
-        errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
-}
-
-void FLWindow::exportFile(){
-    
-    FLTargetChooser* targetDialog = FLTargetChooser::_Instance();
-    
-    if(targetDialog->exec()){
-        
-        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, fSource);
-        
-        FLExportManager* exportDialog = FLExportManager::_Instance();
-        exportDialog->exportFile(getName(), expandedCode, targetDialog->platform(), targetDialog->architecture(), targetDialog->binOrSource());
-    }
-}
-
-void FLWindow::shut(){
-    emit close();
-    //    emit closeWin();
 }
 
 //Redirection of a received error
