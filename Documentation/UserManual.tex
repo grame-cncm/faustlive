@@ -56,7 +56,7 @@ The Faust file you choose to open is compiled and runs into FaustLive.
 \item Open ... : you can open a file saved on your disk
 \item Open Example : you can open an example from the list
 \item Open Recent File : the recently closed DSP are saved in this list
-\item Open Remote DSP : FaustLive can scan the DSPs published by another user (c.f. publish DSP) and allows you to get an instance of them. If the owner of the DSP shut his connection or unpublishes his DSP, yours will be closed too. 
+%\item Open Remote DSP : FaustLive can scan the DSPs published by another user (c.f. publish DSP) and allows you to get an instance of them. If the owner of the DSP shut his connection or unpublishes his DSP, yours will be closed too. 
 \end{itemize}
 
 
@@ -64,8 +64,9 @@ The Faust file you choose to open is compiled and runs into FaustLive.
 On a running application, you can drop Faust code as :
 \begin{itemize}
 \item A string \\process=+;
-\item A file \\/Users/you/Desktop/plus.dsp
+\item A .dsp file \\/Users/you/Desktop/plus.dsp
 \item A URL \\http://faust.grame.fr/www/vumeter.dsp
+\item A .wav file \\/Users/you/Desktop/myBird.wav
 \end{itemize}
 The dropped code is compiled and the new application replaces the previous one.
 
@@ -86,9 +87,9 @@ Three cases exist, depending on the origin of your application. In case the orig
 
 	\end{itemize}
 
-\section{Actions on a Window}
+\section{Window-specific actions}
 
-\subsection{Crossfade Characteristic}
+\subsection{Crossfade Characteristics}
 
 When the DSP is modified or switched within a window (drag and drop, source edition, ...), the two applications are crossfaded to avoid brutal interruption in the sound. If you are using Jack as audio driver, the connection remain for the common ports. If there are new ports, it is left to the user to connect them. 
 
@@ -128,12 +129,12 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 	You can choose the port for incoming/outcoming and error messages. The destination IP for outcoming messages will be automatically set when the first message is received. 
 
 \subsection{Remote Control}
-You can control your application remotly with a native application for iOS, android that you can download from Faust directory on sourceforge.  To enable this feature, go to "Parameters", in the tab "Remote Control", check "Enable". The destination IP will be automatically set when the first message is received. \\
+%You can control your application remotly with a native application for iOS, android that you can download from Faust directory on sourceforge.  To enable this feature, go to "Parameters", in the tab "Remote Control", check "Enable". The destination IP will be automatically set when the first message is received. \\
 
-With this feature, you can choose whether the sound is rendered on FaustLive's machine or on the remote device. 
+%With this feature, you can choose whether the sound is rendered on FaustLive's machine or on the remote device. 
 
 \subsection{Publish DSP}
-You can publish your DSP for any FaustLive user to see. This way, another user can get an instance of your application from his own machine (c.f Open Remote DSP...). The local and remote instance are totally independent. Both have an independent access to the interface and audio rendering.
+%You can publish your DSP for any FaustLive user to see. This way, another user can get an instance of your application from his own machine (c.f Open Remote DSP...). The local and remote instance are totally independent. Both have an independent access to the interface and audio rendering.
 
 \subsection{Remote Processing}
 You can choose to send your code to another machine, presenting the remote server service. A discovery shows you the available machines. Once you have switched, your Faust processing will be done on the remote machine. The control interface and sound rendering stay on the local machine.
@@ -151,9 +152,9 @@ You have two different ways to reload a snapshot into FaustLive :
 \begin{itemize}
 \item Recall Snapshot : closes all the current windows to restore the exact state that you saved in your snapshot.
 \item Import Snapshot : adds the content of your snapshot to the current state of the application. 
-
---> In case of modification or deletion : 
 \end{itemize}
+
+In case your source files were modified or deleted outside of FaustLive's execution, an internal copy of your files will be used to restore the state. 
 
 \subsection{Open Component Creator}
 The component creator is a tool to combine your DSPs. The columns represent parallel composition and the rows sequential composition. You can add as many rows and columns as you like. You can also have a feedback DSP. The resulting DSP is a sequence of parallel components. \\
@@ -188,7 +189,7 @@ When you switch the audio architecture or its parameters, every running window i
 \item Enable HTTP interface automatically
 \item Enable OSC interface automatically
 \item Remote Compilation service : by default, FaustLive uses faustservice.grame.fr as compilation service but you can choose any another faustweb service.
-\item Remote Dropping Port
+\item Remote Dropping Port : port used to start the internal server, taking care of drops on html remote interfaces.
 
 \end{itemize}
 

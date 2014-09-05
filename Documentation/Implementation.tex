@@ -144,7 +144,7 @@ From the FLWindow point of view, the creation of an audio client is easy. An aud
 The class "FLToolBar" shapes the settings of the FLWindow. Whenever a change in the settings in applied, the toolbar reacts by emitting signals. So that from the FLWindow, we have this set of functions :
 
 \begin{itemize}
-\item set\_ToolBar : the toolbar has to be created and its signals connected to the window SLOT
+\item set\_ToolBar : the toolbar has to be created and its signals connected to the window SLOTs
 \item resizingSmall/Big : close/open toolbar
 \item setWindowsOptions : the options contained in FLToolBar can be modified outside of the toolbar (OSCUI ports for example when already used), so they have to be synchronized
 \item modifiedOptions : reaction to the modification of the compilation options from toolbar
@@ -181,7 +181,7 @@ In the constructor, a list of Menus is given to the FLWindow. Moreover, a window
 
 \subsection{Drag and Drop}
 
-The FLWindow accepts the Drag and Drop of Faust code as files, strings and urls. It is set up for that in the constructor. The related functions are :
+The FLWindow accepts the Drag and Drop of Faust code as .dsp files, strings, urls but also .wav files. It is set up for that in the constructor, through setAccetDrop(true). The related functions are :
 
 \begin{itemize}
 \item dragEnterEvent : describes the accepted mime-types (urls and strings) 
@@ -206,8 +206,8 @@ The role of FLSessionManager is to be the link with libfaust and libfaustremote,
 The current session is composed of : 
 \begin{itemize}
 \item Settings.ini : file containing the saved settings as described in FLSettings (\ref{FLSettings}).
-\item Examples : folder containing a copy of the example files of Faust distribution
-\item Libs : folder containing a copy of the libraries of Faust distribution
+\item Examples : folder containing a copy of the example files of the Faust distribution
+\item Libs : folder containing a copy of the libraries of the Faust distribution
 \item Windows : folder containing the window-specific folders FLW-i, containing :
 	\begin{itemize}
 		\item Settings.ini : the window specific settings as described in FLWinSettings (\ref{FLWinSettings}).
@@ -275,11 +275,11 @@ Every dsp created is mapped to its factory, so that when you delete the DSP, FLS
 
 \subsection{Session/Snapshot Restoration}
 
-When the user recalls a snapshot or opens FaustLive and wishes he will have his last session restored, the system has to go through some restoration steps. Those operations have, as goal, to make sure that the resources needed by the session were not deleted or corrupted outside of FaustLive execution. 
+When the user recalls a snapshot or opens FaustLive and wishes to have his last session restored, the system has to go through some restoration steps. Those operations have, as goal, to make sure that the resources needed by the session were not deleted or corrupted outside of FaustLive execution. 
 
 \subsubsection{Current Session Restoration}
 
-In that case, the user has the choice between : 
+In case of changes, the user has the choice between : 
 \begin{itemize}
 \item using the internal copy of the file
 \item using the original file and recompile its new content
@@ -296,9 +296,17 @@ There are different types of remote interfaces, described below. But the logic o
 
 \subsection{HTTP interface}
 The HttpUi described in Faust is used to create an Html Interface, synchronized with the local interface. This component embeds a Http server in the application. \\
-Moreover, in FaustLive, a central server, called FLServerHttp, handles the Drag and Drop on the remote Html Interface and centralizes each HttpUi. 
+Moreover, in FaustLive, a central server, called FLServerHttp, handles the Drag and Drop on the remote Html Interface and centralizes the HttpUis. 
 
-PEUT-ETRE FAIRE UNE PARTIE UN PEU PLUS APPROFONDIE SUR LE FONCTIONNEMENT DE FLSERVERHTTP
+Here is the list of request that can be made to the server :\\
+http://IPofLocalHost:portConfiguredInPreferences
+\begin{itemize}
+\item returns the main page of the server, containing only a drop zone for DSP files.
+\item {\it /portOfSpecificInterface} : adds the Html page \\(http://IPofLocalHost:portOfSpecificInterface)\\ containing the interface to the main page. By default, the port is 5510. 
+\item {\it /portOfSpecificInterface/JSON} : this request is redirected to the interface-specific server (http://IPofLocalHost:portOfSpecificInterface/JSON) and returns the JSON application describing the interface.
+\item {\it /availableInterfaces} : returns an html page describing all http interfaces available.
+\item {\it /availableInterfaces/Json} : returns the interfaces available as a JSON application.
+\end{itemize}
 
 \subsection{OSC interface}
 
@@ -312,8 +320,8 @@ The OSC interfaces are, for now, only used as specific interfaces in the FLWindo
 %%%%%%%%%%%%%%%%%GENERAL SETTINGS%%%%%%%%%%%%%%%%%
 \subsection{FLSettings \label{FLSettings}}
 
-FLSettings is a singleton. 
-To save settings, the class FLSettings reimplements QSettings. A hierarchy, presented {Figure \ref{fig:FLSettings}, allows us to access the settings easily. \\
+FLSettings is a singleton. \\ 
+It reimplements QSettings. A hierarchy, presented {Figure \ref{fig:FLSettings}, allows us to access the settings easily. \\
 
 The setting file is saved at the root of the current session (/Users/you/.FaustLiveCurrentSession-version).
  
@@ -392,7 +400,7 @@ FLExportManager contains two classes classes describing the two dialogs used in 
 \section{Audio \label{Audio}}
 
 In this section, we discuss the way the audio rendering is managed in FaustLive. 
-First, it will be expounded what kind of audio driver is used and how it is linked into FaustLive. Then, the algorithm of the crossfade will be explained, taking care of smoothing the transition between two DSPs relaying in the same window. 
+First, will be described the type of audio driver used into FaustLive and how the linking is done. Then, the algorithm of the crossfade will be explained, taking care of smoothing the transition between two DSPs relaying in the same window. 
 
 \subsection{Audio drivers used by FaustLive}
  
@@ -408,7 +416,7 @@ Then Jack, NetJack and PortAudio can be added with make options : JACK=1 NETJACK
 
 \subsection{Code Organisation}
 
-The general structure of the code is based on the "abstract factory" pattern. That way, the class "AudioCreator" is the only class knowing which type of driver is used, creating the driver-specific factory.  \\
+The general structure of the code is based on the "abstract factory" pattern. That way, the class "AudioCreator" is the only class knowing which type of driver is used. It is the intermediary between the FLWindow, handling the audio client, and the driver-specific elements.  \\
 
 The abstract factory contains the following pure virtual functions :
 \begin{itemize}
@@ -419,7 +427,7 @@ The abstract factory contains the following pure virtual functions :
 Then each audio driver has its own set of classes :
 \begin{itemize}
 \item audioFactory : creates the driver-specific elements through the reimplementation of createAudioSettings and createAudioManager. 
-\item audioSettings : contains the settings needed by the driver and their graphical representation
+\item audioSettings : contains the settings needed by the driver and their graphical representation (for example a buffer size, a sample rate, ...)
 \item audioFader : mixes the audio and crossfade features
 \item audioManager : manipulates the audio faders and manages their crossfades 
 \end{itemize}
@@ -427,22 +435,21 @@ Then each audio driver has its own set of classes :
 \subsection{Crossfade implementation}
 
 The specification is to smooth the transition between two relaying DSPs in a situation of drag and drop or source edition. If a DSP algorithm is not modified, the transition should not be hearable. \\
-Now, to implement this, some basic functions are common to all implementations and are divided into two classes :
+
+Now, to implement this function, some functions are common to all architectures (implement\_crossfade, reset\_crossfade\_values, launch\_crossfade, etc). These features are divided in two classes \footnote{The separation between interface and implementation sometimes had to be made because some audio classes (like coreaudio-dsp) already made the difference (coreaudio/TCoreAudioRenderer). } :
 \begin{itemize}
 \item AudioFader\_Interface : containing the basic instructions needed by the client to launch a crossfade and know when it stopped. 
-\item AudioFader\_Implementation : containing the calculation functions of the crossfade.
+\item AudioFader\_Implementation : containing the calculation functions of the crossfade. This class holds the duration of a crossfade, described as a number of audio cycles.
 \end{itemize}
 
-In order to add the crossfade feature to the audio clients, a reimplementation of the audio classes was made.
-The doble inheritance of these "audioFader" permits to mix the audio features and the crossfade features. \\
-The separation between interface and implementation sometimes had to be made because some audio classes (like coreaudio-dsp) already made the difference (coreaudio/TCoreAudioRenderer). 
+The crossfade functions are mixed to the audio features in the driver-specific audioFader classes, by doble inheritance.
 
 \subsection{AudioManager}
 
-There are two approaches of audio manager structure :
+The role of the audio manager is to manipulate the audioFader(s) and manage the crossfade. Depending on the driver, there are two approaches of structure :
 \begin{itemize}
-\item the one managing one current client and fading the DSPs in one only client (Jack)
-\item the one managing one current client and creating a second one fading in to replace the current one (CoreAudio, NetJack, PortAudio)
+\item the one managing one audioFader and fading two DSPs in its "process" function (Jack)
+\item the one managing two audioFaders, relaying with a fade in for one part and a fade out for the other (CoreAudio, NetJack, PortAudio)
 \end{itemize}
 
 \subsection{How to add a new audio architecture}
@@ -468,18 +475,18 @@ Finally, FaustLive.pro has to be modified (for each platform compatible with the
 \section{FLComponentWindow}
 
 The component window is a feature allowing the user to compose DSPs in a parallel/sequence/recursive way to create a new DSP. 
-As in the FLWindow, it is possible to drop files and urls, so that you can combine elements from the web with local DSPs to create a more complex one. \\
+As in the FLWindow, it is possible to drop files and urls, so that you can combine elements from the web with local DSPs.
 
 \subsection{Component creation}
 
-The resulting DSP is a sequence of "stereoized parallel DSPs" : DSPs are first composed in parallel, then stereoized (see stereoize in music.lib) and finally put in sequence. The recursive loop is then applied with the function recursived. \\
+The resulting DSP is a sequence of "stereoized parallel DSPs" : DSPs are first composed in parallel, then stereoized (see stereoize in music.lib) and finally put in sequence. The recursive loop is then applied with the function recursivize. \\
 Through this process, the resulting DSP is stereo, whatever DSPs were used as components. 
 
 \subsection{Layout optimization}
 
 An "optimized" layout for the resulting DSP is calculated, taking as goal to reduce the surface of the interface. In order to do that, a binary tree of items is created. In this tree there are three types of elements : 
 \begin{itemize}
-\item leaf nodes : containing the real faust element
+\item leaf nodes : containing the real faust interface
 \item vertical containers, putting in a vertical group it's two sub-nodes
 \item horizontal containers, putting in a horizontal group it's two sub-nodes. 
 \end{itemize}
@@ -499,14 +506,14 @@ FaustLive's distribution has the following hierarchy :
 \item Audio : containing the audio classes, depending on the driver architecture
 \item MainStructure : center of FaustLive, containing the three main classes : FLApp, FLWindow and FLSessionManager
 \item MenusAndDialogs
-\item Network
+\item Network : containing the server(s) embedded in FaustLive (FLHttpServer, coming soon FLOscServer)
 \item Utilities
 \end{itemize}
 \end{itemize}
 
 \subsection{Compile and Install}
 
-Whichever platform you are on, you will have to install some libraries to compile FaustLive :
+Whichever platform you are on, you will have to install some libraries to be able to compile FaustLive :
 \begin{itemize}
 \item faust / faustremote / httpdfaust 
 \item jack2 (unix/windows) or portaudio (windows)
