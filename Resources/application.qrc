@@ -59,5 +59,7 @@
 <file>Html/ServerTail.html</file>
 <file>buildVersion.txt</file>
 <file>distVersion.txt</file>
+<file>../Documentation/UserManual.pdf</file>
+<file>../Documentation/faust-quick-reference.pdf</file>
 </qresource>
 </RCC>
