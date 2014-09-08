@@ -271,11 +271,11 @@ QString FLComponentItem::faustComponent(const QString& layoutIndex){
     
     if(QFileInfo(fSource).exists() || fSource.indexOf("http://") == 0){
         QString faustCode = "vgroup(\"[" + layoutIndex + "]component" + fIndex + "\", component(\"" + fSource + "\"))";
+        
         return faustCode;
     }
-    else{
+    else
         return fSource;
-    }
 }
 
 /****************************COMPONENT WINDOW***************************/
@@ -416,45 +416,50 @@ void FLComponentWindow::createComponent(){
 
     fItems = componentListWithoutEmptyItem(fItems);
     
-    QString faustToCompile = "";
-    
-    QList<FLComponentItem*> parallelItems;
-    
-    int layoutIndex = 1;
-    
-    for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
+    if(fItems.size() !=0){
         
-        if(it->size() != 0){
+        QString faustToCompile = "";
         
-            binaryNode* rootDisposition = calculateBestDisposition(*it);
-            QString composition = "stereoize(" + rootDisposition->renderToFaust(",", QString::number(layoutIndex)) + ")";
+        QList<FLComponentItem*> parallelItems;
         
-            FLComponentItem* parallelItem = new FLComponentItem(composition, rootDisposition->rectSurface());
-            parallelItems.push_back(parallelItem);
+        int layoutIndex = 1;
+        
+        for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
             
-            if(layoutIndex == 1)
-                layoutIndex++;
-            else
-                layoutIndex--;
+            if(it->size() != 0){
+                
+                binaryNode* rootDisposition = calculateBestDisposition(*it);
+                QString composition = "stereoize(" + rootDisposition->renderToFaust(",", QString::number(layoutIndex)) + ")";
+                
+                FLComponentItem* parallelItem = new FLComponentItem(composition, rootDisposition->rectSurface());
+                parallelItems.push_back(parallelItem);
+                
+                if(layoutIndex == 1)
+                    layoutIndex++;
+                else
+                    layoutIndex--;
+            }
         }
+        
+        faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":", "");
+        
+        if(fFeedBackItem->faustComponent("") != ""){
+            faustToCompile = "import(\"music.lib\");\n\n\nprocess = recursivize("+ faustToCompile + "," + fFeedBackItem->faustComponent("") + ")";
+        }
+        else{
+            faustToCompile = "import(\"music.lib\");\n\n\nprocess = " + faustToCompile;
+        }
+        
+        faustToCompile += ";";
+        
+        hide();
+//        
+//        printf("Component code = %s\n", faustToCompile.toStdString().c_str());
+        
+        emit newComponent(faustToCompile);
     }
-    
-    faustToCompile += calculateBestDisposition(parallelItems)->renderToFaust(":", "");
-     
-    if(fFeedBackItem->faustComponent("") != ""){
-        faustToCompile = "import(\"music.lib\");\n\n\nprocess = recursivize("+ faustToCompile + "," + fFeedBackItem->faustComponent("") + ")";
-    }
-    else{
-        faustToCompile = "import(\"music.lib\");\n\n\nprocess = " + faustToCompile;
-    }
-    
-    faustToCompile += ";";
-    
-    hide();
-
-    printf("Component code = %s\n", faustToCompile.toStdString().c_str());
-    
-    emit newComponent(faustToCompile);
+    else
+        FLErrorWindow::_Instance()->print_Error("You can't create a component without item!");
 }
 
 void FLComponentWindow::addComponentRow(){
@@ -583,8 +588,8 @@ QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem
             if((*it2)->faustComponent("1") != "")
                 newList.push_back(*it2);
         }
-        
-        listWithoutEmptyItem.push_back(newList);
+        if(newList.size() != 0)
+            listWithoutEmptyItem.push_back(newList);
     }
     
     return listWithoutEmptyItem;
