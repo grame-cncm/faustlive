@@ -13,6 +13,8 @@
 #include <openssl/sha.h>
 
 #include <QtNetwork>
+#include <QWidgetList>
+
 
 ////Returns the content of a file passed in path
 //QString pathToContent(QString path){
@@ -462,5 +464,18 @@ string parse_compilationParams(QString& compilOptions){
     return returnin;
 }
 
+// center a widget on the primary screen of the machine or 
+// on the screen of the top level widget
+void centerOnPrimaryScreen(QWidget* w)
+{
+    QDesktopWidget *dw = QApplication::desktop();
+	QWidgetList l = QApplication::topLevelWidgets();
+	if (l.empty()) {
+    	w->move(dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center());
+    } else {
+    	QWidget* w = l.first();	
+    	w->move(dw->screenGeometry(w).center() - w->geometry().center());
+    }
+}
 
 

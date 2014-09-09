@@ -140,7 +140,7 @@ void FLTargetChooser::init(){
     exportLayout->addRow(intermediateWidget);
     
     setLayout(exportLayout);
-    move((QApplication::desktop()->geometry().size().width() - width())/2, (QApplication::desktop()->geometry().size().height()- height())/2);
+	centerOnPrimaryScreen(this);
 }
 
 //Keeping in memory the graphical state of the dialog
@@ -345,7 +345,7 @@ void FLExportManager::init(){
     setLayout(fMsgLayout);
     adjustSize();
     hide();
-    move((QApplication::desktop()->geometry().size().width() - width())/2, (QApplication::desktop()->geometry().size().height()- height())/2);
+    centerOnPrimaryScreen(this);
 }
 
 //When Cancel is pressed, the request is aborted
