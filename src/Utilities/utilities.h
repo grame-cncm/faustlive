@@ -50,4 +50,7 @@ string FL_reorganize_compilation_options(QString compilationParams);
 
 string FL_generate_sha1(const string& dsp_content);
 
+void centerOnPrimaryScreen(QWidget* w);
+
+
 #endif

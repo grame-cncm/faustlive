@@ -71,7 +71,7 @@ void FLTargetChooser::sendTargetRequest(){
     fExportArchi->clear();
     fErrorText->setText("Searching for available targets...");
     
-    QString targetUrl= FLSettings::_Instance()->value("Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
+    QString targetUrl= FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
     targetUrl += "/targets";
 //    Reset available targets
     
@@ -89,7 +89,6 @@ void FLTargetChooser::init(){
     QString title("<h2>Export Manager</2>");
     
     QLabel* dialogTitle = new QLabel(title);
-    dialogTitle->setStyleSheet("*{color : black}");
     dialogTitle->setAlignment(Qt::AlignCenter);
     
     exportLayout->addRow(dialogTitle);
@@ -140,7 +139,7 @@ void FLTargetChooser::init(){
     exportLayout->addRow(intermediateWidget);
     
     setLayout(exportLayout);
-    move((QApplication::desktop()->geometry().size().width() - width())/2, (QApplication::desktop()->geometry().size().height()- height())/2);
+	centerOnPrimaryScreen(this);
 }
 
 //Keeping in memory the graphical state of the dialog
@@ -345,7 +344,7 @@ void FLExportManager::init(){
     setLayout(fMsgLayout);
     adjustSize();
     hide();
-    move((QApplication::desktop()->geometry().size().width() - width())/2, (QApplication::desktop()->geometry().size().height()- height())/2);
+    centerOnPrimaryScreen(this);
 }
 
 //When Cancel is pressed, the request is aborted
@@ -411,7 +410,7 @@ void FLExportManager::postExport(){
     adjustSize();
     show();
     
-    QString destinedUrl = FLSettings::_Instance()->value("Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
+    QString destinedUrl = FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
     
     QNetworkRequest requete(destinedUrl);
     QNetworkAccessManager *m = new QNetworkAccessManager;
@@ -483,7 +482,7 @@ void FLExportManager::getFileFromKey(const char* key){
     
     fStep++;
     
-    QString urlString = FLSettings::_Instance()->value("Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
+    QString urlString = FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
     urlString += ("/");
     urlString += key;
     urlString += "/";

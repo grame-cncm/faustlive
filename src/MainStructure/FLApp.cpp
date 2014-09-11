@@ -49,7 +49,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 #endif
     //Initializing screen parameters
-    QSize screenSize = QApplication::desktop()->geometry().size(); 
+    QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
     fScreenWidth = screenSize.width();
     fScreenHeight = screenSize.height();
     
@@ -109,9 +109,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(fPresWin, SIGNAL(openHelp()), fHelpWindow, SLOT(show()));
     connect(fPresWin, SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
     
-    fPresWin->setWindowFlags(Qt::FramelessWindowHint);  
-    fPresWin->move((fScreenWidth-fPresWin->width())/2, 20);
-    
+    //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);  
+    centerOnPrimaryScreen(fPresWin);
     //Initialiazing Remote Drop Server
 #ifdef HTTPCTRL
     launch_Server();
@@ -485,11 +484,10 @@ void FLApp::setup_Menu(){
     //--------------------HELP Menu
     
     fHelpWindow = new FLHelpWindow(fLibsFolder);
-    fHelpWindow->setWindowFlags(Qt::FramelessWindowHint);
-    
-    fHelpWindow->move((fScreenWidth-fHelpWindow->width())/2, (fScreenHeight-fHelpWindow->height())/2);
+    centerOnPrimaryScreen(fHelpWindow);
     
     //----------------MenuBar setups
+    
     fMenuBar->addMenu(create_FileMenu());
     fMenuBar->addSeparator();
     
@@ -1196,8 +1194,9 @@ void FLApp::display_Progress(){
         layoutSave->addWidget(fPBar);
         savingMessage->setLayout(layoutSave);
         
-        savingMessage->move((fScreenWidth-savingMessage->width())/2, (fScreenHeight-savingMessage->height())/2);
+        //savingMessage->move((fScreenWidth-savingMessage->width())/2, (fScreenHeight-savingMessage->height())/2);
         savingMessage->adjustSize();
+        centerOnPrimaryScreen(savingMessage);
         savingMessage->show();
         
         fEndTimer = new QTimer(this);
