@@ -63,7 +63,6 @@ void FLPresentationWindow::init(){
     
     QLabel* text = new QLabel("<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler");  
     text->setAlignment(Qt::AlignCenter);
-    text->setStyleSheet("*{color: black}");
     
     QLabel* subTitle = new QLabel("");
     
@@ -180,7 +179,7 @@ void FLPresentationWindow::init(){
     ok = new QPushButton("Open");
     connect(ok, SIGNAL(clicked()), this, SLOT(itemChosen()));
     ok->setDefault(true);
-    //    ok->setStyleSheet("*{background-color: transparent;}");
+    
     layout5->addWidget(ok);
     
     buttonBox->setLayout(layout2);
@@ -194,7 +193,7 @@ void FLPresentationWindow::init(){
     QHBoxLayout *layout4 = new QHBoxLayout;
     
     QPushButton* cancel = new QPushButton("Cancel");
-    //    cancel->setStyleSheet("*{background-color: transparent;}");
+    
     connect(cancel, SIGNAL(clicked()), this, SLOT(hideWindow()));
     layout4->addWidget(new QLabel(""));
     layout4->addWidget(cancel);
