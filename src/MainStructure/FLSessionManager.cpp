@@ -482,7 +482,7 @@ bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSetti
 
     printf("generate Aux Files From file : %s\n", sourceFile.c_str());
         
-    generateAuxFilesFromFile(sourceFile, argc, argv, error);
+    return generateAuxFilesFromFile(sourceFile, argc, argv, error);
 }
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
