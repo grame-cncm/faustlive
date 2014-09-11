@@ -48,7 +48,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifndef _WIN32
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-    
+#endif
+#ifdef REMOTE
     Server* serv = Server::_Instance();
     serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 #endif
@@ -1739,9 +1740,12 @@ void FLApp::changeDropPort(){
 }
 #endif
 
+#ifdef REMOTE
 void FLApp::changeRemoteServerPort(){
+
     Server* serv = Server::_Instance();
     serv->stop();
     serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 }
+#endif
 

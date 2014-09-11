@@ -81,6 +81,9 @@ equals(REMVAR, 1){
 	
 	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
+		
+	HEADER += ../../src/Network/Server.h
+	SOURCES += ../../src/Network/Server.cpp
 }
 
 equals(JVAR, 1){

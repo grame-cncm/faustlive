@@ -109,9 +109,10 @@ public:
     static void createInstance(const QString homePath);
     static void deleteInstance();
     
+#ifdef REMOTE
     bool            addWinToServer(FLWinSettings* settings);
     void            deleteWinFromServer(FLWinSettings* settings);
-    
+#endif
     void            updateFolderDate(const QString& shaValue);
     void            cleanSHAFolder();
     

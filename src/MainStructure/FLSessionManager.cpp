@@ -651,10 +651,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         settings->setValue("OutputNumber", toCompile->fRemoteFactory->numOutputs());
 #endif
     }
-
+    
+#ifdef REMOTE
     if(settings->value("Release/Enabled", false).toBool()){
         deleteWinFromServer(settings);
     }
+#endif
     
     mySetts->fFactory = toCompile;
     mySetts->fPath = path;
@@ -726,13 +728,14 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         settings->setValue("SHA", factorySetts.first);
 	}
     
-    
+#ifdef REMOTE
     if(settings->value("Release/Enabled", false).toBool()){
         addWinToServer(settings);
         printf("Enabled Release\n");
     }
     else
         printf("Disabled Release\n");
+#endif
     return compiledDSP;
 }
 
@@ -1112,6 +1115,7 @@ QVector<QString> FLSessionManager::get_dependencies(dsp* myDSP, const QString& p
 
 //---------------------PUBLISH FACTORIES ON LOCAL SERVER-----------//
 
+#ifdef REMOTE
 //Add Window to Server through createRemoteFactory...
 bool FLSessionManager::addWinToServer(FLWinSettings* settings){
     
@@ -1158,7 +1162,7 @@ void FLSessionManager::deleteWinFromServer(FLWinSettings* settings){
         deleteRemoteDSPFactory(onsenfout);
     
 }
-
+#endif
 
 
 
