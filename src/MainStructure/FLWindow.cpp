@@ -57,6 +57,8 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     fSettings = windowSettings;
     
+    fSettings->setValue("Release/Number", 0);
+    
     //  Enable Drag & Drop on window
     setAcceptDrops(true);
     
@@ -404,7 +406,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
 
 //----SLOTS
 void FLWindow::edit(){
-    
+        
     QString sourcePath = fSettings->value("Path", "").toString();
     
     QString pathToOpen = sourcePath;
@@ -1375,8 +1377,17 @@ void    FLWindow::cleanInactiveNJdspInstance(){
 //    return answer;
 //}
 
-void FLWindow::switchRelease(bool){
+void FLWindow::switchRelease(bool on){
     
+    if(on){
+        printf("SWITCH RELEASE\n");
+        if(!FLSessionManager::_Instance()->addWinToServer(fSettings))
+            FLErrorWindow::_Instance()->print_Error("Impossible to Publish Factory");
+//        IL FAUT SWITCHER LA CHECKBOX SI ça NA PAS MARCHEE
+    }
+    else{
+       FLSessionManager::_Instance()->deleteWinFromServer(fSettings); 
+    }
 }
 
 #else

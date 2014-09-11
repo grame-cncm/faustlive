@@ -21,9 +21,6 @@
 #include <QtWidgets>
 #endif
 
-#define kMAXRECENTFILES 4
-#define kMAXRECENTSESSIONS 3
-
 #include "faust/gui/FUI.h"
 
 #ifndef _WIN32
@@ -225,6 +222,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
     public slots :
+    
     //Modification of the compilation options
         void            modifiedOptions();
         void            generateAuxFiles();

@@ -25,6 +25,7 @@
 #ifdef REMOTE
 #include "faust/remote-dsp.h"
 #include "FLRemoteDSPScanner.h"
+#include "Server.h"
 #endif
 
 #include "FLSettings.h"
@@ -47,6 +48,9 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifndef _WIN32
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
+    
+    Server* serv = Server::_Instance();
+    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 #endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
@@ -261,6 +265,32 @@ void FLApp::create_Session_Hierarchy(){
         }
     }
     
+    fDocFolder = fSessionFolder + separationChar  + "Documentation";
+    if(!QFileInfo(fDocFolder).exists()){
+        QDir direct(fDocFolder);
+        direct.mkdir(fDocFolder);
+    }  
+    
+    
+    QDir docDir(":/");
+    
+    if(docDir.cd("Documentation")){
+        QFileInfoList children = docDir.entryInfoList(QDir::Files);
+        
+        QFileInfoList::iterator it;
+        
+        for(it = children.begin(); it != children.end(); it++){
+            
+			QString pathInSession = fDocFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+            
+            if(!QFileInfo(pathInSession).exists()){
+                
+                QFile file(it->absoluteFilePath());
+                file.copy(pathInSession);
+            }
+        }
+    }
+    
     QString factoryFolder = fSessionFolder + "/SHAFolder";
     QDir shaFolder(factoryFolder);
     shaFolder.mkdir(factoryFolder);
@@ -458,15 +488,26 @@ QMenu* FLApp::create_HelpMenu(){
     QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
     presentationAction->setToolTip(tr("Show the presentation Menu"));
     connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+
+    QAction* openFLDoc = new QAction(tr("&Open FaustLive Documentation"), NULL);
+    openFLDoc->setToolTip(tr("Open FaustLive Documentation in appropriate application"));
+    connect(openFLDoc, SIGNAL(triggered()), this, SLOT(open_FL_doc()));
+
+    QAction* openFDoc = new QAction(tr("&Open Faust Documentation"), NULL);
+    openFDoc->setToolTip(tr("Open Faust Documentation in appropriate application"));
+    connect(openFDoc, SIGNAL(triggered()), this, SLOT(open_F_doc()));
     
-    helpMenu->addAction(aboutQtAction);
-    helpMenu->addSeparator();
-    helpMenu->addAction(aboutAction);
-    helpMenu->addAction(versionAction);
-    helpMenu->addSeparator();
     helpMenu->addAction(presentationAction);
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(openFLDoc);
+    helpMenu->addAction(openFDoc);  
+    helpMenu->addSeparator();
+    helpMenu->addAction(aboutAction);
+    helpMenu->addAction(versionAction);
+    helpMenu->addAction(aboutQtAction);
+
 
     return helpMenu;
 }
@@ -479,6 +520,7 @@ void FLApp::setup_Menu(){
     
     connect(fPrefDialog, SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
     connect(fPrefDialog, SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
+    connect(fPrefDialog, SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
     fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP Menu
@@ -1175,10 +1217,8 @@ void FLApp::display_Progress(){
         savingMessage->setWindowFlags(Qt::FramelessWindowHint);
         
         QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
-        tittle->setStyleSheet("*{color : black}");
         tittle->setAlignment(Qt::AlignCenter);
         QLabel* text = new QLabel(tr("Saving your session..."), savingMessage);
-        text->setStyleSheet("*{color : black}");
         text->setAlignment(Qt::AlignCenter);
         fPBar = new QProgressBar(savingMessage);
         fPBar->setAlignment(Qt::AlignCenter);
@@ -1373,6 +1413,29 @@ void FLApp::drop_Action(QList<QString> sources){
 }
 
 //--------------------------------HELP----------------------------------------
+
+//Open Faust and FaustLive documentation
+void FLApp::open_FL_doc(){
+    
+    QString pathToOpen = fDocFolder + "/UserManual.pdf";
+    
+    QUrl url = QUrl::fromLocalFile(pathToOpen);
+    bool b = QDesktopServices::openUrl(url);
+    
+    if(!b)
+        errorPrinting("Impossible to open FaustLive documentation ! Make sure a file association is set up for .pdf.");
+}
+
+void FLApp::open_F_doc(){
+    
+    QString pathToOpen = fDocFolder + "/faust-quick-reference.pdf";
+    
+    QUrl url = QUrl::fromLocalFile(pathToOpen);
+    bool b = QDesktopServices::openUrl(url);
+    
+    if(!b)
+        errorPrinting("Impossible to open Faust documentation ! Make sure a file association is set up for .pdf.");
+}
 
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
@@ -1676,4 +1739,9 @@ void FLApp::changeDropPort(){
 }
 #endif
 
+void FLApp::changeRemoteServerPort(){
+    Server* serv = Server::_Instance();
+    serv->stop();
+    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+}
 

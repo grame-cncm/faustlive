@@ -13,6 +13,8 @@
 #include <QtWidgets>
 #endif
 
+#include <QtNetwork>
+
 #include <map>
 
 typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
@@ -72,6 +74,9 @@ private:
     //--Transforms an Url into faust string
     QString         ifUrlToString(const QString& source);
     
+    //--Transforms a Google Doc Url into string
+    QString         ifGoogleDocToString(const QString& source);
+    
     //--Transforms Wav file into faust string
     QString         ifWavToString(const QString& source);
     
@@ -88,6 +93,13 @@ private:
         
     QMap<dsp*, factorySettings*>  fDSPToFactory;
     
+    QMap<QString, remote_dsp_factory*>  fPublishedFactories;
+    
+private slots:
+    void            receiveDSP();
+    void            networkError(QNetworkReply::NetworkError);
+    
+    
 public:
     
     FLSessionManager(const QString& sessionFolder);
@@ -96,6 +108,9 @@ public:
     static FLSessionManager* _Instance();
     static void createInstance(const QString homePath);
     static void deleteInstance();
+    
+    bool            addWinToServer(FLWinSettings* settings);
+    void            deleteWinFromServer(FLWinSettings* settings);
     
     void            updateFolderDate(const QString& shaValue);
     void            cleanSHAFolder();

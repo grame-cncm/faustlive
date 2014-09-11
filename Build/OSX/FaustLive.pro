@@ -74,6 +74,9 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
+	
+	HEADER += ../../src/Network/Server.h
+	SOURCES += ../../src/Network/Server.cpp
 
 #	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
 #					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote

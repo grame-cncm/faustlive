@@ -214,6 +214,47 @@ QString FLSessionManager::ifFileToString(const QString& source){
         return source;
 }
 
+void FLSessionManager::receiveDSP(){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    QByteArray key = response->readAll();
+    
+    printf("Finished receiving DSP = %s\n", key.data());
+    
+    bool b = QDesktopServices::openUrl(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M"));
+    
+}
+
+void FLSessionManager::networkError(QNetworkReply::NetworkError){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    printf("Error Received = %s\n", response->errorString().toStdString().c_str());
+}
+
+QString FLSessionManager::ifGoogleDocToString(const QString& source){
+    
+    //In case the text dropped is a web url
+    int pos = source.indexOf("docs.google.com");
+    
+    QString UrlText(source);
+    
+    //    Has to be at the beginning, otherwise, it can be a component containing an URL.
+    if(pos != -1){
+
+        QNetworkRequest requete(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M/export?format=txt"));
+        
+        QNetworkAccessManager *m = new QNetworkAccessManager;
+        
+        QNetworkReply * fGetKeyReply = m->get(requete);
+        
+        connect(fGetKeyReply, SIGNAL(finished()), this, SLOT(receiveDSP()));
+        connect(fGetKeyReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+    }
+    
+    return UrlText;
+}
+
 //--Transforms an Url into faust string
 QString FLSessionManager::ifUrlToString(const QString& source){
     
@@ -611,10 +652,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 #endif
     }
 
+    if(settings->value("Release/Enabled", false).toBool()){
+        deleteWinFromServer(settings);
+    }
+    
     mySetts->fFactory = toCompile;
     mySetts->fPath = path;
     mySetts->fName = name;
-
+    
    return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
@@ -681,6 +726,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         settings->setValue("SHA", factorySetts.first);
 	}
     
+    
+    if(settings->value("Release/Enabled", false).toBool()){
+        addWinToServer(settings);
+        printf("Enabled Release\n");
+    }
+    else
+        printf("Disabled Release\n");
     return compiledDSP;
 }
 
@@ -1058,7 +1110,54 @@ QVector<QString> FLSessionManager::get_dependencies(dsp* myDSP, const QString& p
     return dependencies;
 }
 
+//---------------------PUBLISH FACTORIES ON LOCAL SERVER-----------//
 
+//Add Window to Server through createRemoteFactory...
+bool FLSessionManager::addWinToServer(FLWinSettings* settings){
+    
+    QString sha_key = settings->value("SHA", "").toString();
+    string name = settings->value("Name", "").toString().toStdString()/*+ "_" + QString::number(settings->value("Release/Number", 0).toInt()).toStdString()*/;
+    
+    
+    printf("addWinToServer with name = %s\n", name.c_str());
+    
+    QString factoryFolder = fSessionFolder + "/SHAFolder/" + sha_key;
+    
+    QString fileToCompile = factoryFolder + "/" + sha_key + ".dsp";
+    
+    string error;
+    
+    QString faustOptions = settings->value("Compilation/FaustOptions", "").toString();
+    int optLevel = settings->value("Compilation/OptValue", 3).toInt();
+    
+    int argc;
+	const char** argv = getFactoryArgv(settings->value("Path", "").toString(), factoryFolder, faustOptions, argc);
+    
+    int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
+    
+    remote_dsp_factory* onsenfout = createRemoteDSPFactoryFromString( name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, 3);
+    
+    printf("On s'en fout tu sais bien... = %p\n", onsenfout);
+    
+    if(onsenfout){
+        fPublishedFactories[sha_key] = onsenfout;
+        settings->setValue("Release/Number", settings->value("Release/Number", 0).toInt()+1);
+        return true;
+    }
+    else
+        return false;
+}
+
+//Delete Window From Server through createRemoteFactory...
+void FLSessionManager::deleteWinFromServer(FLWinSettings* settings){
+    
+    QString sha_key = settings->value("SHA", "").toString();
+    
+    remote_dsp_factory* onsenfout = fPublishedFactories[sha_key];
+    if(onsenfout)
+        deleteRemoteDSPFactory(onsenfout);
+    
+}
 
 
 

@@ -24,6 +24,7 @@ class FLPreferenceWindow : public QDialog
     QLineEdit*          fCompilModes;
     QLineEdit*          fOptVal;
     QLineEdit*          fServerLine;
+    QLineEdit*          fRemoteServerLine;
     QLineEdit*          fPortLine;
     QCheckBox*          fHttpAuto;
     QCheckBox*          fOscAuto;
@@ -50,6 +51,7 @@ signals:
     void newStyle(const QString&);
     void urlChanged();
     void dropPortChange();
+    void remoteServerPortChanged();
 };
 
 #endif

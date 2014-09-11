@@ -27,8 +27,6 @@ FLStatusBar::FLStatusBar(QSettings* settings, QWidget* parent) : QStatusBar(pare
     init();
     
     setFixedHeight(40);
-    setStyleSheet("QStatusBar{border: 0px; padding:0px 0px 0px 0px; margin:0px;}"
-                  );
 }
 
 FLStatusBar::~FLStatusBar(){
@@ -46,7 +44,6 @@ void FLStatusBar::init(){
     
     fRemoteButton->setStyleSheet("*{"
                                  "background-color: transparent;"
-                                 "color: black;"
                                  "border-color: transparent;"
                                  "padding:0px 0px 0px 0px;"
                                  "margin-left: 5px;"

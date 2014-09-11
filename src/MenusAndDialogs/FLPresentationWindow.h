@@ -47,11 +47,11 @@ class FLPresentationWindow : public QDialog{
     
         void    hideWindow();
     
-        void newWindow();
-        void openWindow();
-        void session();
-        void pref();
-        void help();
+        void    newWindow();
+        void    openWindow();
+        void    session();
+        void    pref();
+        void    help();
     
     signals:
         void    openExample(const QString&);

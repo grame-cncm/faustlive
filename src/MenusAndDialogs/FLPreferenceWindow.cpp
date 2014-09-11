@@ -33,7 +33,6 @@ void FLPreferenceWindow::init(){
     setWindowTitle("Preferences");
     
     QTabWidget* generalTabStructure = new QTabWidget(this);
-    generalTabStructure->setStyleSheet("*{}""*::tab-bar{}");
     
     QGroupBox* compilationTab = new QGroupBox(generalTabStructure);
     QGroupBox* audioTab = new QGroupBox(generalTabStructure);
@@ -95,18 +94,21 @@ void FLPreferenceWindow::init(){
     
     //-----------------NETWORK PREFERENCES
     
-    fServerLine = new QLineEdit(styleTab);
-    
-#ifdef  HTTPCTRL
-    fPortLine = new QLineEdit(styleTab);
-    fHttpAuto = new QCheckBox;
-    fOscAuto = new QCheckBox;
-#endif
-    
-    generalTabStructure->addTab(styleTab, tr("Network"));
+    fServerLine = new QLineEdit(networkTab);
+
+    generalTabStructure->addTab(networkTab, tr("Network"));
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
+#ifdef REMOTE
+    fRemoteServerLine = new QLineEdit(networkTab);
+    networkLayout->addRow(new QLabel(tr("")));
+    networkLayout->addRow(new QLabel(tr("Remote Compilation Port")), fRemoteServerLine);
+#endif
 #ifdef HTTPCTRL
+    fPortLine = new QLineEdit(networkTab);
+    fHttpAuto = new QCheckBox;
+    fOscAuto = new QCheckBox;
+    
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 
@@ -118,14 +120,13 @@ void FLPreferenceWindow::init(){
 #endif
     
     
-    styleTab->setLayout(networkLayout);
+    networkTab->setLayout(networkLayout);
     
     //------------------STYLE PREFERENCES
-    generalTabStructure->addTab(networkTab, tr("Style"));
+    generalTabStructure->addTab(styleTab, tr("Style"));
     
-    QPlainTextEdit* container = new QPlainTextEdit(networkTab);
+    QPlainTextEdit* container = new QPlainTextEdit(styleTab);
     container->setReadOnly(true);
-    container->setStyleSheet("*{background-color : transparent;}");
     
     QPushButton* grey = new QPushButton(tr("Grey"));
     grey->setFlat(true);
@@ -192,7 +193,7 @@ void FLPreferenceWindow::init(){
     container->setLayout(styleLayout);
     
     styleContainerLayout->addWidget(container);
-    networkTab->setLayout(styleContainerLayout);
+    styleTab->setLayout(styleContainerLayout);
     
     generalTabLayout->addRow(generalTabStructure);
     generalTabLayout->addRow(buttonContainer);
@@ -217,7 +218,19 @@ void FLPreferenceWindow::save(){
     }
     
     settings->setValue("General/Compilation/FaustOptions", fCompilModes->text());
+#ifdef REMOTE
+    int portVal;
     
+    if(isStringInt(fRemoteServerLine->text().toLatin1().data()))
+        portVal = atoi(fRemoteServerLine->text().toLatin1().data());
+    else
+        portVal = 5555;
+    
+    if(settings->value("General/Network/RemoteServerPort", 5555).toInt() != portVal){
+        settings->setValue("General/Network/RemoteServerPort", portVal);
+        emit remoteServerPortChanged();
+    }
+#endif
 #ifdef HTTPCTRL
     int value;
     
@@ -246,6 +259,11 @@ void FLPreferenceWindow::resetVisualObjects(){
     fOptVal->setText(QString::number(FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt()));
     
     fServerLine->setText(FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
+    
+#ifdef REMOTE
+    fRemoteServerLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt()));
+#endif
+    
     
 #ifdef  HTTPCTRL
     fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));

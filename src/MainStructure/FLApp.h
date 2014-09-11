@@ -93,6 +93,7 @@ class FLApp : public QApplication
         QString              fSessionFolder; //Path to currentSession Folder
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
         QString              fHtmlFolder;
+        QString              fDocFolder;
         QString              fLibsFolder;   //Folder containing Libs copied from QResources
         
     //Save/Recall the recent Files/Sessions 
@@ -143,6 +144,10 @@ class FLApp : public QApplication
         FLWindow*           getWinFromHttp(int port);
     
     private slots :
+    
+#ifdef REMOTE
+        void                changeRemoteServerPort();
+#endif
     
 #ifdef HTTPCTRL
 //--------Server Response
@@ -197,6 +202,8 @@ class FLApp : public QApplication
         void                Preferences();
     
     //---------Help
+        void                open_FL_doc();
+        void                open_F_doc();
         void                version_Action();
         void                show_presentation_Action();
     

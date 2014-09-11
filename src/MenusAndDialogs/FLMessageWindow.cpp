@@ -18,7 +18,6 @@ FLMessageWindow::FLMessageWindow(){
     
     fMessage = new QLabel;
     fMessage->setAlignment(Qt::AlignCenter);
-    fMessage->setStyleSheet("*{color: black}");
     
     QLabel* tittle = new QLabel(tr("<h2>FAUSTLIVE</h2>"));
     tittle->setAlignment(Qt::AlignCenter);

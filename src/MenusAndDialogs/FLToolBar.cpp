@@ -20,14 +20,13 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
     fButtonState = fFold;
     
     setAutoFillBackground(true);
-    
+
     fWindowOptions = new QPushButton(">   Parameters");
     fWindowOptions->setFlat(true);
     fWindowOptions->setDefault(false);
     addWidget(fWindowOptions);
     
     connect(fWindowOptions, SIGNAL(clicked()), this, SLOT(buttonStateChanged()));
-    
 
     fWindowOptions->setStyleSheet("*{"
                               "background-color: transparent;"
@@ -65,7 +64,7 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
 void FLToolBar::init(){
     
     fContainer = new QToolBox;
-    fContainer->setStyleSheet("*{background-color:transparent;}");
+    fContainer->setStyleSheet("*{background-color: transparent}");
     
 //------- Compilation Options
     QWidget* compilationOptions = new QWidget();
