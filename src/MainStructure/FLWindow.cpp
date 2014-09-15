@@ -1071,6 +1071,8 @@ void FLWindow::save_Window(){
     fSettings->setValue("Position/x", this->geometry().x());
     fSettings->setValue("Position/y", this->geometry().y());
     
+    printf("Positino saved = %i || %i\n", this->geometry().x(), this->geometry().y());
+    
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
     fRCInterface->saveState(rcfilename.toLatin1().data());
@@ -1079,6 +1081,10 @@ void FLWindow::save_Window(){
     QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
     
     fAudioManager->save_Connections(connectFile.toStdString());
+    
+//    Writing new settings in file (for infos to be synchronized)
+    fSettings->sync();
+    
 }
 
 void FLWindow::recall_Window(){
