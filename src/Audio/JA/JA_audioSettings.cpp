@@ -42,7 +42,10 @@ void JA_audioSettings::storeVisualSettings(){
 
 bool JA_audioSettings::isEqual(AudioSettings*){
     
-    return true;
+    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool() == get_AutoConnect())
+        return true;
+    else
+        return false;
 }
 
 bool JA_audioSettings::get_AutoConnect(){

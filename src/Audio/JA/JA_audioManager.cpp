@@ -15,6 +15,8 @@
 
 #include <QFileInfo>
 
+#include "FLSettings.h"
+
 
 void JA_audioManager::shutdown_message(const char * msg, void* arg){
     Q_UNUSED(arg);
@@ -105,7 +107,7 @@ void JA_audioManager::connect_Audio(string homeDir){
         
         fCurrentAudio->reconnect(connection);
     }
-    else
+    else if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool())
         fCurrentAudio->default_connections();  
     
 }
