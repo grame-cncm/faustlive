@@ -653,7 +653,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     }
     
 #ifdef REMOTE
-    if(settings->value("Release/Enabled", false).toBool()){
+    if(settings && settings->value("Release/Enabled", false).toBool()){
         deleteWinFromServer(settings);
     }
 #endif
@@ -729,7 +729,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 	}
     
 #ifdef REMOTE
-    if(settings->value("Release/Enabled", false).toBool()){
+    if(settings && settings->value("Release/Enabled", false).toBool()){
         addWinToServer(settings);
         printf("Enabled Release\n");
     }
