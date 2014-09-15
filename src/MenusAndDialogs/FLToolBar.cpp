@@ -77,6 +77,7 @@ void FLToolBar::init(){
     compilationLayout->addRow(fOptionLine);
     
     connect(fOptionLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     //--LLVM
     fOptValLine = new QLineEdit(tr(""), compilationOptions);
     fOptValLine->setStyleSheet("*{background-color:white;}");
@@ -88,6 +89,7 @@ void FLToolBar::init(){
     compilationLayout->addRow(fOptValLine);
     
     connect(fOptValLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
                               
     compilationOptions->setLayout(compilationLayout);
     fContainer->addItem(compilationOptions, tr("Compilation"));
@@ -100,6 +102,7 @@ void FLToolBar::init(){
     fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
     
     connect(fAutomaticExportLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fAutomaticExportLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     automaticExportLayout->addRow(new QLabel("Compiler Options"));
     automaticExportLayout->addRow(fAutomaticExportLine);
@@ -123,23 +126,27 @@ void FLToolBar::init(){
     fPortInOscLine->setMaxLength(4);
     fPortInOscLine->setMaximumWidth(50);
     connect(fPortInOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fPortInOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fPortOutOscLine = new QLineEdit(tr(""), oscBox);
     fPortOutOscLine->setStyleSheet("*{background-color:white;}");
     fPortOutOscLine->setMaxLength(4);
     fPortOutOscLine->setMaximumWidth(50);
     connect(fPortOutOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fPortOutOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fDestHostLine = new QLineEdit(tr(""), oscBox);
 //    fDestHostLine->setInputMask("000.000.000.000");
     fDestHostLine->setStyleSheet("*{background-color:white;}");
     connect(fDestHostLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fDestHostLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fPortErrOscLine = new QLineEdit(tr(""), oscBox);
     fPortErrOscLine->setStyleSheet("*{background-color:white;}");
     fPortErrOscLine->setMaxLength(4);
     fPortErrOscLine->setMaximumWidth(50);
     connect(fPortErrOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fPortErrOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     oscLayout->addRow("Enable Interface", fOSCCheckBox);    
     oscLayout->addRow(new QLabel(tr("In Port")), fPortInOscLine);
@@ -198,18 +205,21 @@ void FLToolBar::init(){
     fCVLine->setMaximumWidth(50);
     fCVLine->setStyleSheet("*{background-color:white;}");
     connect(fCVLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fCVLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fMTULine = new QLineEdit;
     fMTULine->setMaxLength(6);
     fMTULine->setMaximumWidth(50);
     fMTULine->setStyleSheet("*{background-color:white;}");
     connect(fMTULine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fMTULine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fLatLine = new QLineEdit;
     fLatLine->setMaxLength(4);
     fLatLine->setMaximumWidth(50);
     fLatLine->setStyleSheet("*{background-color:white;}");
     connect(fLatLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fLatLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     remoteLayout->addRow(new QLabel(tr("Compression")), fCVLine);
     remoteLayout->addRow(new QLabel(tr("MTU")), fMTULine);
