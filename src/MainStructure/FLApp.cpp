@@ -1002,6 +1002,8 @@ void FLApp::update_Recent_Session(){
     
     for(QList<QString>::iterator it=fRecentSessions.begin(); it!=fRecentSessions.end(); it++){
         
+        printf("Index = %i || Size = %i || Session = %s\n", index, fRecentSessions.size(), it->toStdString().c_str());
+        
         if(index<kMAXRECENT){
         
             QString path = *it;
@@ -1076,15 +1078,15 @@ void FLApp::take_Snapshot(){
         
         int pos = filename.indexOf(".tar");
         
+        set_Current_Session(filename);
+        
         if(pos != -1)
             filename = filename.mid(0, pos);
         
         update_CurrentSession();
-        
+
         FLSessionManager::_Instance()->createSnapshot(filename);
         
-        set_Current_Session(filename);
-
         StopProgressSlot();
     }
 }
