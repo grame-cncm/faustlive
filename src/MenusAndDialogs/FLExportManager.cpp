@@ -516,7 +516,7 @@ void FLExportManager::saveFileOnDisk(){
     QString fullName = fAppName + "_" + fPlatform + "_" + fArchi;
     
     QString defaultFilename = getenv("HOME");
-    defaultFilename += "/Desktop/" + fullName;
+    defaultFilename += "/*/" + fullName;
     
     if(fChoice.compare("src.cpp") == 0){
         defaultFilename += ".cpp";
