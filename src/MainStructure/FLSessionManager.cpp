@@ -279,6 +279,8 @@ QString FLSessionManager::ifWavToString(const QString& source){
     
     if(QFileInfo(source).completeSuffix() == "wav"){
         
+        QString exeFile = "";
+        
         QString soundFileName = QFileInfo(source).baseName();
         
         QString destinationFile = QFileInfo(source).absolutePath();
@@ -295,29 +297,33 @@ QString FLSessionManager::ifWavToString(const QString& source){
 		// figure out the right name for faust2sound depending of the OS
 
 #ifdef _WIN32
-        systemInstruct += "sound2faust.exe ";
+        exeFile = "sound2faust.exe";
 #endif
 
 #ifdef __linux__
         if(QFileInfo("/usr/local/bin/sound2faust").exists())
-            systemInstruct += "/usr/local/bin/sound2faust ";
+            exeFile = "/usr/local/bin/sound2faust";
         else
-            systemInstruct += "./sound2faust ";      
+            exeFile = "./sound2faust";   
 #endif
-
+        
 #ifdef __APPLE__
         QDir base;
         
         if(base.absolutePath().indexOf("Contents/MacOS") != -1)
-            systemInstruct += "./sound2faust ";
+            exeFile = "./sound2faust";
         else
-            systemInstruct += base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust ";      
+            exeFile = base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust";      
 #endif
+        systemInstruct += exeFile + " ";
         systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
+        
+        if(!QFileInfo(exeFile).exists())
+            FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
         
         QString errorMsg("");
         if(!executeInstruction(systemInstruct, errorMsg))
-            emit error(errorMsg);
+            FLErrorWindow::_Instance()->print_Error(errorMsg);
         
         QString finalFileContent = "import(\"";
         finalFileContent += soundFileName + "_waveform.dsp";
@@ -992,7 +998,14 @@ map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file){
                 //            In Case The Original File Was Deleted
                 if(!QFileInfo(originalPath).exists() || savedContent != originalContent){
                     windowIndexToSource[groups[i].toInt()] = savedContent;
-                //   ATTENTION : ICI IL FAUT ENVOYER UN MESSAGE POUR PREVENIR QU'ON TRAVAILLE SUR UNE COPIE
+                    
+                    QString errorMsg;
+                    if(!QFileInfo(originalPath).exists())
+                        errorMsg = originalPath + " was deleted. An internal copy is used to recall your DSP.";
+                    else
+                        errorMsg = "The content of " + originalPath + " was modified. An internal copy is used to recall your DSP";
+                    
+                    FLErrorWindow::_Instance()->print_Error(errorMsg);
                     // ET IL FAUT FAIRE UN TRUC POUR PAS QU'ON TE LE RAPPELLE À CHAQUE RAPPEL DE CETTE SESSION 
                 }
                 else{

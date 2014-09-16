@@ -64,11 +64,6 @@ class FLApp : public QApplication
         QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
     
     //Appendices Dialogs
-        FLHelpWindow*        fHelpWindow;        //Help Dialog
-    
-        FLPresentationWindow*            fPresWin;           //Presentation Window
-        QDialog*            fVersionWindow;     //Not Active Window containing the versions of all used librairies
-    
         FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
     
     //List of windows currently running in the application
@@ -124,7 +119,6 @@ class FLApp : public QApplication
         QTimer*             fEndTimer;
     
     //Preference Menu Objects and Functions
-        FLPreferenceWindow*     fPrefDialog;     //Preference Window
         AudioCreator*           fAudioCreator;
     
         void                update_AudioArchitecture();

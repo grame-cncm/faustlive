@@ -39,6 +39,8 @@ FLFileWatcher* FLFileWatcher::_Instance(){
 
 void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
     
+    printf("Size of dependencies = %i\n", paths.size());
+    
     for(int i = 0; i<paths.size(); i++){
     
         printf("START PATH = %s\n", paths[i].toStdString().c_str());
@@ -50,6 +52,8 @@ void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
             
             QList<FLWindow*> list = fMap[path];
             list.push_back(win);
+            
+            printf("Size of Path List = %i\n", list.size());
             
             fMap[path] = list;
             

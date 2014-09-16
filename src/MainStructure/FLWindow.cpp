@@ -170,6 +170,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             runInterfaces();
             
             fCreationDate = fCreationDate.currentDateTime();
+            printf("WINDOW STARTS WATCHER\n");
             FLFileWatcher::_Instance()->startWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
             
             return true;
@@ -312,7 +313,6 @@ void FLWindow::source_Deleted(){
     errorPrint(msg);
     
 }
-
 
 //------------------------MENUS ACTIONS
 
@@ -893,6 +893,8 @@ void FLWindow::dropEvent ( QDropEvent * event ){
 void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
     
     if(event->mimeData()->text() == fSource)
+        return;
+    else if(*(event->mimeData()->urls().begin()) == fSource)
         return;
     
     if (event->mimeData()->hasFormat("text/uri-list") || event->mimeData()->hasFormat("text/plain")){

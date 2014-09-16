@@ -43,7 +43,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
-    connect(FLSessionManager::_Instance(), SIGNAL(error(const QString&)), this, SLOT(errorPrinting(const QString&)));
    
 #ifndef _WIN32
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
@@ -104,18 +103,15 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Initializing OutPut Window
     connect(FLErrorWindow::_Instance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
 
-
     // Presentation Window Initialization
-    fPresWin = new FLPresentationWindow;
-    connect(fPresWin, SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
-    connect(fPresWin, SIGNAL(openWin()), this, SLOT(open_New_Window()));
-    connect(fPresWin, SIGNAL(openSession()), this, SLOT(recallSnapshotFromMenu()));
-    connect(fPresWin, SIGNAL(openPref()), this, SLOT(Preferences()));
-    connect(fPresWin, SIGNAL(openHelp()), fHelpWindow, SLOT(show()));
-    connect(fPresWin, SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openWin()), this, SLOT(open_New_Window()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openSession()), this, SLOT(recallSnapshotFromMenu()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openPref()), this, SLOT(Preferences()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openHelp()), FLHelpWindow::_Instance(), SLOT(show()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
     
-    //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);  
-    centerOnPrimaryScreen(fPresWin);
+    //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);
     //Initialiazing Remote Drop Server
 #ifdef HTTPCTRL
     launch_Server();
@@ -150,8 +146,7 @@ FLApp::~FLApp(){
     
     delete fInitTimer;
     
-    delete fPresWin;
-    delete fHelpWindow;
+    FLHelpWindow::deleteInstance();
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
@@ -478,9 +473,9 @@ QMenu* FLApp::create_HelpMenu(){
     
     QAction* aboutAction = new QAction(tr("&Help..."), NULL);
     aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), fHelpWindow, SLOT(show()));
+    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
     
-    fVersionWindow = new QDialog;
+    
         
     QAction* versionAction = new QAction(tr("&Version"), this);
     versionAction->setToolTip(tr("Show the version of the libraries used"));
@@ -517,17 +512,13 @@ void FLApp::setup_Menu(){
     
     //---------------------Presentation MENU
     
-    fPrefDialog = new FLPreferenceWindow;
-    
-    connect(fPrefDialog, SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-    connect(fPrefDialog, SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
-    connect(fPrefDialog, SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
+    connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
+    connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
+    connect(FLPreferenceWindow::_Instance(), SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
     fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP Menu
-    
-    fHelpWindow = new FLHelpWindow(fLibsFolder);
-    centerOnPrimaryScreen(fHelpWindow);
+    FLHelpWindow::createInstance(fLibsFolder);
     
     //----------------MenuBar setups
     
@@ -1443,6 +1434,8 @@ void FLApp::open_F_doc(){
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
     
+    QDialog* versionWindow = new QDialog;
+    
     QVBoxLayout* layoutGeneral = new QVBoxLayout;
     
     QString text = "FAUSTLIVE \n- Dist version ";
@@ -1458,23 +1451,24 @@ void FLApp::version_Action(){
     text += "\n""- LLVM Compiler ";
     text += "3.1";
         
-    QPlainTextEdit* versionText = new QPlainTextEdit(text, fVersionWindow);
+    QPlainTextEdit* versionText = new QPlainTextEdit(text, versionWindow);
         
     layoutGeneral->addWidget(versionText);
-    fVersionWindow->setLayout(layoutGeneral);
-        
-    fVersionWindow->exec();
+    versionWindow->setLayout(layoutGeneral);
+    centerOnPrimaryScreen(versionWindow);
+    versionWindow->exec();
 
     delete versionText;
     delete layoutGeneral;
+    delete versionWindow;
 }
 
 //-------------------------------PRESENTATION WINDOW-----------------------------
 
 void FLApp::show_presentation_Action(){
     
-    fPresWin->show();
-    fPresWin->raise();
+    FLPresentationWindow::_Instance()->show();
+    FLPresentationWindow::_Instance()->raise();
 }
 
 //--------------------------------PREFERENCES---------------------------------------
@@ -1500,7 +1494,7 @@ void FLApp::styleClicked(const QString& style){
 //Preference triggered from Menu
 void FLApp::Preferences(){
     
-    fPrefDialog->exec();
+    FLPreferenceWindow::_Instance()->exec();
     
     if(fAudioCreator->didSettingChanged()){
         
