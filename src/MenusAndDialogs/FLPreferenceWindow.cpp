@@ -11,6 +11,8 @@
 #include "utilities.h"
 #include <sstream>
 
+FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
+
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
@@ -23,10 +25,17 @@ FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
     int screenWidth = screenSize.width();
     int screenHeight = screenSize.height();
     
-    move((screenWidth-width())/2, (screenHeight-height())/2);
+    centerOnPrimaryScreen(_prefWindow);
 }
 
 FLPreferenceWindow::~FLPreferenceWindow(){}
+
+FLPreferenceWindow* FLPreferenceWindow::_Instance(){
+    if(_prefWindow == NULL)
+        _prefWindow = new FLPreferenceWindow;
+    
+    return _prefWindow;
+}
 
 void FLPreferenceWindow::init(){
     

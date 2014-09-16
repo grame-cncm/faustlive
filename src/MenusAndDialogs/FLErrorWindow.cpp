@@ -44,7 +44,18 @@ void FLErrorWindow::init_Window(){
     
     fErrorText->setReadOnly(true);
     
-    QSize screenSize = QApplication::desktop()->geometry().size();
+    QSize screenSize;
+    
+    QDesktopWidget *dw = QApplication::desktop();
+    
+	QWidgetList l = QApplication::topLevelWidgets();
+	if (l.empty()) {
+    	screenSize = dw->availableGeometry(dw->primaryScreen()).size();
+    } else {
+    	QWidget* w = l.first();	
+    	screenSize = dw->screenGeometry(w).size();
+    }
+    
     this->setGeometry(screenSize.width()*3/4 , 0,screenSize.width()/4,screenSize.height()/10);
     this->setCentralWidget(fWidget);
     

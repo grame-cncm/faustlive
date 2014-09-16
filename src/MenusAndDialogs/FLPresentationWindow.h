@@ -33,6 +33,9 @@ class FLPresentationWindow : public QDialog{
         FLPresentationWindow();
         virtual ~FLPresentationWindow();
     
+        static FLPresentationWindow* _presWindow;
+        static FLPresentationWindow* _Instance();
+    
         void    init();
     
         virtual void closeEvent(QCloseEvent* event);

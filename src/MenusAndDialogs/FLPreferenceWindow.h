@@ -40,6 +40,9 @@ public:
     
     ~FLPreferenceWindow();
 
+    static FLPreferenceWindow* _prefWindow;
+    static FLPreferenceWindow* _Instance();
+    
     private slots:
     
     void save();

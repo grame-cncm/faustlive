@@ -55,6 +55,11 @@ class FLHelpWindow : public QMainWindow{
         FLHelpWindow(const QString& libsFodler);
         virtual ~FLHelpWindow();
     
+        static  FLHelpWindow*   _helpWindow;
+        static  FLHelpWindow*   _Instance();
+        static  void            createInstance(const QString home);
+        static  void            deleteInstance();
+    
         void    init();
     
         virtual void closeEvent(QCloseEvent* event);

@@ -9,7 +9,10 @@
 #include "FLPresentationWindow.h"
 #include "utilities.h"
 
-//-----------------------ERRORWINDOW IMPLEMENTATION
+
+FLPresentationWindow* FLPresentationWindow::_presWindow = NULL;
+
+//-----------------------PRESENTATION WINDOW IMPLEMENTATION
 
 FLPresentationWindow::FLPresentationWindow(){
     fExampleToOpen = "";
@@ -17,6 +20,13 @@ FLPresentationWindow::FLPresentationWindow(){
 }
 
 FLPresentationWindow::~FLPresentationWindow(){}
+
+FLPresentationWindow* FLPresentationWindow::_Instance(){
+    if(_presWindow == NULL)
+        _presWindow = new FLPresentationWindow;
+    
+    return _presWindow;
+}
 
 void FLPresentationWindow::init(){
     
@@ -255,7 +265,8 @@ void FLPresentationWindow::init(){
                         "QPushButton:flat:hover{"
                         "background-color: darkGray;"                         
                         "}" );
-
+    
+    centerOnPrimaryScreen(_presWindow);
 }
 
 //Store the item clicked to open it when the open button is pressed

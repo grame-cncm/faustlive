@@ -7,6 +7,7 @@
 //
 
 #include "FLMessageWindow.h"
+#include "utilities.h"
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
@@ -35,7 +36,7 @@ FLMessageWindow::FLMessageWindow(){
     int screenWidth = screenSize.width();
     int screenHeight = screenSize.height();
     
-    move((screenWidth-width())/2, (screenHeight-height())/2);
+    centerOnPrimaryScreen(this);
     adjustSize();
 }
 

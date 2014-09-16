@@ -7,9 +7,11 @@
 //
 
 #include "FLHelpWindow.h"
-
+#include "utilities.h"
 #include "faust/llvm-dsp.h"
 //-----------------------ERRORWINDOW IMPLEMENTATION
+
+FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
 
 FLHelpWindow::FLHelpWindow(const QString& libsFolder){
     fLibsFolder = libsFolder;
@@ -22,6 +24,20 @@ FLHelpWindow::~FLHelpWindow(){
     delete  fLibsText;
     delete  fAppText; 
     delete  fWinText;
+}
+
+void FLHelpWindow::createInstance(const QString home){
+    if(_helpWindow == NULL)
+        _helpWindow = new FLHelpWindow(home);
+}
+
+void FLHelpWindow::deleteInstance(){
+    delete _helpWindow;
+}
+
+FLHelpWindow* FLHelpWindow::_Instance(){
+    
+    return _helpWindow;
 }
 
 //Set Text in Tools Menu of HELP
@@ -420,6 +436,9 @@ void FLHelpWindow::init(){
     setCentralWidget(winGroup);
     
     myTabWidget->setCurrentIndex(0);
+    
+    
+    centerOnPrimaryScreen(_helpWindow);
 }
 
 void FLHelpWindow::hideWindow(){
