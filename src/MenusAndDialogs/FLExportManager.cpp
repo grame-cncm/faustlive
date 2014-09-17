@@ -123,9 +123,11 @@ void FLTargetChooser::init(){
     
     QPushButton* cancel = new QPushButton(tr("Cancel"), intermediateWidget);
     cancel->setDefault(false);
-    
+	cancel->show();
+
     QPushButton* saveButton = new QPushButton(tr("Export"), intermediateWidget);
     saveButton->setDefault(true);
+	saveButton->show();
     
     connect(saveButton, SIGNAL(released()), this, SLOT(acceptDialog()));
     connect(cancel, SIGNAL(released()), this, SLOT(cancelDialog()));

@@ -30,6 +30,7 @@ DEFINES += APP_VERSION=\\\"1.2\\\"
 ## Images/Examples and other needed resources
 RESOURCES     = ../../Resources/application.qrc
 RESOURCES += ../../Resources/windows.qrc
+RESOURCES += ../../Resources/wstyles.qrc
 
 ####### INCLUDES PATHS && LIBS PATHS
 
