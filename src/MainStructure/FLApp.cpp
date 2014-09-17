@@ -1479,7 +1479,7 @@ void FLApp::styleClicked(const QString& style){
     QFile file;
     FLSettings::_Instance()->setValue("General/Style", style);
     
-    QString styleFile = ":/usr/local/include/faust/gui/Styles/" + style + ".qss";    
+    QString styleFile = ":/Styles/" + style + ".qss";    
     file.setFileName(styleFile);
     
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
