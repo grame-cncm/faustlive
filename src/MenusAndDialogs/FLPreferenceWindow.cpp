@@ -20,12 +20,6 @@ FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
     setWindowFlags(Qt::FramelessWindowHint);
 
     init();
-    
-    QSize screenSize = QApplication::desktop()->geometry().size(); 
-    int screenWidth = screenSize.width();
-    int screenHeight = screenSize.height();
-    
-    centerOnPrimaryScreen(_prefWindow);
 }
 
 FLPreferenceWindow::~FLPreferenceWindow(){}
@@ -209,6 +203,8 @@ void FLPreferenceWindow::init(){
     setLayout(generalTabLayout);
     
     resetVisualObjects();
+    
+    centerOnPrimaryScreen(_prefWindow);
 }
 
 //Response to save button triggered in preferences
