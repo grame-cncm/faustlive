@@ -514,7 +514,9 @@ void FLApp::setup_Menu(){
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
+#ifdef REMOTE
     connect(FLPreferenceWindow::_Instance(), SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
+#endif
     fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP Menu
