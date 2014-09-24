@@ -37,8 +37,8 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fOptionLine;     //Allows the addition of compilation options
         QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
     
-        QCheckBox*          fExportCheckBox;
         QLineEdit*          fAutomaticExportLine;
+        QLineEdit*          fScriptLine;
         
         QCheckBox*          fHttpCheckBox;
         QLabel*             fHttpPort;      //Edit port http
@@ -69,6 +69,7 @@ class FLToolBar : public QToolBar{
         bool                hasCompilationOptionsChanged();
         bool                wasAutomaticExportSwitched();
         bool                hasAutomaticExportChanged();
+        bool                hasScriptChanged();
         bool                wasOscSwitched();
         bool                hasOscOptionsChanged();
         bool                wasHttpSwitched();
@@ -105,6 +106,7 @@ class FLToolBar : public QToolBar{
         void    switch_osc(bool on);
         void    switch_remotecontrol(bool on);    
         void    switch_release(bool on);
+//        void    execScript();
 };
 
 #endif

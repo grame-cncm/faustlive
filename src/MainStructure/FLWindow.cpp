@@ -507,6 +507,7 @@ void FLWindow::set_ToolBar(){
     connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
     connect(fToolBar, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
     connect(fToolBar, SIGNAL(generateNewAuxFiles()), this, SLOT(generateAuxFiles()));
+//    connect(fToolBar, SIGNAL(execScript()), this, SLOT(scriptExecution()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
     connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
@@ -689,11 +690,14 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
         return false;
 
 #ifdef HTTPCTRL    
-    if(fSettings->value("Osc/Enabled", false).toBool())
+    if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool()){
         allocateOscInterface();
+        printf("ALLOCATED OSC INTERFACE\n");
+    }
     
-    if(fSettings->value("Http/Enabled", false).toBool())
+    if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
         allocateHttpInterface();
+    }
 #endif
     return true;
 }

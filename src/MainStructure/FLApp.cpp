@@ -675,7 +675,7 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
         
         source = "process = !,!:0,0;";
         
-        if(QString::compare(FLSettings::_Instance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::_Instance()->value("General/Style", "Grey").toString(), "Blue") == 0)
+        if(QString::compare(FLSettings::_Instance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::_Instance()->value("General/Style", "Grey").toString(), "Grey") == 0)
             init = kInitWhite;
         else
             init = kInitBlue;

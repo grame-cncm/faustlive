@@ -65,51 +65,7 @@ void FLToolBar::init(){
     
     fContainer = new QToolBox;
     fContainer->setStyleSheet("*{background-color: transparent}");
-    
-//------- Compilation Options
-    QWidget* compilationOptions = new QWidget();
-    QFormLayout* compilationLayout = new QFormLayout;
-    
-    //--Faust
-    fOptionLine = new QLineEdit(tr(""), compilationOptions);
-    fOptionLine->setStyleSheet("*{background-color:white;}");
-    compilationLayout->addRow(new QLabel(tr("FAUST Options")));
-    compilationLayout->addRow(fOptionLine);
-    
-    connect(fOptionLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
-    connect(fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    //--LLVM
-    fOptValLine = new QLineEdit(tr(""), compilationOptions);
-    fOptValLine->setStyleSheet("*{background-color:white;}");
-    
-    fOptValLine->setMaxLength(3);
-    fOptValLine->adjustSize();
-                              
-    compilationLayout->addRow(new QLabel(tr("LLVM Optimization")));  
-    compilationLayout->addRow(fOptValLine);
-    
-    connect(fOptValLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
-    connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-                              
-    compilationOptions->setLayout(compilationLayout);
-    fContainer->addItem(compilationOptions, tr("Compilation"));
 
-//------ Automatic Export
-    QWidget* automaticExportBox = new QWidget();
-    QFormLayout* automaticExportLayout = new QFormLayout;
-    
-    fAutomaticExportLine = new QLineEdit(tr(""), automaticExportBox);
-    fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
-    
-    connect(fAutomaticExportLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
-    connect(fAutomaticExportLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
-    
-    automaticExportLayout->addRow(new QLabel("Compiler Options"));
-    automaticExportLayout->addRow(fAutomaticExportLine);
-    
-    automaticExportBox->setLayout(automaticExportLayout);
-    fContainer->addItem(automaticExportBox, tr("Automatic Export"));
-    
 //------- OSC Control
 #ifdef HTTPCTRL
     
@@ -241,6 +197,67 @@ void FLToolBar::init(){
     publishBox->setLayout(publishLayout);
     fContainer->addItem(publishBox, "Release");
 #endif
+    
+    //------- Compilation Options
+    QWidget* compilationOptions = new QWidget();
+    QFormLayout* compilationLayout = new QFormLayout;
+    
+    compilationLayout->addRow(new QLabel("------Code Generation Options------"));
+    
+    //--Faust
+    fOptionLine = new QLineEdit(tr(""), compilationOptions);
+    fOptionLine->setStyleSheet("*{background-color:white;}");
+    compilationLayout->addRow(new QLabel(tr("FAUST Compiler Options")));
+    compilationLayout->addRow(fOptionLine);
+    
+    connect(fOptionLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    //--LLVM
+    fOptValLine = new QLineEdit(tr(""), compilationOptions);
+    fOptValLine->setStyleSheet("*{background-color:white;}");
+    
+    fOptValLine->setMaxLength(3);
+    fOptValLine->adjustSize();
+    
+    compilationLayout->addRow(new QLabel(tr("LLVM Optimization")));  
+    compilationLayout->addRow(fOptValLine);
+    
+    connect(fOptValLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fOptValLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+    compilationLayout->addRow(new QLabel(""));
+    compilationLayout->addRow(new QLabel("-----Additional Compilation Step-----"));
+    //------ Automatic Export
+    
+    fAutomaticExportLine = new QLineEdit(tr(""), compilationOptions);
+    fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
+    
+    connect(fAutomaticExportLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fAutomaticExportLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+    compilationLayout->addRow(new QLabel("Faust Compiler Options"));
+    compilationLayout->addRow(fAutomaticExportLine);
+    compilationLayout->addRow(new QLabel("Ex: -lang ajs -o filename.js"));
+    
+    compilationLayout->addRow(new QLabel(""));
+    
+    //------ Post compilation scripting
+    
+    compilationLayout->addRow(new QLabel("-------Post-Compilation Script-------"));
+    
+    fScriptLine = new QLineEdit(tr(""), compilationOptions);
+    fScriptLine->setStyleSheet("*{background-color:white;}");
+    
+    connect(fScriptLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fScriptLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+    compilationLayout->addRow(new QLabel("Command Line"));    
+    compilationLayout->addRow(fScriptLine);
+    //    compilationLayout->addRow(new QLabel("Ex: -lang ajs -o filename.js"));
+    
+    compilationOptions->setLayout(compilationLayout);
+    fContainer->addItem(compilationOptions, tr("Compilation"));
+    
     syncVisualParams();
 }
 
@@ -331,6 +348,7 @@ bool FLToolBar::hasStateChanged(){
     return 
         hasCompilationOptionsChanged()||
         hasAutomaticExportChanged() ||
+        hasScriptChanged() ||
         wasOscSwitched() ||
         hasOscOptionsChanged() ||
         wasHttpSwitched() ||
@@ -359,6 +377,13 @@ bool FLToolBar::hasCompilationOptionsChanged(){
 
 bool FLToolBar::hasAutomaticExportChanged(){
     if(fAutomaticExportLine->text() != (fSettings->value("AutomaticExport/Options", "").toString()))
+        return true;
+    else
+        return false;
+}
+
+bool FLToolBar::hasScriptChanged(){
+    if(fScriptLine->text() != (fSettings->value("Script/Options", "").toString()))
         return true;
     else
         return false;
@@ -439,6 +464,7 @@ void FLToolBar::modifiedOptions(){
     
 //	It's obliged to pass through variables. Otherwise, while one signal is emitted, some toolbar variables are modified from the outside and change the wanted behavior
     bool automaticExportOpt = false;
+//    bool scriptOpt = false;
     bool compilationOpt= false;
 #ifdef OSCVAR
     bool oscSwitchOpt = false;
@@ -470,6 +496,12 @@ void FLToolBar::modifiedOptions(){
 		compilationOpt = true;
     }
 
+    if(hasScriptChanged()){
+        fSettings->setValue("Script/Options", fScriptLine->text());
+        
+//        scriptOpt = true;
+    }
+    
 #ifdef OSCVAR   
 
     if(hasOscOptionsChanged()){
@@ -528,6 +560,8 @@ void FLToolBar::modifiedOptions(){
     //	Now emit signals if needed
 	if(automaticExportOpt)
         emit generateNewAuxFiles();
+//    if(scriptOpt)
+//        emit execScript();
 	if(compilationOpt)
         emit compilationOptionsChanged();
 #ifdef OSCVAR
@@ -578,6 +612,9 @@ void FLToolBar::syncVisualParams(){
     
 //---- Automatic Export
     fAutomaticExportLine->setText(fSettings->value("AutomaticExport/Options", "").toString());
+    
+//---- Post Compilation Script
+    fScriptLine->setText(fSettings->value("Script/Options", "").toString());
     
 #ifdef HTTPCTRL
 //------ OSC

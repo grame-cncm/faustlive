@@ -668,6 +668,15 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     mySetts->fPath = path;
     mySetts->fName = name;
     
+//    If a post-compilation script option is set : execute it !
+    if(settings && settings->value("Script/Options", "").toString() != ""){
+        QString erroMsg;
+        
+        if(!executeInstruction(settings->value("Script/Options", "").toString(), errorMsg))
+            FLErrorWindow::_Instance()->print_Error(errorMsg);
+    
+    }
+
    return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
