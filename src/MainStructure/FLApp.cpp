@@ -655,6 +655,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
+    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
 }
