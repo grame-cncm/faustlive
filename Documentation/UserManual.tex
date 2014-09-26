@@ -23,7 +23,7 @@
 
 \begin{document}
 
-\title{FaustLive - User Manual \\ v.1.2}
+\title{FaustLive - User Manual \\ v.2.0}
 
 \author{Grame, Centre National de Création Musicale\\
 {\small <research@grame.fr>} \\
@@ -128,19 +128,28 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 	\end{itemize}
 	You can choose the port for incoming/outcoming and error messages. The destination IP for outcoming messages will be automatically set when the first message is received. 
 
-\subsection{Remote Control}
+%\subsection{Remote Control}
 %You can control your application remotly with a native application for iOS, android that you can download from Faust directory on sourceforge.  To enable this feature, go to "Parameters", in the tab "Remote Control", check "Enable". The destination IP will be automatically set when the first message is received. \\
 
 %With this feature, you can choose whether the sound is rendered on FaustLive's machine or on the remote device. 
 
-\subsection{Publish DSP}
+%\subsection{Publish DSP}
 %You can publish your DSP for any FaustLive user to see. This way, another user can get an instance of your application from his own machine (c.f Open Remote DSP...). The local and remote instance are totally independent. Both have an independent access to the interface and audio rendering.
 
-\subsection{Remote Processing}
-You can choose to send your code to another machine, presenting the remote server service. A discovery shows you the available machines. Once you have switched, your Faust processing will be done on the remote machine. The control interface and sound rendering stay on the local machine.
+%\subsection{Remote Processing}
+%You can choose to send your code to another machine, presenting the remote server service. A discovery shows you the available machines. Once you have switched, your Faust processing will be done on the remote machine. The control interface and sound rendering stay on the local machine.
 
 \subsection{Compilation Options}
-In the parameters, you can change the compilation options of your DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
+
+\begin{itemize}
+
+\item Code Generation Options : In the parameters, you can change the compilation options of your running DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
+
+\item Additionnal Compilation Step : a new call to the faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
+
+\item Post-Compilation Script : after all the compilation steps, you can an arbitrary command line.
+
+\end{itemize}
 
 \section{General Actions}
 
