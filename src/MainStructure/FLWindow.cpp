@@ -898,7 +898,7 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
     
     if(event->mimeData()->text() == fSource)
         return;
-    else if(*(event->mimeData()->urls().begin()) == fSource)
+    else if(event->mimeData()->hasUrls() && *(event->mimeData()->urls().begin()) == fSource)
         return;
     
     if (event->mimeData()->hasFormat("text/uri-list") || event->mimeData()->hasFormat("text/plain")){
