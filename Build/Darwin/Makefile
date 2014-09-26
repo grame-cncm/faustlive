@@ -39,6 +39,7 @@ math_lib :
 # Solve FaustLive's dependencies
 deploy: 
 	macdeployqt FaustLive.app
+	cp $(wildcard /usr/local/lib/faust/*.dylib) FaustLive.app/Contents/Frameworks/
 
 # make a binary distribution .dmg file for OSX
 dist: 	
