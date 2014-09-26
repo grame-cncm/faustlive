@@ -15,7 +15,7 @@ JA_audioSettings::JA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
     
     fAutoConnectBox = new QCheckBox(parent);
     
-    layout->addRow(new QLabel(tr("Auto-Connection to physical ports")), fAutoConnectBox);
+    layout->addRow(new QLabel(tr("Auto-Connection")), fAutoConnectBox);
     
     parent->setLayout(layout);
     
