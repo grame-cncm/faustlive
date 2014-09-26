@@ -648,7 +648,7 @@ void FLWindow::allocateOscInterface(){
         string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
         argv[10] = (char*) (errport.c_str());
 
-        fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this);
+        fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
 
     }
 }
@@ -1154,7 +1154,7 @@ void FLWindow::allocateHttpInterface(){
         
     argv[0] = (char*)(windowTitle.toLatin1().data());
         
-    fHttpInterface = new httpdUI(argv[0], 1, argv);
+    fHttpInterface = new httpdUI(argv[0], 1, argv, false);
 }
 
 void FLWindow::deleteHttpInterface(){

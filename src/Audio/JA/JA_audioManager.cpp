@@ -101,15 +101,16 @@ void JA_audioManager::wait_EndFade(){
 //Recall Connections from saving file
 void JA_audioManager::connect_Audio(string homeDir){
     
-    if(QFileInfo(homeDir.c_str()).exists()){
-        
-        list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
-        
-        fCurrentAudio->reconnect(connection);
+    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()){
+        if(QFileInfo(homeDir.c_str()).exists()){
+            
+            list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
+            
+            fCurrentAudio->reconnect(connection);
+        }
+        else
+            fCurrentAudio->default_connections();  
     }
-    else if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool())
-        fCurrentAudio->default_connections();  
-    
 }
 
 //Save connections in file

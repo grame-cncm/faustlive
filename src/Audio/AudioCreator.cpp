@@ -262,7 +262,11 @@ void AudioCreator::tempSettingsToSavedSettings(){
         delete fTempBox;
     
     fTempBox = new QGroupBox();
+    
     fTempSettings = fFactory->createAudioSettings(fTempBox);
+    
+//    Synchronize saved settings & current settings in case of changes (like buffer size...)
+    fCurrentSettings->setVisualSettings();
 }
 
 //Restoring settings

@@ -38,7 +38,8 @@ bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char
     if(numInputs == 0 && numOutputs == 0)
         return initAudio(error, port_name);
     
-    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){
+    if(fCurrentAudio->init(port_name, numInputs, numOutputs)){        
+        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
         fInit = true;
         return true;
     }
@@ -53,8 +54,12 @@ bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/
     if(fInit)
         return fCurrentAudio->set_dsp(DSP);
     
-    else if(init(fName, DSP))
+    else if(init(fName, DSP)){
+
+        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
+    
         return true;
+    }
     else{
         error = "Impossible to init CoreAudio Client";
         return false;

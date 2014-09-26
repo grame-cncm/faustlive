@@ -369,7 +369,9 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addAction(openAction);
     fileMenu->addAction(create_ExampleMenu()->menuAction());
     fileMenu->addAction(create_RecentFileMenu()->menuAction());
+#ifdef REMOTE
     fileMenu->addAction(openRemoteAction);
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(componentAction);
     fileMenu->addSeparator();
@@ -1589,7 +1591,7 @@ void FLApp::update_AudioArchitecture(){
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
             (*it)->start_Audio();
         
-        fAudioCreator->tempSettingsToSavedSettings();
+            fAudioCreator->tempSettingsToSavedSettings();
 
         //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
