@@ -190,6 +190,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
                 void    pressEvent();
         virtual bool    eventFilter( QObject *obj, QEvent *ev );
 
+    //Start or stop file/dependency watcher
+        void            start_stop_watcher(bool on);
+    
     //Save the graphical and audio connections of current DSP
         void            save_Window();
     

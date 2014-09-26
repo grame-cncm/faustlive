@@ -17,6 +17,8 @@ QMAKE_EXTRA_TARGETS += all
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
+#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+
 ## QT libraries needed
 QT+=widgets
 QT+=core

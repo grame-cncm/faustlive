@@ -39,8 +39,6 @@ FLFileWatcher* FLFileWatcher::_Instance(){
 
 void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
     
-    printf("Size of dependencies = %i\n", paths.size());
-    
     for(int i = 0; i<paths.size(); i++){
     
         printf("START PATH = %s\n", paths[i].toStdString().c_str());
@@ -147,8 +145,8 @@ void FLFileWatcher::dirChanged(const QString& dirModified){
             if(newName == "")
                 (*it)->source_Deleted();
             else{
-                newName = dirModified + "/" + newName;
-                (*it)->update_Window(newName);
+                QString nameModified = dirModified + "/" + newName;
+                (*it)->update_Window(nameModified);
             }
         }
         

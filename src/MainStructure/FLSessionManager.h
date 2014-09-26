@@ -126,8 +126,9 @@ public:
     
     QString                 get_expandedVersion(QSettings* settings, const QString& source);
     
-    QVector<QString>        get_dependencies(dsp* myDSP, const QString& path);
-    
+    QVector<QString>        get_dependencies(llvm_dsp_factory* factoryDependency);
+    QVector<QString>        read_dependencies(const QString& shaValue);
+    void                    write_dependencies(QVector<QString> dependencies, const QString& shaValue);
     
     QString                askForSourceSaving(const QString& sourceContent);
     QString                contentOfShaSource(const QString& shaSource);

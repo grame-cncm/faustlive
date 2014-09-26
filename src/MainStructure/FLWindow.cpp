@@ -125,6 +125,18 @@ void FLWindow::frontShow(){
     setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 }
 
+void FLWindow::start_stop_watcher(bool on){
+    QVector<QString> dependencies = FLSessionManager::_Instance()->read_dependencies(fSettings->value("SHA", "").toString());
+    
+    if(fSettings->value("Path", "").toString() != "")
+        dependencies.push_front(fSettings->value("Path", "").toString());
+    
+    if(on)
+        FLFileWatcher::_Instance()->startWatcher(dependencies, this);
+    else
+        FLFileWatcher::_Instance()->stopWatcher(dependencies, this);
+}
+
 //Initialization of User Interface + StartUp of Audio Client
 //@param : init = if the window created is a default window.
 //@param : error = in case init fails, the error is filled
@@ -171,7 +183,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             
             fCreationDate = fCreationDate.currentDateTime();
             printf("WINDOW STARTS WATCHER\n");
-            FLFileWatcher::_Instance()->startWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
+            start_stop_watcher(true);
             
             return true;
         } 
@@ -206,7 +218,7 @@ bool FLWindow::update_Window(const QString& source){
     
     if(update){
         
-        FLFileWatcher::_Instance()->stopWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
+        start_stop_watcher(false);
         
         FLMessageWindow::_Instance()->displayMessage("Updating DSP...");
         FLMessageWindow::_Instance()->show();
@@ -283,7 +295,7 @@ bool FLWindow::update_Window(const QString& source){
             }
         }
         
-        FLFileWatcher::_Instance()->startWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
+        start_stop_watcher(true);
         
         if(!isUpdateSucessfull)
             errorPrint(errorMsg);
@@ -814,7 +826,8 @@ void FLWindow::shut_Window(){
 void FLWindow::close_Window(){
     
     hide();
-    FLFileWatcher::_Instance()->stopWatcher(FLSessionManager::_Instance()->get_dependencies(fCurrent_DSP, fSettings->value("Path", "").toString()), this);
+    
+    start_stop_watcher(false);
     
     fSettings->sync();
     
@@ -1076,8 +1089,6 @@ void FLWindow::save_Window(){
     //Save the parameters of the actual interface
     fSettings->setValue("Position/x", this->geometry().x());
     fSettings->setValue("Position/y", this->geometry().y());
-    
-    printf("Positino saved = %i || %i\n", this->geometry().x(), this->geometry().y());
     
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";

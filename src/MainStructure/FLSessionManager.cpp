@@ -631,8 +631,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
                 settings->setValue("OutputNumber", 0);
             }
             
-            if(toCompile->fLLVMFactory)
+            if(toCompile->fLLVMFactory){
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
+                write_dependencies(get_dependencies(toCompile->fLLVMFactory), shaKey.c_str());
+            }
             else{
                 errorMsg = error.c_str();
 			    return qMakePair(QString(""), (void*)NULL);
@@ -1111,28 +1113,50 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
 
-QVector<QString> FLSessionManager::get_dependencies(dsp* myDSP, const QString& path){
-    
-    factorySettings* setts = fDSPToFactory[myDSP];
-    
-    factory* factoryDependency = setts->fFactory;
+QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDependency){
     
     QVector<QString> dependencies;
     std::vector<std::string> stdDependendies;
     
-    if(setts->fType == TYPE_LOCAL)
-       stdDependendies = getLibraryList(factoryDependency->fLLVMFactory);
-//    else
-//        stdDependendies = factoryDependency->fRemoteFactory->getLibraryList();
-    
+    stdDependendies = getLibraryList(factoryDependency);
+
     for(size_t i = 0; i<stdDependendies.size(); i++){
         dependencies.push_back(stdDependendies[i].c_str());
+        printf("Dependency of FACTORY %i = %s\n", i, stdDependendies[i].c_str());
+    }
+
+    return dependencies;
+}
+
+QVector<QString> FLSessionManager::read_dependencies(const QString& shaValue){
+    
+    QVector<QString> dependencies;
+    
+    QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
+    
+    QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
+    
+    QStringList groups  = settings->childKeys();
+    
+    for(int i=0; i<groups.size(); i++){
+        
+        QString dependency = settings->value(QString::number(i), "").toString();
+        dependencies.push_back(dependency);
     }
     
-    if(path != "")
-        dependencies.push_back(path);
-    
     return dependencies;
+}
+
+void FLSessionManager::write_dependencies(QVector<QString> dependencies, const QString& shaValue){
+    
+    QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
+    
+    QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
+    
+    for(int i=0; i<dependencies.size(); i++){
+        
+        settings->setValue(QString::number(i), dependencies[i]);
+    }
 }
 
 //---------------------PUBLISH FACTORIES ON LOCAL SERVER-----------//
