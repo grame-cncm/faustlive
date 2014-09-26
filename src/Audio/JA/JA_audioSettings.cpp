@@ -42,10 +42,13 @@ void JA_audioSettings::storeVisualSettings(){
 
 bool JA_audioSettings::isEqual(AudioSettings*){
     
-    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool() == get_AutoConnect())
+//    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool() == get_AutoConnect())
+
+//    Not really the right thing to say with the actual system but JA settings don't influence audio updates so it's directly stored
+    storeVisualSettings();
         return true;
-    else
-        return false;
+//    else
+//        return false;
 }
 
 bool JA_audioSettings::get_AutoConnect(){
