@@ -41,6 +41,7 @@ FLServerHttp::FLServerHttp(){
     fCompiled = false;
     fHtml = "";
     fJson ="";
+    fMax_clients = 20;
 }
 
 FLServerHttp::~FLServerHttp(){}
@@ -430,6 +431,7 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
 
 //Accessor to Max Client Number
 int FLServerHttp::getMaxClients(){ 
+//    return 20;
     return fMax_clients; 
 }
 
