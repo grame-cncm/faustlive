@@ -619,7 +619,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         //----Use IR Saving if possible
         if(QFileInfo(irFile.c_str()).exists())
-            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", 0);
+            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
 
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
