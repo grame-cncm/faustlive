@@ -620,6 +620,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //----Use IR Saving if possible
         if(QFileInfo(irFile.c_str()).exists())
             toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+            //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
 
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
@@ -633,6 +634,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             if(toCompile->fLLVMFactory){
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
+                //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
                 write_dependencies(get_dependencies(toCompile->fLLVMFactory), shaKey.c_str());
             }
             else{
