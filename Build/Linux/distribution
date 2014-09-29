@@ -31,3 +31,5 @@ cp FaustLive $nameDist/FaustLive
 zip -r $nameDist.zip $nameDist
 
 cp $nameDist.zip FaustLive-$1-$arch-$bN.zip
+
+rm -r $nameDist
