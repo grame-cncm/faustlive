@@ -21,3 +21,5 @@ cp -R FaustLive.app $nameDist/FaustLive
 hdiutil create -volname $nameDist.dmg -srcfolder $nameDist -ov -format UDZO $nameDist.dmg
 
 cp $nameDist.dmg FaustLive-OSX-$bN.dmg
+
+rm -r $nameDist
