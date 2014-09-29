@@ -807,7 +807,7 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
     QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP has no origin file.\n Do you want to save your code in a new file?");
     
     QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
-    QPushButton* cancel_Button = existingNameMessage->addButton(tr("No"), QMessageBox::RejectRole);
+    QPushButton* cancel_Button = existingNameMessage->addButton(tr("Cancel"), QMessageBox::RejectRole);
     
     existingNameMessage->exec();
     if (existingNameMessage->clickedButton() == yes_Button){
