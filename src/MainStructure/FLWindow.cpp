@@ -433,9 +433,10 @@ void FLWindow::edit(){
         }
         //    Otherwise, a temp file is created and watched
         else{
-            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
-            
-            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
+            return;
+//            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
+//            
+//            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
         }
     }
     
