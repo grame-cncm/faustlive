@@ -41,10 +41,8 @@ math_lib :
 # make a source distribution .zip file
 dist:
 	make clean
-	make NETJACK=1 STATIC=1
-	mkdir FaustLive-Ubuntu-x64-2.0/FaustLive
-	cp FaustLive FaustLive-Ubuntu-x64-2.0/FaustLive
-	zip -r FaustLive_Linux.zip FaustLive-Ubuntu-x64-2.0
+	make NETJACK=1 STATIC=1 $2
+	./distribution
 	#./distversion
 
 # make a distribution .zip file for FaustLive sources
