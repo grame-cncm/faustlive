@@ -428,7 +428,7 @@ void FLWindow::edit(){
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
         
         //    In case user has saved his file in a new location
-        if(pathToOpen != ""){
+        if(pathToOpen != "" && pathToOpen != ".dsp"){
             update_Window(pathToOpen);
         }
         //    Otherwise, a temp file is created and watched
