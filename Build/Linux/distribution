@@ -1,6 +1,6 @@
 if [ -z $1 ]
   then
-    echo "Please specify the targeted platform. For example : Ubuntu"
+    echo "Please specify the targeted platform. For example : platform=Ubuntu"
 	exit
 fi
 

@@ -40,9 +40,9 @@ math_lib :
 
 # make a source distribution .zip file
 dist:
-	make clean
-	make NETJACK=1 STATIC=1 $2
-	./distribution
+	#make clean
+	#make NETJACK=1 STATIC=1
+	./distribution ${platform}
 	#./distversion
 
 # make a distribution .zip file for FaustLive sources
