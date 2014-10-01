@@ -1499,7 +1499,6 @@ void FLApp::styleClicked(const QString& style){
 //Preference triggered from Menu
 void FLApp::Preferences(){
     
-    centerOnPrimaryScreen(FLPreferenceWindow::_Instance());
     FLPreferenceWindow::_Instance()->exec();
     
     if(fAudioCreator->didSettingChanged()){
