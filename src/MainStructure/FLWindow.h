@@ -120,6 +120,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            duplicate_Action();
         void            windowNameChanged();
         void            remoteCnxLost(int);
+        void            error(const char*);
     
     private slots :
         void            edit();
@@ -178,8 +179,8 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
 //    In case audio architecture collapses
         static void     audioShutDown(const char* msg, void* arg);
-        void            audioShutDown(const char* msg);
-    
+        void            audioShutDown_redirect(const char* msg);
+
         bool            init_audioClient(QString& error);
         bool            setDSP(QString& error);
         void            update_AudioParams();
@@ -225,6 +226,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
     public slots :
+    void            audioShutDown(const char* msg);
     
     //Modification of the compilation options
         void            modifiedOptions();

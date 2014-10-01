@@ -55,6 +55,8 @@ list<GUI*>               GUI::fGuiList;
 //@param : machineName = in case of remote processing, the name of remote machine
 FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSettings* windowSettings, QList<QMenu*> appMenus){
     
+    connect(this, SIGNAL(error(const char*)), this, SLOT(audioShutDown(const char*)));
+    
     fSettings = windowSettings;
     
     fSettings->setValue("Release/Number", 0);
@@ -1025,10 +1027,20 @@ void FLWindow::start_Audio(){
 //In case audio clients collapse, the architecture has to be changed
 void FLWindow::audioShutDown(const char* msg, void* arg){
     
-    ((FLWindow*)arg)->audioShutDown(msg);
+    ((FLWindow*)arg)->audioShutDown_redirect(msg);
+}
+
+void FLWindow::audioShutDown_redirect(const char* msg){
+    printf("FLWindow::redirect\n");
+    
+
+    emit error(msg);
 }
 
 void FLWindow::audioShutDown(const char* msg){
+    
+    printf("FLWindow::audioShutDown\n");
+    
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     
     //    creator->change_Architecture();
