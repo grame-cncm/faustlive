@@ -106,8 +106,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #endif
     set_MenuBar(appMenus);
     
+#ifdef REMOTE
     connect(this, SIGNAL(remoteCnxLost(int)), this, SLOT(RemoteCallback(int)));
-
+#endif
 }
 
 FLWindow::~FLWindow(){}
@@ -519,16 +520,20 @@ void FLWindow::set_ToolBar(){
     
     addToolBar(Qt::TopToolBarArea, fToolBar);
     
-    connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
     connect(fToolBar, SIGNAL(compilationOptionsChanged()), this, SLOT(modifiedOptions()));
     connect(fToolBar, SIGNAL(generateNewAuxFiles()), this, SLOT(generateAuxFiles()));
 //    connect(fToolBar, SIGNAL(execScript()), this, SLOT(scriptExecution()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-    connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
-    connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
+#ifdef HTTPCTRL
+	connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
+	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
+	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
+#endif
+#ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
     connect(fToolBar, SIGNAL(switch_remotecontrol(bool)), this, SLOT(switchRemoteControl(bool)));
+#endif
 }
 
 //Set the windows options with current values
@@ -558,7 +563,11 @@ void FLWindow::modifiedOptions(){
 
 //Reaction to the modification of outfile options
 void FLWindow::generateAuxFiles(){
-    FLSessionManager::_Instance()->generateAuxFiles(getSHA().toStdString(), fSettings);
+
+	string errorMsg;
+
+    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA().toStdString(), fSettings, errorMsg))
+		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(errorMsg.c_str()));
 }
 
 //Reaction to the resizing the toolbar
@@ -814,6 +823,8 @@ void FLWindow::closeEvent(QCloseEvent* event){
         emit shut_AllWindows();
     else
         emit closeWin();
+
+	event->accept();
 }
 
 //During the execution, when a window is shut, its associate folder has to be removed

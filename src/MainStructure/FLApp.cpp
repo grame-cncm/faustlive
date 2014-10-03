@@ -106,7 +106,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     // Presentation Window Initialization
     connect(FLPresentationWindow::_Instance(), SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openWin()), this, SLOT(open_New_Window()));
-    connect(FLPresentationWindow::_Instance(), SIGNAL(openSession()), this, SLOT(recallSnapshotFromMenu()));
+    connect(FLPresentationWindow::_Instance(), SIGNAL(openSession()), this, SLOT(importSnapshotFromMenu()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openPref()), this, SLOT(Preferences()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openHelp()), FLHelpWindow::_Instance(), SLOT(show()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
@@ -124,7 +124,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 }
 
 FLApp::~FLApp(){
-    
+
     QString tempPath = fSessionFolder + "/Temp";
     deleteDirectoryAndContent(tempPath);
     
@@ -515,7 +515,9 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
+#ifndef _WIN32
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
+#endif
 #ifdef REMOTE
     connect(FLPreferenceWindow::_Instance(), SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
 #endif
@@ -1120,7 +1122,7 @@ void FLApp::importSnapshotFromMenu(){
 //@param : filename = snapshot that is loaded
 //@param : importOption = false for recalling | true for importing
 void FLApp::recall_Snapshot(const QString& name, bool importOption){ 
-    
+
     QString filename(name);
     
     display_CompilingProgress("Uploading your snapshot...");
@@ -1135,7 +1137,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
     map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename);
-    
+
     map<int, int> indexChanges;
     
     QList<int> currentIndexes = get_currentIndexes();
@@ -1292,12 +1294,16 @@ void FLApp::closeAllWindows(){
 
 //Shut all Windows from Menu
 void FLApp::shut_AllWindows(){
-    
+
     while(FLW_List.size() != 0 ){
         FLWindow* win = *(FLW_List.begin());
         
         common_shutAction(win);
     } 
+#ifndef __APPLE__
+	quit();
+#endif
+
 }
 
 //Close from Window Action

@@ -349,6 +349,11 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     if(sourcePath == "")
         numberFixedParams = numberFixedParams-2;
     
+	if(destPath == ""){
+        numberFixedParams = numberFixedParams-3;
+		printf("number Params -3\n");
+	}
+
     int iteratorParams = 0;
     
 #ifdef _WIN32
@@ -387,22 +392,25 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         iteratorParams++;
     }
     
-    argv[iteratorParams] = "-O";
-    iteratorParams++;
+	if(destPath != ""){
+	  argv[iteratorParams] = "-O";
+	  iteratorParams++;
     
-    QDir direct(destPath);
-    direct.mkdir(destPath);
+	   QDir direct(destPath);
+	   direct.mkdir(destPath);
     
-    string pathSVG = destPath.toStdString();
+	   string pathSVG = destPath.toStdString();
     
-    char* svgP = new char[pathSVG.size()+1];
-    strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
-    argv[iteratorParams] = (const char*) svgP;
+	   char* svgP = new char[pathSVG.size()+1];
+	   strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
+	   argv[iteratorParams] = (const char*) svgP;
     
-    iteratorParams++;
-    argv[iteratorParams] = "-svg";
-    iteratorParams++;
-    
+		printf("svg Path = %s\n", svgP);
+
+		iteratorParams++;
+		argv[iteratorParams] = "-svg";
+		iteratorParams++;
+	}
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf
     argv[iteratorParams] = "-l";
@@ -502,8 +510,8 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
-bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSettings* settings){
-    
+bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSettings* settings, string& error){
+
     QString faustOptions = settings->value("AutomaticExport/Options", "").toString();
 
     int argc = get_numberParameters(faustOptions);
@@ -521,15 +529,14 @@ bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSetti
         strcpy(intermediate,parseResult.c_str());
             
         argv[i] = (const char*)intermediate;
-        printf("ARGV = %s\n", argv[i]);
     }
 
-    string error;
     string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
-    printf("generate Aux Files From file : %s\n", sourceFile.c_str());
-        
-    return generateAuxFilesFromFile(sourceFile, argc, argv, error);
+	if(faustOptions != "")
+	    return generateAuxFilesFromFile(sourceFile, argc, argv, error);
+	else
+		return true;
 }
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
@@ -611,7 +618,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(settings){
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
-        generateAuxFiles(shaKey, settings);
+		
+		string error;
+        if(!generateAuxFiles(shaKey, settings, error))
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(error.c_str()));
     }
     
     if(machineName == "local processing"){
@@ -619,14 +629,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         //----Use IR Saving if possible
         if(QFileInfo(irFile.c_str()).exists())
-            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+			toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
             //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
 
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
             
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
-            
+
             if(settings){
                 settings->setValue("InputNumber", 0);
                 settings->setValue("OutputNumber", 0);
@@ -959,10 +969,10 @@ map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file){
     
     QString filename = file;
     
+#ifndef _WIN32    
     if(QFileInfo(filename).completeSuffix() != "tar")
         filename += ".tar";
-    
-#ifndef _WIN32
+
     QString error;
     if(!untarFolder(filename, error))
         FLErrorWindow::_Instance()->print_Error(error);
@@ -1109,7 +1119,7 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     
     const char** argv = getFactoryArgv("", "", faustOptions, argc);
-    
+
     string error_msg("");
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());

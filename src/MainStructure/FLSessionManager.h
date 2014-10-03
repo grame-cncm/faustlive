@@ -116,7 +116,7 @@ public:
     void            updateFolderDate(const QString& shaValue);
     void            cleanSHAFolder();
     
-    bool            generateAuxFiles(const std::string& shaKey, FLWinSettings* settings);
+    bool            generateAuxFiles(const std::string& shaKey, FLWinSettings* settings, string& error);
     
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     

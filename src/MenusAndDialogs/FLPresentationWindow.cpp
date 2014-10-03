@@ -286,18 +286,19 @@ void FLPresentationWindow::itemDblClick(QListWidgetItem* item){
 }
 
 void FLPresentationWindow::newWindow(){
-    hide();
     emit newWin();
+	hide();
 }
 
 void FLPresentationWindow::openWindow(){
-    hide();
+
     emit openWin();
+	hide();
 }
 
 void FLPresentationWindow::session(){
-    hide();
     emit openSession();
+	hide();
 }
 
 void FLPresentationWindow::pref(){
