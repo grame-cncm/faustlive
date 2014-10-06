@@ -134,10 +134,9 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
             return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
         }
     }
-    else{
-        ss<<responseHead<<responseTail; 
-        return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
-    }
+     
+    ss<<responseHead<<responseTail; 
+    return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
 }
 
 int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, void *info){
