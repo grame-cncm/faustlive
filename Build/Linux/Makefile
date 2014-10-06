@@ -1,6 +1,6 @@
 ### Defining some variables
-qm4 := $(shell which qmake-qt4)
-qm := $(if $(qm4),$(qm4),qmake)
+qm := $(shell which qmake)
+##qm := $(if $(qm4),$(qm4),qmake)
 
 SPEC := ""
 PREFIX := /usr
@@ -28,10 +28,10 @@ endif
 
 ####### Targets
 
-all : Makefile.qt4
+all : Makefile-qt
 	./buildversion
 	mkdir -p src/objectsFolder
-	make -f Makefile.qt4
+	make -f Makefile-qt
 
 ####### List of targets
 
@@ -80,13 +80,14 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
 	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/Faustlive.svg
 
-####### MAKE MAKEFILE.QT4
+####### MAKE MAKEFILE-QT
 
 clean : 
-	make -f Makefile.qt4 clean
+	make -f Makefile-qt clean
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
-	rm -f Makefile.qt4
+	rm -f Makefile-qt
 
-Makefile.qt4: 
-	$(qm) $(SPEC) -o Makefile.qt4 $(QM-DEFS)
+Makefile-qt: 
+	$(qm) $(SPEC) -o Makefile-qt $(QM-DEFS)
+
