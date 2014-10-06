@@ -82,7 +82,7 @@ uninstall:
 
 ####### MAKE MAKEFILE-QT
 
-clean : 
+clean : Makefile-qt
 	make -f Makefile-qt clean
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
