@@ -219,7 +219,9 @@ class FLApp : public QApplication
         void                create_New_Window(const QString& name);
     
         virtual void        closeAllWindows();
-        void                shut_AllWindows();
+        void                shut_AllWindows_FromMenu();
+		void                shut_AllWindows_FromWindow();
+
         void                update_CurrentSession();
         void                create_Component_Window();
 

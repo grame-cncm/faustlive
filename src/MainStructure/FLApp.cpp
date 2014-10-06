@@ -37,7 +37,7 @@
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
-    
+
     //Create Current Session Folder
     create_Session_Hierarchy();
     
@@ -68,6 +68,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));
+//	setQuitOnLastWindowClosed(true);
 #else
     setQuitOnLastWindowClosed(false);
 #endif
@@ -101,7 +102,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     recall_Recent_Sessions();
     
     //Initializing OutPut Window
-    connect(FLErrorWindow::_Instance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows()));
+    connect(FLErrorWindow::_Instance(), SIGNAL(closeAll()), this, SLOT(shut_AllWindows_FromWindow()));
 
     // Presentation Window Initialization
     connect(FLPresentationWindow::_Instance(), SIGNAL(newWin()), this, SLOT(create_Empty_Window()));
@@ -146,7 +147,7 @@ FLApp::~FLApp(){
     
     delete fInitTimer;
     
-    FLHelpWindow::deleteInstance();
+//    FLHelpWindow::deleteInstance();
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
@@ -357,7 +358,7 @@ QMenu* FLApp::create_FileMenu(){
     QAction* shutAllAction = new QAction(tr("&Close All Windows"),NULL);
     shutAllAction->setShortcut(tr("Ctrl+Alt+W"));
     shutAllAction->setToolTip(tr("Close all the Windows"));
-    connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows()));
+    connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows_FromMenu()));
     
     QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
     closeAllAction->setShortcut(tr("Ctrl+Q"));
@@ -657,7 +658,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
-    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows()));
+    connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows_FromWindow()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
 }
@@ -1132,7 +1133,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     set_Current_Session(filename);
 
     if(!importOption)
-        shut_AllWindows();
+        shut_AllWindows_FromWindow();
     
     QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
@@ -1267,6 +1268,8 @@ void FLApp::update_ProgressBar(){
 //Quit FaustLive
 void FLApp::closeAllWindows(){
     
+	printf("FLApp::closeAllWindows()\n");
+
 //This function is called when there are no more windows. In case of session recallin, the application can not be closed !!
     if(fRecalling)
     	   return;
@@ -1292,18 +1295,22 @@ void FLApp::closeAllWindows(){
     FLSessionManager::_Instance()->saveCurrentSources(fSessionFolder);
 }
 
-//Shut all Windows from Menu
-void FLApp::shut_AllWindows(){
+//Shut all Windows forcing to pass into closeEvent of the window
+void FLApp::shut_AllWindows_FromMenu(){
 
     while(FLW_List.size() != 0 ){
         FLWindow* win = *(FLW_List.begin());
-        
-        common_shutAction(win);
+		win->shut();
     } 
-#ifndef __APPLE__
-	quit();
-#endif
+}
 
+//Shut all Windows already coming from closeEvent
+void FLApp::shut_AllWindows_FromWindow(){
+
+    while(FLW_List.size() != 0 ){
+        FLWindow* win = *(FLW_List.begin());
+		common_shutAction(win);
+    } 
 }
 
 //Close from Window Action
@@ -1573,7 +1580,7 @@ void FLApp::update_AudioArchitecture(){
 //        In case switch back fails, every window is closed
         if(!reinitSuccess){
             
-            shut_AllWindows();
+            shut_AllWindows_FromMenu();
             
             errorToPrint += fAudioCreator->get_ArchiName();
             errorToPrint = " could not be reinitialize";
