@@ -84,7 +84,7 @@ equals(REMVAR, 1){
 	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
 		
-	HEADER += ../../src/Network/Server.h
+	HEADERS += ../../src/Network/Server.h
 	SOURCES += ../../src/Network/Server.cpp
 }
 
@@ -173,11 +173,20 @@ equals(PAVAR, 1){
 ########## LIBS AND FLAGS
 
 LIBS+=$$FAUSTDIR/lib/faust/libfaust.a
-LIBS+= $$system($$system(which llvm-config) --libs)
-LIBS+= $$system($$system(which llvm-config) --ldflags)
-# This is needed by LLVM 3.5 and later.
-LIBS+= $$system($$system(which llvm-config) --system-libs 2>/dev/null)
 
+LLVMVERSION = ($$system($$system(which llvm-config) --version))
+
+if(greaterThan(LLVMVERSION, 3.5)){
+
+# This is needed by LLVM 3.5 and later.
+	LIBS+= $$system($$system(which llvm-config) --system-libs 2>/dev/null)
+	message("LLVM 3.5")
+
+}
+else{
+	LLVMLIBS = $$system($$system(which llvm-config) --libs)
+	LLVMDIR = $$system($$system(which llvm-config) --ldflags)
+}
 
 ########## HEADERS AND SOURCES OF PROJECT
 
