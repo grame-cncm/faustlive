@@ -1,5 +1,5 @@
 ### Defining some variables
-qm4 := $(shell which qmake)
+qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
 libOSC := $(shell ls /usr/local/lib/faust/libOSCFaust*.dylib)
