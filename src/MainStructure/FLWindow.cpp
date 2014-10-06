@@ -1343,14 +1343,19 @@ void FLWindow::switchRemoteControl(bool){
 
 bool    FLWindow::createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency){
     
+	Q_UNUSED(name);
+	Q_UNUSED(key);
+
     FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/CV", celt.c_str());
     FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/IP", ip.c_str());
     FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Port", port.c_str());
     FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/MTU", mtu.c_str());
     FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Latency", latency.c_str());
+
+	return true;
 }
 
-void FLWindow::stopNJdspAudio(const char* errorMsg){
+void FLWindow::stopNJdspAudio(const char* /*errorMsg*/){
     
 //    printf("FLWindow::stopNJdspAudio\n");
 //    
@@ -1362,7 +1367,7 @@ void FLWindow::stopNJdspAudio(const char* errorMsg){
 //    errorPrint(errorMsg);
 }
 
-void* FLWindow::startAudioSlave(void* arg){
+void* FLWindow::startAudioSlave(void* /*arg*/){
 //    
 //    FLWindow * dspToStart = (FLWindow*) arg;
 //    
@@ -1389,7 +1394,7 @@ void* FLWindow::startAudioSlave(void* arg){
         
 //        Slave_DSP::fLocker.Unlock();
 //    }
-    
+    return NULL;
 }
 
 bool FLWindow::startNJdspAudio(){
@@ -1404,6 +1409,7 @@ bool FLWindow::startNJdspAudio(){
 //    }
 //    else 
 //        return false;
+	return false;
 }
 
 void    FLWindow::cleanInactiveNJdspInstance(){

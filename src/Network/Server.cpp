@@ -76,7 +76,7 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr){
 }
 
 // Allocation of real LLVM DSP INSTANCE
-slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server){
+slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : fIP(ip), fPort(port), fCV(compression), fMTU(mtu), fLatency(latency), fServer(server){
     
     fAudio = NULL;
 
@@ -264,7 +264,7 @@ server_connection_info_struct* Server::allocate_connection_struct(MHD_Connection
 }
 
 //---- Callback for any type of connection to the server
-int Server::answer_to_connection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls){
+int Server::answer_to_connection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char */*version*/, const char *upload_data, size_t *upload_data_size, void **con_cls){
    
     printf("Server::answer_to_connection\n");
     
@@ -380,7 +380,7 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
                 
                 fAvailableFactories.erase(con_info->fSHAKey);
                 
-                printf("Size of available actories = %i\n", fAvailableFactories.size());
+                /*printf("Size of available actories = %i\n", fAvailableFactories.size());*/
 //                deleteDSPFactory(toDelete);
                 
                 return send_page(connection, "", 0, MHD_HTTP_OK, "text/html"); 
@@ -469,7 +469,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
 }
 
 // Callback when connection is ended
-void Server::request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe){
+void Server::request_completed(void */*cls*/, MHD_Connection */*connection*/, void **con_cls, MHD_RequestTerminationCode /*toe*/){
     
     struct server_connection_info_struct *con_info = (server_connection_info_struct*)*con_cls;
     
