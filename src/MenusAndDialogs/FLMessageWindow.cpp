@@ -32,10 +32,6 @@ FLMessageWindow::FLMessageWindow(){
     
     setLayout(layoutSave);
     
-    QSize screenSize = QApplication::desktop()->geometry().size(); 
-    int screenWidth = screenSize.width();
-    int screenHeight = screenSize.height();
-    
     centerOnPrimaryScreen(this);
     adjustSize();
 }

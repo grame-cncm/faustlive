@@ -155,6 +155,8 @@ QString FLSessionManager::getDeclareName(QString text){
 // Transforming DSP Name to make sure it is unique in the session
 QString FLSessionManager::nameToUniqueName(const QString& name, const QString& path){
     
+    Q_UNUSED(path);
+    
     QString newName(name);
     
     FLSettings* generalSettings = FLSettings::_Instance();
@@ -222,7 +224,7 @@ void FLSessionManager::receiveDSP(){
     
     printf("Finished receiving DSP = %s\n", key.data());
     
-    bool b = QDesktopServices::openUrl(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M"));
+    //bool b = QDesktopServices::openUrl(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M"));
     
 }
 
@@ -505,8 +507,9 @@ QString FLSessionManager::getErrorFromCode(int code){
     else if (code == ERROR_CURL_CONNECTION){
         return "Curl connection failed";
     }
+#else
+	Q_UNUSED(code);
 #endif
-    
     return "ERROR not recognized";
 }
 
@@ -746,6 +749,10 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if(compiledDSP == NULL)
             errorMsg = getErrorFromCode(errorToCatch);
     }
+#else
+	Q_UNUSED(source);
+	Q_UNUSED(error_callback);
+	Q_UNUSED(error_callback_arg);
 #endif
     
     fDSPToFactory[compiledDSP] = mySetts;
@@ -817,7 +824,7 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
     QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP has no origin file.\n Do you want to save your code in a new file?");
     
     QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
-    QPushButton* cancel_Button = existingNameMessage->addButton(tr("Cancel"), QMessageBox::RejectRole);
+    existingNameMessage->addButton(tr("Cancel"), QMessageBox::RejectRole);
     
     existingNameMessage->exec();
     if (existingNameMessage->clickedButton() == yes_Button){
@@ -1134,7 +1141,7 @@ QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDep
 
     for(size_t i = 0; i<stdDependendies.size(); i++){
         dependencies.push_back(stdDependendies[i].c_str());
-        printf("Dependency of FACTORY %i = %s\n", i, stdDependendies[i].c_str());
+        //printf("Dependency of FACTORY %i = %s\n", i, stdDependendies[i].c_str());
     }
 
     return dependencies;

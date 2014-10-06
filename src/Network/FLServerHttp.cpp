@@ -140,7 +140,7 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     }
 }
 
-int FLServerHttp::handlePost(MHD_Connection *connection, const char* url, void *info){
+int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, void *info){
     
     struct connection_info_struct *con_info = (connection_info_struct*)info;
     

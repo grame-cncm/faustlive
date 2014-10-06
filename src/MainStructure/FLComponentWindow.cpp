@@ -595,7 +595,7 @@ QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem
     return listWithoutEmptyItem;
 }
 
-void FLComponentWindow::closeEvent(QCloseEvent* event){
+void FLComponentWindow::closeEvent(QCloseEvent* /*event*/){
     
     emit deleteIt();
 }

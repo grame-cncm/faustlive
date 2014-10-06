@@ -29,10 +29,12 @@ class MyLabel : public QLabel{
     Q_OBJECT
 
 public:
-    MyLabel(QWidget* parent = NULL){}
+    MyLabel(QWidget* parent = NULL){Q_UNUSED(parent);}
     ~MyLabel(){}
     
     virtual void mouseReleaseEvent( QMouseEvent * event ){
+
+		Q_UNUSED(event);
         emit imageClicked();
     }
     
@@ -80,6 +82,8 @@ class binaryNode : public smartable{
 public :
     SMARTP<binaryNode> left;
     SMARTP<binaryNode> right;
+
+	binaryNode(binaryNode* l, binaryNode* r): left(l), right(r){}
     
     //  Representing the surface of the interface
     virtual QRect rectSurface() = 0;
@@ -100,6 +104,8 @@ public :
     
     QRect rect;
     
+	treeNode(binaryNode* l, binaryNode* r):binaryNode(l,r){} 
+
     virtual QRect rectSurface(){
         return rect;
     }
@@ -108,9 +114,9 @@ public :
 class verticalNode : public treeNode{
   
 public :
-    verticalNode(binaryNode* node1, binaryNode* node2, QRect r){
-        left = node1;
-        right = node2;
+    verticalNode(binaryNode* node1, binaryNode* node2, QRect r) : treeNode(node1, node2){
+        //left = node1;
+        //right = node2;
         rect = r;
     }
     
@@ -125,9 +131,9 @@ public :
 class horizontalNode : public treeNode{
 
 public :
-    horizontalNode(binaryNode* node1, binaryNode* node2, QRect r){
-        left = node1;
-        right = node2;
+    horizontalNode(binaryNode* node1, binaryNode* node2, QRect r) : treeNode(node1, node2){
+        //left = node1;
+        //right = node2;
         rect = r;
     }
     
@@ -144,10 +150,8 @@ class leafNode : public binaryNode{
 public :
     FLComponentItem* item;
     
-    leafNode(FLComponentItem* i){
+    leafNode(FLComponentItem* i) : binaryNode(NULL, NULL){
         item = i;
-        left = NULL;
-        right = NULL;
     }
     
     virtual QString renderToFaust(const QString& /*faustOperator*/, const QString& layoutIndex){

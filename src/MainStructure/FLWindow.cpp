@@ -655,20 +655,20 @@ void FLWindow::allocateOscInterface(){
         
         char* argv[argc];
         argv[0] = (char*)(fWindowName.toStdString().c_str());
-        argv[1] = "-port";
+        argv[1] = (char*)"-port";
         
         
         string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
         argv[2] = (char*) (inport.c_str());
-        argv[3] = "-xmit";
-        argv[4] = "1";
-        argv[5] = "-outport";
+        argv[3] = (char*)"-xmit";
+        argv[4] = (char*)"1";
+        argv[5] = (char*)"-outport";
         string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
         argv[6] = (char*) (outport.c_str());
-        argv[7] = "desthost";
+        argv[7] = (char*)"desthost";
         string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
         argv[8] = (char*) (dest.c_str());
-        argv[9] = "-errport";
+        argv[9] = (char*)"-errport";
         string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
         argv[10] = (char*) (errport.c_str());
 
@@ -881,14 +881,14 @@ void FLWindow::dropEvent ( QDropEvent * event ){
     
     //The widget was hidden from crossing of an object through the window
     this->centralWidget()->show();
-    
+/*
 	int numberCharToErase = 0;
 #ifndef _WIN32
 	numberCharToErase = 8;
 #else
 	numberCharToErase = 7;
 #endif
-	
+	*/
     if (event->mimeData()->hasUrls()) {
         
         QList<QString>    sourceList;
@@ -1052,7 +1052,7 @@ void FLWindow::audioShutDown(const char* msg){
     
     printf("FLWindow::audioShutDown\n");
     
-    AudioCreator* creator = AudioCreator::_Instance(NULL);
+    //udioCreator* creator = AudioCreator::_Instance(NULL);
     
     //    creator->change_Architecture();
     errorPrint(msg);
@@ -1439,6 +1439,8 @@ void FLWindow::switchRelease(bool on){
 
 #else
 int FLWindow::RemoteDSPCallback(int error_code, void* arg){
+	Q_UNUSED(error_code);
+	Q_UNUSED(arg);
     return -1;   
 }
 #endif

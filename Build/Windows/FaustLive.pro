@@ -25,7 +25,7 @@ QT+=network
 
 TARGET = FaustLive
 #VERSION = 1.1
-DEFINES += APP_VERSION=\\\"1.2\\\"
+DEFINES += APP_VERSION=\\\"2.0\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES     = ../../Resources/application.qrc

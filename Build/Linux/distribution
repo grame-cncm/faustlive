@@ -1,6 +1,6 @@
 if [ -z $1 ]
   then
-    echo "Please specify the targeted platform. For example : platform=Ubuntu"
+    echo "Please specify the targeted platform. For example : Ubuntu"
 	exit
 fi
 
@@ -28,8 +28,10 @@ cp ../../Documentation/faust-quick-reference.pdf $nameDist/Documentation
 cp ../../Documentation/UserManual.pdf $nameDist/Documentation/UserManual-$bN.pdf
 
 cp FaustLive $nameDist/FaustLive
-zip -r $nameDist.zip $nameDist
+cd Distributions
+zip -r FaustLive-$1-$arch-$bN.zip FaustLive-$1-$arch-$bN
 
+cd ..
 cp $nameDist.zip FaustLive-$1-$arch-$bN.zip
 
 rm -r $nameDist

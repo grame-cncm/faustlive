@@ -54,6 +54,8 @@ void myMessageOutput(QtMsgType type, const char *msg)
             app->update_CurrentSession();
             app->closeAllWindows();
             abort();
+        default:
+			printf("MESSAGE CALLBACK\n");
     }
 }
 

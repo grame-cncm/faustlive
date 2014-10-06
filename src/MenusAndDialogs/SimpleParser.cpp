@@ -16,11 +16,11 @@ static void skipBlank(const char*& p)
 }
 
 // Report a parsing error
-static bool parseError(const char*& p, const char* errmsg)
-{
-    cerr << "Parse error : " << errmsg << " here : " << p << endl;
-    return true;
-}
+//static bool parseError(const char*& p, const char* errmsg)
+//{
+//    cerr << "Parse error : " << errmsg << " here : " << p << endl;
+//    return true;
+//}
 
 // Parse character x, but don't report error if fails
 static bool tryChar(const char*& p, char x)
