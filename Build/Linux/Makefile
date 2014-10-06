@@ -4,6 +4,7 @@ qm := $(if $(qm4),$(qm4),qmake)
 
 SPEC := ""
 PREFIX := /usr
+DESTDIR := /usr
 QM-DEFS := "JVAR=1"
 
 ### Defining qmake variables
@@ -50,19 +51,22 @@ dist-sources :
 	git archive --format=tar.gz -o FaustLive-sources.tgz --prefix=FaustLive-sources/ HEAD
 
 ####### Install
+installdirs = $(PREFIX)/bin $(PREFIX)/share $(PREFIX)/share/applications $(PREFIX)/share/pixmaps $(PREFIX)/share/icons/hicolor/32x32/apps $(PREFIX)/share/icons/hicolor/scalable/apps
+
 install:
-	install FaustLive $(PREFIX)/bin
-	install FaustLive.desktop $(PREFIX)/share/applications/
-	install ../../Resources/Images/Faustlive.xpm $(PREFIX)/share/pixmaps/
-	install ../../Resources/Images/Faustlive.png $(PREFIX)/share/icons/hicolor/32x32/apps/
-	install ../../Resources/Images/Faustlive.svg $(PREFIX)/share/icons/hicolor/scalable/apps/
+	install -d $(addprefix $(DESTDIR), $(installdirs))
+	install FaustLive $(DESTDIR)$(PREFIX)/bin
+	install FaustLive.desktop $(DESTDIR)$(PREFIX)/share/applications/
+	install ../../Resources/Images/Faustlive.xpm $(DESTDIR)$(PREFIX)/share/pixmaps/
+	install ../../Resources/Images/Faustlive.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
+	install ../../Resources/Images/Faustlive.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/
 
 uninstall:
-	rm -f $(PREFIX)/bin/FaustLive
-	rm -f $(PREFIX)/share/applications/FaustLive.desktop 
-	rm -f $(PREFIX)/share/pixmaps/Faustlive.xpm 
-	rm -f $(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
-	rm -f $(PREFIX)/share/icons/hicolor/scalable/apps/Faustlive.svg
+	rm -f $(DESTDIR)$(PREFIX)/bin/FaustLive
+	rm -f $(DESTDIR)$(PREFIX)/share/applications/FaustLive.desktop
+	rm -f $(DESTDIR)$(PREFIX)/share/pixmaps/Faustlive.xpm
+	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
+	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/Faustlive.svg
 
 ####### MAKE MAKEFILE.QT4
 

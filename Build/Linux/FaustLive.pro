@@ -171,8 +171,9 @@ equals(PAVAR, 1){
 ########## LIBS AND FLAGS
 
 LIBS+=/usr/local/lib/faust/libfaust.a
-LIBS+= $$system($$system(which llvm-config) --libs)
-LIBS+= $$system($$system(which llvm-config) --ldflags)
+LIBS+= $$system($$system(which llvm-config) --ldflags --libs)
+# This is needed by LLVM 3.5 and later.
+LIBS+= $$system($$system(which llvm-config) --system-libs 2>/dev/null)
 
 
 ########## HEADERS AND SOURCES OF PROJECT
