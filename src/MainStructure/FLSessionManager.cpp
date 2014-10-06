@@ -1204,7 +1204,7 @@ bool FLSessionManager::addWinToServer(FLWinSettings* settings){
     
     int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
     
-    remote_dsp_factory* onsenfout = createRemoteDSPFactoryFromString( name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, 3);
+    remote_dsp_factory* onsenfout = createRemoteDSPFactoryFromString( name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, optLevel);
     
     printf("On s'en fout tu sais bien... = %p\n", onsenfout);
     
