@@ -55,12 +55,9 @@ make REMOTE=1
 	"make clean" before doing "make"
 	& "make uninstall" before "make install"
 
-2) LIBS/scheduler.ll depends on the version of llvm. This file has to be re-generated 
-	if the version changes. For now llvm 3.1 is used
+2) If you use the remote control through httpd and you want to use a port < 100, you will have to start FaustLive in sudo mode.
 
-3) If you use the remote control through httpd and you want to use a port < 100, you will have to start FaustLive in sudo mode.
-
-4) To use remote processing through wi-fi, set network parameters MTU on standard 1500.
+3) To use remote processing through wi-fi, set network parameters MTU on standard 1500.
 
 ---------------TO ADD A NEW AUDIO ARCHITECTURE
 
