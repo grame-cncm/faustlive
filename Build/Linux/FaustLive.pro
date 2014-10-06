@@ -7,6 +7,8 @@
 
 TEMPLATE = app
 
+FAUSTDIR = /usr/local
+
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -34,7 +36,7 @@ QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 ####### INCLUDES PATHS && LIBS PATHS
 
-DEPENDPATH += /usr/local/include/faust/gui
+DEPENDPATH += $$FAUSTDIR/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 INCLUDEPATH += ../../src/Audio
@@ -43,7 +45,7 @@ INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust -L/opt/local/lib
+LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/lib/faust -L/opt/local/lib
 LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
@@ -170,8 +172,9 @@ equals(PAVAR, 1){
 
 ########## LIBS AND FLAGS
 
-LIBS+=/usr/local/lib/faust/libfaust.a
-LIBS+= $$system($$system(which llvm-config) --ldflags --libs)
+LIBS+=$$FAUSTDIR/lib/faust/libfaust.a
+LIBS+= $$system($$system(which llvm-config) --libs)
+LIBS+= $$system($$system(which llvm-config) --ldflags)
 # This is needed by LLVM 3.5 and later.
 LIBS+= $$system($$system(which llvm-config) --system-libs 2>/dev/null)
 
@@ -204,7 +207,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/MainStructure/FLApp.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
-			/usr/local/include/faust/gui/faustqt.h
+			$$FAUSTDIR/include/faust/gui/faustqt.h
 
 SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \

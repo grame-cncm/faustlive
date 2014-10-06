@@ -4,7 +4,7 @@ qm := $(if $(qm4),$(qm4),qmake)
 
 SPEC := ""
 PREFIX := /usr
-DESTDIR := /usr
+DESTDIR := 
 QM-DEFS := "JVAR=1"
 
 ### Defining qmake variables
@@ -32,6 +32,18 @@ all : Makefile.qt4
 	./buildversion
 	mkdir -p src/objectsFolder
 	make -f Makefile.qt4
+
+####### List of targets
+
+help : 
+	@echo "Usage : 'make; sudo make install'"
+	@echo "To enable NetJack driver : 'make NETJACK=1'"
+	@echo "To enable remote processing : 'make REMOTE=1'"
+	@echo "make or make all : compile FaustLive"
+	@echo "make clean : remove all object files"
+	@echo "make install : install FaustLive and its resources in $(DESTDIR)$(PREFIX)"
+	@echo "make uninstall : undo what install did"
+	@echo "make dist & ./distribution {platform}: make a FaustLive distribution as a .zip file"
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
