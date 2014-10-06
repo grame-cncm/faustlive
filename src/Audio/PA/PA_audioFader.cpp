@@ -26,11 +26,11 @@ int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames
     fDsp->compute(frames, ibuf, obuf);
     crossfade_Calcul(fBufferSize, fDevNumOutChans, obuf);
 	
-	for(int i=0; i<fDsp->getNumOutputs(); i++){
+/*	for(int i=0; i<fDsp->getNumOutputs(); i++){
 		for(int j=0; j<frames; j++){
-			//printf("Output Buffer = %f\n", obuf[i][j]);
+			printf("Output Buffer = %f\n", obuf[i][j]);
 		}
-	}
+	}*/
 	return paContinue;
 }
 
