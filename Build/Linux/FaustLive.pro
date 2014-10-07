@@ -56,7 +56,6 @@ LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
 	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -loscpack -Wl,-Bdynamic
-	LIBS+=-Wl,-static
 } else {
 	LIBS+=-Wl,-rpath=$$FAUSTDIR/lib/faust -lHTTPDFaust -lOSCFaust  -loscpack
 }
@@ -73,6 +72,7 @@ equals(static, 1){
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
 	#LIBS+=-lcurl
+	LIBS+=-Wl,-static	
 }
 
 LIBS+=-lqrencode
