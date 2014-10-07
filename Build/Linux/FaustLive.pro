@@ -7,8 +7,14 @@
 
 TEMPLATE = app
 
-FAUSTDIR = /usr/local
+isEmpty(FAUSTDIR) {
+	FAUSTDIR = /usr/local
+}
 
+isEmpty(LLVM_CONFIG) {
+	LLVM_CONFIG = llvm-config
+}
+ 
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -49,24 +55,34 @@ LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/lib/faust -L/opt/local/lib
 LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
-	LIBS+=/usr/local/lib/libqrencode.a
-	LIBS+=/usr/local/lib/libmicrohttpd.a
-	LIBS+=-lgnutls
-	LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
+	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -loscpack -Wl,-Bdynamic
+	LIBS+=-Wl,-static
+} else {
+	LIBS+=-Wl,-rpath=$$FAUSTDIR/lib/faust -lHTTPDFaust -lOSCFaust  -loscpack
+}
+
+
+equals(static, 1){
+	#LIBS+=/usr/local/lib/libqrencode.a
+	#LIBS+=/usr/local/lib/libmicrohttpd.a
+	#LIBS+=-lgnutls
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
 	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
-	LIBS+=-lcurl
-}
-else{
-	LIBS+=-lqrencode
-	LIBS+=-lmicrohttpd
-	LIBS+=-lcrypto
-	LIBS+=-lcurl
+	#LIBS+=-lcurl
 }
 
+LIBS+=-lqrencode
+LIBS+=-lmicrohttpd
+LIBS+=-lcrypto
+LIBS+=-lcurl
+
+equals(static, 1){
+	LIBS+=-Wl,-Bdynamic
+}
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -174,19 +190,12 @@ equals(PAVAR, 1){
 
 LIBS+=$$FAUSTDIR/lib/faust/libfaust.a
 
-LLVMVERSION = ($$system($$system(which llvm-config) --version))
-
-if(greaterThan(LLVMVERSION, 3.5)){
-
-# This is needed by LLVM 3.5 and later.
-	LIBS+= $$system($$system(which llvm-config) --system-libs 2>/dev/null)
-	message("LLVM 3.5")
-
-}
-else{
-	LLVMLIBS = $$system($$system(which llvm-config) --libs)
-	LLVMDIR = $$system($$system(which llvm-config) --ldflags)
-}
+# Make sure to include --ldflags twice, once for the -L flags, and once for
+# the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
+LIBS+=$$system($$LLVM_CONFIG --ldflags --libs)
+LIBS+=$$system($$LLVM_CONFIG --ldflags)
+# The system libraries need a different option in LLVM 3.5 and later.
+LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
 
 ########## HEADERS AND SOURCES OF PROJECT
 

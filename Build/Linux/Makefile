@@ -7,6 +7,24 @@ PREFIX := /usr
 DESTDIR := 
 QM-DEFS := "JVAR=1"
 
+# The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
+# in the project file.
+
+# We need to know where Faust lives. This will be detected automatically if
+# the faust executable is on the PATH, otherwise you may have to set this
+# manually.
+FAUSTDIR = $(patsubst %/bin/faust,%,$(shell which faust 2>/dev/null))
+ifeq ($(strip $(FAUSTDIR)),)
+# Fall back to /usr/local.
+FAUSTDIR = /usr/local
+endif
+
+# We also need the name of the llvm-config command for the LLVM version that
+# you want to use. By default, we assume just llvm-config, which must be on
+# the system PATH. Otherwise you'll have to specify the full pathname of the
+# llvm-config executable that you want to use.
+LLVM_CONFIG = llvm-config
+
 ### Defining qmake variables
 ifeq ($(JACK), 1)
     QM-DEFS += "JVAR=1" 
@@ -24,6 +42,12 @@ ifeq ($(PORTAUDIO), 1)
 endif
 ifeq ($(STATIC), 1)
      QM-DEFS += "static=1" 
+endif
+ifneq ($(FAUSTDIR),)
+     QM-DEFS += "FAUSTDIR=$(FAUSTDIR)"
+endif
+ifneq ($(LLVM_CONFIG),)
+     QM-DEFS += "LLVM_CONFIG=$(LLVM_CONFIG)"
 endif
 
 ####### Targets
@@ -87,7 +111,11 @@ clean : Makefile-qt
 	rm -f FaustLive.pro.user
 	rm -rf FaustLive.app
 	rm -f Makefile-qt
+	rm -f ../../Resources/styles.qrc
 
-Makefile-qt: 
+../../Resources/styles.qrc: ../../Resources/styles.qrc.in
+	sed -e 's?@FAUSTDIR@?$(FAUSTDIR)?g' < $< > $@
+
+Makefile-qt: ../../Resources/styles.qrc
 	$(qm) $(SPEC) -o Makefile-qt $(QM-DEFS)
 
