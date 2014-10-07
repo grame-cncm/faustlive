@@ -49,6 +49,9 @@ endif
 ifneq ($(LLVM_CONFIG),)
      QM-DEFS += "LLVM_CONFIG=$(LLVM_CONFIG)"
 endif
+ifneq ($(CURL_CONFIG),)
+     QM-DEFS += "CURL_CONFIG=$(CURL_CONFIG)"
+endif
 
 ####### Targets
 

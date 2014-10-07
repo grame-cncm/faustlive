@@ -15,6 +15,10 @@ isEmpty(LLVM_CONFIG) {
 	LLVM_CONFIG = llvm-config
 }
  
+isEmpty(CURL_CONFIG) {
+	CURL_CONFIG = curl-config
+}
+ 
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -75,13 +79,18 @@ equals(static, 1){
 	LIBS+=-Wl,-static	
 }
 
-LIBS+=-lqrencode
-LIBS+=-lmicrohttpd
-LIBS+=-lcrypto
-LIBS+=-lcurl
+	LIBS+=-lqrencode
+	LIBS+=-lmicrohttpd
+	LIBS+=-lcrypto
+
 
 equals(static, 1){
+
 	LIBS+=-Wl,-Bdynamic
+	LIBS+=$$system($$CURL_CONFIG --static-libs)
+}
+else{
+	LIBS+=-lcurl
 }
 
 DEFINES += HTTPCTRL
