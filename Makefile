@@ -2,10 +2,10 @@
 arch ?= $(shell uname -s)
 
 ifeq ($(arch), Darwin)
-EXT = app
+EXT = .app
 else
 ifneq ($(findstring MINGW32, $(arch)),)
-EXT = exe
+EXT = .exe
 else
 EXT = 
 endif
@@ -13,7 +13,7 @@ endif
 
 all:
 	$(MAKE) -C Build/$(arch)
-	cp -r Build/$(arch)/FaustLive.$(EXT) FaustLive.$(EXT)
+	cp -r Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
 
 math_lib : 
 	$(MAKE) -C Build/$(arch) math_lib 
@@ -29,5 +29,5 @@ uninstall:
 	$(MAKE) -C Build/$(arch) uninstall
 clean : 
 	$(MAKE) -C Build/$(arch) clean
-	rm FaustLive.$(EXT)
+	rm FaustLive$(EXT)
 
