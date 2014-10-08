@@ -112,7 +112,7 @@ uninstall:
 clean : Makefile-qt
 	make -f Makefile-qt clean
 	rm -f FaustLive.pro.user
-	rm -rf FaustLive.app
+	rm -f FaustLive
 	rm -f Makefile-qt
 	rm -f ../../Resources/styles.qrc
 
