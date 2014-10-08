@@ -1,0 +1,22 @@
+#!/bin/bash
+
+numberDep=10
+libraries=(libLLVM libQt libqrencode libmicrohttpd libcrypto libcurl libjack libfaust libOSCFaust libHTTPDFaust)
+
+packages=(llvm3.i build-essential libqrencode-dev libmicrohttpd-dev libssl-dev libcurl-dev jackd2 http://sourceforge.net/projects/faudiostream/files http://sourceforge.net/projects/faudiostream/files http://sourceforge.net/projects/faudiostream/files)
+
+count=0
+
+while [ "$count" != "$numberDep" ]
+do
+	lib=${libraries[$count]}
+	toto=`locate /usr*$lib*`
+	
+	if [ -z "$toto" ]; then
+		echo "$lib -------- Please install package ${packages[$count]} "
+	else
+		echo "$lib -------- Check"
+	fi
+	
+	count=$(($count+1))
+done

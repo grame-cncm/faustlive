@@ -56,7 +56,6 @@ INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
 LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/lib/faust -L/opt/local/lib
-LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
 
 equals(static, 1){
 	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -loscpack -Wl,-Bdynamic
@@ -76,23 +75,13 @@ equals(static, 1){
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
 	#LIBS+=-lcurl
-	LIBS+=-Wl,-static	
+	#LIBS+=-Wl,-static	
 }
 
 	LIBS+=-lqrencode
 	LIBS+=-lmicrohttpd
 	LIBS+=-lcrypto
-
-
-equals(static, 1){
-
-	LIBS+=-Wl,-Bdynamic
-#	LIBS+=$$system($$CURL_CONFIG --static-libs)
-	DEFINES += DISABLE_CURL
-}
-else{
 	LIBS+=-lcurl
-}
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
