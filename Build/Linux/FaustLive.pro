@@ -87,11 +87,11 @@ equals(static, 1){
 equals(static, 1){
 
 	LIBS+=-Wl,-Bdynamic
-	LIBS+=$$system($$CURL_CONFIG --static-libs)
+#	LIBS+=$$system($$CURL_CONFIG --static-libs)
 }
-else{
-	LIBS+=-lcurl
-}
+#else{
+#	LIBS+=-lcurl
+#}
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL

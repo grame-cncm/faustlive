@@ -70,7 +70,7 @@ LIBS+=-lmicrohttpd
 LIBS+=-lcrypto
 	  
 LIBS+=-lHTTPDFaust
-LIBS+=-lcurl
+#LIBS+=-lcurl
 LIBS+=-lOSCFaust -loscpack
 LIBS+=-L/opt/local/lib
 

@@ -146,7 +146,7 @@ void FLWindow::start_stop_watcher(bool on){
 bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
-
+    
     FLMessageWindow::_Instance()->displayMessage("Compiling DSP...");
     FLMessageWindow::_Instance()->show();
     FLMessageWindow::_Instance()->raise();
@@ -197,6 +197,21 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
         errorMsg = "Interface could not be allocated";
     
     return false;
+}
+
+void FLWindow::selfUpdate(){
+    update_Window(fSource);
+}
+
+void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource){
+//    In case name update is concerning source
+    if(oldSource == fSource)
+        update_Window(newSource);
+//    In case name update concerns a dependency
+    else{
+        QString errorMsg = "WARNING : "+ fWindowName+". " + oldSource + " has been renamed as " + newSource + ". The dependency might be broken ! ";
+        errorPrint(errorMsg);
+    }
 }
 
 //Modification of the process in the window
