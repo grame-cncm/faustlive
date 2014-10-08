@@ -23,9 +23,8 @@
 #include <fstream> 
 
 #include <jack/net.h>
-#ifndef DISABLE_CURL
 #include <curl/curl.h>
-#endif
+
 using namespace std;
 
 //--------------------------FLINTERMEDIATESERVER--------------------------//
@@ -117,22 +116,23 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     else if(strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")){
         
         string urlAsString(url);
-        //      As a JSON
-#ifndef DISABLE_CURL
+//      As a JSON
         if(urlAsString.find("JSON") != string::npos){
+            
             string portNumber(url);
             portNumber = portNumber.substr(1, portNumber.size()-6);
             
             return redirectJsonRequest(connection, portNumber);
         }
 //      As an html interface
-#endif
-        string portNumber(url);
-        portNumber = portNumber.substr(1, portNumber.size()-1);
+        else{
+            string portNumber(url);
+            portNumber = portNumber.substr(1, portNumber.size()-1);
             
-        ss << responseHead << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< responseTail;
+            ss << responseHead << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< responseTail;
             
-        return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
+            return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
+        }
     }
      
     ss<<responseHead<<responseTail; 
@@ -388,7 +388,6 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 // A request for the JSON, written as :
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
 int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber){
-#ifndef DISABLE_CURL   
     
     string resultingPage = "";
     
@@ -426,9 +425,7 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
     }    
     
     return send_page(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
-#else
-    return 0;
-#endif
+    
 }
 
 //Accessor to Max Client Number
