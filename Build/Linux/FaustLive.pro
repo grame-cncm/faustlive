@@ -88,10 +88,11 @@ equals(static, 1){
 
 	LIBS+=-Wl,-Bdynamic
 #	LIBS+=$$system($$CURL_CONFIG --static-libs)
+	DEFINES += DISABLE_CURL
 }
-#else{
-#	LIBS+=-lcurl
-#}
+else{
+	LIBS+=-lcurl
+}
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL

@@ -23,8 +23,9 @@
 #include <fstream> 
 
 #include <jack/net.h>
-//#include <curl/curl.h>
-
+#ifndef DISABLE_CURL
+#include <curl/curl.h>
+#endif
 using namespace std;
 
 //--------------------------FLINTERMEDIATESERVER--------------------------//
@@ -116,23 +117,22 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     else if(strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")){
         
         string urlAsString(url);
-//      As a JSON
+        //      As a JSON
+#ifndef DISABLE_CURL
         if(urlAsString.find("JSON") != string::npos){
-//            
-//            string portNumber(url);
-//            portNumber = portNumber.substr(1, portNumber.size()-6);
-//            
-//            return redirectJsonRequest(connection, portNumber);
+            string portNumber(url);
+            portNumber = portNumber.substr(1, portNumber.size()-6);
+            
+            return redirectJsonRequest(connection, portNumber);
         }
 //      As an html interface
-        else{
-            string portNumber(url);
-            portNumber = portNumber.substr(1, portNumber.size()-1);
+#endif
+        string portNumber(url);
+        portNumber = portNumber.substr(1, portNumber.size()-1);
             
-            ss << responseHead << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< responseTail;
+        ss << responseHead << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< responseTail;
             
-            return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
-        }
+        return send_page(connection, ss.str().c_str (), ss.str().size(), MHD_HTTP_OK, "text/html");
     }
      
     ss<<responseHead<<responseTail; 
@@ -388,44 +388,47 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 // A request for the JSON, written as :
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
 int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber){
-//    
-//    string resultingPage = "";
-//    
-//    stringstream url; 
-//    
-//    url<<"http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< "/JSON";
-//    
-//    string finalURL = url.str();
-//    
-//    CURL *curl = curl_easy_init();
-//    
-//    long respcode = MHD_HTTP_BAD_REQUEST; 
-//    
-//    if (curl) {
-//        
-//        std::ostringstream oss;
-//        
-//        curl_easy_setopt(curl, CURLOPT_URL, finalURL.c_str());
-//        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
-//        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-//        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60); 
-//        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 600);
-//        
-//        CURLcode res = curl_easy_perform(curl);
-//        
-//        if(res == CURLE_OK){
-//
-//            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-//            
-//            if(respcode == 200)
-//                resultingPage = oss.str();
-//        }
-//        
-//        curl_easy_cleanup(curl);
-//    }    
-//    
-//    return send_page(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
+#ifndef DISABLE_CURL   
+    
+    string resultingPage = "";
+    
+    stringstream url; 
+    
+    url<<"http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< "/JSON";
+    
+    string finalURL = url.str();
+    
+    CURL *curl = curl_easy_init();
+    
+    long respcode = MHD_HTTP_BAD_REQUEST; 
+    
+    if (curl) {
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, finalURL.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
+        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 600);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        if(res == CURLE_OK){
+
+            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            
+            if(respcode == 200)
+                resultingPage = oss.str();
+        }
+        
+        curl_easy_cleanup(curl);
+    }    
+    
+    return send_page(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
+#else
     return 0;
+#endif
 }
 
 //Accessor to Max Client Number
