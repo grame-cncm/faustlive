@@ -19,6 +19,7 @@ math_lib :
 	$(MAKE) -C Build/$(arch) math_lib 
 deploy: 
 	$(MAKE) -C Build/$(arch) deploy
+	cp -r Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
 dist:
 	$(MAKE) -C Build/$(arch) dist
 dist-sources :
@@ -29,5 +30,5 @@ uninstall:
 	$(MAKE) -C Build/$(arch) uninstall
 clean : 
 	$(MAKE) -C Build/$(arch) clean
-	rm -f FaustLive$(EXT)
+	rm -rf FaustLive$(EXT)
 
