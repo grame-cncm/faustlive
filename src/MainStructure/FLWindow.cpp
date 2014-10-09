@@ -134,8 +134,10 @@ void FLWindow::start_stop_watcher(bool on){
     if(fSettings->value("Path", "").toString() != "")
         dependencies.push_front(fSettings->value("Path", "").toString());
     
-    if(on)
+    if(on){
+        fCreationDate = fCreationDate.currentDateTime();
         FLFileWatcher::_Instance()->startWatcher(dependencies, this);
+    }
     else
         FLFileWatcher::_Instance()->stopWatcher(dependencies, this);
 }
@@ -184,7 +186,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
                         
             runInterfaces();
             
-            fCreationDate = fCreationDate.currentDateTime();
             printf("WINDOW STARTS WATCHER\n");
             start_stop_watcher(true);
             
@@ -220,19 +221,19 @@ bool FLWindow::update_Window(const QString& source){
 
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
-    bool update = true;
+    bool update = false;
     
-//Avoiding the flicker when the source is saved
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
 //FIND THE RIGHT CONDITION !!!!
     
-//    if(QFileInfo(source).exists()){
-//        
-//        QDateTime modifiedLast = QFileInfo(source).lastModified();
-//        if(fSource != source || fCreationDate < modifiedLast)
-//            update = true;
-//    }
-//    else
-//        update = true; 
+    if(QFileInfo(source).exists()){
+        
+        QDateTime modifiedLast = QFileInfo(source).lastModified();
+        if(fSource != source || fCreationDate < modifiedLast)
+            update = true;
+    }
+    else
+        update = true; 
     
     if(update){
         
@@ -495,17 +496,26 @@ void FLWindow::view_qrcode(){
 
 void FLWindow::view_svg(){
     
-    QString shaValue = fSettings->value("SHA", "").toString();
+    QString faustOptions = "-svg";
+    faustOptions += " -O ";
+    faustOptions += fHome + "/Windows/" + fWindowName;
     
-    QString shaFolder = fHome + "/SHAFolder/" + shaValue;
-    QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
+    QString errorMsg;
     
-    FLSessionManager::_Instance()->updateFolderDate(shaValue);
+    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), faustOptions, fWindowName, errorMsg)){
+        
+    QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     
     if(!QDesktopServices::openUrl(url))
         errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
+        
+    }
+    else{
+        QString err ="Could not generate SVG diagram : " + errorMsg; 
+        errorPrint(err);
+    }
 }
 
 void FLWindow::export_file(){
@@ -579,10 +589,10 @@ void FLWindow::modifiedOptions(){
 //Reaction to the modification of outfile options
 void FLWindow::generateAuxFiles(){
 
-	string errorMsg;
+	QString errorMsg;
 
-    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA().toStdString(), fSettings, errorMsg))
-		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(errorMsg.c_str()));
+    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
+		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errorMsg);
 }
 
 //Reaction to the resizing the toolbar

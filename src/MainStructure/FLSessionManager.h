@@ -86,7 +86,7 @@ private:
     
     void            copySHAFolder(const QString& snapshotFolder);
     
-    const char**           getFactoryArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc);
+    const char**           getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
     
     const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
     void                    deleteArgv(int argc, const char** argv);
@@ -116,7 +116,7 @@ public:
     void            updateFolderDate(const QString& shaValue);
     void            cleanSHAFolder();
     
-    bool            generateAuxFiles(const std::string& shaKey, FLWinSettings* settings, string& error);
+    bool            generateAuxFiles(const QString& shaKey, const QString& faustOptions, const QString& name, QString& error);
     
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     

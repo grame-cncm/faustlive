@@ -342,19 +342,19 @@ QString FLSessionManager::ifWavToString(const QString& source){
 }
 
 //--Fill argv parameters with -I/-O/etc...
-const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& destPath, const QString& faustOptions, int& argc){
+const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc){
     
     //--------Compilation Options 
     
-    int numberFixedParams = 7;
+    int numberFixedParams = 4;
     
     if(sourcePath == "")
         numberFixedParams = numberFixedParams-2;
     
-	if(destPath == ""){
-        numberFixedParams = numberFixedParams-3;
-		printf("number Params -3\n");
-	}
+//	if(destPath == ""){
+//        numberFixedParams = numberFixedParams-3;
+//		printf("number Params -3\n");
+//	}
 
     int iteratorParams = 0;
     
@@ -394,25 +394,25 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         iteratorParams++;
     }
     
-	if(destPath != ""){
-	  argv[iteratorParams] = "-O";
-	  iteratorParams++;
-    
-	   QDir direct(destPath);
-	   direct.mkdir(destPath);
-    
-	   string pathSVG = destPath.toStdString();
-    
-	   char* svgP = new char[pathSVG.size()+1];
-	   strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
-	   argv[iteratorParams] = (const char*) svgP;
-    
-		printf("svg Path = %s\n", svgP);
-
-		iteratorParams++;
-		argv[iteratorParams] = "-svg";
-		iteratorParams++;
-	}
+//	if(destPath != ""){
+//	  argv[iteratorParams] = "-O";
+//	  iteratorParams++;
+//    
+//	   QDir direct(destPath);
+//	   direct.mkdir(destPath);
+//    
+//	   string pathSVG = destPath.toStdString();
+//    
+//	   char* svgP = new char[pathSVG.size()+1];
+//	   strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
+//	   argv[iteratorParams] = (const char*) svgP;
+//    
+//		printf("svg Path = %s\n", svgP);
+//
+//		iteratorParams++;
+//		argv[iteratorParams] = "-svg";
+//		iteratorParams++;
+//	}
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf
     argv[iteratorParams] = "-l";
@@ -513,10 +513,10 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
-bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSettings* settings, string& error){
-
-    QString faustOptions = settings->value("AutomaticExport/Options", "").toString();
-
+bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& faustOptions, const QString& name, QString& errorMsg){
+    
+    updateFolderDate(shaKey);
+    
     int argc = get_numberParameters(faustOptions);
         
     const char** argv = new const char*[argc];
@@ -534,12 +534,17 @@ bool    FLSessionManager::generateAuxFiles(const std::string& shaKey, FLWinSetti
         argv[i] = (const char*)intermediate;
     }
 
-    string sourceFile = fSessionFolder.toStdString() + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
+    QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
-	if(faustOptions != "")
-	    return generateAuxFilesFromFile(sourceFile, argc, argv, error);
-	else
-		return true;
+	if(faustOptions != ""){
+        std::string error;
+        if(!generateAuxFilesFromString(name.toStdString(), pathToContent(sourceFile).toStdString(), argc, argv, error)){
+            errorMsg = error.c_str();
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
@@ -584,13 +589,21 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
     }
     
-	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
+    
+    int argc;
+	const char** argv = getFactoryArgv(path, faustOptions, argc);
+    string shaKey;
+    string err;
+//    EXPAND DSP JUST TO GET SHA KEY
+    expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err);
+    
+//	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
     string optvalue = QString::number(optLevel).toStdString();
     
-    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
+//    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
     
-    string shaKey = FL_generate_sha1(fullShaString);
+//    string shaKey = FL_generate_sha1(fullShaString);
     
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
     
@@ -613,18 +626,15 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     factorySettings* mySetts = new factorySettings;
     factory* toCompile = new factory;
     string error;
-	
-    int argc;
-	const char** argv = getFactoryArgv(path, factoryFolder, faustOptions, argc);
     
     QString machineName = "local processing";
     
     if(settings){
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
 		
-		string error;
-        if(!generateAuxFiles(shaKey, settings, error))
-			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(error.c_str()));
+		QString error;
+        if(!generateAuxFiles(shaKey.c_str(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), error))
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(error));
     }
     
     if(machineName == "local processing"){
@@ -1125,7 +1135,7 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     
-    const char** argv = getFactoryArgv("", "", faustOptions, argc);
+    const char** argv = getFactoryArgv("", faustOptions, argc);
 
     string error_msg("");
     
@@ -1200,7 +1210,7 @@ bool FLSessionManager::addWinToServer(FLWinSettings* settings){
     int optLevel = settings->value("Compilation/OptValue", 3).toInt();
     
     int argc;
-	const char** argv = getFactoryArgv(settings->value("Path", "").toString(), factoryFolder, faustOptions, argc);
+	const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
     
     int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
     
