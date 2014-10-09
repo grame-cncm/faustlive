@@ -71,7 +71,7 @@ LIBS+=-lcrypto
 	  
 LIBS+=-lHTTPDFaust
 LIBS+=-lcurl
-LIBS+=-lOSCFaust -loscpack
+LIBS+=-lOSCFaust
 LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL
