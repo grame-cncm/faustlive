@@ -29,5 +29,5 @@ uninstall:
 	$(MAKE) -C Build/$(arch) uninstall
 clean : 
 	$(MAKE) -C Build/$(arch) clean
-	rm -f FaustLive$(EXT)
+	rm -rf FaustLive$(EXT)
 
