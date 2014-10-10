@@ -55,7 +55,7 @@ INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/local/lib
+LIBS+=-L$$FAUSTDIR/lib -L/usr/local/lib
 LIBS+=-lfaust
 
 # Make sure to include --ldflags twice, once for the -L flags, and once for

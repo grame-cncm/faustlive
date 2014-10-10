@@ -625,16 +625,16 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 
     factorySettings* mySetts = new factorySettings;
     factory* toCompile = new factory;
-    string error;
+    string error = "";
     
     QString machineName = "local processing";
     
     if(settings){
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
 		
-		QString error;
-        if(!generateAuxFiles(shaKey.c_str(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), error))
-			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(error));
+		QString err;
+        if(!generateAuxFiles(shaKey.c_str(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), err))
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ err);
     }
     
     if(machineName == "local processing"){
@@ -649,7 +649,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         if(toCompile->fLLVMFactory == NULL){
             
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
-
+            
             if(settings){
                 settings->setValue("InputNumber", 0);
                 settings->setValue("OutputNumber", 0);
@@ -659,6 +659,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
                 //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
                 write_dependencies(get_dependencies(toCompile->fLLVMFactory), shaKey.c_str());
+                
+                if(error != "")
+                    FLErrorWindow::_Instance()->print_Error(error.c_str());
             }
             else{
                 errorMsg = error.c_str();
