@@ -60,7 +60,7 @@ LIBS+=-L$$FAUSTDIR/lib/ -L/usr/lib/ -L/opt/local/lib
 equals(static, 1){
 	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -Wl,-Bdynamic
 } else {
-	LIBS+=-Wl,-rpath=$$FAUSTDIR/lib/ -lHTTPDFaust -lOSCFaust
+	LIBS+=-lHTTPDFaust -lOSCFaust
 }
 
 
