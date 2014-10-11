@@ -58,7 +58,7 @@ endif
 all : Makefile-qt
 	./buildversion
 	mkdir -p src/objectsFolder
-	make -f Makefile-qt
+	$(MAKE) -f Makefile-qt
 
 ####### List of targets
 
@@ -96,9 +96,9 @@ install:
 	install -d $(addprefix $(DESTDIR), $(installdirs))
 	install FaustLive $(DESTDIR)$(PREFIX)/bin
 	install FaustLive.desktop $(DESTDIR)$(PREFIX)/share/applications/
-	install ../../Resources/Images/Faustlive.xpm $(DESTDIR)$(PREFIX)/share/pixmaps/
-	install ../../Resources/Images/Faustlive.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
-	install ../../Resources/Images/Faustlive.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/
+	install -m 0644 ../../Resources/Images/Faustlive.xpm $(DESTDIR)$(PREFIX)/share/pixmaps/
+	install -m 0644 ../../Resources/Images/Faustlive.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
+	install -m 0644 ../../Resources/Images/Faustlive.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/FaustLive
