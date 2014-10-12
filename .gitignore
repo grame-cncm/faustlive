@@ -1,0 +1,9 @@
+.DS_Store
+.qmake.stash
+Resources/buildVersion.txt
+Resources/styles.qrc
+src/Utilities/qrc_application.cpp
+src/Utilities/qrc_styles.cpp
+src/objectsFolder/
+Makefile-qt
+FaustLive.app/
