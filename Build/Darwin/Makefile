@@ -79,7 +79,7 @@ deploy:
 dist: 	
 	rm -rf FaustLive.app
 	make
-	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOs
 	macdeployqt FaustLive.app
 	./distribution
 	./distversion
@@ -91,8 +91,8 @@ dist-sources :
 ####### Install
 
 install: 
-	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
-	cp -r FaustLive.app /Applications
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOs
+	cp -r FaustLive.app $(DESTDIR)/Applications
 	
 uninstall: 
 	rm -rf /Applications/FaustLive.app 
