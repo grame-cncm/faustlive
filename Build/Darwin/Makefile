@@ -54,7 +54,7 @@ endif
 all : Makefile-qt
 	./buildversion
 	make -f Makefile-qt
-	
+
 help : 
 	@echo "Usage : 'make; sudo make install'"
 	@echo "To enable Jack or NetJack driver : 'make JACK=1 NETJACK=1'"
@@ -90,10 +90,16 @@ dist-sources :
 
 ####### Install
 
+# The OSX application usually gets installed under /Applications, but MacPorts
+# mandates an installation in /Applications/MacPorts, so we make the
+# installation directory configurable here. Also, DESTDIR is supported for
+# staging purposes. - ag
+APPDIR = /Applications
+
 install: 
 	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOs
-	cp -r FaustLive.app $(DESTDIR)/Applications
-	
+	cp -r FaustLive.app $(DESTDIR)$(APPDIR)
+
 uninstall: 
 	rm -rf /Applications/FaustLive.app 
 
