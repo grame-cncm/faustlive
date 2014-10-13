@@ -22,7 +22,10 @@
 #include <iostream>
 #include <fstream> 
 
+#ifdef JACK
+// XXXFIXME: This doesn't seem to be used at all in this module? -ag
 #include <jack/net.h>
+#endif
 #include <curl/curl.h>
 
 using namespace std;
