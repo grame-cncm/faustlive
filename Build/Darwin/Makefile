@@ -42,6 +42,9 @@ endif
 ifeq ($(PORTAUDIO), 1)
      QM-DEFS += "PAVAR=1" 
 endif
+ifeq ($(STATIC), 1)
+     QM-DEFS += "static=1" 
+endif
 
 ifneq ($(FAUSTDIR),)
      QM-DEFS += "FAUSTDIR=$(FAUSTDIR)"
