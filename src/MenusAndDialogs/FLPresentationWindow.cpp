@@ -266,7 +266,7 @@ void FLPresentationWindow::init(){
                         "background-color: darkGray;"                         
                         "}" );
     
-    centerOnPrimaryScreen(_presWindow);
+    centerOnPrimaryScreen(this);
 }
 
 //Store the item clicked to open it when the open button is pressed

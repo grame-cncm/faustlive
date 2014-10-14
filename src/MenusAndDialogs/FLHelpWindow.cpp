@@ -438,7 +438,7 @@ void FLHelpWindow::init(){
     myTabWidget->setCurrentIndex(0);
     
     
-    centerOnPrimaryScreen(_helpWindow);
+    centerOnPrimaryScreen(this);
 }
 
 void FLHelpWindow::hideWindow(){
