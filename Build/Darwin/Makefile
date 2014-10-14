@@ -3,7 +3,7 @@ qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
 SPEC := -spec macx-g++
-DST  := "FaustLive.app/Contents/MacOs"
+DST  := "FaustLive.app/Contents/MacOS"
 QM-DEFS := "CAVAR=1"
 
 # The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
@@ -82,7 +82,7 @@ deploy:
 dist: 	
 	rm -rf FaustLive.app
 	make
-	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOs
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
 	macdeployqt FaustLive.app
 	./distribution
 	./distversion
@@ -100,11 +100,11 @@ dist-sources :
 APPDIR = /Applications
 
 install: 
-	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOs
-	cp -r FaustLive.app $(DESTDIR)$(APPDIR)
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
+	cp -R FaustLive.app $(DESTDIR)$(APPDIR)
 
 uninstall: 
-	rm -rf /Applications/FaustLive.app 
+	rm -rf $(DESTDIR)$(APPDIR)/FaustLive.app
 
 ####### MAKE MAKEFILE-qt
 

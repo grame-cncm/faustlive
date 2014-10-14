@@ -315,7 +315,7 @@ QString FLSessionManager::ifWavToString(const QString& source){
         if(base.absolutePath().indexOf("Contents/MacOS") != -1)
             exeFile = "./sound2faust";
         else
-            exeFile = base.absolutePath() + "/FaustLive.app/Contents/MacOs/sound2faust";      
+            exeFile = base.absolutePath() + "/FaustLive.app/Contents/MacOS/sound2faust";
 #endif
         systemInstruct += exeFile + " ";
         systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
