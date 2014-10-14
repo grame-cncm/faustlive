@@ -513,26 +513,29 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
-bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& faustOptions, const QString& name, QString& errorMsg){
+bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& errorMsg){
     
     updateFolderDate(shaKey);
     
-    int argc = get_numberParameters(faustOptions);
+    int argc;
+    const char** argv = getFactoryArgv(sourcePath, faustOptions, argc);
+    
+//    int argc = get_numberParameters(faustOptions);
         
-    const char** argv = new const char*[argc];
-        
-    QString copy = faustOptions;
-        
-    for(int i=0; i<argc; i++){
-            
-        string parseResult = parse_compilationParams(copy);
-            
-        char* intermediate = new char[parseResult.size()+1];
-        
-        strcpy(intermediate,parseResult.c_str());
-            
-        argv[i] = (const char*)intermediate;
-    }
+//    const char** argv = new const char*[argc];
+//        
+//    QString copy = faustOptions;
+//        
+//    for(int i=0; i<argc; i++){
+//            
+//        string parseResult = parse_compilationParams(copy);
+//            
+//        char* intermediate = new char[parseResult.size()+1];
+//        
+//        strcpy(intermediate,parseResult.c_str());
+//            
+//        argv[i] = (const char*)intermediate;
+//    }
 
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
@@ -633,7 +636,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
 		
 		QString err;
-        if(!generateAuxFiles(shaKey.c_str(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), err))
+       
+        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), err))
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ err);
     }
     
