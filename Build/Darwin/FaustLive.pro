@@ -56,7 +56,11 @@ INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
 LIBS+=-L$$FAUSTDIR/lib -L/usr/local/lib
+equals(static, 1){
+LIBS+=$$FAUSTDIR/lib/libfaust.a
+} else {
 LIBS+=-lfaust
+}
 
 # Make sure to include --ldflags twice, once for the -L flags, and once for
 # the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
@@ -65,13 +69,19 @@ LIBS+=$$system($$LLVM_CONFIG --ldflags)
 # The system libraries need a different option in LLVM 3.5 and later.
 LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
 
+equals(static, 1){
+LIBS+=$$FAUSTDIR/lib/libHTTPDFaust.a
+LIBS+=$$FAUSTDIR/lib/libOSCFaust.a
+} else {
+LIBS+=-lHTTPDFaust
+LIBS+=-lOSCFaust
+}
+
 LIBS+=-lqrencode
 LIBS+=-lmicrohttpd
 LIBS+=-lcrypto
 	  
-LIBS+=-lHTTPDFaust
 LIBS+=-lcurl
-LIBS+=-lOSCFaust
 LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL

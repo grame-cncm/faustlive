@@ -13,13 +13,13 @@ endif
 
 all:
 	$(MAKE) -C Build/$(arch)
-	cp -r Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
+	cp -R Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
 
 math_lib : 
 	$(MAKE) -C Build/$(arch) math_lib 
 deploy: 
 	$(MAKE) -C Build/$(arch) deploy
-	cp -r Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
+	cp -R Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
 dist:
 	$(MAKE) -C Build/$(arch) dist
 dist-sources :

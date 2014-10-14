@@ -58,9 +58,9 @@ INCLUDEPATH += ../../src/Utilities
 LIBS+=-L$$FAUSTDIR/lib/ -L/usr/lib/ -L/opt/local/lib
 
 equals(static, 1){
-	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -Wl,-Bdynamic
+	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -lfaust -Wl,-Bdynamic
 } else {
-	LIBS+=-Wl,-rpath=$$FAUSTDIR/lib/ -lHTTPDFaust -lOSCFaust
+	LIBS+=-lHTTPDFaust -lOSCFaust -lfaust
 }
 
 
@@ -186,8 +186,6 @@ equals(PAVAR, 1){
 }		
 
 ########## LIBS AND FLAGS
-
-LIBS+=$$FAUSTDIR/lib/libfaust.a
 
 # Make sure to include --ldflags twice, once for the -L flags, and once for
 # the system libraries (LLVM 3.4 and earlier have these both in --ldflags).

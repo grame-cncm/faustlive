@@ -3,7 +3,7 @@ qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
 SPEC := -spec macx-g++
-DST  := "FaustLive.app/Contents/MacOs"
+DST  := "FaustLive.app/Contents/MacOS"
 QM-DEFS := "CAVAR=1"
 
 # The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
@@ -42,6 +42,9 @@ endif
 ifeq ($(PORTAUDIO), 1)
      QM-DEFS += "PAVAR=1" 
 endif
+ifeq ($(STATIC), 1)
+     QM-DEFS += "static=1" 
+endif
 
 ifneq ($(FAUSTDIR),)
      QM-DEFS += "FAUSTDIR=$(FAUSTDIR)"
@@ -54,7 +57,7 @@ endif
 all : Makefile-qt
 	./buildversion
 	make -f Makefile-qt
-	
+
 help : 
 	@echo "Usage : 'make; sudo make install'"
 	@echo "To enable Jack or NetJack driver : 'make JACK=1 NETJACK=1'"
@@ -80,7 +83,7 @@ deploy:
 dist: 	
 	rm -rf FaustLive.app
 	make
-	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
 	macdeployqt FaustLive.app
 	./distribution
 	./distversion
@@ -91,12 +94,18 @@ dist-sources :
 
 ####### Install
 
+# The OSX application usually gets installed under /Applications, but MacPorts
+# mandates an installation in /Applications/MacPorts, so we make the
+# installation directory configurable here. Also, DESTDIR is supported for
+# staging purposes. - ag
+APPDIR = /Applications
+
 install: 
-	cp /usr/local/bin/sound2faust FaustLive.app/Contents/MacOs
-	cp -r FaustLive.app /Applications
-	
+	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
+	cp -R FaustLive.app $(DESTDIR)$(APPDIR)
+
 uninstall: 
-	rm -rf /Applications/FaustLive.app 
+	rm -rf $(DESTDIR)$(APPDIR)/FaustLive.app
 
 ####### MAKE MAKEFILE-qt
 

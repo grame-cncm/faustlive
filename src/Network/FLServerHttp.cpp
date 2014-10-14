@@ -22,7 +22,6 @@
 #include <iostream>
 #include <fstream> 
 
-#include <jack/net.h>
 #include <curl/curl.h>
 
 using namespace std;
