@@ -76,7 +76,7 @@ math_lib :
 
 # Solve FaustLive's dependencies
 deploy: 
-	macdeployqt -R FaustLive.app
+	macdeployqt FaustLive.app
 	
 
 # make a binary distribution .dmg file for OSX

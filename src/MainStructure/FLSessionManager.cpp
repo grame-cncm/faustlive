@@ -310,12 +310,14 @@ QString FLSessionManager::ifWavToString(const QString& source){
 #endif
         
 #ifdef __APPLE__
-        QDir base;
         
-        if(base.absolutePath().indexOf("Contents/MacOS") != -1)
-            exeFile = "./sound2faust";
-        else
-            exeFile = base.absolutePath() + "/FaustLive.app/Contents/MacOS/sound2faust";
+//        FLErrorWindow::_Instance()->print_Error(QCoreApplication::applicationDirPath());
+        
+        exeFile = QCoreApplication::applicationDirPath() + "/sound2faust";
+//        if(QCoreApplication::applicationDirPath().indexOf("Contents/MacOS") != -1)
+//            exeFile = "./sound2faust";
+//        else
+//            exeFile = QCoreApplication::applicationDirPath() + "/FaustLive.app/Contents/MacOS/sound2faust";
 #endif
         systemInstruct += exeFile + " ";
         systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
@@ -777,6 +779,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     //-----Save settings
     if(compiledDSP != NULL && settings){
         settings->setValue("Path", path);
+        printf("SET PATH VALUE TO = %s\n", path.toStdString().c_str());
         settings->setValue("Name", name);
         settings->setValue("SHA", factorySetts.first);
 	}
@@ -838,7 +841,7 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
 QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
     
     //------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
-    QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "Your DSP has no origin file.\n Do you want to save your code in a new file?");
+    QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), "This DSP is not attached to any file.\n Do you want to save your code in a new file?");
     
     QPushButton* yes_Button = existingNameMessage->addButton(tr("Yes"), QMessageBox::AcceptRole);
     existingNameMessage->addButton(tr("Cancel"), QMessageBox::RejectRole);

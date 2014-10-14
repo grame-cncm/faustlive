@@ -201,7 +201,16 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
 }
 
 void FLWindow::selfUpdate(){
-    update_Window(fSource);
+    
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
+    if(QFileInfo(fSource).exists()){
+        
+        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
+        if(fCreationDate < modifiedLast)
+            update_Window(fSource);
+    }
+    else
+        update_Window(fSource);
 }
 
 void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource){
@@ -222,7 +231,7 @@ bool FLWindow::update_Window(const QString& source){
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
 //    bool update = false;
-    bool update = true;  
+//    bool update = true;  
 //Avoiding the flicker when the source is saved - Mostly seeable on 10.9
 //FIND THE RIGHT CONDITION !!!!
 //    
@@ -235,9 +244,9 @@ bool FLWindow::update_Window(const QString& source){
 //    else
 //        update = true; 
 //    ---- AVOIDs flicker but switch remote machine doesnt update && compilation options either!!!
-//    printf("is update not true??? = %i\n", update);
+//    printf("is update not true??? = %i\n", update); --> moved to selfUpdate !! 
     
-    if(update){
+//    if(update){
         
         start_stop_watcher(false);
         
@@ -329,9 +338,9 @@ bool FLWindow::update_Window(const QString& source){
         show();
         
         return isUpdateSucessfull;
-    }
-    else
-        return false;
+//    }
+//    else
+//        return false;
 }
 
 //Reaction to source deletion
