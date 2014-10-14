@@ -221,19 +221,21 @@ bool FLWindow::update_Window(const QString& source){
 
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
-    bool update = false;
-    
+//    bool update = false;
+    bool update = true;  
 //Avoiding the flicker when the source is saved - Mostly seeable on 10.9
 //FIND THE RIGHT CONDITION !!!!
-    
-    if(QFileInfo(source).exists()){
-        
-        QDateTime modifiedLast = QFileInfo(source).lastModified();
-        if(fSource != source || fCreationDate < modifiedLast)
-            update = true;
-    }
-    else
-        update = true; 
+//    
+//    if(QFileInfo(source).exists()){
+//        
+//        QDateTime modifiedLast = QFileInfo(source).lastModified();
+//        if(fSource != source || fCreationDate < modifiedLast)
+//            update = true;
+//    }
+//    else
+//        update = true; 
+//    ---- AVOIDs flicker but switch remote machine doesnt update && compilation options either!!!
+//    printf("is update not true??? = %i\n", update);
     
     if(update){
         
@@ -502,7 +504,7 @@ void FLWindow::view_svg(){
     
     QString errorMsg;
     
-    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), faustOptions, fWindowName, errorMsg)){
+    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), faustOptions, fWindowName, errorMsg)){
         
     QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
     
@@ -591,7 +593,7 @@ void FLWindow::generateAuxFiles(){
 
 	QString errorMsg;
 
-    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
+    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
 		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errorMsg);
 }
 
@@ -638,6 +640,8 @@ void FLWindow::redirectSwitch(){
 #ifdef REMOTE
     if(!update_Window(fSource)){
         fStatusBar->remoteFailed();
+        
+        printf(" FLWindow::redirectSwitch failed\n");
     }
 #endif
 }
