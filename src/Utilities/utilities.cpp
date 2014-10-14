@@ -39,7 +39,7 @@
 
 void writeFile(const QString& filePath, const QString& content){
     QFile f(filePath); 
-    
+     
     if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
         
         QTextStream textWriting(&f);
@@ -468,13 +468,16 @@ string parse_compilationParams(QString& compilOptions){
 // on the screen of the top level widget
 void centerOnPrimaryScreen(QWidget* w)
 {
+    
     QDesktopWidget *dw = QApplication::desktop();
 	QWidgetList l = QApplication::topLevelWidgets();
-	if (l.empty()) {
+    
+	if (l.empty())
     	w->move(dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center());
-    } else {
-    	QWidget* w = l.first();	
-    	w->move(dw->screenGeometry(w).center() - w->geometry().center());
+    else {
+        
+    	QWidget* topwidget = l.first();	
+    	w->move(dw->screenGeometry(topwidget).center() - w->geometry().center());
     }
 }
 

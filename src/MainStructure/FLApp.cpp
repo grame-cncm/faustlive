@@ -632,8 +632,6 @@ QString FLApp::createWindowFolder(const QString& sessionFolder, int index){
 
 QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges){
     
-    //    ICI IL FAUDRAIT EN PROFITER POUR CHANGER LE .jc ?????????
-    
     QString newPath = sessionNewFolder + "/Windows/" + fWindowBaseName + QString::number(newIndex);
     QString oldPath = sessionFolder + "/Windows/" + fWindowBaseName + QString::number(index);
     

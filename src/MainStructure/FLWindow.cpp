@@ -134,8 +134,10 @@ void FLWindow::start_stop_watcher(bool on){
     if(fSettings->value("Path", "").toString() != "")
         dependencies.push_front(fSettings->value("Path", "").toString());
     
-    if(on)
+    if(on){
+        fCreationDate = fCreationDate.currentDateTime();
         FLFileWatcher::_Instance()->startWatcher(dependencies, this);
+    }
     else
         FLFileWatcher::_Instance()->stopWatcher(dependencies, this);
 }
@@ -146,7 +148,7 @@ void FLWindow::start_stop_watcher(bool on){
 bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
-
+    
     FLMessageWindow::_Instance()->displayMessage("Compiling DSP...");
     FLMessageWindow::_Instance()->show();
     FLMessageWindow::_Instance()->raise();
@@ -184,7 +186,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
                         
             runInterfaces();
             
-            fCreationDate = fCreationDate.currentDateTime();
             printf("WINDOW STARTS WATCHER\n");
             start_stop_watcher(true);
             
@@ -199,17 +200,41 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     return false;
 }
 
+void FLWindow::selfUpdate(){
+    
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
+    if(QFileInfo(fSource).exists()){
+        
+        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
+        if(fCreationDate < modifiedLast)
+            update_Window(fSource);
+    }
+    else
+        update_Window(fSource);
+}
+
+void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource){
+//    In case name update is concerning source
+    if(oldSource == fSource)
+        update_Window(newSource);
+//    In case name update concerns a dependency
+    else{
+        QString errorMsg = "WARNING : "+ fWindowName+". " + oldSource + " has been renamed as " + newSource + ". The dependency might be broken ! ";
+        errorPrint(errorMsg);
+    }
+}
+
 //Modification of the process in the window
 //@param : source = source that reemplaces the current one
 bool FLWindow::update_Window(const QString& source){
 
     //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
-    bool update = true;
-    
-//Avoiding the flicker when the source is saved
+//    bool update = false;
+//    bool update = true;  
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
 //FIND THE RIGHT CONDITION !!!!
-    
+//    
 //    if(QFileInfo(source).exists()){
 //        
 //        QDateTime modifiedLast = QFileInfo(source).lastModified();
@@ -218,8 +243,10 @@ bool FLWindow::update_Window(const QString& source){
 //    }
 //    else
 //        update = true; 
+//    ---- AVOIDs flicker but switch remote machine doesnt update && compilation options either!!!
+//    printf("is update not true??? = %i\n", update); --> moved to selfUpdate !! 
     
-    if(update){
+//    if(update){
         
         start_stop_watcher(false);
         
@@ -311,9 +338,9 @@ bool FLWindow::update_Window(const QString& source){
         show();
         
         return isUpdateSucessfull;
-    }
-    else
-        return false;
+//    }
+//    else
+//        return false;
 }
 
 //Reaction to source deletion
@@ -480,17 +507,26 @@ void FLWindow::view_qrcode(){
 
 void FLWindow::view_svg(){
     
-    QString shaValue = fSettings->value("SHA", "").toString();
+    QString faustOptions = "-svg";
+    faustOptions += " -O ";
+    faustOptions += fHome + "/Windows/" + fWindowName;
     
-    QString shaFolder = fHome + "/SHAFolder/" + shaValue;
-    QString pathToOpen = shaFolder + "/" + shaValue + "-svg/process.svg";
+    QString errorMsg;
     
-    FLSessionManager::_Instance()->updateFolderDate(shaValue);
+    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), faustOptions, fWindowName, errorMsg)){
+        
+    QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     
     if(!QDesktopServices::openUrl(url))
         errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
+        
+    }
+    else{
+        QString err ="Could not generate SVG diagram : " + errorMsg; 
+        errorPrint(err);
+    }
 }
 
 void FLWindow::export_file(){
@@ -564,10 +600,10 @@ void FLWindow::modifiedOptions(){
 //Reaction to the modification of outfile options
 void FLWindow::generateAuxFiles(){
 
-	string errorMsg;
+	QString errorMsg;
 
-    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA().toStdString(), fSettings, errorMsg))
-		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ QString(errorMsg.c_str()));
+    if(!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
+		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errorMsg);
 }
 
 //Reaction to the resizing the toolbar
@@ -613,6 +649,8 @@ void FLWindow::redirectSwitch(){
 #ifdef REMOTE
     if(!update_Window(fSource)){
         fStatusBar->remoteFailed();
+        
+        printf(" FLWindow::redirectSwitch failed\n");
     }
 #endif
 }

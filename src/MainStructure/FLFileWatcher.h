@@ -29,7 +29,7 @@ class FLFileWatcher : public QSettings
     Q_OBJECT
     
     QFileSystemWatcher*             fWatcher;
-    QFileSystemWatcher*             fTempWatcher;
+//    QFileSystemWatcher*             fTempWatcher;
     
     QTimer*                         fSynchroTimer;
     
@@ -47,7 +47,7 @@ class FLFileWatcher : public QSettings
     private slots:
  
     void         reset_Timer(const QString fileModified);
-    void         reset_Temp_Timer(const QString fileModified);
+//    void         reset_Temp_Timer(const QString fileModified);
     void         dirChanged(const QString&);
     void         fileChanged();
     
@@ -59,7 +59,7 @@ public:
     static FLFileWatcher*           _Instance();
     
     void    startWatcher(QVector<QString> paths, FLWindow* win);
-    void    startTempWatcher(const QString& path, FLWindow* win);
+//    void    startTempWatcher(const QString& path, FLWindow* win);
     void    stopWatcher(QVector<QString> paths, FLWindow* win);
 };
 

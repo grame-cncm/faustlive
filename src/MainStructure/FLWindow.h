@@ -267,8 +267,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
     
     //Udpate the effect running in the window and all its related parameters.
-    //@param : effect = effect that reemplaces the current one
+    //@param : source = DSP that reemplaces the current one
         bool            update_Window(const QString& source);
+        void            selfUpdate();
+        void            selfNameUpdate(const QString& oldSource, const QString& newSource);
 };
 
 #endif

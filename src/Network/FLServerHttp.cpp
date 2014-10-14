@@ -22,7 +22,6 @@
 #include <iostream>
 #include <fstream> 
 
-#include <jack/net.h>
 #include <curl/curl.h>
 
 using namespace std;
@@ -109,7 +108,7 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     if(strcmp(url,"/availableInterfaces") == 0)
         return send_page(connection, fHtml.c_str (), fHtml.size(), MHD_HTTP_OK, "text/html");
     
-    else if(strcmp(url,"/availableInterfaces/Json") == 0)
+    else if(strcmp(url,"/availableInterfaces/JSON") == 0)
         return send_page(connection, fJson.c_str (), fJson.size(), MHD_HTTP_OK, "application/json");
 
 //    Request for an interface

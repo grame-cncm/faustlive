@@ -204,7 +204,7 @@ void FLPreferenceWindow::init(){
     
     resetVisualObjects();
     
-//    centerOnPrimaryScreen(this);
+    centerOnPrimaryScreen(this);
 }
 
 //Response to save button triggered in preferences

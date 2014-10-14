@@ -7,6 +7,18 @@
 
 TEMPLATE = app
 
+isEmpty(FAUSTDIR) {
+	FAUSTDIR = /usr/local
+}
+
+isEmpty(LLVM_CONFIG) {
+	LLVM_CONFIG = llvm-config
+}
+ 
+isEmpty(CURL_CONFIG) {
+	CURL_CONFIG = curl-config
+}
+ 
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -34,7 +46,7 @@ QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 ####### INCLUDES PATHS && LIBS PATHS
 
-DEPENDPATH += /usr/local/include/faust/gui
+DEPENDPATH += $$FAUSTDIR/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include	
 INCLUDEPATH += ../../src/Audio
@@ -43,28 +55,33 @@ INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust -L/opt/local/lib
-LIBS+=-lHTTPDFaust -lOSCFaust -loscpack
+LIBS+=-L$$FAUSTDIR/lib/ -L/usr/lib/ -L/opt/local/lib
 
 equals(static, 1){
-	LIBS+=/usr/local/lib/libqrencode.a
-	LIBS+=/usr/local/lib/libmicrohttpd.a
-	LIBS+=-lgnutls
-	LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
+	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -lfaust -Wl,-Bdynamic
+} else {
+	LIBS+=-lHTTPDFaust -lOSCFaust -lfaust
+}
+
+
+equals(static, 1){
+	#LIBS+=/usr/local/lib/libqrencode.a
+	#LIBS+=/usr/local/lib/libmicrohttpd.a
+	#LIBS+=-lgnutls
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
 	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
-	LIBS+=-lcurl
+	#LIBS+=-lcurl
+	#LIBS+=-Wl,-static	
 }
-else{
+
 	LIBS+=-lqrencode
 	LIBS+=-lmicrohttpd
 	LIBS+=-lcrypto
 	LIBS+=-lcurl
-}
-
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -82,7 +99,7 @@ equals(REMVAR, 1){
 	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
 		
-	HEADER += ../../src/Network/Server.h
+	HEADERS += ../../src/Network/Server.h
 	SOURCES += ../../src/Network/Server.cpp
 }
 
@@ -170,10 +187,12 @@ equals(PAVAR, 1){
 
 ########## LIBS AND FLAGS
 
-LIBS+=/usr/local/lib/faust/libfaust.a
-LIBS+= $$system($$system(which llvm-config) --libs)
-LIBS+= $$system($$system(which llvm-config) --ldflags)
-
+# Make sure to include --ldflags twice, once for the -L flags, and once for
+# the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
+LIBS+=$$system($$LLVM_CONFIG --ldflags --libs)
+LIBS+=$$system($$LLVM_CONFIG --ldflags)
+# The system libraries need a different option in LLVM 3.5 and later.
+LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
 
 ########## HEADERS AND SOURCES OF PROJECT
 
@@ -203,7 +222,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/MainStructure/FLApp.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
-			/usr/local/include/faust/gui/faustqt.h
+			$$FAUSTDIR/include/faust/gui/faustqt.h
 
 SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \

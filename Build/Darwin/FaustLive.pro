@@ -7,6 +7,14 @@
 
 TEMPLATE = app
 
+isEmpty(FAUSTDIR) {
+	FAUSTDIR = /usr/local
+}
+
+isEmpty(LLVM_CONFIG) {
+	LLVM_CONFIG = llvm-config
+}
+ 
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -37,7 +45,7 @@ QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 ####### INCLUDES PATHS && LIBS PATHS
 
-DEPENDPATH += /usr/local/include/faust/gui
+DEPENDPATH += $$FAUSTDIR/include/faust/gui
 INCLUDEPATH += .
 INCLUDEPATH += /opt/local/include
 INCLUDEPATH += /usr/local/include
@@ -46,22 +54,34 @@ INCLUDEPATH += ../../src/MenusAndDialogs
 INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
-	
-LLVMLIBS = $$system($$system(which llvm-config) --libs)
-LLVMDIR = $$system($$system(which llvm-config) --ldflags)
 
-LIBS+=-L/usr/local/lib/faust -L/usr/lib/faust -L/usr/local/lib
-LIBS+= $$LLVMDIR
+LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/local/lib
+equals(static, 1){
+LIBS+=$$FAUSTDIR/lib/libfaust.a
+} else {
 LIBS+=-lfaust
-LIBS+= $$LLVMLIBS
+}
+
+# Make sure to include --ldflags twice, once for the -L flags, and once for
+# the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
+LIBS+=$$system($$LLVM_CONFIG --ldflags --libs)
+LIBS+=$$system($$LLVM_CONFIG --ldflags)
+# The system libraries need a different option in LLVM 3.5 and later.
+LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
+
+equals(static, 1){
+LIBS+=$$FAUSTDIR/lib/libHTTPDFaust.a
+LIBS+=$$FAUSTDIR/lib/libOSCFaust.a
+} else {
+LIBS+=-lHTTPDFaust
+LIBS+=-lOSCFaust
+}
 
 LIBS+=-lqrencode
 LIBS+=-lmicrohttpd
 LIBS+=-lcrypto
 	  
-LIBS+=-lHTTPDFaust
 LIBS+=-lcurl
-LIBS+=-lOSCFaust -loscpack
 LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL
@@ -234,7 +254,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/MainStructure/FLApp.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
-			/usr/local/include/faust/gui/faustqt.h
+			$$FAUSTDIR/include/faust/gui/faustqt.h
 
 SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \
