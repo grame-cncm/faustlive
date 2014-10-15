@@ -3,6 +3,12 @@
 
 The goal of this project is to build an application that embeds Faust and LLVM compilers to provide dynamical compilation of the Faust programming language.
 
+----------------MINGW PORT------------------------
+
+MinGW port by Albert Graef 2014-10-16 <aggraef@gmail.com>
+
+This is basically the Linux build, with some adjustments to make it work with MinGW (4.4 has been tested). Besides MinGW itself (available from http://www.mingw.org/), you'll need Qt (Windows binaries available from http://qt-project.org/, Qt 4.8 has been tested) and a bunch of additional libraries as detailed below, which you'll either have to compile from source or find on the web. This build uses PortAudio as the default audio architecture, but Jack should work as well if you have it installed. The build procedure is the same as on Linux (MSys shell required), although you may run into the usual Windows-specific quirks and peculiarities.
+
 ----------------LINKED LIBRARIES------------------
 
 In order to compile FaustLive, the following libraries are needed:
