@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/httpdUI.h"
 #endif
@@ -28,7 +28,7 @@ list<GUI*>               GUI::fGuiList;
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "FLServerHttp.h"
 #endif
 #include "FLFileWatcher.h"
@@ -74,7 +74,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Initializing class members
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
     fOscInterface = NULL;
@@ -397,7 +397,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
     //#if-group:
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     //#ifdef HTTPCTRL
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
@@ -425,7 +425,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#if !defined (_WIN32) /*|| defined HTTPCTRL*/    
+#if !defined(_WIN32) || defined(__MINGW32__)
     fWindowMenu->addAction(httpdViewAction);
 #endif
     fWindowMenu->addAction(svgViewAction);
@@ -497,7 +497,7 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::view_qrcode(){
     
     fToolBar->switchHttp(true);    
@@ -575,7 +575,7 @@ void FLWindow::set_ToolBar(){
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
     
@@ -656,7 +656,7 @@ void FLWindow::redirectSwitch(){
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
-#ifndef WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::disableOSCInterface(){
     fToolBar->switchOsc(false);
 }
@@ -752,6 +752,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
         return false;
 
 #ifdef HTTPCTRL    
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool()){
         allocateOscInterface();
         printf("ALLOCATED OSC INTERFACE\n");
@@ -760,6 +761,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
         allocateHttpInterface();
     }
+#endif
 #endif
     return true;
 }
@@ -774,10 +776,12 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
         compiledDSP->buildUserInterface(fRCInterface);
 
 #ifdef HTTPCTRL
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);            
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
+#endif
 #endif
 	return true;
 }
@@ -785,6 +789,7 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
 void FLWindow::runInterfaces(){
 
 #ifdef HTTPCTRL
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fOscInterface)
         fOscInterface->run();
     
@@ -792,6 +797,7 @@ void FLWindow::runInterfaces(){
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
+#endif
 #endif
     setWindowsOptions();
     
@@ -804,7 +810,7 @@ void FLWindow::runInterfaces(){
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fOscInterface){
         delete fOscInterface;
         fOscInterface = NULL;
@@ -888,7 +894,7 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
@@ -1218,7 +1224,7 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
@@ -1328,7 +1334,7 @@ QString FLWindow::get_HttpUrl() {
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else

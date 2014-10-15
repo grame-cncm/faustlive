@@ -7,9 +7,10 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "FLServerHttp.h"
-#else
+#endif
+#ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
 #endif
@@ -44,7 +45,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
    
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 #endif
@@ -151,7 +152,7 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     FLServerHttp::deleteInstance();
 #endif
 }
@@ -516,7 +517,7 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
 #endif
 #ifdef REMOTE

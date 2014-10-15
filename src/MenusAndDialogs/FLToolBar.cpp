@@ -313,7 +313,7 @@ printf("delete window options \n");
     delete fOptionLine;
     delete fOptValLine;
     delete fAutomaticExportLine;
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     delete fHttpCheckBox;
     delete fHttpPort;
     delete fOSCCheckBox;

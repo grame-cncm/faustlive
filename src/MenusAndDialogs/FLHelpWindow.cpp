@@ -139,10 +139,10 @@ void FLHelpWindow::setWinPropertiesText(const QString& currentText){
 
 //Set Faust Lib Text in Help Menu
 void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLibs){
-    
+
 	int argc = 2;
 #ifdef _WIN32
-	argc+2;
+	argc+=2;
 #endif
     const char** argv = new const char*[argc];
     

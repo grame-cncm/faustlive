@@ -6,6 +6,7 @@ EXT = .app
 else
 ifneq ($(findstring MINGW32, $(arch)),)
 EXT = .exe
+arch = MinGW32
 else
 EXT = 
 endif
