@@ -95,14 +95,14 @@ installdirs = $(PREFIX)/bin $(PREFIX)/share $(PREFIX)/share/applications $(PREFI
 
 install:
 	install -d $(addprefix $(DESTDIR), $(installdirs))
-	install FaustLive $(DESTDIR)$(PREFIX)/bin
+	install FaustLive.exe $(DESTDIR)$(PREFIX)/bin
 	install FaustLive.desktop $(DESTDIR)$(PREFIX)/share/applications/
 	install -m 0644 ../../Resources/Images/Faustlive.xpm $(DESTDIR)$(PREFIX)/share/pixmaps/
 	install -m 0644 ../../Resources/Images/Faustlive.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
 	install -m 0644 ../../Resources/Images/Faustlive.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/FaustLive
+	rm -f $(DESTDIR)$(PREFIX)/bin/FaustLive.exe
 	rm -f $(DESTDIR)$(PREFIX)/share/applications/FaustLive.desktop
 	rm -f $(DESTDIR)$(PREFIX)/share/pixmaps/Faustlive.xpm
 	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
