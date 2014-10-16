@@ -46,6 +46,7 @@
 	<file>Libs/effect.lib</file>
 <file>Libs/filter.lib</file>
 <file>Libs/hoa.lib</file>
+<file>Libs/llvm_math.ll</file>
 <file>Libs/math.lib</file>
 <file>Libs/maxmsp.lib</file>
 <file>Libs/music.lib</file>
