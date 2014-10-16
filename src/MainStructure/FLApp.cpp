@@ -161,17 +161,33 @@ void FLApp::create_Session_Hierarchy(){
     
 	QString separationChar;
     
-    //Initialization of current Session Path  
+    // Initialization of current Session Path. NOTE: This path must not
+    // contain any whitespace, otherwise SVG generation is broken! -ag
 #ifdef _WIN32
-	char path[512];
-	if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
+    /* XXXFIXME: Using the CSIDL_PROFILE folder path will break SVG generation
+       on Windows if the path contains whitespace (as it commonly does on some
+       localized Windows versions). As a workaround, we allow the user to set
+       the FAUSTLIVE_SESSIONDIR environment variable to specify an alternative
+       (and whitespace-free) directory name under which the Faust session
+       directory will be created. */
+    const char *sessiondir = getenv("FAUSTLIVE_SESSIONDIR");
+    if (sessiondir) {
+      fSessionFolder = sessiondir;
+      if(!QFileInfo(fSessionFolder).exists()){
+        QDir direct(fSessionFolder);
+        direct.mkdir(fSessionFolder);
+      }
+    } else {
+      char path[512];
+      if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
         fSessionFolder = path;
-	fSessionFolder += "\\FaustLive-CurrentSession-";
-	separationChar = "\\";
+    }
+    fSessionFolder += "\\FaustLive-CurrentSession-";
+    separationChar = "\\";
 #else
     fSessionFolder = getenv("HOME");
     fSessionFolder += "/.FaustLive-CurrentSession-";
-	separationChar = "/";
+    separationChar = "/";
 #endif
     
     fSessionFolder += APP_VERSION;
