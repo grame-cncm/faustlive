@@ -1464,6 +1464,11 @@ void FLApp::open_F_doc(){
         errorPrinting("Impossible to open Faust documentation ! Make sure a file association is set up for .pdf.");
 }
 
+#ifndef LLVM_VERSION
+// best guess
+#define LLVM_VERSION "3.x"
+#endif
+
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
     
@@ -1475,14 +1480,29 @@ void FLApp::version_Action(){
     text += readFile(":/distVersion.txt");
     text += "- Build version ";
     text += readFile(":/buildVersion.txt");
-    text += "\nThis application is using ""\n""- Jack 2";
-//    text += jack_get_version_string();
-    text += "\n""- NetJack ";
-    text += "2.1";
+    text += "\nThis application is using ";
+    text += "\n""- LLVM Compiler ";
+    text += LLVM_VERSION;
+#ifdef ALSA
+    text += "\n""- ALSA ";
+    text += "1.0";
+#endif
+#ifdef COREAUDIO
     text += "\n""- CoreAudio API ";
     text += "4.0";
-    text += "\n""- LLVM Compiler ";
-    text += "3.1";
+#endif
+#ifdef JACK
+    text += "\n""- Jack 2";
+//    text += jack_get_version_string();
+#endif
+#ifdef NETJACK
+    text += "\n""- NetJack ";
+    text += "2.1";
+#endif
+#ifdef PORTAUDIO
+    text += "\n""- PortAudio ";
+    text += "v19";
+#endif
         
     QPlainTextEdit* versionText = new QPlainTextEdit(text, versionWindow);
         

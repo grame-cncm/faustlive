@@ -18,7 +18,12 @@ isEmpty(LLVM_CONFIG) {
 isEmpty(CURL_CONFIG) {
 	CURL_CONFIG = curl-config
 }
- 
+
+## The LLVM version we are building against, for the Version popup.
+isEmpty(LLVM_VERSION) {
+	LLVM_VERSION = $$system($$LLVM_CONFIG --version)
+}
+
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -36,7 +41,7 @@ QT+=gui
 QT+=network
 
 TARGET = FaustLive
-DEFINES += APP_VERSION=\\\"2.0\\\"
+DEFINES += APP_VERSION=\\\"2.0\\\" LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES = ../../Resources/application.qrc
@@ -165,7 +170,7 @@ equals(ALVAR, 1){
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
 	
-	LIBS += -lportaudio_x86
+##	LIBS += -lportaudio_x86
 	LIBS += -lportaudio
 	
 	DEFINES += PORTAUDIO
