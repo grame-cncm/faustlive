@@ -275,74 +275,6 @@ QString FLSessionManager::ifUrlToString(const QString& source){
     return UrlText;
 }
 
-//--Transforms Wav file into faust string
-QString FLSessionManager::ifWavToString(const QString& source){
-    //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
-    
-    if(QFileInfo(source).completeSuffix() == "wav"){
-        
-        QString exeFile = "";
-        
-        QString soundFileName = QFileInfo(source).baseName();
-        
-        QString destinationFile = QFileInfo(source).absolutePath();
-        destinationFile += "/" ;
-        destinationFile += soundFileName;
-        
-        QString waveFile = destinationFile;
-        waveFile += "_waveform.dsp";
-        
-        destinationFile += ".dsp";
-        
-        QString systemInstruct;
-
-		// figure out the right name for faust2sound depending of the OS
-
-#ifdef _WIN32
-        exeFile = "sound2faust.exe";
-#endif
-
-#ifdef __linux__
-        if(QFileInfo("/usr/local/bin/sound2faust").exists())
-            exeFile = "/usr/local/bin/sound2faust";
-        else
-            exeFile = "./sound2faust";   
-#endif
-        
-#ifdef __APPLE__
-        
-//        FLErrorWindow::_Instance()->print_Error(QCoreApplication::applicationDirPath());
-        
-        exeFile = QCoreApplication::applicationDirPath() + "/sound2faust";
-//        if(QCoreApplication::applicationDirPath().indexOf("Contents/MacOS") != -1)
-//            exeFile = "./sound2faust";
-//        else
-//            exeFile = QCoreApplication::applicationDirPath() + "/FaustLive.app/Contents/MacOS/sound2faust";
-#endif
-        systemInstruct += exeFile + " ";
-        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
-        
-        if(!QFileInfo(exeFile).exists())
-            FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
-        
-        QString errorMsg("");
-        if(!executeInstruction(systemInstruct, errorMsg))
-            FLErrorWindow::_Instance()->print_Error(errorMsg);
-        
-        QString finalFileContent = "import(\"";
-        finalFileContent += soundFileName + "_waveform.dsp";
-        finalFileContent += "\");\nprocess=";
-        finalFileContent += QFileInfo(source).baseName();
-        finalFileContent += ";";
-        
-        writeFile(destinationFile, finalFileContent);
-        
-        return destinationFile;
-    }
-    else
-        return source;
-}
-
 //--Fill argv parameters with -I/-O/etc...
 const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc){
     
@@ -521,23 +453,6 @@ bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString&
     
     int argc;
     const char** argv = getFactoryArgv(sourcePath, faustOptions, argc);
-    
-//    int argc = get_numberParameters(faustOptions);
-        
-//    const char** argv = new const char*[argc];
-//        
-//    QString copy = faustOptions;
-//        
-//    for(int i=0; i<argc; i++){
-//            
-//        string parseResult = parse_compilationParams(copy);
-//            
-//        char* intermediate = new char[parseResult.size()+1];
-//        
-//        strcpy(intermediate,parseResult.c_str());
-//            
-//        argv[i] = (const char*)intermediate;
-//    }
 
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
@@ -552,6 +467,79 @@ bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString&
     return true;
 }
 
+bool    FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg){
+    
+    updateFolderDate(shaKey);
+    
+    int argc = 7;
+    
+    if(sourcePath == "")
+        argc = argc-2;
+    
+    int iteratorParams = 0;
+    
+#ifdef _WIN32
+    argc = argc+2;
+#endif
+    
+    const char** argv = new const char*[argc];
+    
+    argv[iteratorParams] = "-I";
+    iteratorParams++;
+    
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    
+    string libPath = libsFolder;
+    char* libP = new char[libsFolder.size()+1];
+    strncpy( libP, libPath.c_str(), libsFolder.size()+1);
+    argv[iteratorParams] = (const char*) libP;
+    iteratorParams++;
+    
+    if(sourcePath != ""){
+        argv[iteratorParams] = "-I";   
+        iteratorParams++;
+        
+        QString sourceChemin = QFileInfo(sourcePath).absolutePath();
+        string path = sourceChemin.toStdString();
+        
+        char* libP2 = new char[sourceChemin.size()+1];
+        strncpy( libP2, path.c_str(), sourceChemin.size()+1);
+        argv[iteratorParams] = (const char*) libP2;
+        
+        iteratorParams++;
+    }
+
+#ifdef _WIN32
+    //LLVM_MATH is added to resolve mathematical float functions, like powf
+    argv[iteratorParams] = "-l";
+    iteratorParams++;
+    argv[iteratorParams] = "llvm_math.ll";
+    iteratorParams++;
+#endif
+    
+    string pathSVG = svgPath.toStdString();
+    
+    char* svgP = new char[pathSVG.size()+1];
+    strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
+    
+    argv[iteratorParams] = "-svg";
+    iteratorParams++;
+    argv[iteratorParams] = "-O";
+    iteratorParams++;
+    argv[iteratorParams] = (const char*) svgP;
+    
+    QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
+    
+	std::string error;
+    if(!generateAuxFilesFromString(name.toStdString(), pathToContent(sourceFile).toStdString(), argc, argv, error)){
+        errorMsg = error.c_str();
+        return false;
+    }
+    
+    return true;
+}
+
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
     //-------Clean Factory Folder if needed
     cleanSHAFolder();
@@ -559,12 +547,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     //-------Get Faust Code
     
     QString faustContent = ifUrlToString(source);
-    faustContent = ifWavToString(faustContent);
+//    faustContent = ifWavToString(faustContent);
     
     //Path is whether the dsp source unmodified or the waveform converted
     QString path("");
     if(isSourceDSPPath(faustContent))
         path = faustContent;
+    
+    printf("PATH = %s\n", path.toStdString().c_str());
     
     faustContent = ifFileToString(faustContent);
     
@@ -600,7 +590,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string shaKey;
     string err;
 //    EXPAND DSP JUST TO GET SHA KEY
-    expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err);
+    
+    printf("name = %s\n", name.toStdString().c_str());
+    
+    if(expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == ""){
+        errorMsg = err.c_str();
+        return qMakePair(QString(""), (void*)NULL);
+    }
+        
     
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
@@ -616,12 +613,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
     
-    if(!QFileInfo(irFile.c_str()).exists()){
-        QDir newFolder(factoryFolder);
-        newFolder.mkdir(factoryFolder);
+//      Save source
+    QDir newFolder(factoryFolder);
+    newFolder.mkdir(factoryFolder);
         
-        writeFile(faustFile, faustContent);
-    }
+    writeFile(faustFile, faustContent);
 
     string fileToCompile(faustFile.toStdString());
     string nameToCompile(name.toStdString());
@@ -637,10 +633,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     if(settings){
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
 		
-		QString err;
+		QString errMsg;
        
-        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), err))
-			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ err);
+        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg))
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
     }
     
     if(machineName == "local processing"){
@@ -655,6 +651,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         if(toCompile->fLLVMFactory == NULL){
             
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+            
+            printf("ERROR IN CREATE FACTORY FROM FILE = %s\n", error.c_str());
             
             if(settings){
                 settings->setValue("InputNumber", 0);
@@ -779,7 +777,6 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     //-----Save settings
     if(compiledDSP != NULL && settings){
         settings->setValue("Path", path);
-        printf("SET PATH VALUE TO = %s\n", path.toStdString().c_str());
         settings->setValue("Name", name);
         settings->setValue("SHA", factorySetts.first);
 	}
@@ -828,7 +825,10 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
         QString shaValue = generalSettings->value(settingsPath, "").toString();
         
         QString shaPath = fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".dsp";
-        QString savedPath = sessionFolder + "/Windows/FLW-" + groups[i] + "/" + shaValue + ".dsp";
+        QString savedPath = sessionFolder + "/Windows/FLW-" + groups[i] + "/FLW-" + groups[i] + ".dsp";
+        
+        QFile toRemove(savedPath);
+        toRemove.remove();
         
         QFile shaSource(shaPath);
         shaSource.copy(savedPath);
@@ -921,7 +921,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration(){
         QString shaPath = groups[i] + "/SHA";
         QString shaValue = generalSettings->value(shaPath, "").toString();
         
-        QString recallingPath = fSessionFolder + "/Windows/FLW-" + groups[i] + "/" + shaValue + ".dsp";
+        QString recallingPath = fSessionFolder + "/Windows/FLW-" + groups[i] + "/FLW-" + groups[i] + ".dsp";
         QString savedContent = pathToContent(recallingPath);
         
         QString settingsPath = groups[i] + "/Path";
@@ -951,9 +951,9 @@ map<int, QString> FLSessionManager::currentSessionRestoration(){
                 //            In Case The Original Content is Modified
                 else if(QFileInfo(recallingPath).exists() && savedContent != originalContent){
                     
-                    QString msg = "The content of " + originalPath + " was modified. Do you want to reload your original file or the internal copy?";
+                    QString msg = "The content of " + originalPath + " was modified. Do you want to reload " + originalPath+ " or an unmodified internal copy?";
                     
-                    if (viewRestorationMsg(msg, "Copied File", "Original File"))
+                    if (viewRestorationMsg(msg, "Internal Copy", "Path"))
                         windowIndexToSource[groups[i].toInt()] = savedContent; 
                     else
                         windowIndexToSource[groups[i].toInt()] = originalPath;
@@ -1027,7 +1027,7 @@ map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file){
         QString shaPath = groups[i] + "/SHA";
         QString shaValue = generalSettings->value(shaPath, "").toString();
         
-        QString recallingPath = snapshotFolder + "/Windows/FLW-" + groups[i] + "/" + shaValue + ".dsp";
+        QString recallingPath = snapshotFolder + "/Windows/FLW-" + groups[i] + "/FLW-" + groups[i] + ".dsp";
         QString savedContent = pathToContent(recallingPath);
         
         QString settingsPath = groups[i] + "/Path";

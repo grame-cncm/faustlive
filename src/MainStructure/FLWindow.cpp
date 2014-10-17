@@ -131,9 +131,18 @@ void FLWindow::frontShow(){
 void FLWindow::start_stop_watcher(bool on){
     QVector<QString> dependencies = FLSessionManager::_Instance()->read_dependencies(fSettings->value("SHA", "").toString());
     
+//--- Add possible wavfile to dependencies
+    if(fWavSource != ""){
+        dependencies.push_front(fWavSource);
+        
+        printf("WAV = %s added to deps\n", fWavSource.toStdString().c_str());
+    }
+    
+    FLSessionManager::_Instance()->write_dependencies(dependencies, getSHA());
+    
     if(fSettings->value("Path", "").toString() != "")
         dependencies.push_front(fSettings->value("Path", "").toString());
-    
+
     if(on){
         fCreationDate = fCreationDate.currentDateTime();
         FLFileWatcher::_Instance()->startWatcher(dependencies, this);
@@ -148,6 +157,14 @@ void FLWindow::start_stop_watcher(bool on){
 bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
+    
+//---- If wav, sound2faust has 
+    fWavSource = "";
+    
+    if(ifWavToString(fSource, fWavSource)){
+        fSource = fWavSource;
+        fWavSource = source;
+    }
     
     FLMessageWindow::_Instance()->displayMessage("Compiling DSP...");
     FLMessageWindow::_Instance()->show();
@@ -200,24 +217,102 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     return false;
 }
 
-void FLWindow::selfUpdate(){
+//--Transforms Wav file into faust string
+bool FLWindow::ifWavToString(const QString& source, QString& newSource){
+    //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
     
-//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
-    if(QFileInfo(fSource).exists()){
+    if(QFileInfo(source).completeSuffix() == "wav"){
         
-        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
-        if(fCreationDate < modifiedLast)
-            update_Window(fSource);
+        QString exeFile = "";
+        
+        QString soundFileName = QFileInfo(source).baseName();
+        
+        QString destinationFile = QFileInfo(source).absolutePath();
+        destinationFile += "/" ;
+        destinationFile += soundFileName;
+        
+        QString waveFile = destinationFile;
+        waveFile += "_waveform.dsp";
+        
+        destinationFile += ".dsp";
+        
+        QString systemInstruct;
+        
+		// figure out the right name for faust2sound depending of the OS
+        
+#ifdef _WIN32
+        exeFile = "sound2faust.exe";
+#endif
+        
+#ifdef __linux__
+        if(QFileInfo("/usr/local/bin/sound2faust").exists())
+            exeFile = "/usr/local/bin/sound2faust";
+        else
+            exeFile = "./sound2faust";   
+#endif
+        
+#ifdef __APPLE__
+        
+        //        FLErrorWindow::_Instance()->print_Error(QCoreApplication::applicationDirPath());
+        
+        exeFile = QCoreApplication::applicationDirPath() + "/sound2faust";
+        //        if(QCoreApplication::applicationDirPath().indexOf("Contents/MacOS") != -1)
+        //            exeFile = "./sound2faust";
+        //        else
+        //            exeFile = QCoreApplication::applicationDirPath() + "/FaustLive.app/Contents/MacOS/sound2faust";
+#endif
+        systemInstruct += exeFile + " ";
+        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
+        
+        if(!QFileInfo(exeFile).exists())
+            FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
+        
+        QString errorMsg("");
+        if(!executeInstruction(systemInstruct, errorMsg))
+            FLErrorWindow::_Instance()->print_Error(errorMsg);
+        
+        QString finalFileContent = "import(\"";
+        finalFileContent += soundFileName + "_waveform.dsp";
+        finalFileContent += "\");\nprocess=";
+        finalFileContent += QFileInfo(source).baseName();
+        finalFileContent += ";";
+        
+        writeFile(destinationFile, finalFileContent);
+        
+        newSource = destinationFile;
+        return true;
     }
     else
-        update_Window(fSource);
+        return false;
+}
+
+void FLWindow::selfUpdate(){
+    
+    printf("SelfUpdate with source = %s\n", fSource.toStdString().c_str());
+    
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
+//    if(QFileInfo(fSource).exists()){
+//        
+//        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
+//        if(fCreationDate < modifiedLast)
+//            update_Window(fSource);
+//    }
+//    else
+    QString wavform = fWavSource;
+    update_Window(fSource);
+    
+    fWavSource = wavform;
 }
 
 void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource){
+    
 //    In case name update is concerning source
-    if(oldSource == fSource)
+    if(oldSource == fSource){
+        QString wavform = fWavSource;
         update_Window(newSource);
+        fWavSource = wavform;
 //    In case name update concerns a dependency
+    }
     else{
         QString errorMsg = "WARNING : "+ fWindowName+". " + oldSource + " has been renamed as " + newSource + ". The dependency might be broken ! ";
         errorPrint(errorMsg);
@@ -268,7 +363,15 @@ bool FLWindow::update_Window(const QString& source){
             
         FLSessionManager* sessionManager = FLSessionManager::_Instance();
         
-        QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
+        QString sourceToCompile = source;
+        QString wavsource = "";
+    
+        if(ifWavToString(sourceToCompile, wavsource)){
+            sourceToCompile = wavsource;
+            wavsource = source;
+        }
+    
+        QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
         
         bool isUpdateSucessfull = true;
         
@@ -307,7 +410,9 @@ bool FLWindow::update_Window(const QString& source){
                         
                         FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
                         
-                        fSource = source;
+                        fSource = sourceToCompile;
+                        fWavSource = wavsource;
+                        
                         isUpdateSucessfull = true;
                     }
                     else{
@@ -455,7 +560,7 @@ void FLWindow::edit(){
     
     if(sourcePath == ""){
         
-        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
+        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         
         //    In case user has saved his file in a new location
         if(pathToOpen != "" && pathToOpen != ".dsp"){
@@ -507,13 +612,11 @@ void FLWindow::view_qrcode(){
 
 void FLWindow::view_svg(){
     
-    QString faustOptions = "-svg";
-    faustOptions += " -O ";
-    faustOptions += fHome + "/Windows/" + fWindowName;
+    QString svgPath = fHome + "/Windows/" + fWindowName;
     
     QString errorMsg;
     
-    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), faustOptions, fWindowName, errorMsg)){
+    if(FLSessionManager::_Instance()->generateSVG(getSHA(), getPath(), svgPath, fWindowName, errorMsg)){
         
     QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
     
@@ -662,7 +765,7 @@ void FLWindow::disableOSCInterface(){
 }
 
 void FLWindow::switchOsc(bool on){
-    
+
     if(on)
         updateOSCInterface();
     else{
@@ -682,10 +785,7 @@ void catch_OSCError(void* arg){
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
-    if(fOscInterface!=NULL){
-        delete fOscInterface;
-        fOscInterface = NULL;
-    }
+    deleteOscInterface();
     
     if(fOscInterface == NULL){
         
@@ -713,6 +813,20 @@ void FLWindow::allocateOscInterface(){
         fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
 
     }
+}
+
+void FLWindow::deleteOscInterface(){
+    
+    if(fInterface)
+        fInterface->stop();
+    
+    if(fOscInterface){
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
+    
+    if(fInterface)
+        fInterface->run();
 }
 
 void FLWindow::updateOSCInterface(){
@@ -787,35 +901,31 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
 }
 
 void FLWindow::runInterfaces(){
-
-#ifdef HTTPCTRL
-#if !defined(_WIN32) || defined(__MINGW32__)
-    if(fOscInterface)
-        fOscInterface->run();
     
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface){
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
+    
+    if(fOscInterface)
+        fOscInterface->run();
 #endif
-#endif
-    setWindowsOptions();
     
     if(fInterface){
         fInterface->run();
         fInterface->installEventFilter(this);
     }
+
+    setWindowsOptions();
 }
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
 
 #if !defined(_WIN32) || defined(__MINGW32__)
-    if(fOscInterface){
-        delete fOscInterface;
-        fOscInterface = NULL;
-    }
-
+    deleteOscInterface();
+    
     if(fHttpInterface){
         deleteHttpInterface();
     }
@@ -1238,9 +1348,15 @@ void FLWindow::allocateHttpInterface(){
 
 void FLWindow::deleteHttpInterface(){
     
+    if(fInterface)
+        fInterface->stop();
+    
     FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
     delete fHttpInterface;
     fHttpInterface = NULL;
+    
+    if(fInterface)
+        fInterface->run();
 }
 
 void FLWindow::updateHTTPInterface(){

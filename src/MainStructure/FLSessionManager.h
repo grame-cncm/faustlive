@@ -77,9 +77,6 @@ private:
     //--Transforms a Google Doc Url into string
     QString         ifGoogleDocToString(const QString& source);
     
-    //--Transforms Wav file into faust string
-    QString         ifWavToString(const QString& source);
-    
     //--Shows restoration warning. 
     //----It returns true, in case "Yes" is chosen | false otherwise
     bool            viewRestorationMsg(const QString& msg, const QString& yesMsg, const QString& noMsg);
@@ -117,6 +114,7 @@ public:
     void            cleanSHAFolder();
     
     bool            generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
+    bool            generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
     
     QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
     

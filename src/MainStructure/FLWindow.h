@@ -72,6 +72,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         FLWinSettings*      fSettings;       //All the window settings
         bool                fIsDefault;
         QString             fSource;
+        QString             fWavSource;
         QDateTime           fCreationDate;
         
         QTGUI*          fInterface;      //User control interface
@@ -80,6 +81,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
 #if !defined(_WIN32) || defined(__MINGW32__)
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
+        void            deleteOscInterface();
 
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
@@ -167,6 +169,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //@param : source = DSP to be compiled in the window
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
+    
+    
+    //--Transforms Wav file into faust string
+        bool         ifWavToString(const QString& source, QString& newSource);
     
         bool            update_AudioArchitecture(QString& error);
     

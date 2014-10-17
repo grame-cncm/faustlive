@@ -59,7 +59,7 @@ void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
             QString absolutePath = QFileInfo(path).absolutePath();
             
             QStringList filters;
-            filters << "*.dsp"<<"*.lib";
+            filters << "*.dsp"<<"*.lib"<<"*.wav";
             
             QDir path(absolutePath);
             fDirToChildren[absolutePath] = path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
@@ -102,7 +102,7 @@ void FLFileWatcher::dirChanged(const QString& dirModified){
     QStringList oldChildren = fDirToChildren[dirModified];
     
     QStringList filters;
-    filters << "*.dsp"<<"*.lib";
+    filters << "*.dsp"<<"*.lib"<<"*.wav";
     
     QDir path(dirModified);
     QStringList newChildren =  path.entryList(filters, QDir::Files | QDir::NoDotAndDotDot);
@@ -189,6 +189,8 @@ void FLFileWatcher::reset_Timer(const QString fileModified){
 //}
 
 void FLFileWatcher::fileChanged(){
+    
+    printf("FLFileWatcher::fileChanged\n");
     
     fSynchroTimer->stop();
 

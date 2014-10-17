@@ -121,7 +121,7 @@ void FLPresentationWindow::init(){
     snap_Image->setPixmap(snapPix);
     layout2->addWidget(snap_Image, 2, 0);
     
-    open_Session = new QPushButton("Recall your Snapshot\n");
+    open_Session = new QPushButton("Import your Snapshot\n");
     open_Session->setToolTip("Open a saved snapshot.");
     open_Session->setFlat(true);
     open_Session->setDefault(false);
