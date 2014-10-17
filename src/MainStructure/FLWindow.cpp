@@ -847,14 +847,20 @@ void FLWindow::updateOSCInterface(){
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
-    //Window tittle is build with the window Name + effect Name
     QString intermediate = fWindowName + " : " + nameEffect;
     setWindowTitle(intermediate);
     
     if(!fIsDefault){
         
-        fInterface = new QTGUI((QWidget*)this);
-        setCentralWidget(fInterface);
+        QScrollArea *sa = new QScrollArea( this );
+        
+        fInterface = new QTGUI(sa);
+        
+        sa->setWidgetResizable( true );
+        sa->setWidget( fInterface );
+        sa->setAutoFillBackground(true);
+        
+        setCentralWidget(sa);
         fInterface->installEventFilter(this);
         
         if(!fInterface)
