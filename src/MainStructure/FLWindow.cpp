@@ -117,9 +117,12 @@ FLWindow::~FLWindow(){}
 
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
-    
-    setGeometry(fSettings->value("Position/x", 0).toInt(), fSettings->value("Position/y", 0).toInt(), 0, 0);
-    adjustSize();
+    int x = fSettings->value("Position/x", 0).toInt();
+    int y = fSettings->value("Position/y", 0).toInt();
+    int w = fSettings->value("Size/w", 0).toInt();
+    int h = fSettings->value("Size/h", 0).toInt();
+    setGeometry(x, y, w, h);
+    if (w == 0 && h == 0) adjustSize();
     
     show();
     raise();
@@ -1273,6 +1276,8 @@ void FLWindow::save_Window(){
     //Save the parameters of the actual interface
     fSettings->setValue("Position/x", this->geometry().x());
     fSettings->setValue("Position/y", this->geometry().y());
+    fSettings->setValue("Size/w", this->geometry().width());
+    fSettings->setValue("Size/h", this->geometry().height());
     
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
