@@ -14,7 +14,8 @@ endif
 
 all:
 	$(MAKE) -C Build/$(arch)
-	cp -R Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
+	rm -rf FaustLive$(EXT)
+	cp -R Build/$(arch)/FaustLive$(EXT) .
 
 math_lib : 
 	$(MAKE) -C Build/$(arch) math_lib 
