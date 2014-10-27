@@ -11,6 +11,7 @@
 #include "FLComponentWindow.h"
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
+#include "utilities.h"
 
 #include "FLErrorWindow.h"
 
@@ -282,11 +283,10 @@ QString FLComponentItem::faustComponent(const QString& layoutIndex){
 FLComponentWindow::FLComponentWindow(){
     
     setAcceptDrops(true);
-    
-    setGeometry(300,300, 300,300);
-    
+//    setGeometry(300,300, 300,300);
     init();
-    
+    setGeometry(0, 0, 800,450);
+    centerOnPrimaryScreen(this);
 }
 
 FLComponentWindow::~FLComponentWindow(){
@@ -305,6 +305,12 @@ FLComponentWindow::~FLComponentWindow(){
 
 void FLComponentWindow::init(){
  
+    
+    QScrollArea *sa = new QScrollArea( this );
+    
+    sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+    sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+    
     QWidget* vcontainer = new QWidget;
     QVBoxLayout* vlayout = new QVBoxLayout;
     
@@ -406,9 +412,15 @@ void FLComponentWindow::init(){
     vlayout->addWidget(intermediateWidget);
     
     vcontainer->setLayout(vlayout);
-    setCentralWidget(vcontainer);
+//    setCentralWidget(vcontainer);
+        
+    sa->setWidgetResizable( true );
+    sa->setWidget( vcontainer );
+    sa->setAutoFillBackground(true);
     
-    adjustSize();
+    setCentralWidget(sa);
+    
+//    adjustSize();
 }
 
 //Create a faust program that puts in parallel each column component then compose them sequentially.
@@ -504,7 +516,7 @@ void FLComponentWindow::deleteComponentRow(){
         index++;
     }
     
-    adjustSize();
+//    adjustSize();
 }
 
 void FLComponentWindow::addComponentColumn(){
@@ -572,7 +584,7 @@ void FLComponentWindow::deleteComponentColumn(){
     delete toEraseLabel;
     
     fVerticalElements.pop_back();
-    adjustSize();
+//    adjustSize();
 }
 
 QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem(QList<QList<FLComponentItem*> > items){

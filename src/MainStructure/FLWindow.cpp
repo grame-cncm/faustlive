@@ -346,6 +346,17 @@ bool FLWindow::update_Window(const QString& source){
     
 //    if(update){
         
+    float saveW = 0.0;
+    float saveH = 0.0;
+    
+    float newW = 0.0;
+    float newH = 0.0;
+    
+    if(fInterface){
+        saveW = fInterface->minimumSizeHint().width();
+        saveH = fInterface->minimumSizeHint().height();
+    }
+    
         start_stop_watcher(false);
         
         FLMessageWindow::_Instance()->displayMessage("Updating DSP...");
@@ -441,10 +452,19 @@ bool FLWindow::update_Window(const QString& source){
             emit windowNameChanged();
     
         FLMessageWindow::_Instance()->hide();
-        
-        adjustSize();
+    
+        if(fInterface){
+            newW = fInterface->minimumSizeHint().width();
+            newH = fInterface->minimumSizeHint().height();
+        }
+
+// 2 cases : 
+//    1- Updating with a new DSP --> adjusting Size to the new interface
+//    2- Self Updating --> keeping the window as it is (could have been opened or shred)
+        if(newH != saveH || newW != saveW)
+            adjustSize();
+
         show();
-        
         return isUpdateSucessfull;
 //    }
 //    else
@@ -858,12 +878,17 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
         QScrollArea *sa = new QScrollArea( this );
         
         fInterface = new QTGUI(sa);
-        
+//        fInterface = new QTGUI(this);  
         sa->setWidgetResizable( true );
         sa->setWidget( fInterface );
-        sa->setAutoFillBackground(true);
+
+//        sa->setAutoFillBackground(true);
+        
+        sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+        sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
         
         setCentralWidget(sa);
+//        setCentralWidget(fInterface);
         fInterface->installEventFilter(this);
         
         if(!fInterface)
