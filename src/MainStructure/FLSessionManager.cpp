@@ -79,20 +79,22 @@ QList<QString> FLSessionManager::get_currentDefault(){
     
     QList<QString> currentDefault;
     
-    FLSettings::_Instance()->beginGroup("Windows");
-    QStringList groups  = FLSettings::_Instance()->childKeys();
+    FLSettings * generalSettings = FLSettings::_Instance();
+    
+    generalSettings->beginGroup("Windows");
+    QStringList groups  = generalSettings->childKeys();
     
     for(int i=0; i<groups.size(); i++){
         
-        QString settingPath = QString::number(i) + "/Name";
+        QString settingPath = groups[i] + "/Name";
         
-        QString settingName = FLSettings::_Instance()->value(settingPath, "").toString();
+        QString settingName = generalSettings->value(settingPath, "").toString();
         
         if(settingName.indexOf(DEFAULTNAME) != -1){
             currentDefault.push_back(settingName);
         }
     }
-    FLSettings::_Instance()->endGroup();
+    generalSettings->endGroup();
     
     return currentDefault;
 }
@@ -171,6 +173,8 @@ QString FLSessionManager::nameToUniqueName(const QString& name, const QString& p
         
         QString tempPath = generalSettings->value(settingPath, "").toString();
         QString tempName = generalSettings->value(settingName, "").toString();
+        
+//        printf("name to unique name \n");
         /*
         while(tempName == name && path != "" && path != tempPath){
             
@@ -566,9 +570,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         name = getDeclareName(faustContent);
     
     if(name == "")
-        name = find_smallest_defaultName();
-    
-    //name = nameToUniqueName(name, path);
+        name = "DefaultName";
+//        name = find_smallest_defaultName();
+//    
+//    printf("Name  of DSP = %s\n", name.toStdString().c_str());
+//    
+//    name = nameToUniqueName(name, path);
     
     //--------Calculation of SHA Key
     
