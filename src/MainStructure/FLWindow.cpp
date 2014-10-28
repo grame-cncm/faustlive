@@ -161,7 +161,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
     
-//---- If wav, sound2faust has 
+//---- If wav, sound2faust has to be executed
     fWavSource = "";
     
     if(ifWavToString(fSource, fWavSource)){
@@ -274,11 +274,16 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource){
         if(!executeInstruction(systemInstruct, errorMsg))
             FLErrorWindow::_Instance()->print_Error(errorMsg);
         
-        QString finalFileContent = "import(\"";
+        QString finalFileContent = "//The waveform was automatically generated in :\nimport(\"";
         finalFileContent += soundFileName + "_waveform.dsp";
-        finalFileContent += "\");\nprocess=";
+        finalFileContent += "\");\n\n//It can accessed with :\n//";
+        finalFileContent += soundFileName + "_i" + " with i = [0, ..., n] and n the number of channels\n\n";
+        finalFileContent += "//The example played here is :\n//";
+        finalFileContent += soundFileName + " = (" + soundFileName + "_0, ..., " + soundFileName + "_n) : ((!,_), ..., (!,_));\n\n";
+        finalFileContent +="process = ";
         finalFileContent += QFileInfo(source).baseName();
         finalFileContent += ";";
+        finalFileContent += "\n\n//Also, rtables are created in " + soundFileName + "_waveform.dsp" + " and are named : \n//" + soundFileName + "_rtable_i";
         
         writeFile(destinationFile, finalFileContent);
         
