@@ -148,7 +148,7 @@ FLApp::~FLApp(){
     
     delete fInitTimer;
     
-//    FLHelpWindow::deleteInstance();
+    FLHelpWindow::deleteInstance();
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();

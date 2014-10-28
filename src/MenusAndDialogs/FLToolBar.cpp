@@ -591,6 +591,8 @@ void FLToolBar::switchHttp(bool on){
 #ifdef HTTPCTRL
         fHttpCheckBox->setChecked(on);
         modifiedOptions();
+#else
+	Q_UNUSED(on);
 #endif
 }
 
@@ -599,6 +601,8 @@ void FLToolBar::switchOsc(bool on){
 #ifdef OSCVAR
         fOSCCheckBox->setChecked(on);
         modifiedOptions();
+#else
+	Q_UNUSED(on);
 #endif
 }
 

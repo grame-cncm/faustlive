@@ -29,8 +29,8 @@ PA_audioManager::~PA_audioManager(){
 }
 
 //INIT/START/STOP on Current PortAudio
-bool PA_audioManager::initAudio(QString& error, const char* name){
-    
+bool PA_audioManager::initAudio(QString& error, const char* /*name*/){
+    error = "";
     fInit = false;
     return true;
 }
