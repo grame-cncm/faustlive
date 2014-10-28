@@ -6,4 +6,10 @@ src/Utilities/qrc_application.cpp
 src/Utilities/qrc_styles.cpp
 src/objectsFolder/
 Makefile-qt
+Makefile-qt.*
+object_script.FaustLive.*
+Build/MinGW/debug
+Build/MinGW/release
 FaustLive.app/
+FaustLive.exe
+FaustLive

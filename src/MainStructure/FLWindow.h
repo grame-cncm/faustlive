@@ -23,7 +23,7 @@
 
 #include "faust/gui/FUI.h"
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "HTTPWindow.h"
 #endif
 #include "AudioCreator.h"
@@ -72,14 +72,16 @@ class FLWindow : public QMainWindow/*, public tempName*/
         FLWinSettings*      fSettings;       //All the window settings
         bool                fIsDefault;
         QString             fSource;
+        QString             fWavSource;
         QDateTime           fCreationDate;
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
+        void            deleteOscInterface();
 
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
@@ -126,7 +128,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            edit();
         void            paste();
         void            duplicate();
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
         void            view_qrcode();
 #endif
         void            view_svg();
@@ -167,6 +169,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //@param : source = DSP to be compiled in the window
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
+    
+    
+    //--Transforms Wav file into faust string
+        bool         ifWavToString(const QString& source, QString& newSource);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -215,7 +221,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            is_Default();
     
     //Accessors to httpd Window
-#ifndef _WIN32    
+#if !defined(_WIN32) || defined(__MINGW32__)
     
     //Functions to create an httpd interface
         void            viewQrCode();
@@ -233,7 +239,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            generateAuxFiles();
         void            resizingBig();
         void            resizingSmall();
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();

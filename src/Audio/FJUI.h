@@ -23,32 +23,57 @@ class FJUI
     public : 
     
     //Saves the connections into the filename
-    static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
+    void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
 	{
         std::ofstream f(filename, ios::trunc);
         
         std::list<std::pair<string, string> > ::const_iterator it;
         
 		for (it=Connections.begin(); it!=Connections.end(); it++)
-			f << endl<< it->first.c_str() << ' ' << it->second.c_str();
-
+			f << endl<< "\"" <<it->first.c_str()<< "\"" << ' ' << "\""<< it->second.c_str()<< "\"";
+        
+        
+//        printf("HOLA HOLA HOLALA\n");
 		f.close();
 	}
     
 	// Returns the connections saved in filename
-	static std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
+	std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
 	{
 		std::ifstream f(filename);
-		std::string  g;
-		std::string	n;
+        f >> std::noskipws;
+		std::string g = "";
+		std::string	n = "";
+//      Storing in g when 1 to 2, storing to n when 3 to 4
+        int gORn = 0;
+        char cote;
         std::list<std::pair<std::string, std::string> >	Connections;
         
 		while (f.good()) {
-			f >> g >> n;
-
-            printf("Connect = %s To %s\n", g.c_str(), n.c_str());
+//            f>>cote;
+            cote = f.get();
             
-            Connections.push_back(make_pair(g,n));
+            if(f.good()){
+                
+                if(cote == '\"'){
+                    gORn++;
+                } 
+                else if(gORn == 1)
+                    g+=cote;
+                else if(gORn == 3)
+                    n+=cote;
+                
+                
+                if(gORn == 4){
+                    Connections.push_back(make_pair(g,n));
+//                    printf("Connect = %s To %s\n", g.c_str(), n.c_str());
+                    gORn = 0;
+                    g = "";
+                    n = "";
+                }
+                
+//                printf("g = %s || n = %s\n", g.c_str(), n.c_str());
+            }
 		}
 		f.close();
         
@@ -57,7 +82,7 @@ class FJUI
     }
     
     //Updating the connections in the file following the changeTable
-    static void  update(const char* filename, std::map<std::string, std::string> changeTable)
+    void  update(const char* filename, std::map<std::string, std::string> changeTable)
 	{
         std::list<std::pair<std::string, std::string> > 	Connections;
         

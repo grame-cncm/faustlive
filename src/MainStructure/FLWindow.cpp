@@ -8,7 +8,7 @@
 #include "FLWindow.h"
 
 #include "faust/gui/faustqt.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/httpdUI.h"
 #endif
@@ -28,7 +28,7 @@ list<GUI*>               GUI::fGuiList;
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "FLServerHttp.h"
 #endif
 #include "FLFileWatcher.h"
@@ -74,7 +74,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Initializing class members
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
     fOscInterface = NULL;
@@ -117,9 +117,12 @@ FLWindow::~FLWindow(){}
 
 //Show Window on front end with standard size
 void FLWindow::frontShow(){
-    
-    setGeometry(fSettings->value("Position/x", 0).toInt(), fSettings->value("Position/y", 0).toInt(), 0, 0);
-    adjustSize();
+    int x = fSettings->value("Position/x", 0).toInt();
+    int y = fSettings->value("Position/y", 0).toInt();
+    int w = fSettings->value("Size/w", 0).toInt();
+    int h = fSettings->value("Size/h", 0).toInt();
+    setGeometry(x, y, w, h);
+    if (w == 0 && h == 0) adjustSize();
     
     show();
     raise();
@@ -131,9 +134,18 @@ void FLWindow::frontShow(){
 void FLWindow::start_stop_watcher(bool on){
     QVector<QString> dependencies = FLSessionManager::_Instance()->read_dependencies(fSettings->value("SHA", "").toString());
     
+//--- Add possible wavfile to dependencies
+    if(fWavSource != ""){
+        dependencies.push_front(fWavSource);
+        
+        printf("WAV = %s added to deps\n", fWavSource.toStdString().c_str());
+    }
+    
+    FLSessionManager::_Instance()->write_dependencies(dependencies, getSHA());
+    
     if(fSettings->value("Path", "").toString() != "")
         dependencies.push_front(fSettings->value("Path", "").toString());
-    
+
     if(on){
         fCreationDate = fCreationDate.currentDateTime();
         FLFileWatcher::_Instance()->startWatcher(dependencies, this);
@@ -148,6 +160,14 @@ void FLWindow::start_stop_watcher(bool on){
 bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     
     fSource = source;
+    
+//---- If wav, sound2faust has to be executed
+    fWavSource = "";
+    
+    if(ifWavToString(fSource, fWavSource)){
+        fSource = fWavSource;
+        fWavSource = source;
+    }
     
     FLMessageWindow::_Instance()->displayMessage("Compiling DSP...");
     FLMessageWindow::_Instance()->show();
@@ -200,24 +220,107 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     return false;
 }
 
-void FLWindow::selfUpdate(){
+//--Transforms Wav file into faust string
+bool FLWindow::ifWavToString(const QString& source, QString& newSource){
+    //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
     
-//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
-    if(QFileInfo(fSource).exists()){
+    if(QFileInfo(source).completeSuffix() == "wav"){
         
-        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
-        if(fCreationDate < modifiedLast)
-            update_Window(fSource);
+        QString exeFile = "";
+        
+        QString soundFileName = QFileInfo(source).baseName();
+        
+        QString destinationFile = QFileInfo(source).absolutePath();
+        destinationFile += "/" ;
+        destinationFile += soundFileName;
+        
+        QString waveFile = destinationFile;
+        waveFile += "_waveform.dsp";
+        
+        destinationFile += ".dsp";
+        
+        QString systemInstruct;
+        
+		// figure out the right name for faust2sound depending of the OS
+        
+#ifdef _WIN32
+        exeFile = "sound2faust.exe";
+#endif
+        
+#ifdef __linux__
+        if(QFileInfo("/usr/local/bin/sound2faust").exists())
+            exeFile = "/usr/local/bin/sound2faust";
+        else
+            exeFile = "./sound2faust";   
+#endif
+        
+#ifdef __APPLE__
+        
+        //        FLErrorWindow::_Instance()->print_Error(QCoreApplication::applicationDirPath());
+        
+        exeFile = QCoreApplication::applicationDirPath() + "/sound2faust";
+        //        if(QCoreApplication::applicationDirPath().indexOf("Contents/MacOS") != -1)
+        //            exeFile = "./sound2faust";
+        //        else
+        //            exeFile = QCoreApplication::applicationDirPath() + "/FaustLive.app/Contents/MacOS/sound2faust";
+#endif
+        systemInstruct += exeFile + " ";
+        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
+        
+        if(!QFileInfo(exeFile).exists())
+            FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
+        
+        QString errorMsg("");
+        if(!executeInstruction(systemInstruct, errorMsg))
+            FLErrorWindow::_Instance()->print_Error(errorMsg);
+        
+        QString finalFileContent = "//The waveform was automatically generated in :\nimport(\"";
+        finalFileContent += soundFileName + "_waveform.dsp";
+        finalFileContent += "\");\n\n//It can accessed with :\n//";
+        finalFileContent += soundFileName + "_i" + " with i = [0, ..., n] and n the number of channels\n\n";
+        finalFileContent += "//The example played here is :\n//";
+        finalFileContent += soundFileName + " = (" + soundFileName + "_0, ..., " + soundFileName + "_n) : ((!,_), ..., (!,_));\n\n";
+        finalFileContent +="process = ";
+        finalFileContent += QFileInfo(source).baseName();
+        finalFileContent += ";";
+        finalFileContent += "\n\n//Also, rtables are created in " + soundFileName + "_waveform.dsp" + " and are named : \n//" + soundFileName + "_rtable_i";
+        
+        writeFile(destinationFile, finalFileContent);
+        
+        newSource = destinationFile;
+        return true;
     }
     else
-        update_Window(fSource);
+        return false;
+}
+
+void FLWindow::selfUpdate(){
+    
+    printf("SelfUpdate with source = %s\n", fSource.toStdString().c_str());
+    
+//Avoiding the flicker when the source is saved - Mostly seeable on 10.9
+//    if(QFileInfo(fSource).exists()){
+//        
+//        QDateTime modifiedLast = QFileInfo(fSource).lastModified();
+//        if(fCreationDate < modifiedLast)
+//            update_Window(fSource);
+//    }
+//    else
+    QString wavform = fWavSource;
+    update_Window(fSource);
+    
+    fWavSource = wavform;
 }
 
 void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource){
+    
 //    In case name update is concerning source
-    if(oldSource == fSource)
+    if(oldSource == fSource){
+        QString wavform = fWavSource;
         update_Window(newSource);
+        fWavSource = wavform;
 //    In case name update concerns a dependency
+    }
     else{
         QString errorMsg = "WARNING : "+ fWindowName+". " + oldSource + " has been renamed as " + newSource + ". The dependency might be broken ! ";
         errorPrint(errorMsg);
@@ -248,6 +351,17 @@ bool FLWindow::update_Window(const QString& source){
     
 //    if(update){
         
+    float saveW = 0.0;
+    float saveH = 0.0;
+    
+    float newW = 0.0;
+    float newH = 0.0;
+    
+    if(fInterface){
+        saveW = fInterface->minimumSizeHint().width();
+        saveH = fInterface->minimumSizeHint().height();
+    }
+    
         start_stop_watcher(false);
         
         FLMessageWindow::_Instance()->displayMessage("Updating DSP...");
@@ -268,7 +382,15 @@ bool FLWindow::update_Window(const QString& source){
             
         FLSessionManager* sessionManager = FLSessionManager::_Instance();
         
-        QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
+        QString sourceToCompile = source;
+        QString wavsource = "";
+    
+        if(ifWavToString(sourceToCompile, wavsource)){
+            sourceToCompile = wavsource;
+            wavsource = source;
+        }
+    
+        QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
         
         bool isUpdateSucessfull = true;
         
@@ -307,7 +429,9 @@ bool FLWindow::update_Window(const QString& source){
                         
                         FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
                         
-                        fSource = source;
+                        fSource = sourceToCompile;
+                        fWavSource = wavsource;
+                        
                         isUpdateSucessfull = true;
                     }
                     else{
@@ -333,10 +457,19 @@ bool FLWindow::update_Window(const QString& source){
             emit windowNameChanged();
     
         FLMessageWindow::_Instance()->hide();
-        
-        adjustSize();
+    
+        if(fInterface){
+            newW = fInterface->minimumSizeHint().width();
+            newH = fInterface->minimumSizeHint().height();
+        }
+
+// 2 cases : 
+//    1- Updating with a new DSP --> adjusting Size to the new interface
+//    2- Self Updating --> keeping the window as it is (could have been opened or shred)
+        if(newH != saveH || newW != saveW)
+            adjustSize();
+
         show();
-        
         return isUpdateSucessfull;
 //    }
 //    else
@@ -397,7 +530,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
     //#if-group:
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     //#ifdef HTTPCTRL
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
@@ -425,7 +558,7 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#if !defined (_WIN32) /*|| defined HTTPCTRL*/    
+#if !defined(_WIN32) || defined(__MINGW32__)
     fWindowMenu->addAction(httpdViewAction);
 #endif
     fWindowMenu->addAction(svgViewAction);
@@ -455,7 +588,7 @@ void FLWindow::edit(){
     
     if(sourcePath == ""){
         
-        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(fSource);
+        pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         
         //    In case user has saved his file in a new location
         if(pathToOpen != "" && pathToOpen != ".dsp"){
@@ -497,7 +630,7 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::view_qrcode(){
     
     fToolBar->switchHttp(true);    
@@ -507,13 +640,11 @@ void FLWindow::view_qrcode(){
 
 void FLWindow::view_svg(){
     
-    QString faustOptions = "-svg";
-    faustOptions += " -O ";
-    faustOptions += fHome + "/Windows/" + fWindowName;
+    QString svgPath = fHome + "/Windows/" + fWindowName;
     
     QString errorMsg;
     
-    if(FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), faustOptions, fWindowName, errorMsg)){
+    if(FLSessionManager::_Instance()->generateSVG(getSHA(), getPath(), svgPath, fWindowName, errorMsg)){
         
     QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
     
@@ -575,7 +706,7 @@ void FLWindow::set_ToolBar(){
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
     
@@ -656,13 +787,13 @@ void FLWindow::redirectSwitch(){
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
-#ifndef WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::disableOSCInterface(){
     fToolBar->switchOsc(false);
 }
 
 void FLWindow::switchOsc(bool on){
-    
+
     if(on)
         updateOSCInterface();
     else{
@@ -682,10 +813,7 @@ void catch_OSCError(void* arg){
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface(){
     
-    if(fOscInterface!=NULL){
-        delete fOscInterface;
-        fOscInterface = NULL;
-    }
+    deleteOscInterface();
     
     if(fOscInterface == NULL){
         
@@ -715,6 +843,20 @@ void FLWindow::allocateOscInterface(){
     }
 }
 
+void FLWindow::deleteOscInterface(){
+    
+    if(fInterface)
+        fInterface->stop();
+    
+    if(fOscInterface){
+        delete fOscInterface;
+        fOscInterface = NULL;
+    }
+    
+    if(fInterface)
+        fInterface->run();
+}
+
 void FLWindow::updateOSCInterface(){
     
     save_Window();
@@ -733,14 +875,25 @@ void FLWindow::updateOSCInterface(){
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
     
-    //Window tittle is build with the window Name + effect Name
     QString intermediate = fWindowName + " : " + nameEffect;
     setWindowTitle(intermediate);
     
     if(!fIsDefault){
         
-        fInterface = new QTGUI((QWidget*)this);
-        setCentralWidget(fInterface);
+        QScrollArea *sa = new QScrollArea( this );
+        
+        fInterface = new QTGUI(sa);
+//        fInterface = new QTGUI(this);  
+        sa->setWidgetResizable( true );
+        sa->setWidget( fInterface );
+
+//        sa->setAutoFillBackground(true);
+        
+        sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+        sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+        
+        setCentralWidget(sa);
+//        setCentralWidget(fInterface);
         fInterface->installEventFilter(this);
         
         if(!fInterface)
@@ -752,6 +905,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
         return false;
 
 #ifdef HTTPCTRL    
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool()){
         allocateOscInterface();
         printf("ALLOCATED OSC INTERFACE\n");
@@ -760,6 +914,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
         allocateHttpInterface();
     }
+#endif
 #endif
     return true;
 }
@@ -774,42 +929,42 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
         compiledDSP->buildUserInterface(fRCInterface);
 
 #ifdef HTTPCTRL
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);            
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
 #endif
+#endif
 	return true;
 }
 
 void FLWindow::runInterfaces(){
-
-#ifdef HTTPCTRL
-    if(fOscInterface)
-        fOscInterface->run();
     
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface){
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
+    
+    if(fOscInterface)
+        fOscInterface->run();
 #endif
-    setWindowsOptions();
     
     if(fInterface){
         fInterface->run();
         fInterface->installEventFilter(this);
     }
+
+    setWindowsOptions();
 }
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
 
-#ifndef _WIN32
-    if(fOscInterface){
-        delete fOscInterface;
-        fOscInterface = NULL;
-    }
-
+#if !defined(_WIN32) || defined(__MINGW32__)
+    deleteOscInterface();
+    
     if(fHttpInterface){
         deleteHttpInterface();
     }
@@ -888,7 +1043,7 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
@@ -1151,6 +1306,8 @@ void FLWindow::save_Window(){
     //Save the parameters of the actual interface
     fSettings->setValue("Position/x", this->geometry().x());
     fSettings->setValue("Position/y", this->geometry().y());
+    fSettings->setValue("Size/w", this->geometry().width());
+    fSettings->setValue("Size/h", this->geometry().height());
     
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
@@ -1218,7 +1375,7 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
@@ -1232,9 +1389,15 @@ void FLWindow::allocateHttpInterface(){
 
 void FLWindow::deleteHttpInterface(){
     
+    if(fInterface)
+        fInterface->stop();
+    
     FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
     delete fHttpInterface;
     fHttpInterface = NULL;
+    
+    if(fInterface)
+        fInterface->run();
 }
 
 void FLWindow::updateHTTPInterface(){
@@ -1328,7 +1491,7 @@ QString FLWindow::get_HttpUrl() {
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
     
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else

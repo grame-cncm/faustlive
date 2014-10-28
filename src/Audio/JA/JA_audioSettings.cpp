@@ -27,36 +27,21 @@ JA_audioSettings::~JA_audioSettings(){}
 
 void JA_audioSettings::setVisualSettings(){
 
-    bool checked = FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool();
-    
-    if(checked)
-        fAutoConnectBox->setCheckState(Qt::Checked);
-    else
-        fAutoConnectBox->setCheckState(Qt::Unchecked);
-
+    fAutoConnectBox->setChecked (FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool());
 }
 void JA_audioSettings::storeVisualSettings(){
-
+    
     FLSettings::_Instance()->setValue("General/Audio/Jack/AutoConnect", get_AutoConnect());
 }
 
 bool JA_audioSettings::isEqual(AudioSettings*){
-    
-//    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool() == get_AutoConnect())
 
-//    Not really the right thing to say with the actual system but JA settings don't influence audio updates so it's directly stored
-    storeVisualSettings();
-        return true;
-//    else
-//        return false;
+    return true;
 }
 
 bool JA_audioSettings::get_AutoConnect(){
     
-    if(fAutoConnectBox->checkState() == Qt::Checked)
-        return true;
-    else
-        return false;
+    return fAutoConnectBox->isChecked();
 }
 
 QString JA_audioSettings::get_ArchiName(){

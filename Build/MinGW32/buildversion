@@ -1,0 +1,15 @@
+#!/bin/bash
+filename="../../Resources/buildVersion.txt"
+
+if [ -f "$filename" ]
+then
+	while read line
+	do
+    	echo $(echo "$line+0.0001" | bc -l) > "$filename"
+	done < "$filename"
+else
+	echo "0.0001" > "$filename"
+fi
+
+rm -f ../../src/Utilities/qrc_application.cpp
+

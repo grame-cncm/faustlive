@@ -29,8 +29,7 @@ QMAKE_EXTRA_TARGETS += all
 
 CONFIG -= x86_64
 CONFIG += exceptions rtti
-
-#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+#CONFIG += console
 
 ## QT libraries needed
 QT+=widgets
@@ -42,103 +41,68 @@ TARGET = FaustLive
 DEFINES += APP_VERSION=\\\"2.0\\\" LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources
-RESOURCES   = ../../Resources/application.qrc
-RESOURCES 	+= ../../Resources/styles.qrc
-#RESOURCES 	+= ../../Resources/scheduler.qrc
-ICON = ../../Resources/Images/FaustLiveIcon.icns
+RESOURCES = ../../Resources/application.qrc
+RESOURCES += ../../Resources/styles.qrc
+ICON = Resources/Images/FaustLiveIcon.icns
 QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 ####### INCLUDES PATHS && LIBS PATHS
 
 DEPENDPATH += $$FAUSTDIR/include/faust/gui
 INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include
-INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /opt/local/include	
 INCLUDEPATH += ../../src/Audio
 INCLUDEPATH += ../../src/MenusAndDialogs
 INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/local/lib
-equals(static, 1){
-LIBS+=$$FAUSTDIR/lib/libfaust.a
-} else {
-LIBS+=-lfaust
-}
-
-# Make sure to include --ldflags twice, once for the -L flags, and once for
-# the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
-LIBS+=$$system($$LLVM_CONFIG --ldflags --libs)
-LIBS+=$$system($$LLVM_CONFIG --ldflags)
-# The system libraries need a different option in LLVM 3.5 and later.
-LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
+LIBS+=-L$$FAUSTDIR/lib/ -L/usr/lib/ -L/opt/local/lib
 
 equals(static, 1){
-LIBS+=$$FAUSTDIR/lib/libHTTPDFaust.a
-LIBS+=$$FAUSTDIR/lib/libOSCFaust.a
+	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -lfaust -Wl,-Bdynamic
 } else {
-LIBS+=-lHTTPDFaust
-LIBS+=-lOSCFaust
+	LIBS+=-lHTTPDFaust -lOSCFaust -lfaust
 }
 
-LIBS+=-lqrencode
-LIBS+=-lmicrohttpd
-LIBS+=-lcrypto
-	  
-LIBS+=-lcurl
-LIBS+=-L/opt/local/lib
+
+equals(static, 1){
+	#LIBS+=/usr/local/lib/libqrencode.a
+	#LIBS+=/usr/local/lib/libmicrohttpd.a
+	#LIBS+=-lgnutls
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
+	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
+	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
+	#LIBS+=-lp11-kit
+	#LIBS+=-lcurl
+	#LIBS+=-Wl,-static	
+}
+
+	LIBS+=-lqrencode
+	LIBS+=-lmicrohttpd
+	LIBS+=-lcrypto
+	LIBS+=-lcurl
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 DEFINES += OSCVAR
 
-########## DEFINES/LIBS/SOURCES/... 
-########## depending on audio drivers | remote processing feature
+########## DEFINES/LIBS/SOURCES/... depending on audio drivers | remote processing feature
 
 equals(REMVAR, 1){
 	DEFINES += REMOTE
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
+	LIBS+=-ldbus-1 -lrt
 	
-	HEADER += ../../src/Network/Server.h
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
+		
+	HEADERS += ../../src/Network/Server.h
 	SOURCES += ../../src/Network/Server.cpp
-
-#	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
-#					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
-#	
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/tempName.h \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/TMutex.h \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.h \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.h \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.h \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.h
-#				
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp 
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.cpp \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.cpp \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.cpp \
-#				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.cpp
-}
-
-equals(CAVAR, 1){
-	message("COREAUDIO LINKED")
-	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
-	DEFINES += COREAUDIO
-	INCLUDEPATH += ../../src/Audio/CA
-	
-	HEADERS += 	../../src/Audio/CA/CA_audioFactory.h\
-				../../src/Audio/CA/CA_audioSettings.h\
-				../../src/Audio/CA/CA_audioManager.h\
-				../../src/Audio/CA/CA_audioFader.h 
-				
-	SOURCES += 	../../src/Audio/CA/CA_audioFactory.cpp \
-				../../src/Audio/CA/CA_audioSettings.cpp \
-				../../src/Audio/CA/CA_audioManager.cpp 
-}else{
-	message("COREAUDIO NOT LINKED")
 }
 
 equals(JVAR, 1){
@@ -166,23 +130,14 @@ equals(NJVAR, 1){
 	LIBS += -ljacknet
 	DEFINES += NETJACK
 	
-	INCLUDEPATH += ../../src/Audio/NJ_Master \
-					../../src/Audio/NJ_Slave
+	INCLUDEPATH += ../../src/Audio/NJ_Slave
 	
-	HEADERS += 	../../src/Audio/NJ_Master/NJm_audioFactory.h \
-				../../src/Audio/NJ_Master/NJm_audioSettings.h \
-				../../src/Audio/NJ_Master/NJm_audioManager.h \
-				../../src/Audio/NJ_Master/NJm_audioFader.h \
-				../../src/Audio/NJ_Slave/NJs_audioFactory.h \
+	HEADERS += 	../../src/Audio/NJ_Slave/NJs_audioFactory.h \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
 				../../src/Audio/NJ_Slave/NJs_audioManager.h \
 				../../src/Audio/NJ_Slave/NJs_audioFader.h 
 	
-	SOURCES += 	../../src/Audio/NJ_Master/NJm_audioFactory.cpp \
-				../../src/Audio/NJ_Master/NJm_audioSettings.cpp \
-				../../src/Audio/NJ_Master/NJm_audioManager.cpp \
-				../../src/Audio/NJ_Master/NJm_audioFader.cpp \
-				../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
+	SOURCES += 	../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
@@ -209,11 +164,11 @@ equals(ALVAR, 1){
 	message("ALSA NOT LINKED")
 }		
 
-
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
 	
-	LIBS += -lportaudio	
+	LIBS += -lportaudio
+	
 	DEFINES += PORTAUDIO
 	
 	INCLUDEPATH += ../../src/Audio/PA
@@ -230,6 +185,17 @@ equals(PAVAR, 1){
 }else{
 	message("PORT AUDIO NOT LINKED")
 }		
+
+########## LIBS AND FLAGS
+
+# Make sure to include --ldflags twice, once for the -L flags, and once for
+# the system libraries (LLVM 3.4 and earlier have these both in --ldflags).
+LIBS+=$$system(C:\\MinGW\\msys\\1.0\\local\\bin\\llvm-config --ldflags --libs)
+LIBS+=$$system(C:\\MinGW\\msys\\1.0\\local\\bin\\llvm-config --ldflags)
+# The system libraries need a different option in LLVM 3.5 and later.
+LIBS+=$$system(C:\\MinGW\\msys\\1.0\\local\\bin\\llvm-config --system-libs)
+
+LIBS+=-lcurldll -lwsock32 -lws2_32 -lwinmm
 
 ########## HEADERS AND SOURCES OF PROJECT
 

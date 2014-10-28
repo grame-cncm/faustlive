@@ -2,9 +2,10 @@
 qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
-SPEC := -spec macx-g++
-DST  := "FaustLive.app/Contents/MacOS"
-QM-DEFS := "CAVAR=1"
+SPEC := ""
+PREFIX := /usr
+DESTDIR := 
+QM-DEFS := "PAVAR=1"
 
 # The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
 # in the project file.
@@ -12,7 +13,7 @@ QM-DEFS := "CAVAR=1"
 # We need to know where Faust lives. This will be detected automatically if
 # the faust executable is on the PATH, otherwise you may have to set this
 # manually.
-FAUSTDIR = $(patsubst %/bin/faust,%,$(shell which faust 2>/dev/null))
+FAUSTDIR = $(patsubst %/bin/faust.exe,%,$(shell which faust 2>/dev/null))
 ifeq ($(strip $(FAUSTDIR)),)
 # Fall back to /usr/local.
 FAUSTDIR = /usr/local
@@ -36,37 +37,41 @@ endif
 ifeq ($(NETJACK), 1)
      QM-DEFS += "NJVAR=1" 
 endif 
-ifeq ($(COREAUDIO), 1)
-     QM-DEFS += "CAVAR=1" 
-endif
 ifeq ($(PORTAUDIO), 1)
      QM-DEFS += "PAVAR=1" 
 endif
 ifeq ($(STATIC), 1)
      QM-DEFS += "static=1" 
 endif
-
 ifneq ($(FAUSTDIR),)
      QM-DEFS += "FAUSTDIR=$(FAUSTDIR)"
 endif
 ifneq ($(LLVM_CONFIG),)
      QM-DEFS += "LLVM_CONFIG=$(LLVM_CONFIG)"
 endif
+ifneq ($(CURL_CONFIG),)
+     QM-DEFS += "CURL_CONFIG=$(CURL_CONFIG)"
+endif
+
 ####### Targets
 
 all : Makefile-qt
 	./buildversion
-	make -f Makefile-qt
+	mkdir -p src/objectsFolder
+	$(MAKE) -f Makefile-qt
+	cp debug/FaustLive.exe .
+
+####### List of targets
 
 help : 
 	@echo "Usage : 'make; sudo make install'"
-	@echo "To enable Jack or NetJack driver : 'make JACK=1 NETJACK=1'"
+	@echo "To enable NetJack driver : 'make NETJACK=1'"
 	@echo "To enable remote processing : 'make REMOTE=1'"
 	@echo "make or make all : compile FaustLive"
 	@echo "make clean : remove all object files"
-	@echo "make install : install FaustLive and its resources in Applications"
+	@echo "make install : install FaustLive and its resources in $(DESTDIR)$(PREFIX)"
 	@echo "make uninstall : undo what install did"
-	@echo "make dist : make a FaustLive distribution as a .dmg file"
+	@echo "make dist & ./distribution {platform}: make a FaustLive distribution as a .zip file"
 
 ###### Creates LLVM Library containing math float functions like "powf" (not existing on windows)
 math_lib : 
@@ -74,51 +79,48 @@ math_lib :
 
 ####### Packages
 
-# Solve FaustLive's dependencies
-deploy: 
-	macdeployqt FaustLive.app
-	
-
-# make a binary distribution .dmg file for OSX
-dist: 	
-	rm -rf FaustLive.app
-	make
-	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
-	macdeployqt FaustLive.app
-	./distribution
-	./distversion
+# make a source distribution .zip file
+dist:
+	make clean
+	make NETJACK=1 STATIC=1
+	#./distribution ${platform}
+	#./distversion
 
 # make a distribution .zip file for FaustLive sources
 dist-sources :
 	git archive --format=tar.gz -o FaustLive-sources.tgz --prefix=FaustLive-sources/ HEAD
 
 ####### Install
+installdirs = $(PREFIX)/bin $(PREFIX)/share $(PREFIX)/share/applications $(PREFIX)/share/pixmaps $(PREFIX)/share/icons/hicolor/32x32/apps $(PREFIX)/share/icons/hicolor/scalable/apps
 
-# The OSX application usually gets installed under /Applications, but MacPorts
-# mandates an installation in /Applications/MacPorts, so we make the
-# installation directory configurable here. Also, DESTDIR is supported for
-# staging purposes. - ag
-APPDIR = /Applications
+install:
+	install -d $(addprefix $(DESTDIR), $(installdirs))
+	install FaustLive.exe $(DESTDIR)$(PREFIX)/bin
+	install FaustLive.desktop $(DESTDIR)$(PREFIX)/share/applications/
+	install -m 0644 ../../Resources/Images/Faustlive.xpm $(DESTDIR)$(PREFIX)/share/pixmaps/
+	install -m 0644 ../../Resources/Images/Faustlive.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
+	install -m 0644 ../../Resources/Images/Faustlive.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/
 
-install: 
-	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
-	rm -rf $(DESTDIR)$(APPDIR)FaustLive.app
-	cp -R FaustLive.app $(DESTDIR)$(APPDIR)
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/FaustLive.exe
+	rm -f $(DESTDIR)$(PREFIX)/share/applications/FaustLive.desktop
+	rm -f $(DESTDIR)$(PREFIX)/share/pixmaps/Faustlive.xpm
+	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/Faustlive.png
+	rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/Faustlive.svg
 
-uninstall: 
-	rm -rf $(DESTDIR)$(APPDIR)/FaustLive.app
-
-####### MAKE MAKEFILE-qt
+####### MAKE MAKEFILE-QT
 
 clean : Makefile-qt
 	make -f Makefile-qt clean
 	rm -f FaustLive.pro.user
-	rm -rf FaustLive.app
+	rm -f FaustLive.exe
 	rm -f Makefile-qt
 	rm -f ../../Resources/styles.qrc
+	rm -rf debug release
 
 ../../Resources/styles.qrc: ../../Resources/styles.qrc.in
-	sed -e 's?@FAUSTDIR@?$(FAUSTDIR)?g' < $< > $@
+	sed -e 's?@FAUSTDIR@?C:/MinGW/msys/1.0/local?g' < $< > $@
 
 Makefile-qt: ../../Resources/styles.qrc
 	$(qm) $(SPEC) -o Makefile-qt $(QM-DEFS)
+

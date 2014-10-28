@@ -7,9 +7,10 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include "FLServerHttp.h"
-#else
+#endif
+#ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
 #endif
@@ -44,7 +45,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
    
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 #endif
@@ -151,7 +152,7 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     FLServerHttp::deleteInstance();
 #endif
 }
@@ -160,17 +161,30 @@ void FLApp::create_Session_Hierarchy(){
     
 	QString separationChar;
     
-    //Initialization of current Session Path  
+    // Initialization of current Session Path. NOTE: This path must not
+    // contain any whitespace, otherwise SVG generation is broken! -ag
 #ifdef _WIN32
-	char path[512];
-	if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
+    /* On Windows, we allow the user to set the FAUSTLIVE_SESSIONDIR
+       environment variable to specify an alternative directory name under
+       which the Faust session directory will be created. */
+    const char *sessiondir = getenv("FAUSTLIVE_SESSIONDIR");
+    if (sessiondir) {
+      fSessionFolder = sessiondir;
+      if(!QFileInfo(fSessionFolder).exists()){
+        QDir direct(fSessionFolder);
+        direct.mkdir(fSessionFolder);
+      }
+    } else {
+      char path[512];
+      if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
         fSessionFolder = path;
-	fSessionFolder += "\\FaustLive-CurrentSession-";
-	separationChar = "\\";
+    }
+    fSessionFolder += "\\FaustLive-CurrentSession-";
+    separationChar = "\\";
 #else
     fSessionFolder = getenv("HOME");
     fSessionFolder += "/.FaustLive-CurrentSession-";
-	separationChar = "/";
+    separationChar = "/";
 #endif
     
     fSessionFolder += APP_VERSION;
@@ -516,7 +530,7 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
 #endif
 #ifdef REMOTE
@@ -646,8 +660,9 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
         string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
+    FJUI fui;
     
-    FJUI::update(jcPath.toStdString().c_str(), indexStringChanges);
+    fui.update(jcPath.toStdString().c_str(), indexStringChanges);
     
     return newPath;
 }
@@ -1447,6 +1462,11 @@ void FLApp::open_F_doc(){
         errorPrinting("Impossible to open Faust documentation ! Make sure a file association is set up for .pdf.");
 }
 
+#ifndef LLVM_VERSION
+// best guess
+#define LLVM_VERSION "3.x"
+#endif
+
 //Not Active Window containing version of all the librairies
 void FLApp::version_Action(){
     
@@ -1458,14 +1478,29 @@ void FLApp::version_Action(){
     text += readFile(":/distVersion.txt");
     text += "- Build version ";
     text += readFile(":/buildVersion.txt");
-    text += "\nThis application is using ""\n""- Jack 2";
-//    text += jack_get_version_string();
-    text += "\n""- NetJack ";
-    text += "2.1";
+    text += "\nThis application is using ";
+    text += "\n""- LLVM Compiler ";
+    text += LLVM_VERSION;
+#ifdef ALSA
+    text += "\n""- ALSA ";
+    text += "1.0";
+#endif
+#ifdef COREAUDIO
     text += "\n""- CoreAudio API ";
     text += "4.0";
-    text += "\n""- LLVM Compiler ";
-    text += "3.1";
+#endif
+#ifdef JACK
+    text += "\n""- Jack 2";
+//    text += jack_get_version_string();
+#endif
+#ifdef NETJACK
+    text += "\n""- NetJack ";
+    text += "2.1";
+#endif
+#ifdef PORTAUDIO
+    text += "\n""- PortAudio ";
+    text += "v19";
+#endif
         
     QPlainTextEdit* versionText = new QPlainTextEdit(text, versionWindow);
         

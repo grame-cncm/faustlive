@@ -104,19 +104,26 @@ void JA_audioManager::connect_Audio(string homeDir){
     if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()){
         if(QFileInfo(homeDir.c_str()).exists()){
             
-            list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
+            FJUI fui;
+            
+            list<pair<string, string> > connection = fui.recallConnections(homeDir.c_str());
             
             fCurrentAudio->reconnect(connection);
         }
         else
             fCurrentAudio->default_connections();  
     }
+    else
+        printf("Do not connect\n");
+    
+    
 }
 
 //Save connections in file
 void JA_audioManager::save_Connections(string homeDir){
     
-    FJUI::saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
+    FJUI fui;
+    fui.saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
     
 }
 
