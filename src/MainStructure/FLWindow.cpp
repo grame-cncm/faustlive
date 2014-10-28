@@ -1378,13 +1378,17 @@ int FLWindow::calculate_Coef(){
 #if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::allocateHttpInterface(){
     
-    QString windowTitle = fWindowName + ":" + getName();
-        
-    char* argv[1];
-        
-    argv[0] = (char*)(windowTitle.toLatin1().data());
-        
-    fHttpInterface = new httpdUI(argv[0], 1, argv, false);
+//    QString windowTitle = fWindowName + ":" + getName();
+//        
+//    char** argv = new char*[1];
+//        
+//    argv[0] = (char*)(windowTitle.toLatin1().data());
+//    
+//    printf("argv to be passed to HTTPDUI = %s\n", argv[0]);
+    
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), 0, NULL, false);
+    fHttpInterface->set_Inputs(fCurrent_DSP->getNumInputs());
+    fHttpInterface->set_Outputs(fCurrent_DSP->getNumOutputs());
 }
 
 void FLWindow::deleteHttpInterface(){
