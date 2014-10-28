@@ -231,8 +231,13 @@ bool AudioCreator::didSettingChanged(){
         
         if(!((*fCurrentSettings)==(*fTempSettings)))
             return true;
-        else
+        else{
+            
+//    Not really the right thing to do with the actual system but JA settings don't influence audio updates so it's directly stored --> to avoid update for just going from connect to disconnect or the other way around...
+            visualSettingsToTempSettings();
+            tempSettingsToSavedSettings();
             return false;
+        }
     }
 }
 
@@ -257,7 +262,7 @@ void AudioCreator::visualSettingsToTempSettings(){
 
 //Store temporary settings
 void AudioCreator::tempSettingsToSavedSettings(){
-
+    
     if(fTempBox != NULL)
         delete fTempBox;
     

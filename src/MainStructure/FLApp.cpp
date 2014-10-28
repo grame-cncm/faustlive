@@ -660,8 +660,9 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
         string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
+    FJUI fui;
     
-    FJUI::update(jcPath.toStdString().c_str(), indexStringChanges);
+    fui.update(jcPath.toStdString().c_str(), indexStringChanges);
     
     return newPath;
 }
