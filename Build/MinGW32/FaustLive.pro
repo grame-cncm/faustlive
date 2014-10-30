@@ -87,7 +87,7 @@ equals(static, 1){
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
-DEFINES += OSCVAR
+DEFINES += OSCCTRL
 
 ########## DEFINES/LIBS/SOURCES/... depending on audio drivers | remote processing feature
 
