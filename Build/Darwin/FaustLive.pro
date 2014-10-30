@@ -26,6 +26,7 @@ MOC_DIR += ../../src/objectsFolder
 RCC_DIR += ../../src/Utilities
 
 QMAKE_EXTRA_TARGETS += all
+#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 
 CONFIG -= x86_64
 CONFIG += exceptions rtti
