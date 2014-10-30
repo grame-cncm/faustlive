@@ -24,7 +24,7 @@
 #ifndef __TMutex__
 #define __TMutex__
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW32__)
 #include <windows.h>
 #else
 #include <pthread.h>
@@ -37,7 +37,7 @@ class TMutex
 	
 	private:
 	
-	#ifdef WIN32
+	#if defined(WIN32) && !defined(__MINGW32__)
 		HANDLE fMutex;
 	#else
 		pthread_mutex_t fMutex;  
@@ -45,7 +45,7 @@ class TMutex
 
 	public:
 
-	#ifdef WIN32
+	#if defined(WIN32) && !defined(__MINGW32__)
 
 		TMutex()
 		{		
