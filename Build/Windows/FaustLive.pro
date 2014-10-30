@@ -84,6 +84,8 @@ LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
 LIBS+=-llibOSCFaust
 LIBS+=-lliboscpack
+LIBS+=-lWs2_32
+LIBS+=-lwinmm
 DEFINES+=OSCCTRL
 
 equals(HTTPDVAR, 1){
