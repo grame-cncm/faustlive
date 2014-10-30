@@ -110,18 +110,20 @@ void FLPreferenceWindow::init(){
 #ifdef HTTPCTRL
     fPortLine = new QLineEdit(networkTab);
     fHttpAuto = new QCheckBox;
-    fOscAuto = new QCheckBox;
     
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
-    
+#endif
+   
+#ifdef OSCCTRL
+    fOscAuto = new QCheckBox;
+
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Osc Interface Automatically")), fOscAuto);
 #endif
-    
     
     networkTab->setLayout(networkLayout);
     
@@ -250,7 +252,9 @@ void FLPreferenceWindow::save(){
     }
     
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
-    
+#endif
+	
+#ifdef OSCCTRL
     settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
 #endif
     
@@ -272,21 +276,11 @@ void FLPreferenceWindow::resetVisualObjects(){
     
 #ifdef  HTTPCTRL
     fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));
-    
-    bool checked = FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool();
-    
-    if(checked)
-        fHttpAuto->setCheckState(Qt::Checked);
-    else
-        fHttpAuto->setCheckState(Qt::Unchecked);
-    
-    checked = FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool();
-    
-    if(checked)
-        fOscAuto->setCheckState(Qt::Checked);
-    else
-        fOscAuto->setCheckState(Qt::Unchecked);
-    
+
+    fHttpAuto->setChecked(FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool());
+#endif
+#ifdef OSCCTRL
+     fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
 #endif
 }
 

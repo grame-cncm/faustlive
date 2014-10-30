@@ -11,6 +11,7 @@
 //      - to accept right click
 //      - to enable a control within distance of its interface through http protocol (see HTTPDWindow)
 
+
 #ifndef _FLWindow_h
 #define _FLWindow_h
 
@@ -23,7 +24,7 @@
 
 #include "faust/gui/FUI.h"
 
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
 #include "HTTPWindow.h"
 #endif
 #include "AudioCreator.h"
@@ -78,11 +79,12 @@ class FLWindow : public QMainWindow/*, public tempName*/
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
     
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef OSCCTRL
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
         void            deleteOscInterface();
-
+#endif
+#ifdef HTTPCTRL
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
 #endif
@@ -128,7 +130,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            edit();
         void            paste();
         void            duplicate();
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
         void            view_qrcode();
 #endif
         void            view_svg();
@@ -221,7 +223,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            is_Default();
     
     //Accessors to httpd Window
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
     
     //Functions to create an httpd interface
         void            viewQrCode();
@@ -239,12 +241,13 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            generateAuxFiles();
         void            resizingBig();
         void            resizingSmall();
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-        void            updateOSCInterface();
-
+#endif
+#ifdef OSCCTRL
+		void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
 #endif
