@@ -257,6 +257,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/Network/FLServerHttp.h \
             ../../src/MainStructure/FLSessionManager.h \
             ../../src/MainStructure/FLApp.h \
+            ../../src/MainStructure/FLInterfaceManager.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
 			$$FAUSTDIR/include/faust/gui/faustqt.h
@@ -279,6 +280,7 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
             ../../src/MenusAndDialogs/FLPreferenceWindow.cpp \
             ../../src/MainStructure/FLSessionManager.cpp \
             ../../src/MainStructure/FLApp.cpp \
+            ../../src/MainStructure/FLInterfaceManager.cpp \
 			../../src/Network/FLServerHttp.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \

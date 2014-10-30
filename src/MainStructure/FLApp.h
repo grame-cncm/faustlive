@@ -204,6 +204,7 @@ class FLApp : public QApplication
     //--------Timers
         void                init_Timer_Action();
         void                update_ProgressBar();
+        void                updateGuis();
     
     //--------Long operations entertainment
         void                display_CompilingProgress(const QString& msg);

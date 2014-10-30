@@ -15,6 +15,7 @@
 #include <shlobj.h>
 #endif
 #include "FLSessionManager.h"
+#include "FLInterfaceManager.h"
 #include "FLWindow.h"
 #include "FLComponentWindow.h"
 #include "FLErrorWindow.h"
@@ -123,6 +124,10 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fInitTimer = new QTimer(this);
     connect(fInitTimer, SIGNAL(timeout()), this, SLOT(init_Timer_Action()));
     fInitTimer->start(500);
+    
+    QTimer* updateGuiTimer = new QTimer(this);
+    QObject::connect(updateGuiTimer, SIGNAL(timeout()), this, SLOT(updateGuis()));
+    updateGuiTimer->start(100);
 }
 
 FLApp::~FLApp(){
@@ -551,6 +556,11 @@ void FLApp::setup_Menu(){
     fMenuBar->addSeparator();
     
     fMenuBar->addMenu(create_HelpMenu());
+}
+
+//--Update all guis
+void FLApp::updateGuis(){
+    FLInterfaceManager::_Instance()->updateAllGuis();
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)

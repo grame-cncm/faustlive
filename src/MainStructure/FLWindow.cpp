@@ -15,7 +15,7 @@
 
 
 list<GUI*>               GUI::fGuiList;
-
+#include "FLInterfaceManager.h"
 
 #include "FLToolBar.h"
 
@@ -797,8 +797,7 @@ void FLWindow::switchOsc(bool on){
     if(on)
         updateOSCInterface();
     else{
-        delete fOscInterface;
-        fOscInterface = NULL;
+        deleteOscInterface();
     }
 }
 
@@ -845,16 +844,14 @@ void FLWindow::allocateOscInterface(){
 
 void FLWindow::deleteOscInterface(){
     
-    if(fInterface)
-        fInterface->stop();
-    
     if(fOscInterface){
+//        printf("To unregister = %p - %s\n", fOscInterface, fWindowName.toStdString().c_str());
+        FLInterfaceManager::_Instance()->unregisterGUI(fOscInterface);
+//        printf("unregistered\n");
         delete fOscInterface;
         fOscInterface = NULL;
+//        printf("OSC Deleted\n");
     }
-    
-    if(fInterface)
-        fInterface->run();
 }
 
 void FLWindow::updateOSCInterface(){
@@ -866,6 +863,7 @@ void FLWindow::updateOSCInterface(){
     fCurrent_DSP->buildUserInterface(fOscInterface);
     recall_Window();
     fOscInterface->run();
+    FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
     
     setWindowsOptions();
 }
@@ -944,16 +942,24 @@ void FLWindow::runInterfaces(){
 #if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface){
         fHttpInterface->run();
+        
+//        FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
+        
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
     
-    if(fOscInterface)
+    if(fOscInterface){
         fOscInterface->run();
+        
+        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
+    }
 #endif
     
     if(fInterface){
-        fInterface->run();
+//        fInterface->run();
         fInterface->installEventFilter(this);
+        
+        FLInterfaceManager::_Instance()->registerGUI(fInterface);
     }
 
     setWindowsOptions();
@@ -961,7 +967,15 @@ void FLWindow::runInterfaces(){
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
-
+    
+    if(fInterface){
+        
+        FLInterfaceManager::_Instance()->unregisterGUI(fInterface);
+        
+        delete fInterface;
+        fInterface = NULL;
+    }
+    
 #if !defined(_WIN32) || defined(__MINGW32__)
     deleteOscInterface();
     
@@ -970,10 +984,6 @@ void FLWindow::deleteInterfaces(){
     }
 #endif
     
-    if(fInterface){
-        delete fInterface;
-        fInterface = NULL;
-    }
     delete fRCInterface;
     fRCInterface = NULL;
 }
@@ -1393,15 +1403,11 @@ void FLWindow::allocateHttpInterface(){
 
 void FLWindow::deleteHttpInterface(){
     
-    if(fInterface)
-        fInterface->stop();
-    
     FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
+    
+//    FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
     delete fHttpInterface;
     fHttpInterface = NULL;
-    
-    if(fInterface)
-        fInterface->run();
 }
 
 void FLWindow::updateHTTPInterface(){
@@ -1416,6 +1422,9 @@ void FLWindow::updateHTTPInterface(){
     fCurrent_DSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
+    
+//    FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
+    
     FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     
     setWindowsOptions();
