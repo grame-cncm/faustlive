@@ -1404,9 +1404,7 @@ void FLWindow::allocateHttpInterface(){
 //    
 //    printf("argv to be passed to HTTPDUI = %s\n", argv[0]);
     
-    fHttpInterface = new httpdUI(getName().toStdString().c_str(), 0, NULL, false);
-    fHttpInterface->set_Inputs(fCurrent_DSP->getNumInputs());
-    fHttpInterface->set_Outputs(fCurrent_DSP->getNumOutputs());
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 0, NULL, false);
 }
 
 void FLWindow::deleteHttpInterface(){
