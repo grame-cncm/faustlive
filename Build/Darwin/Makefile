@@ -2,9 +2,12 @@
 qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
-SPEC := -spec macx-g++
+# This needs to be set correctly for OS X 10.9 and later.
+spec = $(shell test `uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4` -gt 12 && echo macx-clang || echo macx-g++)
+
+SPEC := -spec $(spec)
 DST  := "FaustLive.app/Contents/MacOS"
-QM-DEFS := "CAVAR=1"
+QM-DEFS := "spec=$(spec)" "CAVAR=1"
 
 # The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
 # in the project file.
