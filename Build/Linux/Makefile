@@ -119,6 +119,6 @@ clean : Makefile-qt
 ../../Resources/styles.qrc: ../../Resources/styles.qrc.in
 	sed -e 's?@FAUSTDIR@?$(FAUSTDIR)?g' < $< > $@
 
-Makefile-qt: ../../Resources/styles.qrc
+Makefile-qt: FaustLive.pro ../../Resources/styles.qrc
 	$(qm) $(SPEC) -o Makefile-qt $(QM-DEFS)
 
