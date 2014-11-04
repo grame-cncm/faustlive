@@ -30,7 +30,7 @@ QMAKE_EXTRA_TARGETS += all
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
-equals(spec, macx-clang){
+equals(platform, target_10_9){
 ## This needs to be set correctly for OS X 10.9 and later.
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
