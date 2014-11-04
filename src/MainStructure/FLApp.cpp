@@ -7,7 +7,7 @@
 
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
 #include "FLServerHttp.h"
 #endif
 #ifdef _WIN32
@@ -157,7 +157,7 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
     FLServerHttp::deleteInstance();
 #endif
 }
@@ -535,7 +535,7 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifdef HTTPCTRL
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
 #endif
 #ifdef REMOTE
