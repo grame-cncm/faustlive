@@ -556,6 +556,7 @@ void FLApp::setup_Menu(){
     //----------------MenuBar setups --- 
 #ifdef __APPLE__
     QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
+    closeAllAction->setMenuRole(QAction::NoRole);
     closeAllAction->setShortcut(tr("Ctrl+Q"));
     closeAllAction->setToolTip(tr("Close the application"));   
     connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
@@ -576,14 +577,17 @@ void FLApp::setup_Menu(){
     
 #ifdef __APPLE__
     QAction* aboutQtAction = new QAction(tr("About Qt"), NULL);
+    aboutQtAction->setMenuRole(QAction::AboutQtRole);
     aboutQtAction->setToolTip(tr("Show the library's About Box"));
     connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
     
     QAction* preferencesAction = new QAction(tr("Preferences"), NULL);
+    preferencesAction->setMenuRole(QAction::PreferencesRole);
     preferencesAction->setToolTip(tr("Set the preferences of the application"));
     connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
     
     QAction* presentationAction = new QAction(tr("About FaustLive"), NULL);
+    presentationAction->setMenuRole(QAction::AboutRole);
     presentationAction->setToolTip(tr("Show the presentation Menu"));
     connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
     

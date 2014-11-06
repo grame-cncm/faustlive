@@ -114,7 +114,10 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #endif
 }
 
-FLWindow::~FLWindow(){}
+FLWindow::~FLWindow(){
+    delete menuBar();
+
+}
 
 //------------------------WINDOW ACTIONS
 
