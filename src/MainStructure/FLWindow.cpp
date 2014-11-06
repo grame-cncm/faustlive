@@ -5,17 +5,16 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "FLWindow.h"
-
 #include "faust/gui/faustqt.h"
-#ifdef OSCCTRL
-#include "faust/gui/OSCUI.h"
-#endif
-#ifdef HTTPCTRL
+
 #include "faust/gui/httpdUI.h"
 #include "FLServerHttp.h"
-#endif
 
+#include "faust/gui/FUI.h"
+#include "faust/gui/OSCUI.h"
+
+#include "FLWindow.h"
+#include "HTTPWindow.h"
 
 list<GUI*>               GUI::fGuiList;
 #include "FLInterfaceManager.h"
@@ -25,6 +24,9 @@ list<GUI*>               GUI::fGuiList;
 #ifdef REMOTE
 #include "FLStatusBar.h"
 #endif
+
+#include "AudioCreator.h"
+#include "AudioManager.h"
 
 #include "utilities.h"
 #include "FLSettings.h"
@@ -75,13 +77,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Initializing class members
     
-#ifdef HTTPCTRL
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
-#endif
-#ifdef OSCCTRL
 	fOscInterface = NULL;
-#endif
 
     fInterface = NULL;
     fRCInterface = NULL;
@@ -535,14 +533,10 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     duplicateAction->setToolTip(tr("Duplicate current DSP"));
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
-    //#if-group:
-#ifdef HTTPCTRL
-    //#ifdef HTTPCTRL
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
     httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
     connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(view_qrcode()));
-#endif
     
     QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
     svgViewAction->setShortcut(tr("Ctrl+G"));
@@ -564,9 +558,8 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#ifdef HTTPCTRL
     fWindowMenu->addAction(httpdViewAction);
-#endif
+
     fWindowMenu->addAction(svgViewAction);
     fWindowMenu->addSeparator();
     fWindowMenu->addAction(exportAction);
@@ -636,13 +629,11 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#ifdef HTTPCTRL
 void FLWindow::view_qrcode(){
     
     fToolBar->switchHttp(true);    
     viewQrCode();
 }
-#endif
 
 void FLWindow::view_svg(){
     
@@ -698,13 +689,10 @@ void FLWindow::set_ToolBar(){
 //    connect(fToolBar, SIGNAL(execScript()), this, SLOT(scriptExecution()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-#ifdef HTTPCTRL
 	connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
-#endif
-#ifdef OSCCTRL
 	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
 	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
-#endif
+
 #ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
     connect(fToolBar, SIGNAL(switch_remotecontrol(bool)), this, SLOT(switchRemoteControl(bool)));
@@ -713,12 +701,10 @@ void FLWindow::set_ToolBar(){
 
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
-    
-#ifdef HTTPCTRL
+
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
-#endif
-#ifdef OSCCTRL
+
 	if(fOscInterface){        
     
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
@@ -726,8 +712,6 @@ void FLWindow::setWindowsOptions(){
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
         fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
     }
-    
-#endif
     
     fToolBar->syncVisualParams();
 }
@@ -796,7 +780,7 @@ void FLWindow::redirectSwitch(){
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
-#ifdef OSCCTRL
+
 void FLWindow::disableOSCInterface(){
     fToolBar->switchOsc(false);
 }
@@ -877,7 +861,6 @@ void FLWindow::updateOSCInterface(){
     setWindowsOptions();
 }
 
-#endif
 //----4 STEP OF THE INTERFACES LIFE
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
@@ -910,16 +893,13 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     fRCInterface = new FUI;
     if(!fRCInterface)
         return false;
-
-#ifdef HTTPCTRL    
+  
     if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
         allocateHttpInterface();
     }
-#endif
-#ifdef OSCCTRL
+
 	if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool())
         allocateOscInterface();
-#endif
 
     return true;
 }
@@ -933,37 +913,28 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
     if(fRCInterface)
         compiledDSP->buildUserInterface(fRCInterface);
 
-#ifdef HTTPCTRL
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);            
-#endif
-
-#ifdef OSCCTRL      
+   
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
-#endif
 
 	return true;
 }
 
 void FLWindow::runInterfaces(){
-    
-#ifdef HTTPCTRL
+
     if(fHttpInterface){
         fHttpInterface->run();
-        
-//        FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
-        
+
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
-#endif
-#ifdef OSCCTRL
+
     if(fOscInterface){
         fOscInterface->run();
         
         FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
     }
-#endif
     
     if(fInterface){
 //        fInterface->run();
@@ -986,14 +957,11 @@ void FLWindow::deleteInterfaces(){
         fInterface = NULL;
     }
     
-#ifdef OSCCTRL
     deleteOscInterface();
-#endif
-#ifdef HTTPCTRL
+
     if(fHttpInterface){
         deleteHttpInterface();
     }
-#endif
     
     delete fRCInterface;
     fRCInterface = NULL;
@@ -1064,12 +1032,10 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#ifdef HTTPCTRL
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
     }
-#endif
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
@@ -1396,7 +1362,6 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#ifdef HTTPCTRL
 void FLWindow::allocateHttpInterface(){
     
 //    QString windowTitle = fWindowName + ":" + getName();
@@ -1508,16 +1473,13 @@ QString FLWindow::get_HttpUrl() {
     
     return url;
 }
-#endif
 
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
-    
-#ifdef HTTPCTRL
+
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
-#endif
         // If the interface is not enabled, it's not running on any port
         return 0;
 }

@@ -107,7 +107,7 @@ void FLPreferenceWindow::init(){
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Compilation Port")), fRemoteServerLine);
 #endif
-#ifdef HTTPCTRL
+
     fPortLine = new QLineEdit(networkTab);
     fHttpAuto = new QCheckBox;
     
@@ -116,14 +116,12 @@ void FLPreferenceWindow::init(){
 
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
-#endif
-   
-#ifdef OSCCTRL
+
     fOscAuto = new QCheckBox;
 
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Osc Interface Automatically")), fOscAuto);
-#endif
+
     
     networkTab->setLayout(networkLayout);
     
@@ -238,7 +236,7 @@ void FLPreferenceWindow::save(){
         emit remoteServerPortChanged();
     }
 #endif
-#ifdef HTTPCTRL
+
     int value;
     
     if(isStringInt(fPortLine->text().toLatin1().data()))
@@ -252,11 +250,9 @@ void FLPreferenceWindow::save(){
     }
     
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
-#endif
-	
-#ifdef OSCCTRL
+
     settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
-#endif
+
     
     hide();
 }
@@ -272,16 +268,13 @@ void FLPreferenceWindow::resetVisualObjects(){
 #ifdef REMOTE
     fRemoteServerLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt()));
 #endif
-    
-    
-#ifdef  HTTPCTRL
+ 
     fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));
 
     fHttpAuto->setChecked(FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool());
-#endif
-#ifdef OSCCTRL
+
      fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
-#endif
+
 }
 
 //Response to cancel button triggered in preferences

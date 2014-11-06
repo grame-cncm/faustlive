@@ -21,13 +21,14 @@
 #include <fstream>
 #include <fcntl.h>
 #include <stdlib.h>
-
+#include <winsock2.h>
 #include <microhttpd.h>
 
 #include <map>
 #include <vector>
 #include <string>
-
+#undef min
+#undef max
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>

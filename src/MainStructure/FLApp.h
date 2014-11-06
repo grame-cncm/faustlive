@@ -142,15 +142,14 @@ class FLApp : public QApplication
 #ifdef REMOTE
         void                changeRemoteServerPort();
 #endif
-    
-#ifdef HTTPCTRL
+
 //--------Server Response
         FLWindow*           httpPortToWin(int port);
         void                changeDropPort();
         void                launch_Server();
         void                compile_HttpData(const char* data, int port);
         void                stop_Server();
-#endif
+
     //---------Drop on a window
 
         void                drop_Action(QList<QString>);
