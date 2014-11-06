@@ -5,15 +5,16 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#include "FLServerHttp.h"
+
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#ifdef HTTPCTRL
-#include "FLServerHttp.h"
-#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
 #endif
+
 #include "FLSessionManager.h"
 #include "FLInterfaceManager.h"
 #include "FLWindow.h"
@@ -45,11 +46,10 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
-   
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-#endif
+
 #ifdef REMOTE
     Server* serv = Server::_Instance();
     serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
@@ -116,9 +116,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);
     //Initialiazing Remote Drop Server
-#ifdef HTTPCTRL
     launch_Server();
-#endif
     
     //If no event opened a window half a second after the application was created, a initialized window is created
     fInitTimer = new QTimer(this);
@@ -157,9 +155,9 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
-#ifdef HTTPCTRL
+
     FLServerHttp::deleteInstance();
-#endif
+
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -535,9 +533,8 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-#ifdef HTTPCTRL
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
-#endif
+
 #ifdef REMOTE
     connect(FLPreferenceWindow::_Instance(), SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
 #endif
@@ -1689,7 +1686,6 @@ FLWindow* FLApp::getWinFromHttp(int port){
     return NULL;
 }
 
-#ifdef HTTPCTRL
 FLWindow* FLApp::httpPortToWin(int port){
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
@@ -1795,7 +1791,6 @@ void FLApp::changeDropPort(){
     launch_Server();
     
 }
-#endif
 
 #ifdef REMOTE
 void FLApp::changeRemoteServerPort(){

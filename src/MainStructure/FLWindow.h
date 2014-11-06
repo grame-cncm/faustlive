@@ -22,14 +22,6 @@
 #include <QtWidgets>
 #endif
 
-#include "faust/gui/FUI.h"
-
-#ifdef HTTPCTRL
-#include "HTTPWindow.h"
-#endif
-#include "AudioCreator.h"
-#include "AudioManager.h"
-
 //#include "NJm_audioManager.h"
 
 //#include "tempName.h"
@@ -42,6 +34,11 @@ class OSCUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
+class FUI;
+class AudioCreator;
+class AudioManager;
+class HTTPWindow;
+class dsp;
 
 using namespace std;
 
@@ -78,16 +75,14 @@ class FLWindow : public QMainWindow/*, public tempName*/
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
-    
-#ifdef OSCCTRL
+
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
         void            deleteOscInterface();
-#endif
-#ifdef HTTPCTRL
+
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-#endif
+
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
     
@@ -130,9 +125,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            edit();
         void            paste();
         void            duplicate();
-#ifdef HTTPCTRL
+
         void            view_qrcode();
-#endif
+
         void            view_svg();
         void            export_file();
         void            redirectSwitch();
@@ -223,12 +218,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            is_Default();
     
     //Accessors to httpd Window
-#ifdef HTTPCTRL
     
     //Functions to create an httpd interface
         void            viewQrCode();
         QString         get_HttpUrl();
-#endif
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -241,16 +234,15 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            generateAuxFiles();
         void            resizingBig();
         void            resizingSmall();
-#ifdef HTTPCTRL
+
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-#endif
-#ifdef OSCCTRL
+
 		void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
-#endif
+
         void            shut();
 #ifdef REMOTE
         void            RemoteCallback(int);

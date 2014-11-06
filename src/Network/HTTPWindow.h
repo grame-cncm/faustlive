@@ -11,7 +11,7 @@
 #ifndef _HTTPWindow_h
 #define _HTTPWindow_h
 
-//#include <string>
+#include <string>
 
 #include <QtGui>
 #if QT_VERSION >= 0x050000
@@ -19,17 +19,14 @@
 #endif
 
 #include <QtNetwork>
-//
-//#include "faust/audio/dsp.h"
 
+#include "faust/audio/dsp.h"
 
-//using namespace std;
+using namespace std;
 
 class HTTPWindow : public QMainWindow{
     
     Q_OBJECT
-    
-    private : 
     
     public : 
     

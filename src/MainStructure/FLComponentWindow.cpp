@@ -5,10 +5,12 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "faust/audio/dsp.h"
 #include "faust/gui/faustqt.h"
 
 #include "FLComponentWindow.h"
+
+#include "faust/audio/dsp.h"
+
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
 #include "utilities.h"
