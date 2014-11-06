@@ -94,7 +94,6 @@ LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
-DEFINES += OSCCTRL
 
 ########## DEFINES/LIBS/SOURCES/... 
 ########## depending on audio drivers | remote processing feature
