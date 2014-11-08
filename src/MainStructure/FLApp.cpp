@@ -498,9 +498,9 @@ QMenu* FLApp::create_HelpMenu(){
     
 #ifndef __APPLE__
     
-    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
-    aboutQtAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
+    aboutAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
     
     QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
     presentationAction->setToolTip(tr("Show the presentation Menu"));
@@ -522,9 +522,9 @@ QMenu* FLApp::create_HelpMenu(){
     helpMenu->addAction(versionAction);
 #ifndef __APPLE__
     
-    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
-    aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
+    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
     
     helpMenu->addAction(aboutQtAction);
 #endif
