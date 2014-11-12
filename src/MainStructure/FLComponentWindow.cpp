@@ -5,15 +5,18 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "faust/audio/dsp.h"
 #include "faust/gui/faustqt.h"
 
 #include "FLComponentWindow.h"
+
+#include "faust/audio/dsp.h"
+
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
 #include "utilities.h"
 
 #include "FLErrorWindow.h"
+#include "FLMessageWindow.h"
 
 /****************************LAYOUT OPTIMIZATION TREE*****************/
 
@@ -426,9 +429,15 @@ void FLComponentWindow::init(){
 //Create a faust program that puts in parallel each column component then compose them sequentially.
 void FLComponentWindow::createComponent(){
 
+    hide();
+    
     fItems = componentListWithoutEmptyItem(fItems);
     
     if(fItems.size() !=0){
+        
+        FLMessageWindow::_Instance()->displayMessage("Creating component...");
+        FLMessageWindow::_Instance()->show();
+        FLMessageWindow::_Instance()->raise();
         
         QString faustToCompile = "";
         
@@ -463,15 +472,14 @@ void FLComponentWindow::createComponent(){
         }
         
         faustToCompile += ";";
-        
-        hide();
 //        
 //        printf("Component code = %s\n", faustToCompile.toStdString().c_str());
         
         emit newComponent(faustToCompile);
+        FLMessageWindow::_Instance()->hide();
     }
     else
-        FLErrorWindow::_Instance()->print_Error("You can't create a component without item!");
+        emit newComponent("");
 }
 
 void FLComponentWindow::addComponentRow(){

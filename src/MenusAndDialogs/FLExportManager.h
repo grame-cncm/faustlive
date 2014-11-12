@@ -72,6 +72,7 @@ public:
     void            targetsDescriptionReceived(); 
     void            platformChanged(const QString& index);
     void            setLastState();
+    virtual void    closeEvent(QCloseEvent* event);
     
 };
 
@@ -133,6 +134,7 @@ public:
     void            saveFileOnDisk();
     void            showSaveB();
     void            redirectAbort();
+    virtual void    closeEvent(QCloseEvent* event);
   
 };
 

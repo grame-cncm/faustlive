@@ -31,7 +31,10 @@ QMAKE_EXTRA_TARGETS += all
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
-#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+equals(platform, target_10_9){
+## This needs to be set correctly for OS X 10.9 and later.
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+}
 
 ## QT libraries needed
 QT+=widgets
@@ -92,7 +95,6 @@ LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
-DEFINES += OSCVAR
 
 ########## DEFINES/LIBS/SOURCES/... 
 ########## depending on audio drivers | remote processing feature
@@ -258,6 +260,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/Network/FLServerHttp.h \
             ../../src/MainStructure/FLSessionManager.h \
             ../../src/MainStructure/FLApp.h \
+            ../../src/MainStructure/FLInterfaceManager.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
 			$$FAUSTDIR/include/faust/gui/faustqt.h
@@ -280,6 +283,7 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
             ../../src/MenusAndDialogs/FLPreferenceWindow.cpp \
             ../../src/MainStructure/FLSessionManager.cpp \
             ../../src/MainStructure/FLApp.cpp \
+            ../../src/MainStructure/FLInterfaceManager.cpp \
 			../../src/Network/FLServerHttp.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \

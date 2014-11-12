@@ -5,16 +5,18 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#include "FLServerHttp.h"
+
 #include "FLApp.h"
 #include "FLrenameDialog.h"
-#if !defined(_WIN32) || defined(__MINGW32__)
-#include "FLServerHttp.h"
-#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
 #endif
+
 #include "FLSessionManager.h"
+#include "FLInterfaceManager.h"
 #include "FLWindow.h"
 #include "FLComponentWindow.h"
 #include "FLErrorWindow.h"
@@ -44,11 +46,10 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
-   
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
-#endif
+
 #ifdef REMOTE
     Server* serv = Server::_Instance();
     serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
@@ -74,7 +75,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     setQuitOnLastWindowClosed(false);
 #endif
     
-    fMenuBar = new QMenuBar(NULL);
+    fMenuBar = new QMenuBar();
     
     //Initializing menu actions 
     fRecentFileAction = new QAction* [kMAXRECENT];
@@ -115,14 +116,16 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);
     //Initialiazing Remote Drop Server
-#ifdef HTTPCTRL
     launch_Server();
-#endif
     
     //If no event opened a window half a second after the application was created, a initialized window is created
     fInitTimer = new QTimer(this);
     connect(fInitTimer, SIGNAL(timeout()), this, SLOT(init_Timer_Action()));
     fInitTimer->start(500);
+    
+    QTimer* updateGuiTimer = new QTimer(this);
+    QObject::connect(updateGuiTimer, SIGNAL(timeout()), this, SLOT(updateGuis()));
+    updateGuiTimer->start(100);
 }
 
 FLApp::~FLApp(){
@@ -152,9 +155,9 @@ FLApp::~FLApp(){
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     FLServerHttp::deleteInstance();
-#endif
+
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -374,11 +377,6 @@ QMenu* FLApp::create_FileMenu(){
     shutAllAction->setToolTip(tr("Close all the Windows"));
     connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows_FromMenu()));
     
-    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
-    closeAllAction->setShortcut(tr("Ctrl+Q"));
-    closeAllAction->setToolTip(tr("Close the application"));   
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
-    
     fileMenu->addAction(newAction);    
     fileMenu->addSeparator();
     fileMenu->addAction(openAction);
@@ -399,10 +397,16 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addAction(create_LoadSessionMenu(false)->menuAction());
     fileMenu->addSeparator();
     fileMenu->addAction(shutAllAction);
+    
+//#ifndef __APPLE__
+    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
+    closeAllAction->setShortcut(tr("Ctrl+Q"));
+    closeAllAction->setToolTip(tr("Close the application"));   
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+    
     fileMenu->addSeparator();
     fileMenu->addAction(closeAllAction);
-    
-    
+//#endif
     return fileMenu;
 }
 
@@ -480,27 +484,9 @@ QMenu* FLApp::create_HelpMenu(){
     
     QMenu* helpMenu = new QMenu(tr("Help"), 0);
     
-    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
-    aboutQtAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
-    
-    QAction* preferencesAction = new QAction(tr("&Preferences"), NULL);
-    preferencesAction->setToolTip(tr("Set the preferences of the application"));
-    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
-    
-    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
-    aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
-    
-    
-        
     QAction* versionAction = new QAction(tr("&Version"), this);
     versionAction->setToolTip(tr("Show the version of the libraries used"));
     connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
-    
-    QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
-    presentationAction->setToolTip(tr("Show the presentation Menu"));
-    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
 
     QAction* openFLDoc = new QAction(tr("&Open FaustLive Documentation"), NULL);
     openFLDoc->setToolTip(tr("Open FaustLive Documentation in appropriate application"));
@@ -510,17 +496,38 @@ QMenu* FLApp::create_HelpMenu(){
     openFDoc->setToolTip(tr("Open Faust Documentation in appropriate application"));
     connect(openFDoc, SIGNAL(triggered()), this, SLOT(open_F_doc()));
     
+//#ifndef __APPLE__
+    
+    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
+    aboutAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
+    
+    QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
+    presentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+    
+    QAction* preferencesAction = new QAction(tr("&Preferences"), NULL);
+    preferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
+
+    helpMenu->addAction(aboutAction);
     helpMenu->addAction(presentationAction);
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
     helpMenu->addSeparator();
+//#endif
     helpMenu->addAction(openFLDoc);
     helpMenu->addAction(openFDoc);  
     helpMenu->addSeparator();
-    helpMenu->addAction(aboutAction);
     helpMenu->addAction(versionAction);
+//#ifndef __APPLE__
+    
+    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    
     helpMenu->addAction(aboutQtAction);
-
+//#endif
 
     return helpMenu;
 }
@@ -530,9 +537,8 @@ void FLApp::setup_Menu(){
     //---------------------Presentation MENU
     
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
-#if !defined(_WIN32) || defined(__MINGW32__)
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
-#endif
+
 #ifdef REMOTE
     connect(FLPreferenceWindow::_Instance(), SIGNAL(remoteServerPortChanged()), this, SLOT(changeRemoteServerPort()));
 #endif
@@ -541,16 +547,59 @@ void FLApp::setup_Menu(){
     //--------------------HELP Menu
     FLHelpWindow::createInstance(fLibsFolder);
     
-    //----------------MenuBar setups
     
-    fMenuBar->addMenu(create_FileMenu());
+    QMenu* fileMenu = create_FileMenu();
+    
+    //----------------MenuBar setups --- 
+/*#ifdef __APPLE__
+    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
+    closeAllAction->setMenuRole(QAction::NoRole);
+    closeAllAction->setShortcut(tr("Ctrl+Q"));
+    closeAllAction->setToolTip(tr("Close the application"));   
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+
+    fileMenu->addSeparator();
+    fileMenu->addAction(closeAllAction);
+#endif  */  
+    
+    fMenuBar->addMenu(fileMenu);
+    
     fMenuBar->addSeparator();
     
     fNavigateMenu = create_NavigateMenu();
     fMenuBar->addMenu(fNavigateMenu);
     fMenuBar->addSeparator();
     
-    fMenuBar->addMenu(create_HelpMenu());
+    QMenu* helpMenu = create_HelpMenu();
+    
+/*#ifdef __APPLE__
+    QAction* aboutQtAction = new QAction(tr("About Qt"), NULL);
+    aboutQtAction->setMenuRole(QAction::AboutQtRole);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    
+    QAction* preferencesAction = new QAction(tr("Preferences"), NULL);
+    preferencesAction->setMenuRole(QAction::PreferencesRole);
+    preferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
+    
+    QAction* presentationAction = new QAction(tr("About FaustLive"), NULL);
+    presentationAction->setMenuRole(QAction::AboutRole);
+    presentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+    
+    helpMenu->addSeparator();
+    helpMenu->addAction(preferencesAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(presentationAction);
+    helpMenu->addAction(aboutQtAction);
+#endif*/
+    fMenuBar->addMenu(helpMenu);
+}
+
+//--Update all guis
+void FLApp::updateGuis(){
+    FLInterfaceManager::_Instance()->updateAllGuis();
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
@@ -1679,7 +1728,6 @@ FLWindow* FLApp::getWinFromHttp(int port){
     return NULL;
 }
 
-#ifdef HTTPCTRL
 FLWindow* FLApp::httpPortToWin(int port){
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
@@ -1785,7 +1833,6 @@ void FLApp::changeDropPort(){
     launch_Server();
     
 }
-#endif
 
 #ifdef REMOTE
 void FLApp::changeRemoteServerPort(){

@@ -17,7 +17,7 @@ FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
 
 FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
     
-    setWindowFlags(Qt::FramelessWindowHint);
+//    setWindowFlags(Qt::FramelessWindowHint);
 
     init();
 }
@@ -107,21 +107,21 @@ void FLPreferenceWindow::init(){
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Compilation Port")), fRemoteServerLine);
 #endif
-#ifdef HTTPCTRL
+
     fPortLine = new QLineEdit(networkTab);
     fHttpAuto = new QCheckBox;
-    fOscAuto = new QCheckBox;
     
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
-    
+
+    fOscAuto = new QCheckBox;
+
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable Osc Interface Automatically")), fOscAuto);
-#endif
-    
+
     
     networkTab->setLayout(networkLayout);
     
@@ -236,7 +236,7 @@ void FLPreferenceWindow::save(){
         emit remoteServerPortChanged();
     }
 #endif
-#ifdef HTTPCTRL
+
     int value;
     
     if(isStringInt(fPortLine->text().toLatin1().data()))
@@ -250,9 +250,9 @@ void FLPreferenceWindow::save(){
     }
     
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
-    
+
     settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
-#endif
+
     
     hide();
 }
@@ -268,26 +268,13 @@ void FLPreferenceWindow::resetVisualObjects(){
 #ifdef REMOTE
     fRemoteServerLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt()));
 #endif
-    
-    
-#ifdef  HTTPCTRL
+ 
     fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));
-    
-    bool checked = FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool();
-    
-    if(checked)
-        fHttpAuto->setCheckState(Qt::Checked);
-    else
-        fHttpAuto->setCheckState(Qt::Unchecked);
-    
-    checked = FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool();
-    
-    if(checked)
-        fOscAuto->setCheckState(Qt::Checked);
-    else
-        fOscAuto->setCheckState(Qt::Unchecked);
-    
-#endif
+
+    fHttpAuto->setChecked(FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool());
+
+     fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
+
 }
 
 //Response to cancel button triggered in preferences
@@ -299,6 +286,9 @@ void FLPreferenceWindow::cancel(){
     hide();
 }
 
+void FLPreferenceWindow::closeEvent(QCloseEvent* /* event*/){
+    cancel();
+}
 
 //Style clicked in Menu
 void FLPreferenceWindow::styleClicked(){

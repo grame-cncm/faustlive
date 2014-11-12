@@ -48,6 +48,7 @@ public:
     void save();
     void cancel();
     void styleClicked();
+    virtual void closeEvent(QCloseEvent* event);
     
 signals:
     

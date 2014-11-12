@@ -602,6 +602,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == ""){
         errorMsg = err.c_str();
+        printf("ERROR IN EXPAND = %s\n", err.c_str());
         return qMakePair(QString(""), (void*)NULL);
     }
         
@@ -1152,7 +1153,7 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     
-    const char** argv = getFactoryArgv("", faustOptions, argc);
+    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
 
     string error_msg("");
     

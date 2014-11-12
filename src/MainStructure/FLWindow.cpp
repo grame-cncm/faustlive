@@ -5,17 +5,19 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#include "FLWindow.h"
-
 #include "faust/gui/faustqt.h"
-#if !defined(_WIN32) || defined(__MINGW32__)
-#include "faust/gui/OSCUI.h"
-#include "faust/gui/httpdUI.h"
-#endif
 
+#include "faust/gui/httpdUI.h"
+#include "FLServerHttp.h"
+
+#include "faust/gui/FUI.h"
+#include "faust/gui/OSCUI.h"
+
+#include "FLWindow.h"
+#include "HTTPWindow.h"
 
 list<GUI*>               GUI::fGuiList;
-
+#include "FLInterfaceManager.h"
 
 #include "FLToolBar.h"
 
@@ -23,14 +25,15 @@ list<GUI*>               GUI::fGuiList;
 #include "FLStatusBar.h"
 #endif
 
+#include "AudioCreator.h"
+#include "AudioManager.h"
+
 #include "utilities.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
-#if !defined(_WIN32) || defined(__MINGW32__)
-#include "FLServerHttp.h"
-#endif
+
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
@@ -74,11 +77,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     //    Initializing class members
     
-#if !defined(_WIN32) || defined(__MINGW32__)
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
-    fOscInterface = NULL;
-#endif
+	fOscInterface = NULL;
 
     fInterface = NULL;
     fRCInterface = NULL;
@@ -111,7 +112,10 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #endif
 }
 
-FLWindow::~FLWindow(){}
+FLWindow::~FLWindow(){
+    delete menuBar();
+
+}
 
 //------------------------WINDOW ACTIONS
 
@@ -224,7 +228,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
 bool FLWindow::ifWavToString(const QString& source, QString& newSource){
     //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
     
-    if(QFileInfo(source).completeSuffix() == "wav"){
+    QString suffix = QFileInfo(source).completeSuffix();
+    
+    if(suffix == "wav" || suffix == "aif" || suffix == "aiff" || suffix == "aifc"){
         
         QString exeFile = "";
         
@@ -529,14 +535,10 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     duplicateAction->setToolTip(tr("Duplicate current DSP"));
     connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicate()));
     
-    //#if-group:
-#if !defined(_WIN32) || defined(__MINGW32__)
-    //#ifdef HTTPCTRL
     QAction* httpdViewAction = new QAction(tr("&View QRcode"),this);
     httpdViewAction->setShortcut(tr("Ctrl+K"));
     httpdViewAction->setToolTip(tr("Print the QRcode of TCP protocol"));
     connect(httpdViewAction, SIGNAL(triggered()), this, SLOT(view_qrcode()));
-#endif
     
     QAction* svgViewAction = new QAction(tr("&View SVG Diagram"),this);
     svgViewAction->setShortcut(tr("Ctrl+G"));
@@ -558,9 +560,8 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus){
     fWindowMenu->addAction(pasteAction);
     fWindowMenu->addAction(duplicateAction);
     fWindowMenu->addSeparator();
-#if !defined(_WIN32) || defined(__MINGW32__)
     fWindowMenu->addAction(httpdViewAction);
-#endif
+
     fWindowMenu->addAction(svgViewAction);
     fWindowMenu->addSeparator();
     fWindowMenu->addAction(exportAction);
@@ -630,13 +631,11 @@ void FLWindow::duplicate(){
     emit duplicate_Action();
 }
 
-#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::view_qrcode(){
     
     fToolBar->switchHttp(true);    
     viewQrCode();
 }
-#endif
 
 void FLWindow::view_svg(){
     
@@ -692,11 +691,10 @@ void FLWindow::set_ToolBar(){
 //    connect(fToolBar, SIGNAL(execScript()), this, SLOT(scriptExecution()));
     connect(fToolBar, SIGNAL(sizeGrowth()), this, SLOT(resizingBig()));
     connect(fToolBar, SIGNAL(sizeReduction()), this, SLOT(resizingSmall()));
-#ifdef HTTPCTRL
 	connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
 	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
 	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
-#endif
+
 #ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
     connect(fToolBar, SIGNAL(switch_remotecontrol(bool)), this, SLOT(switchRemoteControl(bool)));
@@ -705,11 +703,10 @@ void FLWindow::set_ToolBar(){
 
 //Set the windows options with current values
 void FLWindow::setWindowsOptions(){
-    
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     if(fHttpInterface)
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
-    
+
 	if(fOscInterface){        
     
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
@@ -717,8 +714,6 @@ void FLWindow::setWindowsOptions(){
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
         fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
     }
-    
-#endif
     
     fToolBar->syncVisualParams();
 }
@@ -787,7 +782,7 @@ void FLWindow::redirectSwitch(){
 }
 
 //------------ALLOCATION/DESALLOCATION OF INTERFACES
-#if !defined(_WIN32) || defined(__MINGW32__)
+
 void FLWindow::disableOSCInterface(){
     fToolBar->switchOsc(false);
 }
@@ -797,8 +792,7 @@ void FLWindow::switchOsc(bool on){
     if(on)
         updateOSCInterface();
     else{
-        delete fOscInterface;
-        fOscInterface = NULL;
+        deleteOscInterface();
     }
 }
 
@@ -819,7 +813,8 @@ void FLWindow::allocateOscInterface(){
         
         int argc = 11;
         
-        char* argv[argc];
+//---- Allocation for windows needs
+        char** argv = new char*[argc];
         argv[0] = (char*)(fWindowName.toStdString().c_str());
         argv[1] = (char*)"-port";
         
@@ -839,22 +834,19 @@ void FLWindow::allocateOscInterface(){
         argv[10] = (char*) (errport.c_str());
 
         fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
-
+		delete [] argv;
     }
 }
 
 void FLWindow::deleteOscInterface(){
     
-    if(fInterface)
-        fInterface->stop();
-    
     if(fOscInterface){
+
+        FLInterfaceManager::_Instance()->unregisterGUI(fOscInterface);
+
         delete fOscInterface;
         fOscInterface = NULL;
     }
-    
-    if(fInterface)
-        fInterface->run();
 }
 
 void FLWindow::updateOSCInterface(){
@@ -866,11 +858,11 @@ void FLWindow::updateOSCInterface(){
     fCurrent_DSP->buildUserInterface(fOscInterface);
     recall_Window();
     fOscInterface->run();
+    FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
     
     setWindowsOptions();
 }
 
-#endif
 //----4 STEP OF THE INTERFACES LIFE
 
 bool FLWindow::allocateInterfaces(const QString& nameEffect){
@@ -903,19 +895,14 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
     fRCInterface = new FUI;
     if(!fRCInterface)
         return false;
-
-#ifdef HTTPCTRL    
-#if !defined(_WIN32) || defined(__MINGW32__)
-    if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool()){
-        allocateOscInterface();
-        printf("ALLOCATED OSC INTERFACE\n");
-    }
-    
+  
     if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
         allocateHttpInterface();
     }
-#endif
-#endif
+
+	if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool())
+        allocateOscInterface();
+
     return true;
 }
 
@@ -928,32 +915,34 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
     if(fRCInterface)
         compiledDSP->buildUserInterface(fRCInterface);
 
-#ifdef HTTPCTRL
-#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);            
+   
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
-#endif
-#endif
+
 	return true;
 }
 
 void FLWindow::runInterfaces(){
-    
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     if(fHttpInterface){
         fHttpInterface->run();
+
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
-    
-    if(fOscInterface)
+
+    if(fOscInterface){
         fOscInterface->run();
-#endif
+        
+        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
+    }
     
     if(fInterface){
-        fInterface->run();
+//        fInterface->run();
         fInterface->installEventFilter(this);
+        
+        FLInterfaceManager::_Instance()->registerGUI(fInterface);
     }
 
     setWindowsOptions();
@@ -961,19 +950,21 @@ void FLWindow::runInterfaces(){
 
 //Delete of QTinterface and of saving graphical interface
 void FLWindow::deleteInterfaces(){
-
-#if !defined(_WIN32) || defined(__MINGW32__)
-    deleteOscInterface();
-    
-    if(fHttpInterface){
-        deleteHttpInterface();
-    }
-#endif
     
     if(fInterface){
+        
+        FLInterfaceManager::_Instance()->unregisterGUI(fInterface);
+        
         delete fInterface;
         fInterface = NULL;
     }
+    
+    deleteOscInterface();
+
+    if(fHttpInterface){
+        deleteHttpInterface();
+    }
+    
     delete fRCInterface;
     fRCInterface = NULL;
 }
@@ -1043,12 +1034,10 @@ void FLWindow::close_Window(){
 
     deleteInterfaces();
 
-#if !defined(_WIN32) || defined(__MINGW32__)
     if(fHttpdWindow){
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
     }
-#endif
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
@@ -1130,7 +1119,9 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
-                if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
+                QString suffix = QFileInfo(i->toString()).completeSuffix();
+                
+                if(suffix == "dsp" || suffix == "wav" || suffix == "aif" || suffix == "aiff" || suffix == "aifc"){
                     
                     centralWidget()->hide();
                     event->acceptProposedAction();   
@@ -1375,7 +1366,6 @@ int FLWindow::calculate_Coef(){
     return multiplCoef;
 }
 
-#if !defined(_WIN32) || defined(__MINGW32__)
 void FLWindow::allocateHttpInterface(){
     
 //    QString windowTitle = fWindowName + ":" + getName();
@@ -1386,22 +1376,16 @@ void FLWindow::allocateHttpInterface(){
 //    
 //    printf("argv to be passed to HTTPDUI = %s\n", argv[0]);
     
-    fHttpInterface = new httpdUI(getName().toStdString().c_str(), 0, NULL, false);
-    fHttpInterface->set_Inputs(fCurrent_DSP->getNumInputs());
-    fHttpInterface->set_Outputs(fCurrent_DSP->getNumOutputs());
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 0, NULL, false);
 }
 
 void FLWindow::deleteHttpInterface(){
     
-    if(fInterface)
-        fInterface->stop();
-    
     FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
+    
+//    FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
     delete fHttpInterface;
     fHttpInterface = NULL;
-    
-    if(fInterface)
-        fInterface->run();
 }
 
 void FLWindow::updateHTTPInterface(){
@@ -1416,6 +1400,9 @@ void FLWindow::updateHTTPInterface(){
     fCurrent_DSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
+    
+//    FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
+    
     FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     
     setWindowsOptions();
@@ -1490,16 +1477,13 @@ QString FLWindow::get_HttpUrl() {
     
     return url;
 }
-#endif
 
 //Accessor to Http & Osc Port
 int FLWindow::get_Port(){
-    
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     if(fHttpInterface != NULL)
         return fHttpInterface->getTCPPort();
     else
-#endif
         // If the interface is not enabled, it's not running on any port
         return 0;
 }

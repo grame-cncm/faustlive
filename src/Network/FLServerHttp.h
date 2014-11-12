@@ -22,12 +22,17 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 #include <microhttpd.h>
 
 #include <map>
 #include <vector>
 #include <string>
-
+#undef min
+#undef max
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>

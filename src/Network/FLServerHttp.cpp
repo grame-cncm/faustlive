@@ -354,9 +354,9 @@ void FLServerHttp::updateAvailableInterfaces(){
     
     for (map<int, string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++) {
         
-        json << std::endl << '"' << it->second << '"' << ": [" << '"' << it->first << '"' << ']';
-        if(it != fDeclaredNames.end())
+        if(it != fDeclaredNames.begin())
             json<<',';
+        json << std::endl << '"' << it->second << '"' << ": [" << '"' << it->first << '"' << ']';
         
         html<<"<tr>"<<std::endl;
         html<<"<td>"<<it->second<<"</td>";

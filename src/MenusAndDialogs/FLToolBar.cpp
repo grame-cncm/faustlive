@@ -67,8 +67,6 @@ void FLToolBar::init(){
     fContainer->setStyleSheet("*{background-color: transparent}");
 
 //------- OSC Control
-#ifdef HTTPCTRL
-    
     QWidget* oscBox = new QWidget();
     
     fOSCCheckBox = new QCheckBox;
@@ -113,9 +111,7 @@ void FLToolBar::init(){
     oscBox->setLayout(oscLayout);
     
     fContainer->addItem(oscBox, "OSC Interface");
-    
 //------- HTTP Control
-    
     QWidget* httpBox = new QWidget;
 
     fHttpCheckBox = new QCheckBox();
@@ -131,8 +127,6 @@ void FLToolBar::init(){
     
     httpBox->setLayout(httpLayout);
     fContainer->addItem(httpBox, "Http Interface");
-    
-#endif
  
 #ifdef REMOTE
 //-------- Remote Control
@@ -313,14 +307,15 @@ printf("delete window options \n");
     delete fOptionLine;
     delete fOptValLine;
     delete fAutomaticExportLine;
-#if !defined(_WIN32) || defined(__MINGW32__)
+
     delete fHttpCheckBox;
     delete fHttpPort;
+
     delete fOSCCheckBox;
     delete fPortInOscLine;
     delete fPortOutOscLine;
     delete fPortErrOscLine;
-#endif
+
 
 #ifdef REMOTE
     delete fRemoteControlIP;
@@ -390,17 +385,14 @@ bool FLToolBar::hasScriptChanged(){
 }
 
 bool FLToolBar::wasOscSwitched(){
-#ifdef OSCVAR
-    
+
     if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)) != fOSCCheckBox->isChecked())
         return true;
-#endif
-    return false;
+	else
+		return false;
 }
 
 bool FLToolBar::hasOscOptionsChanged(){
-    
-#ifdef OSCVAR
 
     if(fOSCCheckBox->isChecked()){
         if(fPortInOscLine->text() != fSettings->value("Osc/InPort", "5510").toString())
@@ -415,17 +407,16 @@ bool FLToolBar::hasOscOptionsChanged(){
         if(fPortErrOscLine->text() != fSettings->value("Osc/ErrPort", "5512").toString())
             return true;
     }
-#endif 
+
     return false;
 }
 
 bool FLToolBar::wasHttpSwitched(){
 
-#ifdef HTTPCTRL   
     if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)) != fHttpCheckBox->isChecked())
         return true;
- #endif    
-    return false;
+	else
+	    return false;
 }
 
 bool FLToolBar::wasRemoteControlSwitched(){
@@ -466,15 +457,14 @@ void FLToolBar::modifiedOptions(){
     bool automaticExportOpt = false;
 //    bool scriptOpt = false;
     bool compilationOpt= false;
-#ifdef OSCVAR
+
     bool oscSwitchOpt = false;
     bool oscSwitchVal = fOSCCheckBox->isChecked();
     bool oscOpt= false;
-#endif
-#ifdef HTTPCTRL
+
     bool httpOpt= false;
     bool httpSwitchVal = fHttpCheckBox->isChecked();
-#endif
+
 #ifdef REMOTE
     bool remoteControlOpt= false;
     bool remoteControlVal = fRemoteControlCheckBox->isChecked();
@@ -502,8 +492,6 @@ void FLToolBar::modifiedOptions(){
 //        scriptOpt = true;
     }
     
-#ifdef OSCVAR   
-
     if(hasOscOptionsChanged()){
         
         fSettings->setValue("Osc/InPort", fPortInOscLine->text());
@@ -527,15 +515,12 @@ void FLToolBar::modifiedOptions(){
         oscSwitchOpt = true;
     }
 
-#endif
-
-#ifdef HTTPCTRL
     if(wasHttpSwitched()){
         fSettings->setValue("Http/Enabled", fHttpCheckBox->isChecked());
         
         httpOpt = true;
     }
-#endif
+
 #ifdef REMOTE
     if(wasRemoteControlSwitched()){
        fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
@@ -564,16 +549,15 @@ void FLToolBar::modifiedOptions(){
 //        emit execScript();
 	if(compilationOpt)
         emit compilationOptionsChanged();
-#ifdef OSCVAR
+
 	if(oscSwitchOpt)
         emit switch_osc(oscSwitchVal);
 	if(oscOpt)
         emit oscPortChanged();
-#endif
-#ifdef HTTPCTRL
+
 	if(httpOpt)
         emit switch_http(httpSwitchVal);
-#endif
+
 #ifdef REMOTE
 	if(remoteControlOpt)
         emit switch_remotecontrol(remoteControlVal);
@@ -587,23 +571,16 @@ void FLToolBar::modifiedOptions(){
 }
                              
 void FLToolBar::switchHttp(bool on){
-//#ifndef _WIN32 || HTTPDVAR
-#ifdef HTTPCTRL
-        fHttpCheckBox->setChecked(on);
-        modifiedOptions();
-#else
-	Q_UNUSED(on);
-#endif
+
+	fHttpCheckBox->setChecked(on);
+    modifiedOptions();
+
 }
 
 void FLToolBar::switchOsc(bool on){
-//#ifndef _WIN32 || OSCVAR
-#ifdef OSCVAR
-        fOSCCheckBox->setChecked(on);
-        modifiedOptions();
-#else
-	Q_UNUSED(on);
-#endif
+
+	fOSCCheckBox->setChecked(on);
+    modifiedOptions();
 }
 
 void FLToolBar::syncVisualParams(){
@@ -619,25 +596,20 @@ void FLToolBar::syncVisualParams(){
     
 //---- Post Compilation Script
     fScriptLine->setText(fSettings->value("Script/Options", "").toString());
-    
-#ifdef HTTPCTRL
+
 //------ OSC
-    bool checked = fSettings->value("Osc/Enabled", generalSettings->value("General/Network/OscDefaultChecked", false)).toBool();
-    
-    fOSCCheckBox->setChecked(checked);
+    fOSCCheckBox->setChecked(fSettings->value("Osc/Enabled", generalSettings->value("General/Network/OscDefaultChecked", false)).toBool());
     
     fPortInOscLine->setText(fSettings->value("Osc/InPort", "5510").toString());
     fPortOutOscLine->setText(fSettings->value("Osc/OutPort", "5511").toString());
     fDestHostLine->setText(fSettings->value("Osc/DestHost", "localhost").toString());
     fPortErrOscLine->setText(fSettings->value("Osc/ErrPort", "5512").toString());
-    
+
 //------ Http    
-    checked = fSettings->value("Http/Enabled", generalSettings->value("General/Network/HttpDefaultChecked", false)).toBool();
-    
-    fHttpCheckBox->setChecked(checked);
+    fHttpCheckBox->setChecked(fSettings->value("Http/Enabled", generalSettings->value("General/Network/HttpDefaultChecked", false)).toBool());
     
     fHttpPort->setText(fSettings->value("Http/Port", "5510").toString());
-#endif
+
 #ifdef REMOTE
 //------ RemoteProcessing
     fCVLine->setText(fSettings->value("RemoteProcessing/CV", "64").toString());  

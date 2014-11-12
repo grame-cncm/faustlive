@@ -11,6 +11,7 @@
 //      - to accept right click
 //      - to enable a control within distance of its interface through http protocol (see HTTPDWindow)
 
+
 #ifndef _FLWindow_h
 #define _FLWindow_h
 
@@ -20,14 +21,6 @@
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
-
-#include "faust/gui/FUI.h"
-
-#if !defined(_WIN32) || defined(__MINGW32__)
-#include "HTTPWindow.h"
-#endif
-#include "AudioCreator.h"
-#include "AudioManager.h"
 
 //#include "NJm_audioManager.h"
 
@@ -41,6 +34,11 @@ class OSCUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
+class FUI;
+class AudioCreator;
+class AudioManager;
+class HTTPWindow;
+class dsp;
 
 using namespace std;
 
@@ -77,15 +75,14 @@ class FLWindow : public QMainWindow/*, public tempName*/
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
-    
-#if !defined(_WIN32) || defined(__MINGW32__)
+
         OSCUI*          fOscInterface;      //OSC interface 
         void            allocateOscInterface();
         void            deleteOscInterface();
 
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-#endif
+
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
     
@@ -128,9 +125,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            edit();
         void            paste();
         void            duplicate();
-#if !defined(_WIN32) || defined(__MINGW32__)
+
         void            view_qrcode();
-#endif
+
         void            view_svg();
         void            export_file();
         void            redirectSwitch();
@@ -221,12 +218,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            is_Default();
     
     //Accessors to httpd Window
-#if !defined(_WIN32) || defined(__MINGW32__)
     
     //Functions to create an httpd interface
         void            viewQrCode();
         QString         get_HttpUrl();
-#endif
     
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
@@ -239,15 +234,15 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            generateAuxFiles();
         void            resizingBig();
         void            resizingSmall();
-#if !defined(_WIN32) || defined(__MINGW32__)
+
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-        void            updateOSCInterface();
 
+		void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
-#endif
+
         void            shut();
 #ifdef REMOTE
         void            RemoteCallback(int);

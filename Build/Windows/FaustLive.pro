@@ -17,6 +17,8 @@ QMAKE_EXTRA_TARGETS += all
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
+QMAKE_LFLAGS +=/SAFESEH:NO
+
 ## QT libraries needed
 QT+=widgets
 QT+=core
@@ -28,7 +30,7 @@ TARGET = FaustLive
 DEFINES += APP_VERSION=\\\"2.0\\\"
 
 ## Images/Examples and other needed resources
-RESOURCES     = ../../Resources/application.qrc
+RESOURCES += ../../Resources/application.qrc
 RESOURCES += ../../Resources/windows.qrc
 
 ####### INCLUDES PATHS && LIBS PATHS
@@ -39,11 +41,12 @@ RC_FILE = FaustLive.rc
 TEMPLATE = vcapp
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
 INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture
+INCLUDEPATH += C:\Users\Sarah\faudiostream-code\architecture\osclib\faust
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include\QtWidgets
 INCLUDEPATH += C:\Users\Sarah\DevTools\portaudio\include
 INCLUDEPATH += C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32
-#INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
-INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include\curl
+INCLUDEPATH += C:\Users\Sarah\DevTools\libmicrohttpd\include
+INCLUDEPATH += C:\Users\Sarah\DevTools\curl-7.35.0-win32\include
 INCLUDEPATH += C:\Users\Sarah\DevTools\libopenssl\include
 INCLUDEPATH += ../../src/Audio
 INCLUDEPATH += ../../src/MenusAndDialogs
@@ -55,21 +58,27 @@ LLVMLIBS = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --l
 #LLVMDIR = $$system(C:\Users\Sarah\DevTools\llvm-3.4\bin\Release\llvm-config --ldflags)
 
 Debug{
-		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\faust_vs2012\Debug
-#		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Debug
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libfaust_vs2012\Debug
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libOSCFaust\Debug
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\liboscpack\Debug
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libHTTPD\Debug
 		LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Debug
 		LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Debug
-		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Lib
 		LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
 		LIBS+=-LC:\Users\Sarah\DevTools\libopenssl\lib
+		LIBS+=-LC:\Users\Sarah\DevTools\libmicrohttpd\lib
 		CONFIG += console
 }
 Release{
 		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libfaust_vs2012\Release
-#		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\faust_httpd_vs2012\_output\Win32\faust_httpd_vs2012\Release
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libOSCFaust\Release
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\liboscpack\Release
+		LIBS+=-LC:\Users\Sarah\faudiostream-code\windows\_output\Win32\libHTTPD\Release
+		LIBS+=-LC:\Users\Sarah\DevTools\libmicrohttpd\lib
 		LIBS+=-LC:\Users\Sarah\DevTools\llvm-3.4\lib\Release
 		LIBS+=-LC:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Release
-		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Debug-Dll
+		LIBS+=-LC:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Release-Lib
 		LIBS+=-LC:\Users\Sarah\DevTools\curl-7.35.0-win32\lib
 		LIBS+=-LC:\Users\Sarah\DevTools\libopenssl\lib
 }
@@ -79,16 +88,21 @@ LIBS+=-lssleay32
 
 LIBS+=-lfaust
 LIBS+= $$LLVMLIBS
+LIBS+=-llibOSCFaust
+LIBS+=-lliboscpack
 
-equals(HTTPDVAR, 1){
-		LIBS+=-lHTTPDFaust
-		LIBS+=-lqrcodelib
-		LIBS+=-llibcurl
-		DEFINES += HTTPCTRL
-		#DEFINES += QRCODECTRL
-}
+LIBS+=-llibHTTPDFaust
+LIBS+=-lqrcodelib
+LIBS+=-llibcurl
+LIBS+=-llibmicrohttpd.dll.a
+DEFINES += HTTPCTRL
+DEFINES += QRCODECTRL
+
+LIBS+=-lWs2_32
+LIBS+=-lwinmm
 	
-HEADERS += ../../src/Utilities/utilities.h 
+HEADERS += ../../src/Utilities/utilities.h \
+			../../src/Utilities/TMutex.h
 SOURCES += ../../src/Utilities/utilities.cpp
 
 ########## DEFINES/LIBS/SOURCES/... depending on audio drivers | remote processing feature
@@ -190,14 +204,13 @@ HEADERS +=  ../../src/Audio/AudioSettings.h \
 			../../src/MainStructure/FLSessionManager.h \
 			../../src/MainStructure/FLWinSettings.h \
             ../../src/MainStructure/FLWindow.h \
+			../../src/Network/FLServerHttp.h \
+			../../src/Network/HTTPWindow.h \
+			../../src/MainStructure/FLInterfaceManager.h \
             ../../src/MainStructure/FLSettings.h \
             ../../src/MainStructure/FLApp.h \
 			C:\Users\Sarah\faudiostream-code\architecture\faust\gui\faustqt.h
-#equals(HTTPDVAR, 1){
-#			HEADERS +=	../../src/Network/FLServerHttp.h \
-#						../../src/Network/HTTPWindow.h 
-#}
-
+			
 SOURCES += 	../../src/Audio/AudioCreator.cpp \
             ../../src/Audio/AudioFader_Implementation.cpp \
         	../../src/MenusAndDialogs/FLToolBar.cpp \
@@ -209,6 +222,9 @@ SOURCES += 	../../src/Audio/AudioCreator.cpp \
 			../../src/MenusAndDialogs/FLHelpWindow.cpp \
 			../../src/MenusAndDialogs/FLStatusBar.cpp \
             ../../src/MainStructure/FLWindow.cpp \
+			../../src/Network/FLServerHttp.cpp \
+			../../src/Network/HTTPWindow.cpp \
+			../../src/MainStructure/FLInterfaceManager.cpp \
             ../../src/MainStructure/FLSettings.cpp \
             ../../src/MenusAndDialogs/FLPreferenceWindow.cpp \
             ../../src/MainStructure/FLApp.cpp	\
@@ -218,10 +234,6 @@ SOURCES += 	../../src/Audio/AudioCreator.cpp \
 			../../src/MainStructure/FLWinSettings.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
 			../../src/Utilities/main.cpp 
-#equals(HTTPDVAR, 1){
-#	SOURCES +=	../../src/Network/FLServerHttp.cpp \
-#				../../src/Network/HTTPWindow.cpp
-#}
-
+			
 
 
