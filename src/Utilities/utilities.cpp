@@ -213,8 +213,12 @@ QString searchLocalIP(){
     QString localhost("localhost"); 
     
     for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
-        if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
-            return it->toString();
+		if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost){
+			printf("HOST = %s at pos = %i\n", it->toString().toStdString().c_str(), it->toString().indexOf("169."));
+			//Filter strange windows default adress 169.x.x.x
+			if(it->toString().indexOf("169.") != 0)
+	            return it->toString();
+		}
         else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
             localhost = it->toString();
     }
