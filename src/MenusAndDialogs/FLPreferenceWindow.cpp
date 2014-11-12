@@ -17,7 +17,7 @@ FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
 
 FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
     
-    setWindowFlags(Qt::FramelessWindowHint);
+//    setWindowFlags(Qt::FramelessWindowHint);
 
     init();
 }
@@ -286,6 +286,9 @@ void FLPreferenceWindow::cancel(){
     hide();
 }
 
+void FLPreferenceWindow::closeEvent(QCloseEvent* /* event*/){
+    cancel();
+}
 
 //Style clicked in Menu
 void FLPreferenceWindow::styleClicked(){
