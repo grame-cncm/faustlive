@@ -599,13 +599,15 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 //    EXPAND DSP JUST TO GET SHA KEY
     
     printf("name = %s\n", name.toStdString().c_str());
+	for(int i=0; i<argc; i++)
+		printf("argv %i = %s\n", i, argv[i]);
     
     if(expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == ""){
         errorMsg = err.c_str();
         printf("ERROR IN EXPAND = %s\n", err.c_str());
         return qMakePair(QString(""), (void*)NULL);
     }
-        
+//        shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
     
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
@@ -657,7 +659,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 
         //----Create DSP Factory
         if(toCompile->fLLVMFactory == NULL){
-            
+
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
             
             printf("ERROR IN CREATE FACTORY FROM FILE = %s\n", error.c_str());

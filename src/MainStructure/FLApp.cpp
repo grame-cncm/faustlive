@@ -111,7 +111,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLPresentationWindow::_Instance(), SIGNAL(openWin()), this, SLOT(open_New_Window()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openSession()), this, SLOT(importSnapshotFromMenu()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openPref()), this, SLOT(Preferences()));
-    connect(FLPresentationWindow::_Instance(), SIGNAL(openHelp()), FLHelpWindow::_Instance(), SLOT(show()));
+//    connect(FLPresentationWindow::_Instance(), SIGNAL(openHelp()), FLHelpWindow::_Instance(), SLOT(show()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
     
     //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);
@@ -151,7 +151,7 @@ FLApp::~FLApp(){
     
     delete fInitTimer;
     
-    FLHelpWindow::deleteInstance();
+//    FLHelpWindow::deleteInstance();
     
     FLSettings::deleteInstance();
     FLSessionManager::deleteInstance();
@@ -483,7 +483,7 @@ QMenu* FLApp::create_NavigateMenu(){
 QMenu* FLApp::create_HelpMenu(){
     
     QMenu* helpMenu = new QMenu(tr("Help"), 0);
-    
+
     QAction* versionAction = new QAction(tr("&Version"), this);
     versionAction->setToolTip(tr("Show the version of the libraries used"));
     connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
@@ -545,7 +545,7 @@ void FLApp::setup_Menu(){
     fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP Menu
-    FLHelpWindow::createInstance(fLibsFolder);
+//    FLHelpWindow::createInstance(fLibsFolder);
     
     
     QMenu* fileMenu = create_FileMenu();
