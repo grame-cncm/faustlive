@@ -75,7 +75,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     setQuitOnLastWindowClosed(false);
 #endif
     
-    fMenuBar = new QMenuBar(NULL);
+    fMenuBar = new QMenuBar();
     
     //Initializing menu actions 
     fRecentFileAction = new QAction* [kMAXRECENT];
@@ -377,11 +377,6 @@ QMenu* FLApp::create_FileMenu(){
     shutAllAction->setToolTip(tr("Close all the Windows"));
     connect(shutAllAction, SIGNAL(triggered()), this, SLOT(shut_AllWindows_FromMenu()));
     
-    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
-    closeAllAction->setShortcut(tr("Ctrl+Q"));
-    closeAllAction->setToolTip(tr("Close the application"));   
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
-    
     fileMenu->addAction(newAction);    
     fileMenu->addSeparator();
     fileMenu->addAction(openAction);
@@ -402,10 +397,16 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addAction(create_LoadSessionMenu(false)->menuAction());
     fileMenu->addSeparator();
     fileMenu->addAction(shutAllAction);
+    
+//#ifndef __APPLE__
+    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
+    closeAllAction->setShortcut(tr("Ctrl+Q"));
+    closeAllAction->setToolTip(tr("Close the application"));   
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+    
     fileMenu->addSeparator();
     fileMenu->addAction(closeAllAction);
-    
-    
+//#endif
     return fileMenu;
 }
 
@@ -483,27 +484,9 @@ QMenu* FLApp::create_HelpMenu(){
     
     QMenu* helpMenu = new QMenu(tr("Help"), 0);
     
-    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
-    aboutQtAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
-    
-    QAction* preferencesAction = new QAction(tr("&Preferences"), NULL);
-    preferencesAction->setToolTip(tr("Set the preferences of the application"));
-    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
-    
-    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
-    aboutAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
-    
-    
-        
     QAction* versionAction = new QAction(tr("&Version"), this);
     versionAction->setToolTip(tr("Show the version of the libraries used"));
     connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));
-    
-    QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
-    presentationAction->setToolTip(tr("Show the presentation Menu"));
-    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
 
     QAction* openFLDoc = new QAction(tr("&Open FaustLive Documentation"), NULL);
     openFLDoc->setToolTip(tr("Open FaustLive Documentation in appropriate application"));
@@ -513,17 +496,38 @@ QMenu* FLApp::create_HelpMenu(){
     openFDoc->setToolTip(tr("Open Faust Documentation in appropriate application"));
     connect(openFDoc, SIGNAL(triggered()), this, SLOT(open_F_doc()));
     
+//#ifndef __APPLE__
+    
+    QAction* aboutAction = new QAction(tr("&Help..."), NULL);
+    aboutAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutAction, SIGNAL(triggered()), FLHelpWindow::_Instance(), SLOT(show()));
+    
+    QAction* presentationAction = new QAction(tr("&About FaustLive"), NULL);
+    presentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+    
+    QAction* preferencesAction = new QAction(tr("&Preferences"), NULL);
+    preferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
+
+    helpMenu->addAction(aboutAction);
     helpMenu->addAction(presentationAction);
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
     helpMenu->addSeparator();
+//#endif
     helpMenu->addAction(openFLDoc);
     helpMenu->addAction(openFDoc);  
     helpMenu->addSeparator();
-    helpMenu->addAction(aboutAction);
     helpMenu->addAction(versionAction);
+//#ifndef __APPLE__
+    
+    QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    
     helpMenu->addAction(aboutQtAction);
-
+//#endif
 
     return helpMenu;
 }
@@ -543,16 +547,54 @@ void FLApp::setup_Menu(){
     //--------------------HELP Menu
     FLHelpWindow::createInstance(fLibsFolder);
     
-    //----------------MenuBar setups
     
-    fMenuBar->addMenu(create_FileMenu());
+    QMenu* fileMenu = create_FileMenu();
+    
+    //----------------MenuBar setups --- 
+/*#ifdef __APPLE__
+    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
+    closeAllAction->setMenuRole(QAction::NoRole);
+    closeAllAction->setShortcut(tr("Ctrl+Q"));
+    closeAllAction->setToolTip(tr("Close the application"));   
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+
+    fileMenu->addSeparator();
+    fileMenu->addAction(closeAllAction);
+#endif  */  
+    
+    fMenuBar->addMenu(fileMenu);
+    
     fMenuBar->addSeparator();
     
     fNavigateMenu = create_NavigateMenu();
     fMenuBar->addMenu(fNavigateMenu);
     fMenuBar->addSeparator();
     
-    fMenuBar->addMenu(create_HelpMenu());
+    QMenu* helpMenu = create_HelpMenu();
+    
+/*#ifdef __APPLE__
+    QAction* aboutQtAction = new QAction(tr("About Qt"), NULL);
+    aboutQtAction->setMenuRole(QAction::AboutQtRole);
+    aboutQtAction->setToolTip(tr("Show the library's About Box"));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    
+    QAction* preferencesAction = new QAction(tr("Preferences"), NULL);
+    preferencesAction->setMenuRole(QAction::PreferencesRole);
+    preferencesAction->setToolTip(tr("Set the preferences of the application"));
+    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
+    
+    QAction* presentationAction = new QAction(tr("About FaustLive"), NULL);
+    presentationAction->setMenuRole(QAction::AboutRole);
+    presentationAction->setToolTip(tr("Show the presentation Menu"));
+    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
+    
+    helpMenu->addSeparator();
+    helpMenu->addAction(preferencesAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(presentationAction);
+    helpMenu->addAction(aboutQtAction);
+#endif*/
+    fMenuBar->addMenu(helpMenu);
 }
 
 //--Update all guis

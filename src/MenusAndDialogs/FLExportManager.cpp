@@ -39,7 +39,7 @@ FLTargetChooser::FLTargetChooser(QWidget* parent) : QDialog(parent){
     fLastArchi = "";
     fLastChoice = "";
     
-    setWindowFlags(Qt::FramelessWindowHint);
+//    setWindowFlags(Qt::FramelessWindowHint);
     
     init();
 }
@@ -150,6 +150,10 @@ void FLTargetChooser::setLastState(){
     fLastPlatform = fExportPlatform->currentText();
     fLastArchi = fExportArchi->currentText();
     fLastChoice = fExportArchi->currentText();
+}
+
+void FLTargetChooser::closeEvent(QCloseEvent* /*event*/){
+    cancelDialog();
 }
 
 void FLTargetChooser::cancelDialog(){
@@ -269,7 +273,7 @@ FLExportManager::FLExportManager(){
     fPostReply = NULL;
     fGetKeyReply = NULL;
     
-    setWindowFlags(Qt::FramelessWindowHint);
+//    setWindowFlags(Qt::FramelessWindowHint);
     
     fTextZone = NULL;
 
@@ -347,6 +351,11 @@ void FLExportManager::init(){
     adjustSize();
     hide();
     centerOnPrimaryScreen(this);
+}
+
+void FLExportManager::closeEvent(QCloseEvent* /*event*/){
+    redirectAbort();
+    hide();
 }
 
 //When Cancel is pressed, the request is aborted

@@ -112,7 +112,10 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #endif
 }
 
-FLWindow::~FLWindow(){}
+FLWindow::~FLWindow(){
+    delete menuBar();
+
+}
 
 //------------------------WINDOW ACTIONS
 
@@ -225,7 +228,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
 bool FLWindow::ifWavToString(const QString& source, QString& newSource){
     //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
     
-    if(QFileInfo(source).completeSuffix() == "wav"){
+    QString suffix = QFileInfo(source).completeSuffix();
+    
+    if(suffix == "wav" || suffix == "aif" || suffix == "aiff" || suffix == "aifc"){
         
         QString exeFile = "";
         
@@ -1114,7 +1119,9 @@ void FLWindow::dragEnterEvent ( QDragEnterEvent * event ){
             
             for (i = urls.begin(); i != urls.end(); i++) {
                 
-                if(QFileInfo(i->toString()).completeSuffix().compare("dsp") == 0 || QFileInfo(i->toString()).completeSuffix().compare("wav") == 0){
+                QString suffix = QFileInfo(i->toString()).completeSuffix();
+                
+                if(suffix == "dsp" || suffix == "wav" || suffix == "aif" || suffix == "aiff" || suffix == "aifc"){
                     
                     centralWidget()->hide();
                     event->acceptProposedAction();   

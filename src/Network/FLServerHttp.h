@@ -21,7 +21,11 @@
 #include <fstream>
 #include <fcntl.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
 #include <winsock2.h>
+#endif
+
 #include <microhttpd.h>
 
 #include <map>
