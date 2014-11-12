@@ -398,7 +398,7 @@ QMenu* FLApp::create_FileMenu(){
     fileMenu->addSeparator();
     fileMenu->addAction(shutAllAction);
     
-#ifndef __APPLE__
+//#ifndef __APPLE__
     QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
     closeAllAction->setShortcut(tr("Ctrl+Q"));
     closeAllAction->setToolTip(tr("Close the application"));   
@@ -406,7 +406,7 @@ QMenu* FLApp::create_FileMenu(){
     
     fileMenu->addSeparator();
     fileMenu->addAction(closeAllAction);
-#endif
+//#endif
     return fileMenu;
 }
 
@@ -496,7 +496,7 @@ QMenu* FLApp::create_HelpMenu(){
     openFDoc->setToolTip(tr("Open Faust Documentation in appropriate application"));
     connect(openFDoc, SIGNAL(triggered()), this, SLOT(open_F_doc()));
     
-#ifndef __APPLE__
+//#ifndef __APPLE__
     
     QAction* aboutAction = new QAction(tr("&Help..."), NULL);
     aboutAction->setToolTip(tr("Show the library's About Box"));
@@ -515,19 +515,19 @@ QMenu* FLApp::create_HelpMenu(){
     helpMenu->addSeparator();
     helpMenu->addAction(preferencesAction);
     helpMenu->addSeparator();
-#endif
+//#endif
     helpMenu->addAction(openFLDoc);
     helpMenu->addAction(openFDoc);  
     helpMenu->addSeparator();
     helpMenu->addAction(versionAction);
-#ifndef __APPLE__
+//#ifndef __APPLE__
     
     QAction* aboutQtAction = new QAction(tr("&About Qt"), NULL);
     aboutQtAction->setToolTip(tr("Show the library's About Box"));
     connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
     
     helpMenu->addAction(aboutQtAction);
-#endif
+//#endif
 
     return helpMenu;
 }
@@ -551,7 +551,7 @@ void FLApp::setup_Menu(){
     QMenu* fileMenu = create_FileMenu();
     
     //----------------MenuBar setups --- 
-#ifdef __APPLE__
+/*#ifdef __APPLE__
     QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
     closeAllAction->setMenuRole(QAction::NoRole);
     closeAllAction->setShortcut(tr("Ctrl+Q"));
@@ -560,7 +560,7 @@ void FLApp::setup_Menu(){
 
     fileMenu->addSeparator();
     fileMenu->addAction(closeAllAction);
-#endif    
+#endif  */  
     
     fMenuBar->addMenu(fileMenu);
     
@@ -572,7 +572,7 @@ void FLApp::setup_Menu(){
     
     QMenu* helpMenu = create_HelpMenu();
     
-#ifdef __APPLE__
+/*#ifdef __APPLE__
     QAction* aboutQtAction = new QAction(tr("About Qt"), NULL);
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     aboutQtAction->setToolTip(tr("Show the library's About Box"));
@@ -593,7 +593,7 @@ void FLApp::setup_Menu(){
     helpMenu->addSeparator();
     helpMenu->addAction(presentationAction);
     helpMenu->addAction(aboutQtAction);
-#endif
+#endif*/
     fMenuBar->addMenu(helpMenu);
 }
 
