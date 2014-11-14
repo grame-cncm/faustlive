@@ -84,6 +84,7 @@ LIBS+=$$FAUSTDIR/lib/libOSCFaust.a
 } else {
 LIBS+=-lHTTPDFaust
 LIBS+=-lOSCFaust
+LIBS+=-loscpack
 }
 
 LIBS+=-lqrencode

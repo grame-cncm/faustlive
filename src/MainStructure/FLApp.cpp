@@ -483,7 +483,7 @@ QMenu* FLApp::create_NavigateMenu(){
 QMenu* FLApp::create_HelpMenu(){
     
     QMenu* helpMenu = new QMenu(tr("Help"), 0);
-    
+
     QAction* versionAction = new QAction(tr("&Version"), this);
     versionAction->setToolTip(tr("Show the version of the libraries used"));
     connect(versionAction, SIGNAL(triggered()), this, SLOT(version_Action()));

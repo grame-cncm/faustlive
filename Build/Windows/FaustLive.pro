@@ -94,7 +94,7 @@ LIBS+=-lliboscpack
 LIBS+=-llibHTTPDFaust
 LIBS+=-lqrcodelib
 LIBS+=-llibcurl
-LIBS+=-llibmicrohttpd.dll.a
+LIBS+=-llibmicrohttpd
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 

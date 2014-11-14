@@ -908,7 +908,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect){
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
 bool FLWindow::buildInterfaces(dsp* compiledDSP){
-      
+    
     if(fInterface)
         compiledDSP->buildUserInterface(fInterface);
     
@@ -917,7 +917,6 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
 
     if(fHttpInterface)
         compiledDSP->buildUserInterface(fHttpInterface);            
-   
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
 
@@ -1368,15 +1367,19 @@ int FLWindow::calculate_Coef(){
 
 void FLWindow::allocateHttpInterface(){
     
-//    QString windowTitle = fWindowName + ":" + getName();
-//        
-//    char** argv = new char*[1];
-//        
-//    argv[0] = (char*)(windowTitle.toLatin1().data());
-//    
-//    printf("argv to be passed to HTTPDUI = %s\n", argv[0]);
+    QString windowTitle = fWindowName + ":" + getName();
+        
+    char** argv = new char*[3];
+        
+	char charport[5];
+	int port = 5510 + fWindowIndex;
+	sprintf(charport, "%d", port);
+
+    argv[0] = (char*)(windowTitle.toStdString().c_str());
+    argv[1] = "-port";
+	argv[2] = charport;
     
-    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 0, NULL, false);
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
 }
 
 void FLWindow::deleteHttpInterface(){
