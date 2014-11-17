@@ -1373,7 +1373,7 @@ void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
         
-    char** argv = new char*[3];
+    char* argv[3];
         
 	char charport[5];
 	int port = 5510 + fWindowIndex;
