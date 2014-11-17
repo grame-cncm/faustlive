@@ -665,7 +665,7 @@ void FLWindow::export_file(){
     
     if(targetDialog->exec()){
         
-        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, fSource);
+        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         
         FLExportManager* exportDialog = FLExportManager::_Instance();
         exportDialog->exportFile(getName(), expandedCode, targetDialog->platform(), targetDialog->architecture(), targetDialog->binOrSource());
@@ -712,6 +712,8 @@ void FLWindow::setWindowsOptions(){
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
+//        printf("DESTINATION HOST = %s\n", fOscInterface->getDestAddress());
+        
         fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
     }
     
@@ -734,6 +736,8 @@ void FLWindow::generateAuxFiles(){
 
 //Reaction to the resizing the toolbar
 void FLWindow::resizingSmall(){
+//     fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
+//    setWindowsOptions();
     
     setMinimumSize(QSize(0,0));
     adjustSize();
