@@ -617,7 +617,7 @@ void FLToolBar::syncVisualParams(){
     fLatLine->setText(fSettings->value("RemoteProcessing/Latency", "10").toString());  
     
 //----- Release
-    checked = fSettings->value("Release/Enabled", false).toBool();
+    bool checked = fSettings->value("Release/Enabled", false).toBool();
     
     fPublishBox->setChecked(checked);
 #endif
