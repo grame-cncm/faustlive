@@ -75,7 +75,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     setQuitOnLastWindowClosed(false);
 #endif
 
-	fLastOpened = "";
+	fLastOpened = getenv("HOME");
     
     fMenuBar = new QMenuBar();
     
