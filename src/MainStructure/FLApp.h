@@ -137,6 +137,9 @@ class FLApp : public QApplication
         FLWindow*           getActiveWin();
         FLWindow*           getWinFromHttp(int port);
     
+    //------- Remembering the last folder in which a file was openened
+		QString				fLastOpened;
+    
     private slots :
     
 #ifdef REMOTE
