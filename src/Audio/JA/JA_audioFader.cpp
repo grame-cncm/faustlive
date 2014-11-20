@@ -250,8 +250,7 @@ int	JA_audioFader::process(jack_nframes_t nframes)
 {
     AVOIDDENORMALS;
     // Retrieve JACK inputs/output audio buffers
-    
-    float* fInChannel[fNumInChans];
+    float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
     
     for (int i = 0; i < fNumInChans; i++) {
         fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
@@ -262,8 +261,7 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         //Step 1 : Calculation of intermediate buffers
         
         fDsp->compute(nframes, fInChannel, fIntermediateFadeOut);
-        
-        float* fInChannelDspIn[fNumInDspFade];
+        float** fInChannelDspIn = (float**)alloca(fNumInDspFade*sizeof(float*));
         
         for (int i = 0; i < fNumInDspFade; i++) {
             fInChannelDspIn[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
@@ -271,7 +269,7 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         fDspIn->compute(nframes, fInChannelDspIn, fIntermediateFadeIn); 
         
         int numOutPorts = max(fNumOutChans, fNumOutDspFade);
-        float* fOutFinal[numOutPorts];
+		float** fOutFinal = (float**)alloca(numOutPorts*sizeof(float*));
         
         //Step 2 : Mixing the 2 DSP in the final output buffer taking into account the number of IN/OUT ports of the in- and out-coming DSP
         
@@ -312,7 +310,7 @@ int	JA_audioFader::process(jack_nframes_t nframes)
     
     //Normal processing
     else{
-        float* fOutFinal[fNumOutChans];
+		float** fOutFinal = (float**)alloca(fNumOutChans*sizeof(float*));
         
         for (int i = 0; i < fNumOutChans; i++)
             fOutFinal[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);

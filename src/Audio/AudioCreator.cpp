@@ -52,7 +52,7 @@ enum audioArchi{
     kCoreaudio, 
 #endif
 #ifdef PORTAUDIO
-    kPortaudio
+    kPortaudio,
 #endif
 #ifdef JACK
     kJackaudio,
@@ -61,7 +61,7 @@ enum audioArchi{
     kNetjackaudio,
 #endif
 #ifdef ALSA
-    kAlsaaudio,
+    kAlsaaudio
 #endif
 };
 

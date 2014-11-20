@@ -1255,17 +1255,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     StopProgressSlot();
 }
 
-//----Recall saved current session
-bool FLApp::recall_CurrentSession(){
-
-    map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
-    
-    if(restoredSources.size() == 0)
-        return false;
-        
-	fRecalling = true;
-
-    display_CompilingProgress("Uploading your session...");
+void FLApp::restoreSession( map<int, QString> restoredSources){
 
     map<int, QString>::iterator it;
     for(it = restoredSources.begin(); it != restoredSources.end(); it++){
@@ -1279,10 +1269,41 @@ bool FLApp::recall_CurrentSession(){
         if(!createWindow(it->first, it->second, windowSettings, error))
             errorPrinting(error);
     }
+}
+
+//----Recall saved current session
+bool FLApp::recall_CurrentSession(){
+
+    map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
+    
+    if(restoredSources.size() == 0)
+        return false;
+        
+	fRecalling = true;
+
+    display_CompilingProgress("Uploading your session...");
+
+	restoreSession(restoredSources);
     
 //  If no window could be recalled, it's considered that the audio driver could not be set.
     if(FLW_List.size() == 0){
-        
+		fAudioCreator->reset_AudioArchitecture();
+
+	    fAudioCreator->visualSettingsToTempSettings();
+		
+		restoreSession(restoredSources);
+		fAudioCreator->tempSettingsToSavedSettings();
+
+		QString msgToPrint = fAudioCreator->get_ArchiName();
+
+		if(FLW_List.size() == 0){
+            msgToPrint += " could not be initialized.";
+		}
+		else{
+			msgToPrint += " started instead.";
+		}
+		
+		errorPrinting(msgToPrint);
     }
 	
 	StopProgressSlot();
@@ -1666,9 +1687,7 @@ void FLApp::update_AudioArchitecture(){
     
     //If init failed, reinit old audio Architecture
     if(!updateSuccess){
-        
-        errorToPrint = "Update not successfull";
-        
+          
         errorPrinting(errorToPrint);
         errorPrinting(error);
         
@@ -1720,7 +1739,7 @@ void FLApp::update_AudioArchitecture(){
 
         //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
-            errorToPrint = "Update successfull";
+            errorToPrint = fAudioCreator->get_ArchiName() + " successfully started.";
             errorPrinting(errorToPrint);
         }
     }
