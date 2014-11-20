@@ -24,6 +24,10 @@
     #include "CA_audioFactory.h"
 #endif
 
+#ifdef PORTAUDIO
+#include "PA_audioFactory.h"
+#endif
+
 #ifdef JACK
     #include "JA_audioFactory.h"
 #endif
@@ -37,10 +41,6 @@
 #include "AL_audioFactory.h"
 #endif
 
-#ifdef PORTAUDIO
-#include "PA_audioFactory.h"
-#endif
-
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
@@ -51,6 +51,9 @@ enum audioArchi{
 #ifdef COREAUDIO
     kCoreaudio, 
 #endif
+#ifdef PORTAUDIO
+    kPortaudio
+#endif
 #ifdef JACK
     kJackaudio,
 #endif
@@ -59,9 +62,6 @@ enum audioArchi{
 #endif
 #ifdef ALSA
     kAlsaaudio,
-#endif
-#ifdef PORTAUDIO
-    kPortaudio
 #endif
 };
 
@@ -78,7 +78,9 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
 #ifdef COREAUDIO
     fAudioArchi->addItem("CoreAudio");
 #endif
-
+#ifdef PORTAUDIO
+    fAudioArchi->addItem("PortAudio");
+#endif
 #ifdef JACK
     fAudioArchi->addItem("Jack");
 #endif
@@ -88,9 +90,6 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
 #endif
 #ifdef ALSA
     fAudioArchi->addItem("Alsa");
-#endif
-#ifdef PORTAUDIO
-    fAudioArchi->addItem("PortAudio");
 #endif
     
     connect(fAudioArchi, SIGNAL(activated(int)), this, SLOT(indexChanged(int)));
@@ -148,6 +147,8 @@ int AudioCreator::driverNameToIndex(const QString& driverName){
 //Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index){
 
+    printf("AudioCreator::indexChanged\n");
+    
     if(fFactory != NULL)
         delete fFactory;
     
@@ -165,6 +166,11 @@ void AudioCreator::indexChanged(int index){
     fMenu->setLayout(fLayout);
 }
 
+void AudioCreator::reset_AudioArchitecture(){
+    fAudioArchi->setCurrentIndex(0);
+    indexChanged(0);
+}
+
 //Creation of the Factory/Settings/Manager depending on audio index
 AudioFactory* AudioCreator::createFactory(int index){
     
@@ -174,6 +180,12 @@ AudioFactory* AudioCreator::createFactory(int index){
             return new CA_audioFactory();
             break;
 #endif
+#ifdef PORTAUDIO
+        case kPortaudio:
+            
+            return new PA_audioFactory();
+            break;
+#endif  
 #ifdef JACK
         case kJackaudio:
             return new JA_audioFactory();
@@ -185,17 +197,10 @@ AudioFactory* AudioCreator::createFactory(int index){
             return new NJs_audioFactory();
             break;
 #endif  
-            
 #ifdef ALSA
         case kAlsaaudio:
             
             return new AL_audioFactory();
-            break;
-#endif  
-#ifdef PORTAUDIO
-        case kPortaudio:
-            
-            return new PA_audioFactory();
             break;
 #endif  
         default:

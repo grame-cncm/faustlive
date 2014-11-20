@@ -74,6 +74,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #else
     setQuitOnLastWindowClosed(false);
 #endif
+
+	fLastOpened = getenv("HOME");
     
     fMenuBar = new QMenuBar();
     
@@ -130,8 +132,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
 FLApp::~FLApp(){
 
-    QString tempPath = fSessionFolder + "/Temp";
-    deleteDirectoryAndContent(tempPath);
+//    QString tempPath = fSessionFolder + "/Temp";
+//    deleteDirectoryAndContent(tempPath);
     
     save_Recent_Files();
     save_Recent_Sessions();
@@ -154,10 +156,10 @@ FLApp::~FLApp(){
     FLHelpWindow::deleteInstance();
     
     FLSettings::deleteInstance();
+
     FLSessionManager::deleteInstance();
 
     FLServerHttp::deleteInstance();
-
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -723,6 +725,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows_FromWindow()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
+    connect(win, SIGNAL(audioPrefChange()), this, SLOT(audioPrefChanged()));
 }
 
 //---------------NEW WINDOW
@@ -859,14 +862,17 @@ void FLApp::open_New_Window(){
     
     FLWindow* win = getActiveWin();
     
-    QStringList fileNames = QFileDialog::getOpenFileNames(NULL, tr("Open one or several DSPs"), "",tr("Files (*.dsp)"));
+    QStringList fileNames = QFileDialog::getOpenFileNames(NULL, tr("Open one or several DSPs"), fLastOpened, tr("Files (*.dsp)"));
     
     QStringList::iterator it;
     
     for(it = fileNames.begin(); it != fileNames.end(); it++){
-        
+          
         if((*it) != ""){
+			
             QString inter(*it);
+            
+			fLastOpened = QFileInfo(inter).absolutePath();
             
             if(win != NULL && win->is_Default())
                 win->update_Window(inter);
@@ -1126,14 +1132,16 @@ void FLApp::take_Snapshot(){
 	QString filename;
     
 #ifndef _WIN32
-    filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""), tr("(*.tar)"));
+    filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", fLastOpened, tr("(*.tar)"));
 #else
-	filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", tr(""));
+	filename = fileDialog->getSaveFileName(NULL, "Take Snapshot", fLastOpened);
 #endif
     
     
     //If no name is placed, nothing happens
     if(filename.compare("") != 0){
+    
+		fLastOpened = QFileInfo(filename).absolutePath();
         
         display_CompilingProgress("Saving your snapshot...");
         
@@ -1150,6 +1158,8 @@ void FLApp::take_Snapshot(){
         
         StopProgressSlot();
     }
+    
+    delete fileDialog;
 }
 
 //---------------RESTORE SNAPSHOT FUNCTIONS
@@ -1158,26 +1168,30 @@ void FLApp::recallSnapshotFromMenu(){
 	
 	QString fileName;
 #ifndef _WIN32
-    fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Snapshot"), "",tr("Files (*.tar)"));
+    fileName = QFileDialog::getOpenFileName(NULL, tr("Recall a Snapshot"), fLastOpened,tr("Files (*.tar)"));
 #else
-	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), "", QFileDialog::ShowDirsOnly);
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Recall a Snapshot"), fLastOpened, QFileDialog::ShowDirsOnly);
 #endif
     
-    if(fileName != "")
+    if(fileName != ""){
+		fLastOpened = QFileInfo(fileName).absolutePath();
         recall_Snapshot(fileName, false);
+	}
 }
 
 void FLApp::importSnapshotFromMenu(){
     
 	QString fileName;
 #ifndef _WIN32
-    fileName = QFileDialog::getOpenFileName(NULL, tr("Import a Snapshot"), "",tr("Files (*.tar)"));
+    fileName = QFileDialog::getOpenFileName(NULL, tr("Import a Snapshot"), fLastOpened, tr("Files (*.tar)"));
 #else
-	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), "", QFileDialog::ShowDirsOnly);
+	fileName = QFileDialog::getExistingDirectory(NULL, tr("Import a Snapshot"), fLastOpened, QFileDialog::ShowDirsOnly);
 #endif
     
-    if(fileName != "")
+    if(fileName != ""){
+        fLastOpened = QFileInfo(fileName).absolutePath();
         recall_Snapshot(fileName, true);
+	}
     
 }
 
@@ -1265,9 +1279,15 @@ bool FLApp::recall_CurrentSession(){
         if(!createWindow(it->first, it->second, windowSettings, error))
             errorPrinting(error);
     }
-    StopProgressSlot();
-	fRecalling = false;
+    
+//  If no window could be recalled, it's considered that the audio driver could not be set.
+    if(FLW_List.size() == 0){
+        
+    }
 	
+	StopProgressSlot();
+	fRecalling = false;
+    
     return true;
     
 }
@@ -1601,12 +1621,15 @@ void FLApp::styleClicked(const QString& style){
 void FLApp::Preferences(){
     
     FLPreferenceWindow::_Instance()->exec();
-    
+    audioPrefChanged();
+}
+
+void FLApp::audioPrefChanged(){
     if(fAudioCreator->didSettingChanged()){
         
         fAudioCreator->visualSettingsToTempSettings();
         update_AudioArchitecture();
-    }
+    } 
 }
 
 //Update Audio Architecture of all opened windows

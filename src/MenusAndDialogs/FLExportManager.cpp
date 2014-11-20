@@ -277,6 +277,8 @@ FLExportManager::FLExportManager(){
     
     fTextZone = NULL;
 
+	fLastOpened = getenv("HOME");
+
     init();
     
     QDir ImagesDir(":/");
@@ -526,8 +528,7 @@ void FLExportManager::saveFileOnDisk(){
     
     QString fullName = fAppName + "_" + fPlatform + "_" + fArchi;
     
-    QString defaultFilename = getenv("HOME");
-    defaultFilename += "/*/" + fullName;
+    QString defaultFilename = fLastOpened + "/" + fullName;
     
     if(fChoice.compare("src.cpp") == 0){
         defaultFilename += ".cpp";
@@ -542,6 +543,8 @@ void FLExportManager::saveFileOnDisk(){
     }
     
     if(filenameToSave != ""){
+        
+        fLastOpened = QFileInfo(filenameToSave).absolutePath();
         
         QFile f(filenameToSave); //On ouvre le fichier
         
