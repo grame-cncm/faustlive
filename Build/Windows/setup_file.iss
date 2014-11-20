@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "FaustLive"
-#define MyAppVersion "1.0"
+#define MyAppVersion "2.30"
 #define MyAppPublisher "Grame"
 #define MyAppURL "http://faust.grame.fr"
 #define MyAppExeName "FaustLive.exe"
@@ -21,9 +21,9 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-LicenseFile=C:\Users\Sarah\faudiostream-faustlive\release\GPL_License.txt
-InfoAfterFile=C:\Users\Sarah\faudiostream-faustlive\release\README_BEFORE_YOU_START.txt
-OutputDir=C:\Users\Sarah\faudiostream-faustlive\Distribution_Windows\FaustLive
+LicenseFile=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\GPL_License.txt
+InfoAfterFile=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\README_BEFORE_YOU_START.txt
+OutputDir=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\FaustLive-Windows-Jack-2.30\FaustLive
 OutputBaseFilename=setup_FaustLive
 SetupIconFile=C:\Users\Sarah\faudiostream-faustlive\Resources\Images\FaustLiveIcon.ico
 Compression=lzma
@@ -37,30 +37,41 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\FaustLive.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\vcredist_x86.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\faust.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libsndfile-1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\sound2faust.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\icudt51.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\icuin51.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\icuuc51.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libeay32.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libEGL.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libGLESv2.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\libssh2.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\msvcr120.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\portaudio_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\Projet1.vcxprojResolveAssemblyReference.cache"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\qt.conf"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\Qt5Core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\Qt5Gui.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\Qt5Network.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\Qt5Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\ssleay32.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Sarah\faudiostream-faustlive\release\plugins\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\FaustLive.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\vcredist_x86.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libsndfile-1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\sound2faust.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\icudt51.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\icuin51.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\icuuc51.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libmicrohttpd-10.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgnutls-28.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgcrypt-11.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgmp.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgpg-error-0.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libjacknet.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libplibc-1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\pthreadGC2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libintl-8.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libpng15.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libiconv-2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\qrcodelib.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libeay32.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libEGL.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libGLESv2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libssh2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\msvcr120.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\portaudio_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\Projet1.vcxprojResolveAssemblyReference.cache"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\qt.conf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\Qt5Core.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\Qt5Gui.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\Qt5Network.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\Qt5Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\ssleay32.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\plugins\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

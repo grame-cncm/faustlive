@@ -84,6 +84,9 @@ private:
     QString              fAppName;
     QString              fCodeToSend;
     
+    //Saving repository chosen by the user
+    QString				fLastOpened;
+    
     //Target characteristics
     QString             fPlatform;
     QString             fArchi;

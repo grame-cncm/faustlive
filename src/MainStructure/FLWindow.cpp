@@ -58,7 +58,7 @@ list<GUI*>               GUI::fGuiList;
 //@param : machineName = in case of remote processing, the name of remote machine
 FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSettings* windowSettings, QList<QMenu*> appMenus){
     
-    connect(this, SIGNAL(error(const char*)), this, SLOT(audioShutDown(const char*)));
+    connect(this, SIGNAL(audioError(const char*)), this, SLOT(audioShutDown(const char*)));
     
     fSettings = windowSettings;
     
@@ -186,8 +186,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     if(factorySetts.second == NULL)
         return false;
   	
-    if(!init_audioClient(errorMsg))
+    if(!init_audioClient(errorMsg)){
         return false;
+    }
 
     fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
 	
@@ -1231,18 +1232,19 @@ void FLWindow::audioShutDown(const char* msg, void* arg){
 void FLWindow::audioShutDown_redirect(const char* msg){
     printf("FLWindow::redirect\n");
     
-
-    emit error(msg);
+// Redirect with SIGNAL TO SWITCH THREAD (leave audio thread to go to the window thread)
+    emit audioError(msg);
 }
 
 void FLWindow::audioShutDown(const char* msg){
     
     printf("FLWindow::audioShutDown\n");
     
-    //udioCreator* creator = AudioCreator::_Instance(NULL);
+    AudioCreator* creator = AudioCreator::_Instance(NULL);
     
-    //    creator->change_Architecture();
+    creator->reset_AudioArchitecture();
     errorPrint(msg);
+    emit audioPrefChange();
 }
 
 //Switch of Audio architecture
@@ -1251,7 +1253,7 @@ bool FLWindow::update_AudioArchitecture(QString& error){
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     delete fAudioManager;
     
-    fAudioManager = creator->createAudioManager();
+    fAudioManager = creator->createAudioManager(FLWindow::audioShutDown, this);
     
     if(init_audioClient(error) && setDSP(error))
         return true;
@@ -1373,7 +1375,7 @@ void FLWindow::allocateHttpInterface(){
     
     QString windowTitle = fWindowName + ":" + getName();
         
-    char** argv = new char*[3];
+    char* argv[3];
         
 	char charport[5];
 	int port = 5510 + fWindowIndex;

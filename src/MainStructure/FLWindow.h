@@ -119,7 +119,8 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            duplicate_Action();
         void            windowNameChanged();
         void            remoteCnxLost(int);
-        void            error(const char*);
+        void            audioError(const char*);
+        void            audioPrefChange();
     
     private slots :
         void            edit();
