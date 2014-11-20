@@ -131,6 +131,7 @@ class FLApp : public QApplication
     
     //Functions of rehabilitation if sources disapears
         bool                recall_CurrentSession();
+		void				restoreSession(map<int, QString>);
     
     //-----------------Questions about the current State
 
