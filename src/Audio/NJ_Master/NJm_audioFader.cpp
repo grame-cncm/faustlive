@@ -45,8 +45,8 @@ void NJm_audioFader::process(int count, float** audio_inputs, float** audio_outp
 {
     AVOIDDENORMALS;
     
-    float* inputs_tmp[fDsp->getNumInputs()];
-    float* outputs_tmp[fDsp->getNumOutputs()];
+    float** inputs_tmp = (float**)alloca(fDsp->getNumInputs()*sizeof(float*));
+    float** outputs_tmp = (float**)alloca(fDsp->getNumOutputs()*sizeof(float*));
     
     for(int i = 0; i < fDsp->getNumInputs();i++) {
         inputs_tmp[i] = audio_inputs[i];

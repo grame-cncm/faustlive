@@ -91,6 +91,8 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
 #ifdef ALSA
     fAudioArchi->addItem("Alsa");
 #endif
+
+	printf("fAudioArchitectuer number of items = %i\n", fAudioArchi->count());
     
     connect(fAudioArchi, SIGNAL(activated(int)), this, SLOT(indexChanged(int)));
 

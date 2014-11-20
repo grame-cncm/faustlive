@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "FaustLive"
-#define MyAppVersion "1.0"
+#define MyAppVersion "2.30"
 #define MyAppPublisher "Grame"
 #define MyAppURL "http://faust.grame.fr"
 #define MyAppExeName "FaustLive.exe"
@@ -23,7 +23,7 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\GPL_License.txt
 InfoAfterFile=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\README_BEFORE_YOU_START.txt
-OutputDir=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\FaustLive-Windows-2.30\FaustLive
+OutputDir=C:\Users\Sarah\faudiostream-faustlive\Build\Windows\FaustLive-Windows-Jack-2.30\FaustLive
 OutputBaseFilename=setup_FaustLive
 SetupIconFile=C:\Users\Sarah\faudiostream-faustlive\Resources\Images\FaustLiveIcon.ico
 Compression=lzma
@@ -50,6 +50,7 @@ Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgnutls-2
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgcrypt-11.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgmp.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libgpg-error-0.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libjacknet.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libplibc-1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\pthreadGC2.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Sarah\faudiostream-faustlive\Build\Windows\release\libintl-8.dll"; DestDir: "{app}"; Flags: ignoreversion
