@@ -116,9 +116,11 @@ equals(REMVAR, 1){
 
 equals(JVAR, 1){
 	message("JACK LINKED")
-	LIBS+= -ljack
+	LIBS+= -L"C:\Program Files (x86)\Jack\lib"
+	LIBS+= -llibjack
 	DEFINES += JACK
 	
+	INCLUDEPATH+= "C:\Program Files (x86)\Jack\includes"
 	INCLUDEPATH += ../../src/Audio/JA
 		
 	HEADERS += 	../../src/Audio/JA/JA_audioFactory.h \
@@ -136,9 +138,11 @@ equals(JVAR, 1){
 
 equals(NJVAR, 1){
 	message("NETJACK LINKED")
-	LIBS += -ljacknet
+	LIBS+= -L"C:\Program Files (x86)\Jack\lib"
+	LIBS += -llibjacknet
 	DEFINES += NETJACK
 	
+	INCLUDEPATH+= "C:\Program Files (x86)\Jack\includes"
 	INCLUDEPATH += ../../src/Audio/NJ
 	
 	HEADERS += 	../../src/Audio/NJ/NJ_audioFactory.h \
