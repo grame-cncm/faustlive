@@ -1243,12 +1243,16 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
 
 //----Recall saved current session
 bool FLApp::recall_CurrentSession(){
-    
+
     map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
     
     if(restoredSources.size() == 0)
         return false;
-    
+        
+	fRecalling = true;
+
+    display_CompilingProgress("Uploading your session...");
+
     map<int, QString>::iterator it;
     for(it = restoredSources.begin(); it != restoredSources.end(); it++){
         
@@ -1261,7 +1265,9 @@ bool FLApp::recall_CurrentSession(){
         if(!createWindow(it->first, it->second, windowSettings, error))
             errorPrinting(error);
     }
-    
+    StopProgressSlot();
+	fRecalling = false;
+	
     return true;
     
 }
@@ -1330,7 +1336,7 @@ void FLApp::update_ProgressBar(){
 //Quit FaustLive
 void FLApp::closeAllWindows(){
     
-	printf("FLApp::closeAllWindows()\n");
+	printf("FLApp::closeAllWindows() with recalling = %i\n", fRecalling);
 
 //This function is called when there are no more windows. In case of session recallin, the application can not be closed !!
     if(fRecalling)
