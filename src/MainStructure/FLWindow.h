@@ -119,7 +119,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            duplicate_Action();
         void            windowNameChanged();
         void            remoteCnxLost(int);
-        void            audioError(const char*);
+        void            audioError(const QString&);
         void            audioPrefChange();
     
     private slots :
@@ -228,7 +228,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
     public slots :
-    void            audioShutDown(const char* msg);
+    void            audioShutDown(const QString& msg);
     
     //Modification of the compilation options
         void            modifiedOptions();

@@ -58,7 +58,7 @@ list<GUI*>               GUI::fGuiList;
 //@param : machineName = in case of remote processing, the name of remote machine
 FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSettings* windowSettings, QList<QMenu*> appMenus){
     
-    connect(this, SIGNAL(audioError(const char*)), this, SLOT(audioShutDown(const char*)));
+    connect(this, SIGNAL(audioError(const QString&)), this, SLOT(audioShutDown(const QString&)));
     
     fSettings = windowSettings;
     
@@ -1232,11 +1232,12 @@ void FLWindow::audioShutDown(const char* msg, void* arg){
 void FLWindow::audioShutDown_redirect(const char* msg){
     printf("FLWindow::redirect\n");
     
-// Redirect with SIGNAL TO SWITCH THREAD (leave audio thread to go to the window thread)
-    emit audioError(msg);
+// Redirect with SIGNAL TO SWITCH THREAD (leave audio thread to go to the window thread) + Copy char* for it might be destructed within audio driver before we have time to print it
+    QString errorMsg(msg);
+    emit audioError(errorMsg);
 }
 
-void FLWindow::audioShutDown(const char* msg){
+void FLWindow::audioShutDown(const QString& msg){
     
     printf("FLWindow::audioShutDown\n");
     
