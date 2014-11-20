@@ -196,6 +196,7 @@ class FLApp : public QApplication
     //---------Preferences
         void                styleClicked(const QString& style);
         void                Preferences();
+        void                audioPrefChanged();
     
     //---------Help
         void                open_FL_doc();

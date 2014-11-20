@@ -27,8 +27,6 @@ class AudioManager;
 
 using namespace std;
 
-#define SAVINGFILE "AudioSettings.rf"
-
 class AudioCreator : public QObject{
    
     Q_OBJECT
@@ -79,6 +77,8 @@ class AudioCreator : public QObject{
         QString          get_ArchiName();
         bool            didSettingChanged();
 
+    //Switch back to default audio architecture
+        void            reset_AudioArchitecture();
     
     private slots :
     

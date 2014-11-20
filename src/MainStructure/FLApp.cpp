@@ -725,6 +725,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows_FromWindow()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
+    connect(win, SIGNAL(audioPrefChange()), this, SLOT(audioPrefChanged()));
 }
 
 //---------------NEW WINDOW
@@ -1275,6 +1276,11 @@ bool FLApp::recall_CurrentSession(){
             errorPrinting(error);
     }
     
+//  If no window could be recalled, it's considered that the audio driver could not be set.
+    if(FLW_List.size() == 0){
+        
+    }
+    
     return true;
     
 }
@@ -1608,12 +1614,15 @@ void FLApp::styleClicked(const QString& style){
 void FLApp::Preferences(){
     
     FLPreferenceWindow::_Instance()->exec();
-    
+    audioPrefChanged();
+}
+
+void FLApp::audioPrefChanged(){
     if(fAudioCreator->didSettingChanged()){
         
         fAudioCreator->visualSettingsToTempSettings();
         update_AudioArchitecture();
-    }
+    } 
 }
 
 //Update Audio Architecture of all opened windows
