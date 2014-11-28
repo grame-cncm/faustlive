@@ -93,10 +93,6 @@ dist:
 	./distribution
 	./distversion
 
-# make a distribution .zip file for FaustLive sources
-dist-sources :
-	git archive --format=tar.gz -o FaustLive-sources.tgz --prefix=FaustLive-sources/ HEAD
-
 ####### Install
 
 # The OSX application usually gets installed under /Applications, but MacPorts

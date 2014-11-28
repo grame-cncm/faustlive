@@ -24,8 +24,10 @@ deploy:
 	cp -R Build/$(arch)/FaustLive$(EXT) FaustLive$(EXT)
 dist:
 	$(MAKE) -C Build/$(arch) dist
+
+# make a distribution .zip file for FaustLive sources
 dist-sources :
-	$(MAKE) -C Build/$(arch) dist-sources
+	git archive --format=tar.gz -o FaustLive-sources.tgz --prefix=FaustLive-sources/ HEAD
 install:
 	$(MAKE) -C Build/$(arch) install
 uninstall: 
