@@ -23,6 +23,9 @@
 
 #include "FLSettings.h"
 
+#include <QtNetwork>
+#include <qrencode.h>
+
 #define JSON_ONLY
 
 using namespace std;
@@ -103,6 +106,8 @@ void FLTargetChooser::init(){
     
     fExportChoice = new QComboBox(fMenu2Export);
     fExportChoice->addItem("binary.zip");
+//    fExportChoice->addItem("binary.apk");
+//    fExportChoice->addItem("binary.html");
     fExportChoice->addItem("src.cpp");
     
     fMenu2Layout->addWidget(new QLabel("Platform"), 0, 0);
@@ -495,18 +500,18 @@ void FLExportManager::getFileFromKey(const char* key){
     
     fStep++;
     
-    QString urlString = FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
-    urlString += ("/");
-    urlString += key;
-    urlString += "/";
+    fUrl = FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString();
+    fUrl += ("/");
+    fUrl += key;
+    fUrl += "/";
     
-    urlString += fPlatform;
-    urlString += "/";
-    urlString += fArchi;
-    urlString += "/";
-    urlString += fChoice;
+    fUrl += fPlatform;
+    fUrl += "/";
+    fUrl += fArchi;
+    fUrl += "/";
+    fUrl += fChoice;
     
-    const QUrl url = QUrl(urlString);
+    const QUrl url = QUrl(fUrl);
     QNetworkRequest requete(url);
     QNetworkAccessManager *m = new QNetworkAccessManager;
     
@@ -575,6 +580,47 @@ void FLExportManager::showSaveB(){
         
         fTextZone->setText(sucessMsg);
         fTextZone->show();
+        
+        if(fChoice == "ios" || fChoice == "binary.apk" || fChoice == "binary.html"){
+            
+            //Construction of the flashcode
+            const int padding = 5;
+            
+            printf("URL TO BUILD QRCODE = %s\n", fUrl.toStdString().c_str());
+            
+            QRcode* qrc = QRcode_encodeString(fUrl.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+            
+            //   qDebug() << "QRcode width = " << qrc->width;
+            
+            QRgb colors[2];
+            colors[0] = qRgb(255, 255, 255); 	// 0 is white
+            colors[1] = qRgb(0, 0, 0); 			// 1 is black
+            
+            // build the QRCode image
+            QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
+            // clear the image
+            for (int y=0; y<qrc->width+2*padding; y++) {
+                for (int x=0; x<qrc->width+2*padding; x++) {
+                    image.setPixel(x, y, colors[0]);
+                }
+            }
+            // copy the qrcode inside
+            for (int y=0; y<qrc->width; y++) {
+                for (int x=0; x<qrc->width; x++) {
+                    image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
+                }
+            }
+            
+            QImage big = image.scaledToWidth(qrc->width*4);
+            QLabel* myLabel = new QLabel;
+            
+            QPixmap fQrCode = QPixmap::fromImage(big);
+            
+            myLabel->setPixmap(fQrCode);
+            
+            fMsgLayout->addWidget(myLabel, 6, 0, 1, 6, Qt::AlignCenter);
+            myLabel->show();
+        }
         
         fSaveB->show();
         

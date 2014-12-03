@@ -88,6 +88,7 @@ private:
     QString				fLastOpened;
     
     //Target characteristics
+    QString             fUrl;
     QString             fPlatform;
     QString             fArchi;
     QString             fChoice;

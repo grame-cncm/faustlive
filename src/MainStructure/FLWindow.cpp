@@ -831,7 +831,7 @@ void FLWindow::allocateOscInterface(){
         argv[5] = (char*)"-outport";
         string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
         argv[6] = (char*) (outport.c_str());
-        argv[7] = (char*)"desthost";
+        argv[7] = (char*)"-desthost";
         string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
         argv[8] = (char*) (dest.c_str());
         argv[9] = (char*)"-errport";
@@ -1611,7 +1611,7 @@ bool FLWindow::startNJdspAudio(){
 	return false;
 }
 
-void    FLWindow::cleanInactiveNJdspInstance(){
+void FLWindow::cleanInactiveNJdspInstance(){
 //    
 //    if(fAudio && !fAudio->is_connexion_active() && fAudioManagerStopped){
 //        fAudioManager->start();
