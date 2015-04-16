@@ -25,19 +25,19 @@ using namespace std;
 
 class PA_audioSettings : public AudioSettings{
 
-    private :
+    private:
     
-	map<string, int> fInputdevices;
-	map<string, int> fOutputdevices;
+        map<string, int> fInputdevices;
+        map<string, int> fOutputdevices;
 
-    //Graphical CoreAudio Settings
-    QLineEdit*       fsplRate;
-    QLineEdit*       fBufSize;
-    QFormLayout*     fLayout;
-    QComboBox*       fInputDeviceBox;
-    QComboBox*       fOutputDeviceBox;
+        //Graphical CoreAudio Settings
+        QLineEdit*       fsplRate;
+        QLineEdit*       fBufSize;
+        QFormLayout*     fLayout;
+        QComboBox*       fInputDeviceBox;
+        QComboBox*       fOutputDeviceBox;
 
-    public :
+    public:
         PA_audioSettings(QGroupBox* parent);
     
         virtual ~PA_audioSettings();

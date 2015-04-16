@@ -14,6 +14,7 @@
 #define _AudioCreator_h
 
 #include <string>
+#include "AudioFactory.h"
 
 #include <QtGui>
 #if QT_VERSION >= 0x050000
@@ -23,17 +24,17 @@
 class AudioSettings;
 class AudioManager;
 
-#include "AudioFactory.h"
-
 using namespace std;
 
 class AudioCreator : public QObject{
    
-    Q_OBJECT
+    private:
     
-    protected : 
+        Q_OBJECT
     
-        int             fTempAudioIndex;        //Audio architecture currently used
+    protected: 
+    
+        int fTempAudioIndex;        //Audio architecture currently used
     
         static AudioCreator*    _instance;
     
@@ -52,7 +53,7 @@ class AudioCreator : public QObject{
     
         int             driverNameToIndex(const QString& driverName);
     
-    public :
+    public:
     
         AudioCreator(QGroupBox* parent);
         virtual         ~AudioCreator();
@@ -74,18 +75,16 @@ class AudioCreator : public QObject{
         void restoreSavedSettings();
     
     //Accessors to the settings
-        QString          get_ArchiName();
+        QString         get_ArchiName();
         bool            didSettingChanged();
 
     //Switch back to default audio architecture
         void            reset_AudioArchitecture();
     
-    private slots :
+    private slots:
     
         void            indexChanged(int index);
-    
-    
-    
+      
 };
 
 #endif

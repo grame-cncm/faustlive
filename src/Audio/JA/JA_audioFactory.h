@@ -17,11 +17,11 @@
 class JA_audioFactory : public AudioFactory{
     
     public :
-    JA_audioFactory();
-    ~JA_audioFactory();
-    
-    virtual AudioSettings* createAudioSettings(QGroupBox* parent);
-    virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
+        JA_audioFactory();
+        virtual ~JA_audioFactory();
+        
+        virtual AudioSettings* createAudioSettings(QGroupBox* parent);
+        virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
 };
 
 #endif

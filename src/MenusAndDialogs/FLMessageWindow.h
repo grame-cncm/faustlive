@@ -21,12 +21,11 @@ using namespace std;
 
 class FLMessageWindow : public QDialog{
     
-    Q_OBJECT
-    
-    private :
+    private:
+        Q_OBJECT
         QLabel*    fMessage;
     
-    public :
+    public:
     
         FLMessageWindow();
         virtual ~FLMessageWindow();   

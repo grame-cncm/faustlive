@@ -21,15 +21,15 @@ using namespace std;
 
 class FLErrorWindow : public QMainWindow{
     
-    Q_OBJECT
+    private:
     
-    private :
+        Q_OBJECT
         QVBoxLayout*    fLayout;
         QWidget*        fWidget;
         QTextEdit*      fErrorText;
         QPushButton*    fButton;
     
-    public :
+    public:
     
         FLErrorWindow();
         virtual ~FLErrorWindow();
@@ -41,10 +41,10 @@ class FLErrorWindow : public QMainWindow{
         void            print_Error(const QString& text);
         virtual void    closeEvent(QCloseEvent* event);
     
-    signals :
+    signals:
         void            closeAll();
     
-    public slots :
+    public slots:
         void            hideWin();
         void            redirectClose();
 };

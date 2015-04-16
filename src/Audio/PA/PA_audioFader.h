@@ -21,7 +21,9 @@ using namespace std;
 class PA_audioFader : public portaudio, public AudioFader_Interface, public AudioFader_Implementation
 {    
     
-    virtual int processAudio(float** ibuf, float** obuf, unsigned long frames);
+    private:
+    
+        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames);
     
     public:
     
@@ -32,8 +34,7 @@ class PA_audioFader : public portaudio, public AudioFader_Interface, public Audi
         virtual bool set_dsp(dsp* DSP);
 //        virtual bool start();
 //        virtual void stop();
-
-    
+   
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();
         virtual bool get_FadeOut();

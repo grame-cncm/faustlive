@@ -10,13 +10,9 @@
 // JA_audioManager also controls the jack connections of the audio. 
 
 #include "JA_audioManager.h"
-
 #include "JA_audioFader.h"
-
 #include <QFileInfo>
-
 #include "FLSettings.h"
-
 
 void JA_audioManager::shutdown_message(const char * msg, void* arg){
     Q_UNUSED(arg);
@@ -24,7 +20,6 @@ void JA_audioManager::shutdown_message(const char * msg, void* arg){
     
     printf("JA_audioManager::SHUTDOWN\n");
 }
-
 
 JA_audioManager::JA_audioManager(shutdown_callback cb, void* arg): AudioManager(cb, arg){
 
@@ -60,7 +55,6 @@ bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name){
         error = "Impossible to init JackAudio Client";
         return false;
     }
-    
 }
 
 bool JA_audioManager::init(const char* name, dsp* DSP){
@@ -104,9 +98,7 @@ void JA_audioManager::connect_Audio(string homeDir){
     if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()){
         if(QFileInfo(homeDir.c_str()).exists()){
             
-            FJUI fui;
-            
-            list<pair<string, string> > connection = fui.recallConnections(homeDir.c_str());
+            list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
             
             fCurrentAudio->reconnect(connection);
         }
@@ -115,16 +107,12 @@ void JA_audioManager::connect_Audio(string homeDir){
     }
     else
         printf("Do not connect\n");
-    
-    
 }
 
 //Save connections in file
 void JA_audioManager::save_Connections(string homeDir){
     
-    FJUI fui;
-    fui.saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
-    
+    FJUI::saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
 }
 
 int JA_audioManager::get_buffer_size(){

@@ -9,7 +9,6 @@
 // 
 
 #include "AudioFader_Implementation.h"
-
 #include <stdio.h>
 
 /******************************************************************************

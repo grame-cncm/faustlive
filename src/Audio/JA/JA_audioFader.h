@@ -21,6 +21,8 @@ using namespace std;
 class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation
 {    
     
+    private:
+    
         dsp*            fDspIn;
         int				fNumInDspFade;      // number of input channels of inFading DSP
         int				fNumOutDspFade;     // number of output channels of inFading DSP

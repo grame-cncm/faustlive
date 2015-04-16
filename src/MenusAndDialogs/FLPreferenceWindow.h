@@ -19,43 +19,46 @@
 
 class FLPreferenceWindow : public QDialog
 {
-    Q_OBJECT
+    private:
     
-    QLineEdit*          fCompilModes;
-    QLineEdit*          fOptVal;
-    QLineEdit*          fServerLine;
-    QLineEdit*          fRemoteServerLine;
-    QLineEdit*          fPortLine;
-    QCheckBox*          fHttpAuto;
-    QCheckBox*          fOscAuto;
-    
-    AudioCreator*       fAudioCreator;
-    QGroupBox*          fAudioBox;
-    
-    void                init();
-    void                resetVisualObjects();
-public: 
+        Q_OBJECT
+        
+        QLineEdit*          fCompilModes;
+        QLineEdit*          fOptVal;
+        QLineEdit*          fServerLine;
+        QLineEdit*          fRemoteServerLine;
+        QLineEdit*          fPortLine;
+        QCheckBox*          fHttpAuto;
+        QCheckBox*          fOscAuto;
+        
+        AudioCreator*       fAudioCreator;
+        QGroupBox*          fAudioBox;
+        
+        void                init();
+        void                resetVisualObjects();
+        
+    public: 
 
-    FLPreferenceWindow(QWidget * parent = 0);
-    
-    ~FLPreferenceWindow();
+        FLPreferenceWindow(QWidget * parent = 0);
+        
+        ~FLPreferenceWindow();
 
-    static FLPreferenceWindow* _prefWindow;
-    static FLPreferenceWindow* _Instance();
-    
-    private slots:
-    
-    void save();
-    void cancel();
-    void styleClicked();
-    virtual void closeEvent(QCloseEvent* event);
-    
-signals:
-    
-    void newStyle(const QString&);
-    void urlChanged();
-    void dropPortChange();
-    void remoteServerPortChanged();
+        static FLPreferenceWindow* _prefWindow;
+        static FLPreferenceWindow* _Instance();
+        
+        private slots:
+        
+        void save();
+        void cancel();
+        void styleClicked();
+        virtual void closeEvent(QCloseEvent* event);
+        
+    signals:
+        
+        void newStyle(const QString&);
+        void urlChanged();
+        void dropPortChange();
+        void remoteServerPortChanged();
 };
 
 #endif

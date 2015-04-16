@@ -77,6 +77,7 @@ LIBS+=$$system($$LLVM_CONFIG --ldflags)
 # The system libraries need a different option in LLVM 3.5 and later.
 LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
 
+
 equals(static, 1){
 LIBS+=$$FAUSTDIR/lib/libHTTPDFaust.a
 LIBS+=$$FAUSTDIR/lib/libOSCFaust.a

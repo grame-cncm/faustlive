@@ -22,10 +22,9 @@ using namespace std;
 
 class FLPresentationWindow : public QDialog{
     
-    Q_OBJECT
-    
     private :
     
+        Q_OBJECT
         QString     fExampleToOpen;
     
     public :

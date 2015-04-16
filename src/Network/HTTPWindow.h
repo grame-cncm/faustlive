@@ -26,24 +26,26 @@ using namespace std;
 
 class HTTPWindow : public QMainWindow{
     
-    Q_OBJECT
+    private:
+    
+        Q_OBJECT
     
     public : 
-    
-    //------------------------HTTPD WINDOW ACTIONS
-    
-    HTTPWindow();
-    ~HTTPWindow();
-    
-    void        frontShow_Httpd(QString windowTitle);
-    
-    virtual void contextMenuEvent(QContextMenuEvent* ev);
-    
-    void        closeEvent(QCloseEvent* event);
-    
-signals:
-    void        closeAll();
-    void        toPNG();
+        
+        //------------------------HTTPD WINDOW ACTIONS
+        
+        HTTPWindow();
+        ~HTTPWindow();
+        
+        void        frontShow_Httpd(QString windowTitle);
+        
+        virtual void contextMenuEvent(QContextMenuEvent* ev);
+        
+        void        closeEvent(QCloseEvent* event);
+        
+    signals:
+        void        closeAll();
+        void        toPNG();
 };
 
 #endif

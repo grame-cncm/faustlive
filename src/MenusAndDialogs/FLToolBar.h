@@ -22,10 +22,10 @@ enum{
 };
 
 class FLToolBar : public QToolBar{
-    
-    Q_OBJECT
-    
+     
     private:
+    
+        Q_OBJECT
     
         int                 fButtonState;
         QPushButton*        fWindowOptions;
@@ -95,7 +95,7 @@ class FLToolBar : public QToolBar{
         void    enableButton(const QString&);
         void    enableButton(int);
     
-    signals :
+    signals:
     
         void    oscPortChanged();
         void    compilationOptionsChanged();

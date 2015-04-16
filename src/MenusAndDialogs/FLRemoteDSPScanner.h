@@ -24,29 +24,26 @@
 using namespace std;
 
 class FLRemoteDSPScanner : public QDialog{
-    Q_OBJECT
     
     private:
     
+        Q_OBJECT
         QVBoxLayout*            fLayout;
-    
         QListWidgetItem*        fCurrentItem;
-    
         QMap<QListWidgetItem*, QString>    fItemToSHA;
-    
         QString                 fSHAKey;
     
-        void        getVueFromInterfaceList(std::vector<std::pair<std::string, std::string> >  interfaceList, QListWidget* vue);
-    
+        void    getVueFromInterfaceList(std::vector<std::pair<std::string, std::string> >  interfaceList, QListWidget* vue);
         void    init();
     
     public:
+    
         FLRemoteDSPScanner(QWidget* parent = NULL);
         virtual ~FLRemoteDSPScanner();
     
         QString   shaKey();
     
-    public slots :
+    public slots:
         void    itemDblClick(QListWidgetItem* item);    
         void    itemClicked(QListWidgetItem* item);    
         void    cancelDialog();

@@ -17,9 +17,10 @@
 
 class FLWinSettings : public QSettings
 {
-    Q_OBJECT
+    private:
     
-        int     fIndex;
+        Q_OBJECT
+        int fIndex;
     
     public: 
     
@@ -28,7 +29,7 @@ class FLWinSettings : public QSettings
         //@param format : format of the settings
         //@param parent : parent object in the hierarchy
         FLWinSettings(int index , const QString & fileName, Format format, QObject * parent = 0);
-        ~FLWinSettings();
+        virtual ~FLWinSettings();
     
         virtual void setValue(const QString & key, const QVariant & value);
 };

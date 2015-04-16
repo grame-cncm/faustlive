@@ -11,11 +11,9 @@
 //The goal of this class is to control the type of audio architecture used in the application. Therefore it creates the right type of audioFactory
 
 #include "AudioCreator.h"
-
 #include "AudioSettings.h"
 #include "AudioManager.h"
 #include "AudioFactory.h"
-
 
 #include "FLSettings.h"
 
@@ -25,7 +23,7 @@
 #endif
 
 #ifdef PORTAUDIO
-#include "PA_audioFactory.h"
+    #include "PA_audioFactory.h"
 #endif
 
 #ifdef JACK
@@ -38,7 +36,7 @@
 #endif
 
 #ifdef ALSA
-#include "AL_audioFactory.h"
+    #include "AL_audioFactory.h"
 #endif
 
 #include <QtGui>
@@ -211,13 +209,10 @@ AudioFactory* AudioCreator::createFactory(int index){
 }
 
 AudioSettings* AudioCreator::createAudioSettings(QGroupBox* parent){
-
     return fFactory->createAudioSettings(parent);
-    
 }
 
 AudioManager* AudioCreator::createAudioManager(AudioShutdownCallback cb, void* arg){
-    
     return fFactory->createAudioManager(cb, arg);
 }
 
@@ -230,9 +225,9 @@ QString AudioCreator::get_ArchiName(){
 //Determines if the audio has to be reloaded
 bool AudioCreator::didSettingChanged(){
     
-    if(driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex())
+    if(driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex()) {
         return true;
-    else{
+    } else {
         
         printf("Current Settings = %p || Temp = %p\n", fCurrentSettings, fTempSettings);
         

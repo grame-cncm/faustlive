@@ -59,73 +59,75 @@ struct connection_info_struct {
 class FLServerHttp : public QObject
 {
     
-    Q_OBJECT
-    
-private:
-    
-    int             fMax_clients;
-    string          fError;         // Not important right now
-    string          fUrl;           // Url of wrapped http page 
-    
-    bool            fPosted;        // Post request completed
-    bool            fCompiled;      // Compilation sucess
-    
-    string          fServerAddress;
-    
-    string          fJson;
-    string          fHtml;
-    
-    string          fHome;
-    
-    int             handleGet(MHD_Connection *connection, const char* url);
-    int             handlePost(MHD_Connection *connection, const char* url, void *info);
-    
-    map<int, string>     fDeclaredNames;
-    
-    public :
-    
-    static int      fNr_of_uploading_clients;
-    
-    struct          MHD_Daemon* fDaemon;
-    
-                    FLServerHttp();
-                    ~FLServerHttp();
-    static FLServerHttp*    _serverInstance;
-    
-    static FLServerHttp*    _Instance();
-    static void             createInstance(const string& homeFolder);
-    static void             deleteInstance();
-    
-    int             getMaxClients();
-    
-    bool            start();
-    void            stop();
+    private:
 
-    int             send_page(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
+        Q_OBJECT
+        
+        int             fMax_clients;
+        string          fError;         // Not important right now
+        string          fUrl;           // Url of wrapped http page 
+        
+        bool            fPosted;        // Post request completed
+        bool            fCompiled;      // Compilation sucess
+        
+        string          fServerAddress;
+        
+        string          fJson;
+        string          fHtml;
+        
+        string          fHome;
+        
+        int             handleGet(MHD_Connection *connection, const char* url);
+        int             handlePost(MHD_Connection *connection, const char* url, void *info);
     
-    static int      answer_to_connection	(void *cls, struct MHD_Connection *connection,
-                                     const char *url, const char *method,
-                                     const char *version, const char *upload_data,
-                                     size_t *upload_data_size, void **con_cls);
+        map<int, string>     fDeclaredNames;
+        
+        static FLServerHttp*    _serverInstance;
     
-    static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+    public:
     
-    static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
-    
-    
-    void            declareHttpInterface(int port, const string& name);
-    void            removeHttpInterface(int port);
-    
-    int             redirectJsonRequest(struct MHD_Connection *connection, string portNumber);
-    
-    void            compile_Successfull(const string& url);
-    void            compile_Failed(const string& error);
-    
-    void            updateAvailableInterfaces();
-    
+        static int      fNr_of_uploading_clients;
+        
+        struct          MHD_Daemon* fDaemon;
+        
+                        FLServerHttp();
+                        virtual ~FLServerHttp();
+        
+        
+        static FLServerHttp*    _Instance();
+        static void             createInstance(const string& homeFolder);
+        static void             deleteInstance();
+        
+        int             getMaxClients();
+        
+        bool            start();
+        void            stop();
+
+        int             sendPage(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
+        
+        static int      answerToConnection(void *cls, struct MHD_Connection *connection,
+                                         const char *url, const char *method,
+                                         const char *version, const char *upload_data,
+                                         size_t *upload_data_size, void **con_cls);
+        
+        static void requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+        
+        static int iteratePost(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
+        
+        
+        void            declareHttpInterface(int port, const string& name);
+        void            removeHttpInterface(int port);
+        
+        int             redirectJsonRequest(struct MHD_Connection *connection, string portNumber);
+        
+        void            compileSuccessfull(const string& url);
+        void            compileFailed(const string& error);
+        
+        void            updateAvailableInterfaces();
+        
     signals:
+        
         void        compile(const char*, int);
-
     
 };
 

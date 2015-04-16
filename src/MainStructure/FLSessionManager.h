@@ -50,95 +50,95 @@ struct factorySettings{
 
 class FLSessionManager : public QObject
 {
-    Q_OBJECT
     
-private:
+    private:
 
-    QString             fSessionFolder;
+        Q_OBJECT
+        QString             fSessionFolder;
 
-    static FLSessionManager*       _sessionManager;
-    
-    QString             nameToUniqueName(const QString& name, const QString& path);
-    QList<QString>      get_currentDefault();
-    QString             find_smallest_defaultName();
-    QString             getDeclareName(QString text);
-    
-    QString         getErrorFromCode(int code);
-    
-    bool            isSourceDSPPath(const QString& source);
-    QString         ifFileToName(const QString& source);
-    
-    //--Transforms DSP file into faust string
-    QString         ifFileToString(const QString& source);
-    
-    //--Transforms an Url into faust string
-    QString         ifUrlToString(const QString& source);
-    
-    //--Transforms a Google Doc Url into string
-    QString         ifGoogleDocToString(const QString& source);
-    
-    //--Shows restoration warning. 
-    //----It returns true, in case "Yes" is chosen | false otherwise
-    bool            viewRestorationMsg(const QString& msg, const QString& yesMsg, const QString& noMsg);
-    
-    void            copySHAFolder(const QString& snapshotFolder);
-    
-    const char**           getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
-    
-    const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
-    void                    deleteArgv(int argc, const char** argv);
+        static FLSessionManager*       _sessionManager;
         
-    QMap<dsp*, factorySettings*>  fDSPToFactory;
-    
-    QMap<QString, remote_dsp_factory*>  fPublishedFactories;
-    
-private slots:
-    void            receiveDSP();
-    void            networkError(QNetworkReply::NetworkError);
-    
-    
-public:
-    
-    FLSessionManager(const QString& sessionFolder);
-    ~FLSessionManager();
-    
-    static FLSessionManager* _Instance();
-    static void createInstance(const QString homePath);
-    static void deleteInstance();
-    
-#ifdef REMOTE
-    bool            addWinToServer(FLWinSettings* settings);
-    void            deleteWinFromServer(FLWinSettings* settings);
-#endif
-    void            updateFolderDate(const QString& shaValue);
-    void            cleanSHAFolder();
-    
-    bool            generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
-    bool            generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
-    
-    QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
-    
-    dsp* createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);
+        QString             nameToUniqueName(const QString& name, const QString& path);
+        QList<QString>      get_currentDefault();
+        QString             find_smallest_defaultName();
+        QString             getDeclareName(QString text);
+        
+        QString         getErrorFromCode(int code);
+        
+        bool            isSourceDSPPath(const QString& source);
+        QString         ifFileToName(const QString& source);
+        
+        //--Transforms DSP file into faust string
+        QString         ifFileToString(const QString& source);
+        
+        //--Transforms an Url into faust string
+        QString         ifUrlToString(const QString& source);
+        
+        //--Transforms a Google Doc Url into string
+        QString         ifGoogleDocToString(const QString& source);
+        
+        //--Shows restoration warning. 
+        //----It returns true, in case "Yes" is chosen | false otherwise
+        bool            viewRestorationMsg(const QString& msg, const QString& yesMsg, const QString& noMsg);
+        
+        void            copySHAFolder(const QString& snapshotFolder);
+        
+        const char**           getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
+        
+        const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
+        void                    deleteArgv(int argc, const char** argv);
+            
+        QMap<dsp*, factorySettings*>  fDSPToFactory;
+        
+        QMap<QString, remote_dsp_factory*>  fPublishedFactories;
+        
+    private slots:
+        void            receiveDSP();
+        void            networkError(QNetworkReply::NetworkError);
+        
+        
+    public:
+        
+        FLSessionManager(const QString& sessionFolder);
+        ~FLSessionManager();
+        
+        static FLSessionManager* _Instance();
+        static void createInstance(const QString homePath);
+        static void deleteInstance();
+        
+    #ifdef REMOTE
+        bool            addWinToServer(FLWinSettings* settings);
+        void            deleteWinFromServer(FLWinSettings* settings);
+    #endif
+        void            updateFolderDate(const QString& shaValue);
+        void            cleanSHAFolder();
+        
+        bool            generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
+        bool            generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
+        
+        QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
+        
+        dsp* createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);
 
-    void deleteDSPandFactory(dsp* toDeleteDSP);
-    
-    QString                 get_expandedVersion(QSettings* settings, const QString& source);
-    
-    QVector<QString>        get_dependencies(llvm_dsp_factory* factoryDependency);
-    QVector<QString>        read_dependencies(const QString& shaValue);
-    void                    write_dependencies(QVector<QString> dependencies, const QString& shaValue);
-    
-    QString                askForSourceSaving(const QString& sourceContent);
-    QString                contentOfShaSource(const QString& shaSource);
-    QString                saveTempFile(const QString& shaSource);
-    
-    void                saveCurrentSources(const QString& sessionFolder);
-    map<int, QString>   currentSessionRestoration();
-    void                createSnapshot(const QString& snapshotFolder);
-    map<int, QString>   snapshotRestoration(const QString& filename);
-    
-signals:
-    void                error(const QString&);
+        void deleteDSPandFactory(dsp* toDeleteDSP);
+        
+        QString                 get_expandedVersion(QSettings* settings, const QString& source);
+        
+        QVector<QString>        get_dependencies(llvm_dsp_factory* factoryDependency);
+        QVector<QString>        read_dependencies(const QString& shaValue);
+        void                    write_dependencies(QVector<QString> dependencies, const QString& shaValue);
+        
+        QString                askForSourceSaving(const QString& sourceContent);
+        QString                contentOfShaSource(const QString& shaSource);
+        QString                saveTempFile(const QString& shaSource);
+        
+        void                saveCurrentSources(const QString& sessionFolder);
+        map<int, QString>   currentSessionRestoration();
+        void                createSnapshot(const QString& snapshotFolder);
+        map<int, QString>   snapshotRestoration(const QString& filename);
+        
+    signals:
+        void                error(const QString&);
 };
 
 #endif

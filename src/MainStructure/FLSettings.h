@@ -18,17 +18,21 @@
 
 class FLSettings : public QSettings
 {
-    Q_OBJECT
-    
-public: 
-    
-    FLSettings( const QString & fileName, Format format, QObject * parent = 0);
-    ~FLSettings();
 
-    static FLSettings* _Instance();
-    static FLSettings* _settingsInstance;
-    static void createInstance(const QString homePath);
-    static void deleteInstance();
+    private:
+
+        Q_OBJECT
+        
+    public: 
+        
+        FLSettings( const QString & fileName, Format format, QObject * parent = 0);
+        virtual ~FLSettings();
+
+        static FLSettings* _Instance();
+        static FLSettings* _settingsInstance;
+        static void createInstance(const QString homePath);
+        static void deleteInstance();
+        
 };
 
 #endif

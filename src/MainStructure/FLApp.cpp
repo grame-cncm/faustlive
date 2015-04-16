@@ -711,9 +711,8 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
         string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
-    FJUI fui;
     
-    fui.update(jcPath.toStdString().c_str(), indexStringChanges);
+    FJUI::update(jcPath.toStdString().c_str(), indexStringChanges);
     
     return newPath;
 }
@@ -1869,10 +1868,10 @@ void FLApp::compile_HttpData(const char* data, int port){
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
     if(success){
         string url = win->get_HttpUrl().toStdString();
-        FLServerHttp::_Instance()->compile_Successfull(url);
+        FLServerHttp::_Instance()->compileSuccessfull(url);
     }
     else
-        FLServerHttp::_Instance()->compile_Failed(error.toStdString());
+        FLServerHttp::_Instance()->compileFailed(error.toStdString());
 }
 
 void FLApp::changeDropPort(){

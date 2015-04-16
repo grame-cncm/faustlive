@@ -17,25 +17,27 @@ class NJm_audioFader;
 
 class NJm_audioManager : public AudioManager{
 
-    Q_OBJECT
+    private: 
     
-    //Settings are common to the 2 audioFader that can co-exist during a crossfade
-    int                     fCV;
-    QString                 fIP;
-    int                     fPort;
-    int                     fMTU;
-    int                     fLatency;
+        Q_OBJECT
+        
+        //Settings are common to the 2 audioFader that can co-exist during a crossfade
+        int                     fCV;
+        QString                 fIP;
+        int                     fPort;
+        int                     fMTU;
+        int                     fLatency;
+        
+        int                     fBufSize;
+        int                     fSplRate;
+        
+        const char*             fName;
+        bool                    fInit; //Indicator of which init has been used
+        
+        NJm_audioFader*          fCurrentAudio;
+        NJm_audioFader*          fFadeInAudio;
     
-    int                     fBufSize;
-    int                     fSplRate;
-    
-    const char*             fName;
-    bool                    fInit; //Indicator of which init has been used
-    
-    NJm_audioFader*          fCurrentAudio;
-    NJm_audioFader*          fFadeInAudio;
-    
-    public :
+    public:
         NJm_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~NJm_audioManager();
     
@@ -57,11 +59,11 @@ class NJm_audioManager : public AudioManager{
         virtual int get_sample_rate();
         bool        is_connexion_active();
     
-    private slots :
+    private slots:
     
         void send_Error(const char*);
     
-    signals :
+    signals:
         void errorSignal(const char*);
     
 };

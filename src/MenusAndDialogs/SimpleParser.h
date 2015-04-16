@@ -7,6 +7,6 @@
 
 using namespace std;
 
-bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<string, vector<string> >& M);
+bool parseOperatingSystemsList(const char*& p, vector<string>& platforms, map<string, vector<string> >& M);
 
 #endif // SIMPLEPARSER_H

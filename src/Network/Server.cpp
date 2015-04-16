@@ -61,7 +61,6 @@ string getJson(server_connection_info_struct* con_info){
     return answer;
 }
 
-
 //--------------SLAVE DSP INSTANCE-----------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
@@ -84,7 +83,6 @@ slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, 
     fDSP = createDSPInstance(smartFactory);
 }
 
-
 bool slave_dsp::start_audio(){
     return fAudio->start();
 }
@@ -99,7 +97,6 @@ slave_dsp::~slave_dsp(){
     delete fAudio;
     deleteDSPInstance(fDSP);
 }
-
 
 Server* Server::_server = NULL;
 
@@ -321,7 +318,6 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
         return MHD_NO;
     }
 }
-
 
 // Response to all POST request
 // 3 requests are correct : 

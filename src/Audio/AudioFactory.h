@@ -28,7 +28,7 @@ class AudioFactory{
         AudioFactory(){}
         virtual ~AudioFactory(){}
 
-    virtual AudioSettings* createAudioSettings(QGroupBox* parent) = 0;
+        virtual AudioSettings* createAudioSettings(QGroupBox* parent) = 0;
         virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg) = 0;
     
 };

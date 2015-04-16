@@ -23,22 +23,24 @@ using namespace std;
 //Many times, the user has to be asked for a name modification. 
 class FLrenameDialog : public QDialog{
     
-    Q_OBJECT
+    private:
     
-    public :
+        Q_OBJECT
     
-    QString          fNewName;
-    QLineEdit*      fFilenameBox;
-    QPushButton*    fYes_Button;
+    public:
     
-                    FLrenameDialog(const QString& name,QWidget* parent = NULL);
-                    ~FLrenameDialog();
-    QString          getNewName();
-    
-    public slots : 
-    
-    virtual void    accept();
-    void            enable_Button(const QString& text);
+        QString         fNewName;
+        QLineEdit*      fFilenameBox;
+        QPushButton*    fYes_Button;
+        
+                        FLrenameDialog(const QString& name,QWidget* parent = NULL);
+                        ~FLrenameDialog();
+        QString         getNewName();
+        
+        public slots: 
+        
+        virtual void    accept();
+        void            enable_Button(const QString& text);
     
 };
 #endif

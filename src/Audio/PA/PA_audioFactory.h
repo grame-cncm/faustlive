@@ -16,12 +16,12 @@
 
 class PA_audioFactory : public AudioFactory{
     
-    public :
-    PA_audioFactory();
-    ~PA_audioFactory();
-    
-    virtual AudioSettings* createAudioSettings(QGroupBox* parent);
-    virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
+    public:
+        PA_audioFactory();
+        virtual ~PA_audioFactory();
+        
+        virtual AudioSettings* createAudioSettings(QGroupBox* parent);
+        virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
 };
 
 #endif

@@ -50,9 +50,10 @@ enum initType{
 
 class FLWindow : public QMainWindow/*, public tempName*/
 {
-    Q_OBJECT
     
-    private : 
+    private: 
+    
+        Q_OBJECT
     
         QDateTime        fLastMigration;
     
@@ -133,7 +134,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            export_file();
         void            redirectSwitch();
     
-    public :
+    public:
     
     //####CONSTRUCTOR
     //@param : baseName = Window name
@@ -266,7 +267,6 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            source_Deleted();
     
         static          int RemoteDSPCallback(int error_code, void* arg);
-    
     
     //Udpate the effect running in the window and all its related parameters.
     //@param : source = DSP that reemplaces the current one

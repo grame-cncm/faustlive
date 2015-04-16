@@ -33,13 +33,14 @@ using namespace std;
 
 class FLApp : public QApplication
 {
-    Q_OBJECT
+     
+    private:
     
-    private :
+        Q_OBJECT
     
     //Menu Bar and it's sub-Menus
     
-        QMenuBar *          fMenuBar;
+        QMenuBar*           fMenuBar;
     
         QMenu*              create_FileMenu();
         QMenu*              create_ExampleMenu();
@@ -76,7 +77,7 @@ class FLApp : public QApplication
     //To index the windows, the smallest index not used is given to the window
     //With this index is calculate the place of the window on the screen
         int                 find_smallest_index(QList<int> currentIndexes); 
-        QList<int>           get_currentIndexes();
+        QList<int>          get_currentIndexes();
         void                calculate_position(int index, int* x, int* y);
     
     //Application Parameters
@@ -97,14 +98,14 @@ class FLApp : public QApplication
         void                recall_Recent(QList<QString>& recents, const QString& pathToSettings);
     
     //Recent Files Parameters and functions
-        QList<QString>        fRecentFiles;
+        QList<QString>      fRecentFiles;
         void                recall_Recent_Files();
         void                save_Recent_Files();
         void                set_Current_File(const QString& pathName);
         void                update_Recent_File();
 
     //Recent Sessions Parameters and functions
-        QList<QString>         fRecentSessions;
+        QList<QString>      fRecentSessions;
         void                save_Recent_Sessions();
         void                recall_Recent_Sessions(); 
         void                set_Current_Session(const QString& pathName);
@@ -112,14 +113,14 @@ class FLApp : public QApplication
     
     //
         QString             createWindowFolder(const QString& sessionFolder, int index);
-    QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
+        QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
     
     //When the application is launched without parameter, this timer will start a initialized window
         QTimer*             fInitTimer;
         QTimer*             fEndTimer;
     
     //Preference Menu Objects and Functions
-        AudioCreator*           fAudioCreator;
+        AudioCreator*       fAudioCreator;
     
         void                update_AudioArchitecture();
     
@@ -141,7 +142,7 @@ class FLApp : public QApplication
     //------- Remembering the last folder in which a file was openened
 		QString				fLastOpened;
     
-    private slots :
+    private slots:
     
 #ifdef REMOTE
         void                changeRemoteServerPort();
@@ -166,7 +167,7 @@ class FLApp : public QApplication
     //---------File
         void                connectWindowSignals(FLWindow* win);
         void                create_Empty_Window();
-        FLWindow*                createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
+        FLWindow*           createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error);
         void                open_New_Window();
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
@@ -219,7 +220,7 @@ class FLApp : public QApplication
                             FLApp(int& argc, char** argv);
         virtual             ~FLApp();
     
-    public slots :
+    public slots:
     
         void                create_New_Window(const QString& name);
     

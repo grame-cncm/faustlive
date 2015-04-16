@@ -23,33 +23,37 @@ class AudioSettings;
 
 class AudioManager : public QObject, public audio{
 
-    Q_OBJECT
-    
-    public :
-    
-    AudioManager(AudioShutdownCallback cb = NULL, void* arg = NULL){Q_UNUSED(cb);Q_UNUSED(arg);}
-    virtual ~AudioManager(){}
-    
-    virtual bool initAudio(QString& error, const char* name) = 0;
-    virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs){Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name);}
-    
-    virtual bool setDSP(QString& error, dsp* DSP, const char* port_name) = 0;
+    private:
 
-    virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP) = 0;
-    virtual void start_Fade() = 0;
-    virtual void wait_EndFade() = 0;
+        Q_OBJECT
     
-    virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
-    virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
+    public:
     
-    virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable){Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
-    
-    virtual int get_buffer_size() = 0;
-    virtual int get_sample_rate() = 0;
-    
-    signals : 
-    
-    void errorSignal(const char*);
+        AudioManager(AudioShutdownCallback cb = NULL, void* arg = NULL){Q_UNUSED(cb);Q_UNUSED(arg);}
+        virtual ~AudioManager(){}
+        
+        virtual bool initAudio(QString& error, const char* name) = 0;
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs)
+            {Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name);}
+        
+        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name) = 0;
+
+        virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP) = 0;
+        virtual void start_Fade() = 0;
+        virtual void wait_EndFade() = 0;
+        
+        virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
+        virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
+        
+        virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable)
+            {Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
+        
+        virtual int get_buffer_size() = 0;
+        virtual int get_sample_rate() = 0;
+        
+        signals: 
+        
+        void errorSignal(const char*);
 
 };
 

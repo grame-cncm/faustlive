@@ -21,46 +21,49 @@
 
 class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public AudioFader_Interface, public AudioFader_Implementation
 {
-    Q_OBJECT
-        
-    int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
+
+    private: 
     
-    //static int net_restart(void* arg);
+        Q_OBJECT
+            
+        int fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
         
-    virtual int restart_cb();
-        
-    virtual int set_sample_rate(jack_nframes_t nframes)
-    {
-//        printf("New sample rate = %u\n", nframes);
-        fDsp->init(nframes);
-        return 0;
-    }
-    
-    virtual void error_cb(int error_code)
-    {
-        switch (error_code) {
-                
-            case SOCKET_ERROR:
-                printf("NetJack : SOCKET_ERROR\n");
-                break;
-                
-            case SYNC_PACKET_ERROR:
-                printf("NetJack : SYNC_PACKET_ERROR\n");
-                break;
-                
-            case DATA_PACKET_ERROR:
-                printf("NetJack : DATA_PACKET_ERROR\n");
-                break;
+        //static int net_restart(void* arg);
+            
+        virtual int restart_cb();
+            
+        virtual int set_sample_rate(jack_nframes_t nframes)
+        {
+    //        printf("New sample rate = %u\n", nframes);
+            fDsp->init(nframes);
+            return 0;
         }
         
-        std::stringstream err;
-        err<<error_code;
+        virtual void error_cb(int error_code)
+        {
+            switch (error_code) {
+                    
+                case SOCKET_ERROR:
+                    printf("NetJack : SOCKET_ERROR\n");
+                    break;
+                    
+                case SYNC_PACKET_ERROR:
+                    printf("NetJack : SYNC_PACKET_ERROR\n");
+                    break;
+                    
+                case DATA_PACKET_ERROR:
+                    printf("NetJack : DATA_PACKET_ERROR\n");
+                    break;
+            }
+            
+            std::stringstream err;
+            err<<error_code;
+            
+            emit errorPRINT(err.str().c_str());
         
-        emit errorPRINT(err.str().c_str());
-    
-    }
-    
-    virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs);
+        }
+        
+        virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs);
     
     public:
     
@@ -78,7 +81,7 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
-    void        force_stopFade();
+        void        force_stopFade();
     
     signals :
         void errorPRINT(const char*);

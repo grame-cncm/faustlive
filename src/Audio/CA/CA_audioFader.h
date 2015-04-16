@@ -17,20 +17,20 @@
 
 class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader_Implementation{
     
-public:
+    public:
 
-    crossfade_TCoreAudioRenderer(){
-//        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
-       reset_Values();
-    }
-    
-//  Reimplementing audio callback to add the crossfade procedure
-    virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
-                    const AudioTimeStamp *inTimeStamp,
-                    UInt32 inNumberFrames,
-                            AudioBufferList *ioData){
+        crossfade_TCoreAudioRenderer(){
+    //        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
+           reset_Values();
+        }
         
-//        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
+    //  Reimplementing audio callback to add the crossfade procedure
+        virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                        const AudioTimeStamp *inTimeStamp,
+                        UInt32 inNumberFrames,
+                                AudioBufferList *ioData){
+            
+    //        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
         
         OSStatus err = noErr;
         if (fDevNumInChans > 0) {
@@ -55,7 +55,6 @@ public:
         
     }
 };
-
 
 class CA_audioFader : public audio, public AudioFader_Interface
 {
@@ -137,6 +136,7 @@ public:
     void force_stopFade(){
         fCrossFadeDevice.reset_Values();
     }
+    
 };
 
 #endif

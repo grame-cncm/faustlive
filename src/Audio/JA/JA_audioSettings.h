@@ -15,12 +15,14 @@
 
 class JA_audioSettings : public AudioSettings{
 
-    QCheckBox*      fAutoConnectBox;
+    private:
+
+        QCheckBox*      fAutoConnectBox;
     
-    public :
-    JA_audioSettings(QGroupBox* parent);
+    public:
     
-        virtual ~JA_audioSettings();
+        JA_audioSettings(QGroupBox* parent);
+       virtual ~JA_audioSettings();
     
         virtual void    setVisualSettings();
         virtual void    storeVisualSettings();

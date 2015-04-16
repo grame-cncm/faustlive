@@ -21,9 +21,9 @@ using namespace std;
 
 class FLStatusBar : public QStatusBar{
     
-    Q_OBJECT
-    
     private:
+    
+        Q_OBJECT
         QSettings*          fSettings;
     
         QMenu*              fRemoteMenu;
@@ -51,7 +51,7 @@ class FLStatusBar : public QStatusBar{
         void        openMachineMenu();
         void        switch_Machine();    
     
-    signals :
+    signals:
         void        switchMachine();
 };
 

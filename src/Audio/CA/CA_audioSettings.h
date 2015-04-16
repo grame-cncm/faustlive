@@ -25,20 +25,20 @@ using namespace std;
 
 class CA_audioSettings : public AudioSettings{
 
-    private :
+    private:
     
     //Graphical CoreAudio Settings
         QTextBrowser*       fsplRate;
         QLineEdit*          fBufSize;
     
-    private slots :
+    private slots:
     
     //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
         void linkClicked(const QUrl& link); 
     
-    public :
+    public:
         CA_audioSettings(QGroupBox* parent);
-        ~CA_audioSettings();
+        virtual ~CA_audioSettings();
 
         virtual void    setVisualSettings();
         virtual void    storeVisualSettings();

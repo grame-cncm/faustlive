@@ -32,12 +32,11 @@ struct MyMeta: public Meta{
     }
 };
 
-
 class FLHelpWindow : public QMainWindow{
     
-    Q_OBJECT
-    
     private :
+    
+        Q_OBJECT
     
         QTextBrowser* fToolText;
         QTreeWidget*  fTreeLibs;

@@ -18,12 +18,11 @@
 
 using namespace std;
 
-class FJUI
+struct FJUI
 {
-    public : 
     
-    //Saves the connections into the filename
-    void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
+    // Saves the connections into the filename
+    static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
 	{
         std::ofstream f(filename, ios::trunc);
         
@@ -38,7 +37,7 @@ class FJUI
 	}
     
 	// Returns the connections saved in filename
-	std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
+	static std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
 	{
 		std::ifstream f(filename);
         f >> std::noskipws;
@@ -76,13 +75,11 @@ class FJUI
             }
 		}
 		f.close();
-        
-        
         return Connections;
     }
     
     //Updating the connections in the file following the changeTable
-    void  update(const char* filename, std::map<std::string, std::string> changeTable)
+    static void update(const char* filename, std::map<std::string, std::string> changeTable)
 	{
         std::list<std::pair<std::string, std::string> > 	Connections;
         
@@ -121,10 +118,8 @@ class FJUI
             Connections.push_back(make_pair(port1, port2));
 		}
 		readF.close();
-        
         FJUI::saveConnections(filename, Connections);
     }
 };
-
 
 #endif
