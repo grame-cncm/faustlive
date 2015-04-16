@@ -17,6 +17,7 @@
 class PA_audioFactory : public AudioFactory{
     
     public:
+    
         PA_audioFactory();
         virtual ~PA_audioFactory();
         

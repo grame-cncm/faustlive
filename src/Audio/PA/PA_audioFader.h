@@ -28,12 +28,11 @@ class PA_audioFader : public portaudio, public AudioFader_Interface, public Audi
     public:
     
         PA_audioFader(long srate, long bsize);
-    
         virtual ~PA_audioFader();
     
         virtual bool set_dsp(dsp* DSP);
-//        virtual bool start();
-//        virtual void stop();
+//      virtual bool start();
+//      virtual void stop();
    
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();

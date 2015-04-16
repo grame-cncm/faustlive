@@ -56,7 +56,7 @@ class AudioCreator : public QObject{
     public:
     
         AudioCreator(QGroupBox* parent);
-        virtual         ~AudioCreator();
+        virtual ~AudioCreator();
     
     //Returns the instance of the audioCreator
         static AudioCreator*   _Instance(QGroupBox* box);

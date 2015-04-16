@@ -28,7 +28,8 @@ class PA_audioManager : public AudioManager{
         PA_audioFader*          fCurrentAudio;
         PA_audioFader*          fFadeInAudio;
 
-    public :
+    public:
+    
         PA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~PA_audioManager();
     

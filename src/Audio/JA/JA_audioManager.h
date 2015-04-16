@@ -24,15 +24,15 @@ class JA_audioManager : public AudioManager{
         Q_OBJECT
 
         JA_audioFader* fCurrentAudio;
-    
-    public :
-    
+        
+        virtual bool init(const char*, dsp* DSP);
         static void shutdown_message(const char * msg, void* arg);
+    
+    public:
         
         JA_audioManager(shutdown_callback cb, void* arg);
         virtual ~JA_audioManager();
-        
-        virtual bool init(const char*, dsp* DSP);
+       
         virtual bool initAudio(QString& error, const char* name);
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
         virtual bool start();

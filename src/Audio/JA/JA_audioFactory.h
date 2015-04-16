@@ -16,7 +16,8 @@
 
 class JA_audioFactory : public AudioFactory{
     
-    public :
+    public:
+    
         JA_audioFactory();
         virtual ~JA_audioFactory();
         

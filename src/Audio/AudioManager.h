@@ -33,6 +33,7 @@ class AudioManager : public QObject, public audio{
         virtual ~AudioManager(){}
         
         virtual bool initAudio(QString& error, const char* name) = 0;
+        
         virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs)
             {Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name);}
         
@@ -45,13 +46,14 @@ class AudioManager : public QObject, public audio{
         virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
         virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
         
-        virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable)
-            {Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
+        /// SL : 16/04 : to remove ?
+        //virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable)
+        //    {Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
         
         virtual int get_buffer_size() = 0;
         virtual int get_sample_rate() = 0;
         
-        signals: 
+    signals: 
         
         void errorSignal(const char*);
 

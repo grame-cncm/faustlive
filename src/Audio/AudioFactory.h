@@ -24,7 +24,8 @@ typedef void (* AudioShutdownCallback)(const char* message, void* arg);
 
 class AudioFactory{
 
-    public :
+    public:
+    
         AudioFactory(){}
         virtual ~AudioFactory(){}
 

@@ -52,22 +52,22 @@ class NJs_audioFader : public QObject, public netjackaudio, public AudioFader_In
     public:
     
         NJs_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency = 2, QObject* parent = NULL);
-    
         virtual ~NJs_audioFader();
     
         virtual bool init(const char* name, dsp* DSP);
         bool         init(const char* name, int numInputs, int numOutputs);
         virtual bool set_dsp(dsp* DSP);
     
-//        virtual bool start();
-//        virtual void stop();
+//      virtual bool start();
+//      virtual void stop();
     
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
         void force_stopFade();
     
-    signals :
+    signals:
+    
         void error(const char*);
 };
 

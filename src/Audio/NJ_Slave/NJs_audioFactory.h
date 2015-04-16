@@ -17,6 +17,7 @@
 class NJs_audioFactory : public AudioFactory{
     
     public:
+    
         NJs_audioFactory();
         virtual ~NJs_audioFactory();
         

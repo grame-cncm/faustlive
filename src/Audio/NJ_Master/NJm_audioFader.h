@@ -60,7 +60,6 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
             err<<error_code;
             
             emit errorPRINT(err.str().c_str());
-        
         }
         
         virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs);
@@ -75,15 +74,16 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
         bool         init(const char* name, int numInputs, int numOutputs);
         virtual bool set_dsp(dsp* DSP);
     
-//        virtual bool start();
-//        virtual void stop();
+//      virtual bool start();
+//      virtual void stop();
     
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
         void        force_stopFade();
     
-    signals :
+    signals:
+    
         void errorPRINT(const char*);
 };
 
