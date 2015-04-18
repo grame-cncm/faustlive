@@ -15,9 +15,9 @@
 
 //#include "FLrenameDialog.h"
 
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #ifdef REMOTE
-#include "faust/remote-dsp.h"
+#include "faust/dsp/remote-dsp.h"
 #endif
 
 #define DEFAULTNAME "DefaultName"

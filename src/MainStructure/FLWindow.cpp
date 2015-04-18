@@ -39,12 +39,12 @@ list<GUI*>               GUI::fGuiList;
 #include "FLMessageWindow.h"
 
 #ifdef REMOTE
-#include "faust/remote-dsp.h"
+#include "faust/dsp/remote-dsp.h"
 //#include "faust/gui/JSONUI.h"
 //#include "Server.h"
 #endif
 
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 

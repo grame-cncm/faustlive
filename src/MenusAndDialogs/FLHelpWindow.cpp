@@ -8,7 +8,7 @@
 
 #include "FLHelpWindow.h"
 #include "utilities.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
