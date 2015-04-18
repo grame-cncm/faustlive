@@ -13,7 +13,7 @@
 #include "utilities.h"
 
 #ifdef REMOTE
-    #include "faust/remote-dsp.h"
+    #include "faust/dsp/remote-dsp.h"
 #endif
 
 //--------------------------FLStatusBar
