@@ -29,6 +29,12 @@ class HTTPWindow : public QMainWindow{
     private:
     
         Q_OBJECT
+          
+        void        frontShow_Httpd(QString windowTitle);
+        
+        virtual void contextMenuEvent(QContextMenuEvent* ev);
+        
+        void        closeEvent(QCloseEvent* event);
     
     public : 
         
@@ -36,13 +42,7 @@ class HTTPWindow : public QMainWindow{
         
         HTTPWindow();
         ~HTTPWindow();
-        
-        void        frontShow_Httpd(QString windowTitle);
-        
-        virtual void contextMenuEvent(QContextMenuEvent* ev);
-        
-        void        closeEvent(QCloseEvent* event);
-        
+         
     signals:
         void        closeAll();
         void        toPNG();

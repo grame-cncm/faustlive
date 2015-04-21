@@ -46,14 +46,16 @@ using namespace std;
 #define POST 1
 
 struct connection_info_struct {
-    int connectiontype; // GET or POST
-    struct MHD_PostProcessor *postprocessor; // the POST processor used internally by microhttpd
-    int answercode; // used internally by microhttpd to see where things went wrong or right
+
+    int connectiontype;                         // GET or POST
+    struct MHD_PostProcessor *postprocessor;    // the POST processor used internally by microhttpd
+    int answercode;                             // used internally by microhttpd to see where things went wrong or right
     
     string data;
     string compilationOptions;
-    string winUrl;  //To be able to replace faust content in the right FLWindow
-    std::string answerstring; // the answer sent to the user after upload
+    string winUrl;                              // To be able to replace faust content in the right FLWindow
+    std::string answerstring;                   // the answer sent to the user after upload
+    
 };
 
 class FLServerHttp : public QObject
@@ -77,57 +79,61 @@ class FLServerHttp : public QObject
         
         string          fHome;
         
-        int             handleGet(MHD_Connection *connection, const char* url);
-        int             handlePost(MHD_Connection *connection, const char* url, void *info);
-    
         map<int, string>     fDeclaredNames;
         
         static FLServerHttp*    _serverInstance;
-    
-    public:
-    
+        
         static int      fNr_of_uploading_clients;
         
         struct          MHD_Daemon* fDaemon;
         
-                        FLServerHttp();
-                        virtual ~FLServerHttp();
+        int             handleGet(MHD_Connection *connection, const char* url);
+        int             handlePost(MHD_Connection *connection, const char* url, void *info);
         
-        
-        static FLServerHttp*    _Instance();
-        static void             createInstance(const string& homeFolder);
-        static void             deleteInstance();
-        
+        void            updateAvailableInterfaces();
         int             getMaxClients();
         
-        bool            start();
-        void            stop();
-
         int             sendPage(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
         
         static int      answerToConnection(void *cls, struct MHD_Connection *connection,
                                          const char *url, const char *method,
                                          const char *version, const char *upload_data,
                                          size_t *upload_data_size, void **con_cls);
-        
-        static void requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
-        
-        static int iteratePost(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
-        
-        
-        void            declareHttpInterface(int port, const string& name);
-        void            removeHttpInterface(int port);
+                                         
         
         int             redirectJsonRequest(struct MHD_Connection *connection, string portNumber);
         
-        void            compileSuccessfull(const string& url);
-        void            compileFailed(const string& error);
+        static void requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
         
-        void            updateAvailableInterfaces();
+        static int iteratePost(void *coninfo_cls, MHD_ValueKind kind, 
+                                const char *key, const char *filename, 
+                                const char *content_type, 
+                                const char *transfer_encoding, 
+                                const char *data, uint64_t off, 
+                                size_t size);
+     
+    public:
+       
+        FLServerHttp();
+        virtual ~FLServerHttp();
+         
+        bool start();
+        void stop();
         
+        void declareHttpInterface(int port, const string& name);
+        void removeHttpInterface(int port);
+        
+        void compileSuccessfull(const string& url);
+        void compileFailed(const string& error);
+      
+        static void createInstance(const string& homeFolder);
+        static void deleteInstance();
+          
+        static FLServerHttp* _Instance();
+          
     signals:
         
-        void        compile(const char*, int);
+        void compile(const char*, int);
     
 };
 

@@ -1191,7 +1191,6 @@ void FLApp::importSnapshotFromMenu(){
         fLastOpened = QFileInfo(fileName).absolutePath();
         recall_Snapshot(fileName, true);
 	}
-    
 }
 
 //----Recall or Import a Snapshot
@@ -1309,7 +1308,6 @@ bool FLApp::recall_CurrentSession(){
 	fRecalling = false;
     
     return true;
-    
 }
 
 //--------------CLOSE
@@ -1475,7 +1473,6 @@ void FLApp::updateNavigateMenus(){
             fNavigateMenu->addAction(ite.key());
         }
     }
-    
 }
 
 void FLApp::frontShow(){
@@ -1699,8 +1696,7 @@ void FLApp::update_AudioArchitecture(){
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
             
-            if(!(*it)->update_AudioArchitecture(error))
-            {
+            if(!(*it)->update_AudioArchitecture(error)) {
                 reinitSuccess = false;
                 break;
             }
@@ -1875,10 +1871,8 @@ void FLApp::compile_HttpData(const char* data, int port){
 }
 
 void FLApp::changeDropPort(){
-    
     stop_Server();
     launch_Server();
-    
 }
 
 #ifdef REMOTE
