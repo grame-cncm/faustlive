@@ -15,6 +15,10 @@
 #include <QtWidgets>
 #endif
 
+#ifdef REMOTE
+#include "faust/dsp/remote-dsp.h"
+#endif
+
 #define numberWindows 60
 #define kMAXRECENT 4
 #define kMaxSHAFolders 100
@@ -84,7 +88,7 @@ class FLApp : public QApplication
     
         QString              fWindowBaseName; //Name of Application
     
-        void                create_Session_Hierarchy();
+        void                 create_Session_Hierarchy();
     
         QString              fSessionFolder; //Path to currentSession Folder
         QString              fExamplesFolder;    //Folder containing Examples copied from QResources
@@ -141,12 +145,13 @@ class FLApp : public QApplication
     
     //------- Remembering the last folder in which a file was openened
 		QString				fLastOpened;
-    
-    private slots:
-    
-#ifdef REMOTE
+         
+    #ifdef REMOTE
         void                changeRemoteServerPort();
-#endif
+        remote_dsp_server*  fDSPServer;
+    #endif
+     
+    private slots:
 
 //--------Server Response
         FLWindow*           httpPortToWin(int port);

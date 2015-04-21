@@ -28,7 +28,6 @@
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
 #include "FLRemoteDSPScanner.h"
-#include "Server.h"
 #endif
 
 #include "FLSettings.h"
@@ -51,8 +50,8 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 
 #ifdef REMOTE
-    Server* serv = Server::_Instance();
-    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    fDSPServer = createRemoteDSPServer();
+    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 #endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
@@ -160,6 +159,10 @@ FLApp::~FLApp(){
     FLSessionManager::deleteInstance();
 
     FLServerHttp::deleteInstance();
+    
+#ifdef REMOTE
+    deleteRemoteDSPServer(fDSPServer);
+#endif
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -1876,11 +1879,10 @@ void FLApp::changeDropPort(){
 }
 
 #ifdef REMOTE
-void FLApp::changeRemoteServerPort(){
-
-    Server* serv = Server::_Instance();
-    serv->stop();
-    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+void FLApp::changeRemoteServerPort()
+{
+    fDSPServer->stop();
+    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 }
 #endif
 
