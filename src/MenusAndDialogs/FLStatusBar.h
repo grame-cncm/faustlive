@@ -40,7 +40,7 @@ class FLStatusBar : public QStatusBar{
     public:
     
         FLStatusBar(QSettings* settings, QWidget* parent = NULL);
-        ~FLStatusBar();
+        virtual ~FLStatusBar();
     
         void        setNewOptions(const QString& ip, int port, const QString& newName);
     

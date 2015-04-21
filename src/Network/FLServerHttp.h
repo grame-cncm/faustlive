@@ -138,6 +138,3 @@ class FLServerHttp : public QObject
 };
 
 #endif
-
-
-

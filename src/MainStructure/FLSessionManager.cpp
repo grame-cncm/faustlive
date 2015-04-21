@@ -15,11 +15,6 @@
 
 //#include "FLrenameDialog.h"
 
-#include "faust/dsp/llvm-dsp.h"
-#ifdef REMOTE
-#include "faust/dsp/remote-dsp.h"
-#endif
-
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
 
@@ -697,8 +692,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             return qMakePair(QString(""), (void*)NULL);
         }
         
-        settings->setValue("InputNumber", toCompile->fRemoteFactory->numInputs());
-        settings->setValue("OutputNumber", toCompile->fRemoteFactory->numOutputs());
+        settings->setValue("InputNumber", toCompile->fRemoteFactory->getNumInputs());
+        settings->setValue("OutputNumber", toCompile->fRemoteFactory->getNumOutputs());
 #endif
     }
     
@@ -1217,7 +1212,6 @@ bool FLSessionManager::addWinToServer(FLWinSettings* settings){
     QString sha_key = settings->value("SHA", "").toString();
     string name = settings->value("Name", "").toString().toStdString()/*+ "_" + QString::number(settings->value("Release/Number", 0).toInt()).toStdString()*/;
     
-    
     printf("addWinToServer with name = %s\n", name.c_str());
     
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + sha_key;
@@ -1234,12 +1228,10 @@ bool FLSessionManager::addWinToServer(FLWinSettings* settings){
     
     int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
     
-    remote_dsp_factory* onsenfout = createRemoteDSPFactoryFromString( name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, optLevel);
+    remote_dsp_factory* factory = createRemoteDSPFactoryFromString(name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, optLevel);
     
-    printf("On s'en fout tu sais bien... = %p\n", onsenfout);
-    
-    if(onsenfout){
-        fPublishedFactories[sha_key] = onsenfout;
+    if(factory){
+        fPublishedFactories[sha_key] = factory;
         settings->setValue("Release/Number", settings->value("Release/Number", 0).toInt()+1);
         return true;
     }
@@ -1252,9 +1244,9 @@ void FLSessionManager::deleteWinFromServer(FLWinSettings* settings){
     
     QString sha_key = settings->value("SHA", "").toString();
     
-    remote_dsp_factory* onsenfout = fPublishedFactories[sha_key];
-    if(onsenfout)
-        deleteRemoteDSPFactory(onsenfout);
+    remote_dsp_factory* factory = fPublishedFactories[sha_key];
+    if(factory)
+        deleteRemoteDSPFactory(factory);
     
 }
 #endif

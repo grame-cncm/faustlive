@@ -43,7 +43,7 @@ class FLFileWatcher : public QSettings
         
         
     //    Map the dir 
-        QMap<QString, QList<QString> >       fDirToChildren;
+        QMap<QString, QList<QString> >  fDirToChildren;
         
         static FLFileWatcher*           _fileWatcher;
         

@@ -26,15 +26,16 @@ class FLrenameDialog : public QDialog{
     private:
     
         Q_OBJECT
-    
-    public:
-    
+        
         QString         fNewName;
         QLineEdit*      fFilenameBox;
         QPushButton*    fYes_Button;
+      
+    public:
+    
+        FLrenameDialog(const QString& name,QWidget* parent = NULL);
+        virtual  ~FLrenameDialog();
         
-                        FLrenameDialog(const QString& name,QWidget* parent = NULL);
-                        ~FLrenameDialog();
         QString         getNewName();
         
         public slots: 
@@ -43,4 +44,5 @@ class FLrenameDialog : public QDialog{
         void            enable_Button(const QString& text);
     
 };
+
 #endif

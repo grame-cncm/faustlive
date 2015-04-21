@@ -55,9 +55,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
         Q_OBJECT
     
-        QDateTime        fLastMigration;
+        QDateTime       fLastMigration;
     
-        QString          fHome;        //Folder of currentSession
+        QString         fHome;        //Folder of currentSession
     
         FLToolBar*      fToolBar;
         void            set_ToolBar();
@@ -171,7 +171,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
     
     //--Transforms Wav file into faust string
-        bool         ifWavToString(const QString& source, QString& newSource);
+        bool            ifWavToString(const QString& source, QString& newSource);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -250,7 +250,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            RemoteCallback(int);
        
         void            switchRemoteControl(bool);
-        virtual bool    createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency);
+        virtual bool    createNJdspInstance(const string& name, const string& key, 
+                                            const string& celt, const string& ip, 
+                                            const string& port, const string& mtu, 
+                                            const string& latency);
         virtual bool    startNJdspAudio();
         void            stopNJdspAudio(const char*);
         virtual void    cleanInactiveNJdspInstance();

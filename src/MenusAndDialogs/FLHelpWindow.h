@@ -24,7 +24,7 @@ using namespace std;
 
 struct MyMeta: public Meta{
     
-    public :
+    public:
     vector<pair<string, string> > datas;
     
     virtual void declare(const char* key, const char* value){
@@ -34,7 +34,7 @@ struct MyMeta: public Meta{
 
 class FLHelpWindow : public QMainWindow{
     
-    private :
+    private:
     
         Q_OBJECT
     
@@ -49,7 +49,7 @@ class FLHelpWindow : public QMainWindow{
     
         void    parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
     
-    public :
+    public:
     
         FLHelpWindow(const QString& libsFodler);
         virtual ~FLHelpWindow();

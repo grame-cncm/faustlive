@@ -14,34 +14,37 @@
 #endif
 
 #include <QtNetwork>
-
 #include <map>
+#ifdef REMOTE
+#include "faust/dsp/remote-dsp.h"
+#else
+typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg); // UGLY !! (to fix...)
+#endif
+#include "faust/dsp/llvm-dsp.h"
 
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
-
-class dsp;
-class llvm_dsp_factory;
-class remote_dsp_factory;
 class FLWinSettings;
 
 using namespace std;
 
-enum
-{
+enum {
     TYPE_LOCAL, TYPE_REMOTE
 };
 
-union factory{
+union factory {
     llvm_dsp_factory*   fLLVMFactory;
+#ifdef REMOTE
     remote_dsp_factory* fRemoteFactory;
+#endif
     
-    factory(){
+    factory() {
         fLLVMFactory = NULL;
+    #ifdef REMOTE
         fRemoteFactory = NULL;
+    #endif
     }
 };
 
-struct factorySettings{
+struct factorySettings {
     factory*        fFactory;
     QString         fPath;
     QString         fName;
@@ -54,14 +57,15 @@ class FLSessionManager : public QObject
     private:
 
         Q_OBJECT
-        QString             fSessionFolder;
+        
+        QString         fSessionFolder;
 
         static FLSessionManager*       _sessionManager;
         
-        QString             nameToUniqueName(const QString& name, const QString& path);
-        QList<QString>      get_currentDefault();
-        QString             find_smallest_defaultName();
-        QString             getDeclareName(QString text);
+        QString         nameToUniqueName(const QString& name, const QString& path);
+        QList<QString>  get_currentDefault();
+        QString         find_smallest_defaultName();
+        QString         getDeclareName(QString text);
         
         QString         getErrorFromCode(int code);
         
@@ -83,54 +87,62 @@ class FLSessionManager : public QObject
         
         void            copySHAFolder(const QString& snapshotFolder);
         
-        const char**           getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
+        const char**    getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
         
-        const char**           getRemoteInstanceArgv(QSettings* winSettings, int& argc);
-        void                    deleteArgv(int argc, const char** argv);
+        const char**    getRemoteInstanceArgv(QSettings* winSettings, int& argc);
+        void            deleteArgv(int argc, const char** argv);
             
         QMap<dsp*, factorySettings*>  fDSPToFactory;
-        
+    
+    #ifdef REMOTE
         QMap<QString, remote_dsp_factory*>  fPublishedFactories;
+    #endif
+    
+        void cleanSHAFolder();
         
     private slots:
-        void            receiveDSP();
-        void            networkError(QNetworkReply::NetworkError);
-        
+    
+        void receiveDSP();
+        void networkError(QNetworkReply::NetworkError);
         
     public:
         
         FLSessionManager(const QString& sessionFolder);
-        ~FLSessionManager();
+        virtual ~FLSessionManager();
         
         static FLSessionManager* _Instance();
         static void createInstance(const QString homePath);
         static void deleteInstance();
         
     #ifdef REMOTE
-        bool            addWinToServer(FLWinSettings* settings);
-        void            deleteWinFromServer(FLWinSettings* settings);
+        bool addWinToServer(FLWinSettings* settings);
+        void deleteWinFromServer(FLWinSettings* settings);
     #endif
-        void            updateFolderDate(const QString& shaValue);
-        void            cleanSHAFolder();
+        void updateFolderDate(const QString& shaValue);
+       
         
-        bool            generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
-        bool            generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
+        bool generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
+        bool generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
         
         QPair<QString, void*> createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg);
         
-        dsp* createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg);
+        dsp* createDSP(QPair<QString, void*> factorySetts, 
+                        const QString& source, FLWinSettings* settings,
+                        RemoteDSPErrorCallback error_callback, 
+                        void* error_callback_arg, 
+                        QString& errorMsg);
 
         void deleteDSPandFactory(dsp* toDeleteDSP);
         
-        QString                 get_expandedVersion(QSettings* settings, const QString& source);
+        QString             get_expandedVersion(QSettings* settings, const QString& source);
         
-        QVector<QString>        get_dependencies(llvm_dsp_factory* factoryDependency);
-        QVector<QString>        read_dependencies(const QString& shaValue);
-        void                    write_dependencies(QVector<QString> dependencies, const QString& shaValue);
+        QVector<QString>    get_dependencies(llvm_dsp_factory* factoryDependency);
+        QVector<QString>    read_dependencies(const QString& shaValue);
+        void                write_dependencies(QVector<QString> dependencies, const QString& shaValue);
         
-        QString                askForSourceSaving(const QString& sourceContent);
-        QString                contentOfShaSource(const QString& shaSource);
-        QString                saveTempFile(const QString& shaSource);
+        QString             askForSourceSaving(const QString& sourceContent);
+        QString             contentOfShaSource(const QString& shaSource);
+        QString             saveTempFile(const QString& shaSource);
         
         void                saveCurrentSources(const QString& sessionFolder);
         map<int, QString>   currentSessionRestoration();
@@ -138,6 +150,7 @@ class FLSessionManager : public QObject
         map<int, QString>   snapshotRestoration(const QString& filename);
         
     signals:
+    
         void                error(const QString&);
 };
 

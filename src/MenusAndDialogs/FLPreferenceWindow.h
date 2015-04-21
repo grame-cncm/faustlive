@@ -39,9 +39,8 @@ class FLPreferenceWindow : public QDialog
         
     public: 
 
-        FLPreferenceWindow(QWidget * parent = 0);
-        
-        ~FLPreferenceWindow();
+        FLPreferenceWindow(QWidget* parent = 0);
+        virtual  ~FLPreferenceWindow();
 
         static FLPreferenceWindow* _prefWindow;
         static FLPreferenceWindow* _Instance();

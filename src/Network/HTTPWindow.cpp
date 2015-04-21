@@ -44,7 +44,6 @@ void HTTPWindow::contextMenuEvent(QContextMenuEvent* ev){
     
     delete exportToPNG;
     delete menu;
-    
 }
 
 void HTTPWindow::closeEvent(QCloseEvent* /*event*/){

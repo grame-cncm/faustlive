@@ -36,14 +36,15 @@ class HTTPWindow : public QMainWindow{
         
         void        closeEvent(QCloseEvent* event);
     
-    public : 
+    public: 
         
         //------------------------HTTPD WINDOW ACTIONS
         
         HTTPWindow();
-        ~HTTPWindow();
+        virtual ~HTTPWindow();
          
     signals:
+    
         void        closeAll();
         void        toPNG();
 };

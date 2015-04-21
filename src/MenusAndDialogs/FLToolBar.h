@@ -80,7 +80,7 @@ class FLToolBar : public QToolBar{
     public:
     
         FLToolBar(QSettings* settings, QWidget* parent = NULL);
-        ~FLToolBar();
+        virtual ~FLToolBar();
     
         void                syncVisualParams();
     

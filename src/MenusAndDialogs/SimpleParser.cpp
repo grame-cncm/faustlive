@@ -42,7 +42,7 @@ static bool parseChar(const char*& p, char x)
         p++;
         return true;
     } else {
-        cerr << "parsing error : expoected character '" << x << "'" << ", instead got : " << p << endl;
+        cerr << "parsing error : expected character '" << x << "'" << ", instead got : " << p << endl;
         return false;
     }
 }
@@ -51,9 +51,7 @@ static bool parseChar(const char*& p, char x)
 static bool parseString(const char*& p, string& s)
 {
     string str;
-
     skipBlank(p);
-
     const char* saved = p;
 
     if (*p++ == '"') {
