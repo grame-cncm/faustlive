@@ -22,19 +22,20 @@
 
 class FLInterfaceManager
 {
-    //    Q_OBJECT
-        
-    public: 
-        
+    private:
+    
         TMutex fLocker;
         std::list<GUI*>	fGuiList;
         
+        static FLInterfaceManager* _interfaceManagerInstance;
+        
+    public: 
+        
         FLInterfaceManager();
-        ~FLInterfaceManager();
+        virtual ~FLInterfaceManager();
 
         static FLInterfaceManager* _Instance();
-        static FLInterfaceManager* _interfaceManagerInstance;
-
+  
         void updateAllGuis();
         void registerGUI(GUI* ui);
         void unregisterGUI(GUI* ui);

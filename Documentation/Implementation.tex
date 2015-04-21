@@ -407,12 +407,12 @@ First, will be described the type of audio driver used into FaustLive and how th
 Depending on the operating system and the compiling options, it is possible to embed different audio architectures in FaustLive.
 Default drivers are :
 \begin{itemize}
-\item Coreaudio on OSX
-\item Jack on Linux
-\item Portaudio on Windows
+\item CoreAudio on OSX
+\item JACK on Linux
+\item PortAudio on Windows
 \end{itemize}
 
-Then Jack, NetJack and PortAudio can be added with make options : JACK=1 NETJACK=1 PORTAUDIO=1.
+Then JACK, NetJack and PortAudio can be added with make options : JACK=1 NETJACK=1 PORTAUDIO=1.
 
 \subsection{Code Organisation}
 
@@ -448,7 +448,7 @@ The crossfade functions are mixed to the audio features in the driver-specific a
 
 The role of the audio manager is to manipulate the audioFader(s) and manage the crossfade. Depending on the driver, there are two approaches of structure :
 \begin{itemize}
-\item the one managing one audioFader and fading two DSPs in its "process" function (Jack)
+\item the one managing one audioFader and fading two DSPs in its "process" function (JACK)
 \item the one managing two audioFaders, relaying with a fade in for one part and a fade out for the other (CoreAudio, NetJack, PortAudio)
 \end{itemize}
 

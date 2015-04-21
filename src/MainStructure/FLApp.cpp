@@ -232,7 +232,6 @@ void FLApp::create_Session_Hierarchy(){
         
     }
     
-    
     fLibsFolder = fSessionFolder + separationChar  + "Libs";
     if(!QFileInfo(fLibsFolder).exists()){
         QDir direct(fLibsFolder);
@@ -289,7 +288,6 @@ void FLApp::create_Session_Hierarchy(){
         QDir direct(fDocFolder);
         direct.mkdir(fDocFolder);
     }  
-    
     
     QDir docDir(":/");
     
@@ -482,7 +480,6 @@ QMenu* FLApp::create_NavigateMenu(){
     QMenu* navigateMenu = new QMenu(tr("Navigate"), 0);
 
     return navigateMenu;
-    
 }
 
 QMenu* FLApp::create_HelpMenu(){
@@ -632,7 +629,6 @@ QList<int> FLApp::get_currentIndexes(){
         currentIndexes.push_back((*it)->get_indexWindow());
     }
     return currentIndexes;
-    
 }
 
 int FLApp::find_smallest_index(QList<int> currentIndexes){

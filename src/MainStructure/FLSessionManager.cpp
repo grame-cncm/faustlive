@@ -839,7 +839,6 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
         shaSource.copy(savedPath);
     }
     generalSettings->endGroup();
-        
 }
 
 //--Ask the user if he wants to save its DSP in an new location
@@ -881,7 +880,6 @@ QString FLSessionManager::saveTempFile(const QString& shaSource){
     src.copy(tempShaPath);
     
     return tempShaPath;
-    
 }
 
 //--Returns the content of sha file contained in the SHAFolder

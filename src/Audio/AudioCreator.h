@@ -32,8 +32,6 @@ class AudioCreator : public QObject{
     
         Q_OBJECT
     
-    protected: 
-    
         int fTempAudioIndex;        //Audio architecture currently used
     
         static AudioCreator*    _instance;
