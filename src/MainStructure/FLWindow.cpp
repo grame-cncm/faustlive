@@ -1513,7 +1513,7 @@ void FLWindow::RemoteCallback(int error_code){
     
     if(fLastMigration.secsTo(currentTime) > 3){
         
-        if(error_code == WRITE_ERROR || error_code == READ_ERROR){
+        if(error_code == ERROR_NETJACK_WRITE || error_code == ERROR_NETJACK_READ){
             
             errorPrint("Remote Connection Error.\nSwitching back to local processing.");
             
