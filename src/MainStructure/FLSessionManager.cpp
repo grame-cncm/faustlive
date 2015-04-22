@@ -70,7 +70,7 @@ void FLSessionManager::cleanSHAFolder(){
 }
 
 //Default Names
-QList<QString> FLSessionManager::get_currentDefault(){
+QList<QString> FLSessionManager::getCurrentDefault(){
     
     QList<QString> currentDefault;
     
@@ -94,7 +94,7 @@ QList<QString> FLSessionManager::get_currentDefault(){
     return currentDefault;
 }
 
-QString FLSessionManager::find_smallest_defaultName(){
+QString FLSessionManager::findSmallestDefaultName(){
     
     //Conditional jump on currentDefault List...
     
@@ -102,7 +102,7 @@ QString FLSessionManager::find_smallest_defaultName(){
     QString nomEffet("");
     bool found = false;
     
-    QList<QString> currentDefault = get_currentDefault();
+    QList<QString> currentDefault = getCurrentDefault();
     
     do{
         nomEffet = DEFAULTNAME;
@@ -446,7 +446,7 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
-bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& errorMsg){
+bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& errorMsg){
     
     updateFolderDate(shaKey);
     
@@ -466,7 +466,7 @@ bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString&
     return true;
 }
 
-bool    FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg){
+bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg){
     
     updateFolderDate(shaKey);
     
@@ -566,7 +566,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     if(name == "")
         name = "DefaultName";
-//        name = find_smallest_defaultName();
+//        name = findSmallestDefaultName();
 //    
 //    printf("Name  of DSP = %s\n", name.toStdString().c_str());
 //    
@@ -667,7 +667,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             if(toCompile->fLLVMFactory){
                 writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
                 //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
-                write_dependencies(get_dependencies(toCompile->fLLVMFactory), shaKey.c_str());
+                writeDependencies(getDependencies(toCompile->fLLVMFactory), shaKey.c_str());
                 
                 if(error != "")
                     FLErrorWindow::_Instance()->print_Error(error.c_str());
@@ -1132,7 +1132,7 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
 }
           
 //Calculate the faust expanded version
-QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString& source){
+QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString& source){
     
     string name_app = settings->value("Name", "").toString().toStdString();
     string sha_key = settings->value("SHA", "").toString().toStdString();
@@ -1155,7 +1155,7 @@ QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
 
-QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDependency){
+QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDependency){
     
     QVector<QString> dependencies;
     std::vector<std::string> stdDependendies;
@@ -1170,7 +1170,7 @@ QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDep
     return dependencies;
 }
 
-QVector<QString> FLSessionManager::read_dependencies(const QString& shaValue){
+QVector<QString> FLSessionManager::readDependencies(const QString& shaValue){
     
     QVector<QString> dependencies;
     
@@ -1189,7 +1189,7 @@ QVector<QString> FLSessionManager::read_dependencies(const QString& shaValue){
     return dependencies;
 }
 
-void FLSessionManager::write_dependencies(QVector<QString> dependencies, const QString& shaValue){
+void FLSessionManager::writeDependencies(QVector<QString> dependencies, const QString& shaValue){
     
     QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
     

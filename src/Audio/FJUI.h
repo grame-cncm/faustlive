@@ -37,7 +37,7 @@ struct FJUI
 	}
     
 	// Returns the connections saved in filename
-	static std::list<std::pair<std::string, std::string> >  recallConnections(const char* filename)
+	static std::list<std::pair<std::string, std::string> > recallConnections(const char* filename)
 	{
 		std::ifstream f(filename);
         f >> std::noskipws;
@@ -62,7 +62,6 @@ struct FJUI
                 else if(gORn == 3)
                     n+=cote;
                 
-                
                 if(gORn == 4){
                     Connections.push_back(make_pair(g,n));
 //                    printf("Connect = %s To %s\n", g.c_str(), n.c_str());
@@ -81,7 +80,7 @@ struct FJUI
     //Updating the connections in the file following the changeTable
     static void update(const char* filename, std::map<std::string, std::string> changeTable)
 	{
-        std::list<std::pair<std::string, std::string> > 	Connections;
+        std::list<std::pair<std::string, std::string> > Connections;
         
         std::ifstream readF(filename);
 		string  port1, port2;

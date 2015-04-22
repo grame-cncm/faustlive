@@ -6,10 +6,7 @@
 //
 
 #include "faust/gui/faustqt.h"
-
 #include "faust/gui/httpdUI.h"
-#include "FLServerHttp.h"
-
 #include "faust/gui/FUI.h"
 #include "faust/gui/OSCUI.h"
 
@@ -20,6 +17,7 @@ list<GUI*> GUI::fGuiList;
 #include "FLInterfaceManager.h"
 
 #include "FLToolBar.h"
+#include "FLServerHttp.h"
 
 #ifdef REMOTE
 #include "FLStatusBar.h"
@@ -133,7 +131,7 @@ void FLWindow::frontShow(){
 }
 
 void FLWindow::start_stop_watcher(bool on){
-    QVector<QString> dependencies = FLSessionManager::_Instance()->read_dependencies(fSettings->value("SHA", "").toString());
+    QVector<QString> dependencies = FLSessionManager::_Instance()->readDependencies(fSettings->value("SHA", "").toString());
     
 //--- Add possible wavfile to dependencies
     if(fWavSource != ""){
@@ -142,7 +140,7 @@ void FLWindow::start_stop_watcher(bool on){
         printf("WAV = %s added to deps\n", fWavSource.toStdString().c_str());
     }
     
-    FLSessionManager::_Instance()->write_dependencies(dependencies, getSHA());
+    FLSessionManager::_Instance()->writeDependencies(dependencies, getSHA());
     
     if(fSettings->value("Path", "").toString() != "")
         dependencies.push_front(fSettings->value("Path", "").toString());
@@ -375,7 +373,7 @@ bool FLWindow::update_Window(const QString& source){
     
     QString savedName = fSettings->value("Name", "").toString();
     
-    save_Window();
+    saveWindow();
     hide();
     
     //creating the new DSP instance
@@ -660,7 +658,7 @@ void FLWindow::export_file(){
     
     if(targetDialog->exec()){
         
-        QString expandedCode = FLSessionManager::_Instance()->get_expandedVersion(fSettings, FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
+        QString expandedCode = FLSessionManager::_Instance()->getExpandedVersion(fSettings, FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         
         FLExportManager* exportDialog = FLExportManager::_Instance();
         exportDialog->exportFile(getName(), expandedCode, targetDialog->platform(), targetDialog->architecture(), targetDialog->binOrSource());
@@ -762,9 +760,7 @@ void FLWindow::resizingBig(){
 void FLWindow::set_StatusBar(){
 #ifdef REMOTE
     fStatusBar = new FLStatusBar(fSettings, this);
-    
     connect(fStatusBar, SIGNAL(switchMachine()), this, SLOT(redirectSwitch()));
-    
     setStatusBar(fStatusBar);
 #endif
 }
@@ -788,9 +784,9 @@ void FLWindow::disableOSCInterface(){
 
 void FLWindow::switchOsc(bool on){
 
-    if(on)
+    if (on) {
         updateOSCInterface();
-    else{
+    } else {
         deleteOscInterface();
     }
 }
@@ -850,7 +846,7 @@ void FLWindow::deleteOscInterface(){
 
 void FLWindow::updateOSCInterface(){
     
-    save_Window();
+    saveWindow();
     
     allocateOscInterface();
     
@@ -915,7 +911,8 @@ bool FLWindow::buildInterfaces(dsp* compiledDSP){
         compiledDSP->buildUserInterface(fRCInterface);
 
     if(fHttpInterface)
-        compiledDSP->buildUserInterface(fHttpInterface);            
+        compiledDSP->buildUserInterface(fHttpInterface);   
+                 
     if(fOscInterface)
         compiledDSP->buildUserInterface(fOscInterface);
 
@@ -926,20 +923,17 @@ void FLWindow::runInterfaces(){
 
     if(fHttpInterface){
         fHttpInterface->run();
-
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
 
     if(fOscInterface){
         fOscInterface->run();
-        
-        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
+         FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
     }
     
     if(fInterface){
 //        fInterface->run();
         fInterface->installEventFilter(this);
-        
         FLInterfaceManager::_Instance()->registerGUI(fInterface);
     }
 
@@ -950,9 +944,7 @@ void FLWindow::runInterfaces(){
 void FLWindow::deleteInterfaces(){
     
     if(fInterface){
-        
         FLInterfaceManager::_Instance()->unregisterGUI(fInterface);
-        
         delete fInterface;
         fInterface = NULL;
     }
@@ -1010,16 +1002,16 @@ void FLWindow::closeEvent(QCloseEvent* event){
 }
 
 //During the execution, when a window is shut, its associate folder has to be removed
-void FLWindow::shut_Window(){
+void FLWindow::shutWindow(){
     
-    close_Window();
+    closeWindow();
     const QString winFolder = fHome + "/Windows/" + fWindowName;
     delete fSettings;
     deleteDirectoryAndContent(winFolder);
 }
 
 //Closing the window without removing its property for example when the application is quit
-void FLWindow::close_Window(){
+void FLWindow::closeWindow(){
     
     hide();
     
@@ -1268,23 +1260,19 @@ bool FLWindow::init_audioClient(QString& error){
 	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)){
         
         update_AudioParams();
-        
         return true;
     }
     else
         return false;
-    
 }
 
 void FLWindow::update_AudioParams(){
-    
-    fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
+     fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
     fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
 }
 
 bool FLWindow::setDSP(QString& error){
     bool success = fAudioManager->setDSP(error, fCurrent_DSP, fSettings->value("Name", "").toString().toStdString().c_str());
-    
     update_AudioParams();
     return success;
 }
@@ -1292,7 +1280,7 @@ bool FLWindow::setDSP(QString& error){
 //------------------------SAVING WINDOW ACTIONS
 
 //Read/Write window properties in saving file
-void FLWindow::save_Window(){
+void FLWindow::saveWindow(){
     
     //Save the parameters of the actual interface
     fSettings->setValue("Position/x", this->geometry().x());
@@ -1311,8 +1299,7 @@ void FLWindow::save_Window(){
     
 //    Writing new settings in file (for infos to be synchronized)
     fSettings->sync();
-    
-}
+ }
 
 void FLWindow::recall_Window(){
     
@@ -1394,7 +1381,7 @@ void FLWindow::deleteHttpInterface(){
 
 void FLWindow::updateHTTPInterface(){
     
-    save_Window();
+    saveWindow();
     
     if(fHttpInterface)
         deleteHttpInterface();

@@ -56,6 +56,7 @@ class FLPresentationWindow : public QDialog{
         void    help();
     
     signals:
+    
         void    openExample(const QString&);
         void    newWin();
         void    openWin();

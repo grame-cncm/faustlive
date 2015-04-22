@@ -719,7 +719,7 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
 void FLApp::connectWindowSignals(FLWindow* win){
     
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
-    connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
+    connect(win, SIGNAL(closeWin()), this, SLOT(closeWindow_Action()));
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows_FromWindow()));
     connect(win, SIGNAL(duplicate_Action()), this, SLOT(duplicate_Window()));
     connect(win, SIGNAL(windowNameChanged()), this, SLOT(updateNavigateText()));
@@ -1115,7 +1115,7 @@ void FLApp::update_CurrentSession(){
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->save_Window();
+        (*it)->saveWindow();
 }
 
 //---------------SAVE SNAPSHOT FUNCTIONS
@@ -1387,11 +1387,11 @@ void FLApp::closeAllWindows(){
     QList<FLWindow*>::iterator it;
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->save_Window();
+        (*it)->saveWindow();
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++){
             
-        (*it)->close_Window();
+        (*it)->closeWindow();
         (*it)->deleteLater();
     }
     
@@ -1411,7 +1411,6 @@ void FLApp::shut_AllWindows_FromMenu(){
 
 //Shut all Windows already coming from closeEvent
 void FLApp::shut_AllWindows_FromWindow(){
-
     while(FLW_List.size() != 0 ){
         FLWindow* win = *(FLW_List.begin());
 		common_shutAction(win);
@@ -1420,7 +1419,6 @@ void FLApp::shut_AllWindows_FromWindow(){
 
 //Close from Window Action
 void FLApp::close_Window_Action(){
-    
     FLWindow* win = (FLWindow*)QObject::sender();
     common_shutAction(win);
 }
@@ -1432,7 +1430,7 @@ void FLApp::common_shutAction(FLWindow* win){
     if(path != "")
         set_Current_File(path);
     
-    win->shut_Window();
+    win->shutWindow();
         
     QAction* action = fFrontWindow.key(win);
     fFrontWindow.remove(action);
@@ -1488,7 +1486,7 @@ void FLApp::duplicate(FLWindow* window){
     int val = find_smallest_index(get_currentIndexes());
 
     //Save then Copy the duplicated window's parameters
-    window->save_Window();
+    window->saveWindow();
     
     map<int, int> indexChanges;
     indexChanges[window->get_indexWindow()] = val;
@@ -1608,7 +1606,6 @@ void FLApp::version_Action(){
 //-------------------------------PRESENTATION WINDOW-----------------------------
 
 void FLApp::show_presentation_Action(){
-    
     FLPresentationWindow::_Instance()->show();
     FLPresentationWindow::_Instance()->raise();
 }
@@ -1662,7 +1659,7 @@ void FLApp::update_AudioArchitecture(){
     
     //Save all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->save_Window();
+        (*it)->saveWindow();
     
     //Stop all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
@@ -1726,10 +1723,11 @@ void FLApp::update_AudioArchitecture(){
     }
     else{
         
-        for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+        for(it = FLW_List.begin() ; it != FLW_List.end(); it++) {
             (*it)->start_Audio();
+        }
         
-            fAudioCreator->tempSettingsToSavedSettings();
+        fAudioCreator->tempSettingsToSavedSettings();
 
         //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
@@ -1759,10 +1757,7 @@ void FLApp::StopProgressSlot(){
 
 FLWindow* FLApp::getWinFromHttp(int port){
     
-    QList<FLWindow*>::iterator it;
-    
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        
+    for (QList<FLWindow*>::iterator  it = FLW_List.begin(); it != FLW_List.end(); it++) {
         if(port == (*it)->get_Port())
             return *it;
     }

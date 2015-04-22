@@ -68,11 +68,11 @@ class FLWindow : public QMainWindow/*, public tempName*/
         QMenu*          fWindowMenu;
         void            set_MenuBar(QList<QMenu*> appMenus);
     
-        FLWinSettings*      fSettings;       //All the window settings
-        bool                fIsDefault;
-        QString             fSource;
-        QString             fWavSource;
-        QDateTime           fCreationDate;
+        FLWinSettings*  fSettings;       //All the window settings
+        bool            fIsDefault;
+        QString         fSource;
+        QString         fWavSource;
+        QDateTime       fCreationDate;
         
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
@@ -107,10 +107,13 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            print_initWindow(int typeInit);
     
         QList<std::pair<QString, QString> > fRecentFiles;
-        QStringList                 fRecentSessions;
+        QStringList     fRecentSessions;
     
 //    Set fToolBar with current windows options
         void            setWindowsOptions();
+            
+    //--Transforms Wav file into faust string
+        bool            ifWavToString(const QString& source, QString& newSource);
     
     signals :
     //Informing of a drop, a close event, ...
@@ -150,12 +153,12 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
     //To close a window the safe way
         //At the end of application execution
-        void            close_Window();
+        void            closeWindow();
         //During the execution
-        void            shut_Window();  
+        void            shutWindow();  
     
     //Called when the X button of a window is triggered
-        virtual void    closeEvent ( QCloseEvent * event );
+        virtual void    closeEvent(QCloseEvent* event);
     
     //-- 4 steps in a interface's life
         bool            allocateInterfaces(const QString& nameEffect); 
@@ -168,10 +171,6 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //@param : source = DSP to be compiled in the window
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
-    
-    
-    //--Transforms Wav file into faust string
-        bool            ifWavToString(const QString& source, QString& newSource);
     
         bool            update_AudioArchitecture(QString& error);
     
@@ -190,17 +189,17 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            setDSP(QString& error);
         void            update_AudioParams();
     //Drag and drop operations
-        virtual void    dropEvent ( QDropEvent * event );
-        virtual void    dragEnterEvent ( QDragEnterEvent * event );
-        virtual void    dragLeaveEvent ( QDragLeaveEvent * event );
+        virtual void    dropEvent(QDropEvent * event);
+        virtual void    dragEnterEvent(QDragEnterEvent * event);
+        virtual void    dragLeaveEvent(QDragLeaveEvent * event);
                 void    pressEvent();
-        virtual bool    eventFilter( QObject *obj, QEvent *ev );
+        virtual bool    eventFilter(QObject *obj, QEvent *ev);
 
     //Start or stop file/dependency watcher
         void            start_stop_watcher(bool on);
     
     //Save the graphical and audio connections of current DSP
-        void            save_Window();
+        void            saveWindow();
     
     //Recall the parameters (graphical and audio)
         void            recall_Window();
@@ -228,8 +227,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
-    public slots :
-    void            audioShutDown(const QString& msg);
+    public slots:
+    
+        void            audioShutDown(const QString& msg);
     
     //Modification of the compilation options
         void            modifiedOptions();
@@ -276,6 +276,7 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            update_Window(const QString& source);
         void            selfUpdate();
         void            selfNameUpdate(const QString& oldSource, const QString& newSource);
+        
 };
 
 #endif

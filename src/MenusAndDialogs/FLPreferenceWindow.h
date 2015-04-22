@@ -45,7 +45,7 @@ class FLPreferenceWindow : public QDialog
         static FLPreferenceWindow* _prefWindow;
         static FLPreferenceWindow* _Instance();
         
-        private slots:
+    private slots:
         
         void save();
         void cancel();

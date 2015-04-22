@@ -88,6 +88,7 @@ class FLToolBar : public QToolBar{
         void    switchOsc(bool on);
     
     public slots: 
+    
         void    modifiedOptions();
         void    expansionAction();
         void    collapseAction();

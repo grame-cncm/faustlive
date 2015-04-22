@@ -48,10 +48,12 @@ class FLStatusBar : public QStatusBar{
         void        setRemoteSettings(const QString& name, const QString& ipServer, int portServer);
     
     public slots: 
+    
         void        openMachineMenu();
         void        switch_Machine();    
     
     signals:
+    
         void        switchMachine();
 };
 

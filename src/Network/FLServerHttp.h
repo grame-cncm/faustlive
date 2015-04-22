@@ -11,7 +11,7 @@
 #ifndef _FLSERVERHTTP_h
 #define _FLSERVERHTTP_h
 
-#define kBusyPage   "<html><body>FaustLive Server is busy, please try again later.</body></html>"
+#define kBusyPage  "<html><body>FaustLive Server is busy, please try again later.</body></html>"
 #define kErrorPage "<html>\n<body>ERROR</body>\n</html>"
 #define kErrorCompile1 "<html>\n<body>\nImpossible to compile this file : \n"
 #define kErrorCompile2 "\n</body>\n</html>"

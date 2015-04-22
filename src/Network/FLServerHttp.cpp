@@ -140,13 +140,10 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
 int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, void *info){
     
     struct connection_info_struct *con_info = (connection_info_struct*)info;
-    
     int port = 0;
     
     if(con_info->winUrl.compare("") != 0 && con_info->winUrl.compare(fServerAddress) != 0){
-        
         size_t pos = con_info->winUrl.rfind(":");
-        
         string portNumber = con_info->winUrl.substr(pos+1, con_info->winUrl.size()-pos-2);
         port = atoi(portNumber.c_str()); 
     }
@@ -158,11 +155,8 @@ int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, 
     fPosted = false;
     
     if(fCompiled){
-        
         con_info->answerstring = fUrl;
-            
         return sendPage(connection, con_info->answerstring.c_str(), con_info->answerstring.size(), MHD_HTTP_OK, "text/plain");
-        
     }
     else{
         
@@ -187,9 +181,7 @@ int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, cons
         struct connection_info_struct *con_info;
     
         if (fNr_of_uploading_clients >= server->getMaxClients()) {
-            
             string busyServer(kBusyPage);
-            
             return server->sendPage(connection, busyServer.c_str (), busyServer.size (), MHD_HTTP_SERVICE_UNAVAILABLE, "text/html");
         }
         
@@ -307,7 +299,6 @@ int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const c
     }
     
     con_info->answercode = MHD_HTTP_OK;
-    
     return MHD_YES;
 }
 
@@ -386,13 +377,10 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber){
     
     string resultingPage = "";
-    
     stringstream url; 
     
     url<<"http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< "/JSON";
-    
     string finalURL = url.str();
-    
     CURL *curl = curl_easy_init();
     
     long respcode = MHD_HTTP_BAD_REQUEST; 

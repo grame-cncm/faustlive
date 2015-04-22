@@ -31,7 +31,7 @@ enum {
 };
 
 union factory {
-    llvm_dsp_factory*   fLLVMFactory;
+    llvm_dsp_factory* fLLVMFactory;
 #ifdef REMOTE
     remote_dsp_factory* fRemoteFactory;
 #endif
@@ -60,11 +60,11 @@ class FLSessionManager : public QObject
         
         QString         fSessionFolder;
 
-        static FLSessionManager*       _sessionManager;
+        static FLSessionManager* _sessionManager;
         
         QString         nameToUniqueName(const QString& name, const QString& path);
-        QList<QString>  get_currentDefault();
-        QString         find_smallest_defaultName();
+        QList<QString>  getCurrentDefault();
+        QString         findSmallestDefaultName();
         QString         getDeclareName(QString text);
         
         QString         getErrorFromCode(int code);
@@ -100,6 +100,8 @@ class FLSessionManager : public QObject
     
         void cleanSHAFolder();
         
+        QVector<QString>    getDependencies(llvm_dsp_factory* factoryDependency);
+        
     private slots:
     
         void receiveDSP();
@@ -111,6 +113,7 @@ class FLSessionManager : public QObject
         virtual ~FLSessionManager();
         
         static FLSessionManager* _Instance();
+        
         static void createInstance(const QString homePath);
         static void deleteInstance();
         
@@ -119,7 +122,6 @@ class FLSessionManager : public QObject
         void deleteWinFromServer(FLWinSettings* settings);
     #endif
         void updateFolderDate(const QString& shaValue);
-       
         
         bool generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
         bool generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg);
@@ -134,11 +136,10 @@ class FLSessionManager : public QObject
 
         void deleteDSPandFactory(dsp* toDeleteDSP);
         
-        QString             get_expandedVersion(QSettings* settings, const QString& source);
+        QString             getExpandedVersion(QSettings* settings, const QString& source);
         
-        QVector<QString>    get_dependencies(llvm_dsp_factory* factoryDependency);
-        QVector<QString>    read_dependencies(const QString& shaValue);
-        void                write_dependencies(QVector<QString> dependencies, const QString& shaValue);
+        QVector<QString>    readDependencies(const QString& shaValue);
+        void                writeDependencies(QVector<QString> dependencies, const QString& shaValue);
         
         QString             askForSourceSaving(const QString& sourceContent);
         QString             contentOfShaSource(const QString& shaSource);

@@ -38,7 +38,7 @@ class FLrenameDialog : public QDialog{
         
         QString         getNewName();
         
-        public slots: 
+    public slots: 
         
         virtual void    accept();
         void            enable_Button(const QString& text);

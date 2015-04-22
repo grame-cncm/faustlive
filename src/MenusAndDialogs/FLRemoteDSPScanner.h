@@ -41,9 +41,10 @@ class FLRemoteDSPScanner : public QDialog{
         FLRemoteDSPScanner(QWidget* parent = NULL);
         virtual ~FLRemoteDSPScanner();
     
-        QString   shaKey();
+        QString  shaKey();
     
     public slots:
+    
         void    itemDblClick(QListWidgetItem* item);    
         void    itemClicked(QListWidgetItem* item);    
         void    cancelDialog();

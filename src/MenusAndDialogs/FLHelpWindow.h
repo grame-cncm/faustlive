@@ -64,6 +64,7 @@ class FLHelpWindow : public QMainWindow{
         virtual void closeEvent(QCloseEvent* event);
     
     public slots:
+    
         void    setToolText(const QString & currentText);
         void    setAppPropertiesText(const QString& currentText);  
         void    setWinPropertiesText(const QString& currentText);

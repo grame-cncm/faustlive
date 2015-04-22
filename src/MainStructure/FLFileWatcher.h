@@ -23,7 +23,6 @@ using namespace std;
 
 class FLWindow;
 
-
 class FLFileWatcher : public QSettings
 {
 
@@ -40,7 +39,6 @@ class FLFileWatcher : public QSettings
         QList<FLWindow*>                fWinChanged;
         
         std::map<QString, QList<FLWindow*> > fMap;
-        
         
     //    Map the dir 
         QMap<QString, QList<QString> >  fDirToChildren;
