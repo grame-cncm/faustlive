@@ -299,7 +299,12 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
+    //argc += 1;
+    
     const char** argv = new const char*[argc];
+    
+    //argv[iteratorParams] = "-machine";
+    //iteratorParams++;
     
     argv[iteratorParams] = "-I";
     iteratorParams++;
