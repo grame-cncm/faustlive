@@ -690,7 +690,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
-        toCompile->fRemoteFactory = createRemoteDSPFactoryFromString( name.toStdString(), pathToContent(fileToCompile.c_str()).toStdString(), argc, argv, ip_server, port_server, error, optLevel);
+        toCompile->fRemoteFactory = createRemoteDSPFactoryFromString(name.toStdString(), pathToContent(fileToCompile.c_str()).toStdString(), argc, argv, ip_server, port_server, error, optLevel);
         
         if(!toCompile->fRemoteFactory){
             errorMsg = error.c_str();

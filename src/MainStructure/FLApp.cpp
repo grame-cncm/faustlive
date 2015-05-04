@@ -50,7 +50,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 
 #ifdef REMOTE
-    fDSPServer = createRemoteDSPServer();
+    fDSPServer = createRemoteDSPServer(0, NULL);
     fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 #endif
     //Initializing screen parameters
