@@ -399,7 +399,7 @@ FLExportManager contains two classes classes describing the two dialogs used in 
 %%%%%%%%%%%%%%%%%AUDIO STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Audio \label{Audio}}
 
-In this section, we discuss the way the audio rendering is managed in FaustLive. 
+In this section, we discuss the way the audio rendering is managed in FaustLive (see also the Appendix).
 First, will be described the type of audio driver used into FaustLive and how the linking is done. Then, the algorithm of the crossfade will be explained, taking care of smoothing the transition between two DSPs relaying in the same window. 
 
 \subsection{Audio drivers used by FaustLive}
@@ -570,6 +570,15 @@ Then, once those libraries are compiled, you can execute {\it make dist} in Faus
 
 To create an installer with FaustLive.exe, you have to install InnoSetup. Then you can modify setup\_file.iss to your needs and run it.
 
+\section{Appendix}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/newAudioStructure}
+\caption{Audio Drivers Structure}
+\label{fig:FLWinSettings}
+\end{center}
+\end{figure}
 
 \end{document}
 
