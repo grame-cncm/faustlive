@@ -186,10 +186,10 @@ void FLToolBar::init(){
     fPublishBox = new QCheckBox;
     connect(fPublishBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
     
-    publishLayout->addRow(new QLabel(tr("Release DSP")), fPublishBox);
+    publishLayout->addRow(new QLabel(tr("Publish DSP")), fPublishBox);
     
     publishBox->setLayout(publishLayout);
-    fContainer->addItem(publishBox, "Release");
+    fContainer->addItem(publishBox, "Publish");
 #endif
     
     //------- Compilation Options
