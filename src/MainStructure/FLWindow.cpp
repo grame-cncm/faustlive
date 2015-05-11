@@ -181,9 +181,8 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
     if(factorySetts.second == NULL)
         return false;
   	
-    if(!init_audioClient(errorMsg)){
+    if(!init_audioClient(errorMsg))
         return false;
-    }
 
     fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
 	
@@ -212,10 +211,13 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             return true;
         } 
         else
-          deleteInterfaces();
+            deleteInterfaces();
     }
     else
         errorMsg = "Interface could not be allocated";
+    
+    sessionManager->deleteDSPandFactory(fCurrent_DSP);
+    fCurrent_DSP = NULL;
     
     return false;
 }
@@ -442,6 +444,11 @@ bool FLWindow::update_Window(const QString& source){
                         recall_Window();
                         
                         errorMsg = "Impossible to allocate new interface";
+                        
+                        printf("ERROR MESSAGE UPDATE");
+                        isUpdateSucessfull = false; 
+                        sessionManager->deleteDSPandFactory(charging_DSP);
+                        charging_DSP = NULL;
                     }
                 }
                 

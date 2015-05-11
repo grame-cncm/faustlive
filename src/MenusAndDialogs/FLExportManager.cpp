@@ -106,7 +106,7 @@ void FLTargetChooser::init(){
     
     fExportChoice = new QComboBox(fMenu2Export);
     fExportChoice->addItem("binary.zip");
-//    fExportChoice->addItem("binary.apk");
+    fExportChoice->addItem("binary.apk");
 //    fExportChoice->addItem("binary.html");
     fExportChoice->addItem("src.cpp");
     
@@ -281,7 +281,8 @@ FLExportManager::FLExportManager(){
 //    setWindowFlags(Qt::FramelessWindowHint);
     
     fTextZone = NULL;
-
+    fQrCodeLabel = NULL;
+    
 	fLastOpened = getenv("HOME");
 
     init();
@@ -334,6 +335,8 @@ void FLExportManager::init(){
     
     fTextZone = new QTextEdit;
     fTextZone->setReadOnly(true);
+    
+    fQrCodeLabel = new QLabel;
     
     fMsgLayout->addWidget(title, 0, 0, 1, 0, Qt::AlignCenter);
     fMsgLayout->addWidget(new QLabel(tr("")), 1, 0, 1, 1, Qt::AlignCenter);
@@ -412,6 +415,7 @@ void FLExportManager::exportFile(const QString& name, const QString& faustCode, 
     fCheck2->hide();
     fCompilationLabel->hide();
     fTextZone->hide();
+    fQrCodeLabel->hide();
     
     setVisible(true);
     
@@ -612,14 +616,13 @@ void FLExportManager::showSaveB(){
             }
             
             QImage big = image.scaledToWidth(qrc->width*4);
-            QLabel* myLabel = new QLabel;
             
             QPixmap fQrCode = QPixmap::fromImage(big);
             
-            myLabel->setPixmap(fQrCode);
+            fQrCodeLabel->setPixmap(fQrCode);
             
-            fMsgLayout->addWidget(myLabel, 6, 0, 1, 6, Qt::AlignCenter);
-            myLabel->show();
+            fMsgLayout->addWidget(fQrCodeLabel, 6, 0, 1, 6, Qt::AlignCenter);
+            fQrCodeLabel->show();
         }
         
         fSaveB->show();

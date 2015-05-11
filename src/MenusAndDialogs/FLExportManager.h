@@ -70,7 +70,7 @@ class FLTargetChooser : public QDialog{
         void            acceptDialog();
         void            cancelDialog();
         
-        void                abortReply();
+        void            abortReply();
         void            targetsDescriptionReceived(); 
         void            platformChanged(const QString& index);
         void            setLastState();
@@ -81,7 +81,7 @@ class FLTargetChooser : public QDialog{
 class FLExportManager : public QDialog{
      
     private:
-
+    
         Q_OBJECT
         
         QString              fAppName;
@@ -112,6 +112,8 @@ class FLExportManager : public QDialog{
         QLabel*             fCheck1;
         QLabel*             fCheck2;
         
+    
+        QLabel*             fQrCodeLabel;
         QTextEdit*          fTextZone;
         
         QPixmap             fCheckImg;
