@@ -374,6 +374,8 @@ bool FLWindow::update_Window(const QString& source){
     hide();
     
     QString savedName = fSettings->value("Name", "").toString();
+    QString savedPath = fSettings->value("Path", "").toString();
+    QString savedSHA = fSettings->value("SHA", "").toString();
     
     saveWindow();
     hide();
@@ -445,10 +447,14 @@ bool FLWindow::update_Window(const QString& source){
                         
                         errorMsg = "Impossible to allocate new interface";
                         
-                        printf("ERROR MESSAGE UPDATE");
                         isUpdateSucessfull = false; 
                         sessionManager->deleteDSPandFactory(charging_DSP);
                         charging_DSP = NULL;
+                        if(fSettings){
+                            fSettings->setValue("Path", savedPath);
+                            fSettings->setValue("Name", savedName);
+                            fSettings->setValue("SHA", savedSHA);
+                        }
                     }
                 }
                 
@@ -479,6 +485,7 @@ bool FLWindow::update_Window(const QString& source){
         adjustSize();
 
     show();
+    
     return isUpdateSucessfull;
 //    }
 //    else
