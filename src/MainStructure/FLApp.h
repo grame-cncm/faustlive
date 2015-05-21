@@ -145,14 +145,17 @@ class FLApp : public QApplication
     
     //------- Remembering the last folder in which a file was openened
 		QString				fLastOpened;
-         
+  
     #ifdef REMOTE
-        void                changeRemoteServerPort();
         remote_dsp_server*  fDSPServer;
     #endif
      
     private slots:
-
+    
+    #ifdef REMOTE
+        void                changeRemoteServerPort();
+    #endif
+   
 //--------Server Response
         FLWindow*           httpPortToWin(int port);
         void                changeDropPort();

@@ -278,7 +278,7 @@ void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*
         }
     }
     
-    free(con_info);
+    delete con_info;
     *con_cls = NULL;
 }
 
