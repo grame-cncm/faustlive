@@ -366,29 +366,29 @@ This use case arises from use case \ref{synchronizedremote}. It imagines switchi
 \item Who has the Faust code in the first place and what chain of compilation is followed ?
 \item What happen when the original code is modified (sync or not)?
 \item What happens when one of the component is deleted ?
-\item What happens when one the connection is lost ?\\
+\item What happens when one the connection is lost ?
 \end{itemize}
-
 
 An example of interaction scenario in FaustLive for the imaginary \ref{synchronizedremote} scenario.
 
 \begin{figure}[!h]
 \begin{center}
 \begin{minipage}[c]{\linewidth}
-\includegraphics[width=\columnwidth]{images/RemoteControl.pdf}
+\includegraphics[width=0.9\columnwidth]{images/RemoteControl.pdf}
 \end{minipage}
 \caption{Class interactions in the synchronized remote processing scenario}
 \label{fig:remotecontrolInteractions}
 \end{center}
 \end{figure}
 
-\begin{itemize}
-\item The features Publish/RemoteControl/Drop/etc to create factories might be differentiated components = disimbricate the features.
+\section{Conclusion}
 
+It would be great to restructure the implementation of the web services that have very static implementations for exemple:
+FLHTTPServer has its own "Post" function and its lot of html files to compose with. \\
+Every HTTP Interface has its own logic \\
+etc \\
 
-
-
-\end{itemize}
+Having a unique "POST" function would be an advance !
 
 \end{document}
 
