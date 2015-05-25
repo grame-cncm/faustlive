@@ -11,11 +11,15 @@
 // The GET requests treated by FLServer are :
 //         /availableInterfaces --> returns an HTML page describing all available HTML interfaces
 //         /availableInterfaces/JSON --> returns the available interfaces as a JSON description
+//         /                    --> HTML page with only a drop zone
+//         /<portNumber>        --> HTML page with drop zone and interface connresponding to <portNumber>
 //
 // The POST request treated by FLServer is :
 //         receiving Faust code --> compilation --> return url to HTML interface
 //
 // The HTML wrappers are stored in Resources/Html
+//
+// See ServerHTTPSpecification in documentation for further implementation
 
 #ifndef _FLSERVERHTTP_h
 #define _FLSERVERHTTP_h
