@@ -7,6 +7,15 @@
 //
 
 // FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
+//
+// The GET requests treated by FLServer are :
+//         /availableInterfaces --> returns an HTML page describing all available HTML interfaces
+//         /availableInterfaces/JSON --> returns the available interfaces as a JSON description
+//
+// The POST request treated by FLServer is :
+//         receiving Faust code --> compilation --> return url to HTML interface
+//
+// The HTML wrappers are stored in Resources/Html
 
 #ifndef _FLSERVERHTTP_h
 #define _FLSERVERHTTP_h
