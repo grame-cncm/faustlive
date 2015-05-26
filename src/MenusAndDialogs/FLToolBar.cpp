@@ -130,21 +130,21 @@ void FLToolBar::init(){
  
 #ifdef REMOTE
 //-------- Remote Control
-    QWidget* remoteControlBox = new QWidget;
-    QFormLayout* remoteControlLayout = new QFormLayout;
-    
-    fRemoteControlCheckBox = new QCheckBox;
-    connect(fRemoteControlCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
-    
-    fRemoteControlIP = new QLabel(tr(""), remoteControlBox);
-    
-    remoteControlLayout->addRow(new QLabel(tr("Enable Control")), fRemoteControlCheckBox);
-    remoteControlLayout->addRow(new QLabel(tr("Remote IP")), fRemoteControlIP);
-    
-    remoteControlBox->setLayout(remoteControlLayout);
-    fContainer->addItem(remoteControlBox, "Remote Control");
-    
-    
+//    QWidget* remoteControlBox = new QWidget;
+//    QFormLayout* remoteControlLayout = new QFormLayout;
+//    
+//    fRemoteControlCheckBox = new QCheckBox;
+//    connect(fRemoteControlCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+//    
+//    fRemoteControlIP = new QLabel(tr(""), remoteControlBox);
+//    
+//    remoteControlLayout->addRow(new QLabel(tr("Enable Control")), fRemoteControlCheckBox);
+//    remoteControlLayout->addRow(new QLabel(tr("Remote IP")), fRemoteControlIP);
+//    
+//    remoteControlBox->setLayout(remoteControlLayout);
+//    fContainer->addItem(remoteControlBox, "Remote Control");
+//    
+//    
 //-------- Remote Processing
     
     QWidget* remoteBox = new QWidget;
@@ -318,8 +318,8 @@ printf("delete window options \n");
 
 
 #ifdef REMOTE
-    delete fRemoteControlIP;
-    delete fRemoteControlCheckBox;
+//    delete fRemoteControlIP;
+//    delete fRemoteControlCheckBox;
     delete fCVLine;
     delete fMTULine;
     delete fLatLine;
@@ -420,10 +420,10 @@ bool FLToolBar::wasHttpSwitched(){
 }
 
 bool FLToolBar::wasRemoteControlSwitched(){
-#ifdef REMOTE  
-    if(fSettings->value("RemoteControl/Enabled", false) != fRemoteControlCheckBox->isChecked())
-        return true;
-#endif    
+//#ifdef REMOTE  
+//    if(fSettings->value("RemoteControl/Enabled", false) != fRemoteControlCheckBox->isChecked())
+//        return true;
+//#endif    
     return false;
 }
 
@@ -466,8 +466,8 @@ void FLToolBar::modifiedOptions(){
     bool httpSwitchVal = fHttpCheckBox->isChecked();
 
 #ifdef REMOTE
-    bool remoteControlOpt= false;
-    bool remoteControlVal = fRemoteControlCheckBox->isChecked();
+//    bool remoteControlOpt= false;
+//    bool remoteControlVal = fRemoteControlCheckBox->isChecked();
     bool remoteOpt= false;
     bool releaseOpt= false;
     bool releaseVal = fPublishBox->isChecked();
@@ -522,11 +522,11 @@ void FLToolBar::modifiedOptions(){
     }
 
 #ifdef REMOTE
-    if(wasRemoteControlSwitched()){
-       fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
-        
-        remoteControlOpt = true;
-    }
+//    if(wasRemoteControlSwitched()){
+//       fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
+//        
+//        remoteControlOpt = true;
+//    }
     if(hasRemoteOptionsChanged()){
         
         fSettings->setValue("RemoteProcessing/CV", fCVLine->text());  
@@ -559,8 +559,8 @@ void FLToolBar::modifiedOptions(){
         emit switch_http(httpSwitchVal);
 
 #ifdef REMOTE
-	if(remoteControlOpt)
-        emit switch_remotecontrol(remoteControlVal);
+//	if(remoteControlOpt)
+//        emit switch_remotecontrol(remoteControlVal);
     if(remoteOpt)
         emit compilationOptionsChanged();
     if(releaseOpt)

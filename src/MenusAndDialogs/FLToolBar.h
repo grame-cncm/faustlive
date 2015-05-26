@@ -48,8 +48,8 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fPortOutOscLine;   //Edit osc port
         QLineEdit*          fPortErrOscLine;
     
-        QCheckBox*          fRemoteControlCheckBox;
-        QLabel*             fRemoteControlIP;
+//        QCheckBox*          fRemoteControlCheckBox;
+//        QLabel*             fRemoteControlIP;
     
         QLineEdit*          fCVLine;  
         QLineEdit*          fMTULine;   
