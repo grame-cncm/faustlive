@@ -5,7 +5,11 @@
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
-// FLRemoteDSPScanner is the interface that establish a connection with faustweb-server to export a faust application. 
+// FLRemoteDSPScanner is the interface that establish a connection to discover the remote compilation services.
+// It could then be possible to create a remote instance of a published remote factory
+
+
+//	This file is not yet used in FaustLive implementation
 
 #ifndef _FLRemoteDSPScanner_h
 #define _FLRemoteDSPScanner_h

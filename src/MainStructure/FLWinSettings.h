@@ -6,6 +6,7 @@
 //
 
 // FLWinSettings contains the settings of a window. It synchronizes some parameters with the general settings of the application.
+// Each FLWindow has its own set of FLWinSettings
 
 #ifndef _FLWinSettings_h
 #define _FLWinSettings_h

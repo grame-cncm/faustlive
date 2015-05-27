@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// ToolBar of the FaustLive Windows. 
+// Status bar of the FLWindows. It contains the feature of remote processing (or the ability to send code to be processed on another machine)
 
 #ifndef _FLStatusBar_h
 #define _FLStatusBar_h

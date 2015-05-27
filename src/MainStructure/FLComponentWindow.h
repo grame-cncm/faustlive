@@ -1,15 +1,12 @@
 //
-//  FLWindow.h
+//  FLComponentWindow.h
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// FAUSTLIVE WINDOW. This class describes the behavior of a window that contains a DSP. 
-// Its principal characteristics are : 
-//      - to accept drag'n drop
-//      - to accept right click
-//      - to enable a control within distance of its interface through http protocol (see HTTPDWindow)
+// The component window is a feature allowing the user to compose DSPs in a parallel/sequence/recursive way to create a new DSP. 
+// As in the FLWindow, it is possible to drop files and urls, so that you can combine elements from the web with local DSPs.
 
 #ifndef _FLComponentWindow_h
 #define _FLComponentWindow_h
@@ -25,6 +22,7 @@
 
 class dsp;
 
+/************************ Droppable Label  ***************************/ 
 class MyLabel : public QLabel{
 
     private:
@@ -46,6 +44,7 @@ class MyLabel : public QLabel{
             void imageClicked();
 };
 
+/****************** Different items composed in the component creator *************/
 class FLComponentItem : public QWidget{
         
     private:
@@ -173,6 +172,8 @@ QList<binaryNode*> createListTrees(QList<FLComponentItem*> components);
 QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QList<binaryNode*> existingTrees);
 binaryNode* calculateBestDisposition(QList<FLComponentItem*> components);
 
+
+/****************** General window in which DSPs are composed *************/
 class FLComponentWindow : public QMainWindow
 {
   
