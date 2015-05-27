@@ -58,7 +58,8 @@ FLServerHttp* FLServerHttp::_Instance(){
     return FLServerHttp::_serverInstance;
 }
 
-//Start Server Listening
+
+//---------------------- START/STOP DAEMON ------------------------
 bool FLServerHttp::start(){
     
     unsigned short port = FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt();
@@ -93,6 +94,7 @@ void FLServerHttp::stop()
     fDaemon = 0;
 }
 
+//---------------------- HANDLE REQUESTS ------------------------
 int FLServerHttp::handleGet(MHD_Connection *connection, const char* url){
     
     stringstream ss;
@@ -158,18 +160,33 @@ int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, 
         con_info->answerstring = fUrl;
         return sendPage(connection, con_info->answerstring.c_str(), con_info->answerstring.size(), MHD_HTTP_OK, "text/plain");
     }
-    else{
         
-        return MHD_YES;
-        //                string errorCompilePage = kErrorCompile1;
-        //                errorCompilePage += fError;
-        //                errorCompilePage += kErrorCompile2;
-        //                printf("COMPILE ERROR PAGE = %s\n", errorCompilePage.c_str());
-        //                
-        //                return sendPage(connection, errorCompilePage.c_str(),
-        //                                         con_info->answerstring.size(), MHD_HTTP_OK, "text/html");  
-    }
+    return MHD_YES;
 }
+
+
+//Callback that parses the content of a post request
+int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
+{
+    struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
+    
+    //    printf("FLServer::iteratePost DATA = %s/n", data);
+    
+    if (size > 0) {
+        
+        if(strcmp(key,"var") == 0)
+            con_info->data += data;
+        
+        if(strcmp(key,"interfaceurl") == 0)
+            con_info->winUrl = data;
+    }
+    
+    con_info->answercode = MHD_HTTP_OK;
+    return MHD_YES;
+}
+
+
+//---------------------- HANDLE INCOMING CNX ------------------------
 
 //Callback answering to any request to the server
 int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char */**version*/, const char *upload_data, size_t *upload_data_size, void **con_cls){
@@ -242,7 +259,7 @@ int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, cons
         return server->sendPage(connection, errorPage.c_str(), errorPage.size(), MHD_HTTP_BAD_REQUEST, "text/html");
 }
 
-//Send back a HTML page to the client
+//---------------------- CREATE RETURNING PAGE ------------------------
 int FLServerHttp::sendPage(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
 {
     
@@ -282,27 +299,8 @@ void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*
     *con_cls = NULL;
 }
 
-//Callback that parses the content of a post request
-int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
-{
-    struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
-    
-//    printf("FLServer::iteratePost DATA = %s/n", data);
-    
-    if (size > 0) {
 
-        if(strcmp(key,"var") == 0)
-            con_info->data += data;
-        
-        if(strcmp(key,"interfaceurl") == 0)
-            con_info->winUrl = data;
-    }
-    
-    con_info->answercode = MHD_HTTP_OK;
-    return MHD_YES;
-}
-
-//Actions on Success or Fail of source compilation
+//---------------- FAUST RECOMPILATION RESULT -----------------------------
 void FLServerHttp::compileSuccessfull(const string& url){
     
     fUrl = url;
@@ -316,6 +314,8 @@ void FLServerHttp::compileFailed(const string& error){
     fError = error;    
     fPosted = true;
 }
+
+//--------------- HANDLE AVAILABLE HTTP INTERFACES ----------------
 
 void FLServerHttp::declareHttpInterface(int port,  const string& name){
     
@@ -364,13 +364,7 @@ void FLServerHttp::updateAvailableInterfaces(){
     
 }
 
-// Standard Callback to store a server response in strinstream
-static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
-{
-    std::ostream* os = static_cast<std::ostream*>(userp);
-    std::streamsize len = size * nmemb;
-    return (os->write(static_cast<char*>(buf), len)) ? len : 0;
-}
+//-------------- Special treatement for the JSON Request ----------
 
 // A request for the JSON, written as :
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
@@ -411,9 +405,20 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
     return sendPage(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
 }
 
-//Accessor to Max Client Number
+// Standard Callback to store the server response to IPadd:5510/JSON
+static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
+{
+    std::ostream* os = static_cast<std::ostream*>(userp);
+    std::streamsize len = size * nmemb;
+    return (os->write(static_cast<char*>(buf), len)) ? len : 0;
+}
+
+
+//----------Accessor to Max Client Number--------
 int FLServerHttp::getMaxClients(){ 
-//    return 20;
     return fMax_clients; 
 }
+
+
+
 

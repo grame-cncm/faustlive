@@ -130,19 +130,19 @@ class FLServerHttp : public QObject
         FLServerHttp();
         virtual ~FLServerHttp();
          
-        bool start();
-        void stop();
+        bool        start();
+        void        stop();
         
-        void declareHttpInterface(int port, const string& name);
-        void removeHttpInterface(int port);
+        void        declareHttpInterface(int port, const string& name);
+        void        removeHttpInterface(int port);
         
-        void compileSuccessfull(const string& url);
-        void compileFailed(const string& error);
+        void        compileSuccessfull(const string& url);
+        void        compileFailed(const string& error);
       
         static void createInstance(const string& homeFolder);
         static void deleteInstance();
           
-        static FLServerHttp* _Instance();
+        static      FLServerHttp* _Instance();
           
     signals:
         
