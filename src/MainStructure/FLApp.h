@@ -184,7 +184,7 @@ class FLApp : public QApplication
         void                open_Example_From_FileMenu();
         void                open_Recent_File();
         void                open_Recent_File(const QString& toto);
-        void                open_Remote_Window();
+        void                open_Remote_Window(); // Not really implemented (checkout FLRemoteDSPScanner)
         void                common_shutAction(FLWindow* win);
         void                display_Progress();
         void                close_Window_Action();

@@ -1,5 +1,5 @@
 //
-//  FaustLiveApp.cpp
+//  FLFILEWATCHER.cpp
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
@@ -16,13 +16,10 @@ FLFileWatcher* FLFileWatcher::_fileWatcher = 0;
 FLFileWatcher::FLFileWatcher(){
 
     fWatcher = new QFileSystemWatcher;
-//    fTempWatcher = new QFileSystemWatcher;
     fSynchroTimer = new QTimer();
     connect(fSynchroTimer, SIGNAL(timeout()), this, SLOT(fileChanged()));
     
     connect(fWatcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Timer(const QString)));
-    
-//    connect(fTempWatcher, SIGNAL(fileChanged(const QString)), this, SLOT(reset_Temp_Timer(const QString)));
     
     connect(fWatcher, SIGNAL(directoryChanged(const QString&)), this, SLOT(dirChanged(const QString&)));
 }
@@ -40,8 +37,6 @@ FLFileWatcher* FLFileWatcher::_Instance(){
 void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
     
     for(int i = 0; i<paths.size(); i++){
-    
-        printf("START PATH = %s\n", paths[i].toStdString().c_str());
         
         QString path = paths[i];
         
@@ -50,8 +45,6 @@ void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
             
             QList<FLWindow*> list = fMap[path];
             list.push_back(win);
-            
-            printf("Size of Path List = %i\n", list.size());
             
             fMap[path] = list;
             
@@ -68,18 +61,6 @@ void FLFileWatcher::startWatcher(QVector<QString> paths, FLWindow* win){
         }
     }
 }
-
-//void FLFileWatcher::startTempWatcher(const QString& path, FLWindow* win){
-//    
-//    if(path != ""){
-//        fTempWatcher->addPath(path);
-//    
-//        QList<FLWindow*> list = fMap[path];
-//        list.push_back(win);
-//        
-//        fMap[path] = list;
-//    }
-//}
 
 void FLFileWatcher::stopWatcher(QVector<QString> paths, FLWindow* win){
     
@@ -174,23 +155,7 @@ void FLFileWatcher::reset_Timer(const QString fileModified){
         fSynchroTimer->start(2000);
 }
 
-//void FLFileWatcher::reset_Temp_Timer(const QString fileModified){
-//    
-//    fSourceToChanged = pathToContent(fileModified);
-//    fWinChanged =  fMap[fileModified];
-//    
-//    //If the signal is triggered multiple times in 2 second, only 1 is taken into account
-//    if(fSynchroTimer->isActive()){
-//        fSynchroTimer->stop();
-//        fSynchroTimer->start(2000);
-//    }
-//    else
-//        fSynchroTimer->start(2000);
-//}
-
 void FLFileWatcher::fileChanged(){
-    
-    printf("FLFileWatcher::fileChanged\n");
     
     fSynchroTimer->stop();
 

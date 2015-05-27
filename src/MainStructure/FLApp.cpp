@@ -8,7 +8,6 @@
 #include "FLServerHttp.h"
 
 #include "FLApp.h"
-#include "FLrenameDialog.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -987,7 +986,7 @@ void FLApp::open_Recent_File(const QString& toto){
 
 //--------------OPEN Remote DSP
 
-/* Attempt never finished to scann remote machines and factory and open a remote instance */
+/* Attempt never finished to scann remote machines and factory and open a remote instance (checkout FLRemoteDSPScanner)*/
 void FLApp::open_Remote_Window(){
 //    
 //    FLRemoteDSPScanner* dspScanner = new FLRemoteDSPScanner();

@@ -209,7 +209,6 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/Audio/AudioFader_Implementation.h \
 			../../src/Audio/FJUI.h \
 			../../src/MenusAndDialogs/FLToolBar.h \
-			../../src/MenusAndDialogs/FLrenameDialog.h \
 			../../src/MenusAndDialogs/FLHelpWindow.h \
 			../../src/MenusAndDialogs/FLPresentationWindow.h \
 			../../src/MenusAndDialogs/FLErrorWindow.h \
@@ -233,7 +232,6 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \
             ../../src/Audio/AudioFader_Implementation.cpp \
         	../../src/MenusAndDialogs/FLToolBar.cpp \
-            ../../src/MenusAndDialogs/FLrenameDialog.cpp \
 			../../src/MenusAndDialogs/FLHelpWindow.cpp \
 			../../src/MenusAndDialogs/FLPresentationWindow.cpp \
             ../../src/MenusAndDialogs/FLErrorWindow.cpp \

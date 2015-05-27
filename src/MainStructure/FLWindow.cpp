@@ -82,8 +82,6 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fCurrent_DSP = NULL;
     
     fToolBar = NULL;
-
-    fIPToHostName = new map<QString, std::pair<QString, int> >;
     
     //    Creating Window Folder
     fHome = home;
@@ -334,8 +332,6 @@ void FLWindow::selfNameUpdate(const QString& oldSource, const QString& newSource
 //Modification of the process in the window
 //@param : source = source that reemplaces the current one
 bool FLWindow::update_Window(const QString& source){
-
-    //    ERREUR à ENVOYER EN SIGNAL A lAPPLI
     
 //    bool update = false;
 //    bool update = true;  
@@ -373,6 +369,7 @@ bool FLWindow::update_Window(const QString& source){
     FLMessageWindow::_Instance()->raise();
     hide();
     
+
     QString savedName = fSettings->value("Name", "").toString();
     QString savedPath = fSettings->value("Path", "").toString();
     QString savedSHA = fSettings->value("SHA", "").toString();
@@ -1528,29 +1525,33 @@ void FLWindow::RemoteCallback(int error_code){
 }
 
 //----------------REMOTE CONTROL
-void FLWindow::switchRemoteControl(bool){
-        
+/*This is a never used attempt to implement remote control
+ This is to checkout with Network/FLRemoteServer
+ */
+
+//void FLWindow::switchRemoteControl(bool){
+//        
 //    printf("");
-    
+//    
 //    Server::_Instance()->declareRemoteControl(fSettings->value("SHA", "").toString().toStdString(), getName().toStdString(), this);
-}
-
-bool    FLWindow::createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency){
-    
-	Q_UNUSED(name);
-	Q_UNUSED(key);
-
-    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/CV", celt.c_str());
-    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/IP", ip.c_str());
-    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Port", port.c_str());
-    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/MTU", mtu.c_str());
-    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Latency", latency.c_str());
-
-	return true;
-}
-
-void FLWindow::stopNJdspAudio(const char* /*errorMsg*/){
-    
+//}
+//
+//bool    FLWindow::createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency){
+//    
+//	Q_UNUSED(name);
+//	Q_UNUSED(key);
+//
+//    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/CV", celt.c_str());
+//    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/IP", ip.c_str());
+//    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Port", port.c_str());
+//    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/MTU", mtu.c_str());
+//    FLSettings::_Instance()->setValue("General/Audio/NetJackMaster/Latency", latency.c_str());
+//
+//	return true;
+//}
+//
+//void FLWindow::stopNJdspAudio(const char* /*errorMsg*/){
+//    
 //    printf("FLWindow::stopNJdspAudio\n");
 //    
 //    fAudio->stop();
@@ -1559,9 +1560,9 @@ void FLWindow::stopNJdspAudio(const char* /*errorMsg*/){
 //    fAudioManagerStopped = false;
 //    
 //    errorPrint(errorMsg);
-}
+//}
 
-void* FLWindow::startAudioSlave(void* /*arg*/){
+//void* FLWindow::startAudioSlave(void* /*arg*/){
 //    
 //    FLWindow * dspToStart = (FLWindow*) arg;
 //    
@@ -1588,10 +1589,10 @@ void* FLWindow::startAudioSlave(void* /*arg*/){
         
 //        Slave_DSP::fLocker.Unlock();
 //    }
-    return NULL;
-}
-
-bool FLWindow::startNJdspAudio(){
+//    return NULL;
+//}
+//
+//bool FLWindow::startNJdspAudio(){
 //    
 //    fAudioManager->stop();
 //    fAudioManagerStopped = true;
@@ -1603,10 +1604,10 @@ bool FLWindow::startNJdspAudio(){
 //    }
 //    else 
 //        return false;
-	return false;
-}
-
-void FLWindow::cleanInactiveNJdspInstance(){
+//	return false;
+//}
+//
+//void FLWindow::cleanInactiveNJdspInstance(){
 //    
 //    if(fAudio && !fAudio->is_connexion_active() && fAudioManagerStopped){
 //        fAudioManager->start();
@@ -1614,7 +1615,7 @@ void FLWindow::cleanInactiveNJdspInstance(){
 //    }
 //
 //    printf("CLEAN INACTIVE\n");
-}
+//}
 //
 //string FLWindow::json(){
 //    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
@@ -1623,20 +1624,19 @@ void FLWindow::cleanInactiveNJdspInstance(){
 //    
 //    return answer;
 //}
-
-void FLWindow::switchRelease(bool on){
-    
-    if(on){
-        printf("SWITCH RELEASE\n");
-        if(!FLSessionManager::_Instance()->addWinToServer(fSettings))
-            FLErrorWindow::_Instance()->print_Error("Impossible to Publish Factory");
-//        IL FAUT SWITCHER LA CHECKBOX SI ça NA PAS MARCHEE
-    }
-    else{
-       FLSessionManager::_Instance()->deleteWinFromServer(fSettings); 
-    }
-}
-
+//
+//void FLWindow::switchRelease(bool on){
+//    
+//    if(on){
+//        printf("SWITCH RELEASE\n");
+//        if(!FLSessionManager::_Instance()->addWinToServer(fSettings))
+//            FLErrorWindow::_Instance()->print_Error("Impossible to Publish Factory");
+////        IL FAUT SWITCHER LA CHECKBOX SI ça NA PAS MARCHEE
+//    }
+//    else{
+//       FLSessionManager::_Instance()->deleteWinFromServer(fSettings); 
+//    }
+//}
 #else
 int FLWindow::RemoteDSPCallback(int error_code, void* arg){
 	Q_UNUSED(error_code);
