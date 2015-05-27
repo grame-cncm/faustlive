@@ -389,6 +389,17 @@ Some attempts have be added to FaustLive but never finished. See
 \item FLRemoteServer (and its use in FLWindow)
 \item FLInterfaceManager : it is trying to handle the synchronization of all the interface that right now is not very usefull because handle by the QT interface but when there is no QT interface who handles it ? (-->FLInterfaceManager)
 \end{itemize}
+
+\section{Notes on the Remote Server embedded in FaustLive}
+\subsection{Use case with the ipad}
+\begin{itemize}
+\item If the "publish" flag is on, the remote factory should be compiled directly
+\item delete or rename not to have 25 times the same name in the "available" list showing up on the ipad
+\item add the port to the preferences because having 7777 in the implementation is not great
+\item crash problem with the trumpet and the layout management
+
+\end{itemize}
+
 \section{Conclusion}
 
 It would be great to restructure the implementation of the web services that have very static implementations for exemple:
