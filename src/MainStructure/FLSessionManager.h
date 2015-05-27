@@ -4,6 +4,24 @@
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
+// The role of the session manager is to be the compilation center and maintain the hierarchy of the current session (save and recall it).
+
+
+// The hierarchie is as follow:
+// - Settings.ini : file containing the saved settings of the application 
+// - Examples : folder containing a copy of the example files of the Faust distribution 
+// - Libs : folder containing a copy of the libraries of the Faust distribution 
+// - Windows : folder containing the window-specific folders 
+//      - FLW-i : window-specific folder
+//          - Settings.ini : the window specific settings
+//          - Graphics.rc : file saving the graphical parameters of the last DSP contained in the window
+//          - Connections.jc : file saving the last known Jack connections of the window
+//          - SHAKey.dsp : copy of the Faust code of the last DSP contained in the window
+// - SHAFolder : folder containing the DSP-specific folders
+//      - SHAKey = DSP-specific folder
+//          – SHAKey* : LLVM intermediate representation of the DSP 
+//          – SHAKey.dsp*: copy of the Faust code corresponding to this SHAKey 
+//          – SHAKey-svg* : folder containing the svg diagram resources
 
 #ifndef _FLSessionManager_h
 #define _FLSessionManager_h
@@ -15,11 +33,15 @@
 
 #include <QtNetwork>
 #include <map>
+
+
+// THI IS UGLY !!! (to fix...)
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
 #else
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg); // UGLY !! (to fix...)
+typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 #endif
+
 #include "faust/dsp/llvm-dsp.h"
 
 class FLWinSettings;
@@ -62,9 +84,7 @@ class FLSessionManager : public QObject
 
         static FLSessionManager* _sessionManager;
         
-        QString         nameToUniqueName(const QString& name, const QString& path);
-        QList<QString>  getCurrentDefault();
-        QString         findSmallestDefaultName();
+//------ Handle name giving 
         QString         getDeclareName(QString text);
         
         QString         getErrorFromCode(int code);
@@ -72,13 +92,9 @@ class FLSessionManager : public QObject
         bool            isSourceDSPPath(const QString& source);
         QString         ifFileToName(const QString& source);
         
-        //--Transforms DSP file into faust string
+        //--Transforms into faust string
         QString         ifFileToString(const QString& source);
-        
-        //--Transforms an Url into faust string
         QString         ifUrlToString(const QString& source);
-        
-        //--Transforms a Google Doc Url into string
         QString         ifGoogleDocToString(const QString& source);
         
         //--Shows restoration warning. 
@@ -116,11 +132,7 @@ class FLSessionManager : public QObject
         
         static void createInstance(const QString homePath);
         static void deleteInstance();
-        
-    #ifdef REMOTE
-        bool addWinToServer(FLWinSettings* settings);
-        void deleteWinFromServer(FLWinSettings* settings);
-    #endif
+
         void updateFolderDate(const QString& shaValue);
         
         bool generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& error);
@@ -143,13 +155,20 @@ class FLSessionManager : public QObject
         
         QString             askForSourceSaving(const QString& sourceContent);
         QString             contentOfShaSource(const QString& shaSource);
-        QString             saveTempFile(const QString& shaSource);
         
         void                saveCurrentSources(const QString& sessionFolder);
         map<int, QString>   currentSessionRestoration();
         void                createSnapshot(const QString& snapshotFolder);
         map<int, QString>   snapshotRestoration(const QString& filename);
         
+    
+/* This is an attempt not finished to implement a publish service of DSP to make them accessible from the outside */
+//      #ifdef REMOTE
+//          bool addWinToServer(FLWinSettings* settings);
+//          void deleteWinFromServer(FLWinSettings* settings);
+//      #endif
+    
+    
     signals:
     
         void                error(const QString&);

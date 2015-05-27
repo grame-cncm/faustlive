@@ -598,16 +598,10 @@ void FLWindow::edit(){
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         
         //    In case user has saved his file in a new location
-        if(pathToOpen != "" && pathToOpen != ".dsp"){
+        if(pathToOpen != "" && pathToOpen != ".dsp")
             update_Window(pathToOpen);
-        }
-        //    Otherwise, a temp file is created and watched
-        else{
+        else
             return;
-//            pathToOpen = FLSessionManager::_Instance()->saveTempFile(fSettings->value("SHA", "").toString());
-//            
-//            FLFileWatcher::_Instance()->startTempWatcher(pathToOpen, this);
-        }
     }
     
     FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
