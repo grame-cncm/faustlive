@@ -5,7 +5,9 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// FLApp is the centerpiece of FaustLive. The class controls all the windows, menu and actions of a user. 
+// FLApp is the centerpiece of FaustLive. 
+// Its role is to be a communication center between the menus, dialogs, windows, etc.
+// It handles the main event loop
 
 #ifndef _FLApp_h
 #define _FLApp_h
@@ -16,7 +18,7 @@
 #endif
 
 #ifdef REMOTE
-#include "faust/dsp/remote-dsp.h"
+class remote_dsp_server;
 #endif
 
 #define numberWindows 60
@@ -42,7 +44,7 @@ class FLApp : public QApplication
     
         Q_OBJECT
     
-    //Menu Bar and it's sub-Menus
+//-------Menu Bar and it's sub-Menus------------------------
     
         QMenuBar*           fMenuBar;
     
@@ -50,8 +52,7 @@ class FLApp : public QApplication
         QMenu*              create_ExampleMenu();
         QMenu*              create_RecentFileMenu();
     
-    //@param recallOrImport : true = Recall ||| false = Import
-        QMenu*              create_LoadSessionMenu(bool recallOrImport);
+        QMenu*              create_LoadSessionMenu(bool recallOrImport);     //@param recallOrImport : true = Recall ||| false = Import
         QMenu*              create_NavigateMenu();
         QMenu*              create_HelpMenu();
     
@@ -66,37 +67,40 @@ class FLApp : public QApplication
 
         void                setup_Menu();
     
-        QProgressBar*       fPBar;   //Artificial progress bar to print a goodbye message
+//--------Artificial progress bar to print a goodbye message
+        QProgressBar*       fPBar;  
     
-    //Appendices Dialogs
-        FLServerHttp*       fServerHttp;        //Server that embbedes all HttpInterfaces in a droppable environnement
+//--------Server that embbedes all HttpInterfaces in a droppable environnement
+        FLServerHttp*       fServerHttp;        
     
-    //List of windows currently running in the application
-        QList<FLWindow*>     FLW_List;           //Container of the opened windows
+//--------List of windows currently running in the application
+        QList<FLWindow*>     FLW_List;       
     
-    //Screen parameters
+//--------Screen parameters
         int                 fScreenWidth;
         int                 fScreenHeight;
     
+//--------Handling window indexes
     //To index the windows, the smallest index not used is given to the window
-    //With this index is calculate the place of the window on the screen
         int                 find_smallest_index(QList<int> currentIndexes); 
         QList<int>          get_currentIndexes();
+    //With this index is calculate the place of the window on the screen
         void                calculate_position(int index, int* x, int* y);
     
-    //Application Parameters
+//-----------------Application Parameters--------------------------
     
         QString              fWindowBaseName; //Name of Application
     
+//--------------- Current Session Management ------------------
         void                 create_Session_Hierarchy();
     
-        QString              fSessionFolder; //Path to currentSession Folder
-        QString              fExamplesFolder;    //Folder containing Examples copied from QResources
-        QString              fHtmlFolder;
-        QString              fDocFolder;
-        QString              fLibsFolder;   //Folder containing Libs copied from QResources
+        QString              fSessionFolder;    //Path to currentSession Folder
+        QString              fExamplesFolder;   //Folder containing Examples copied from QResources
+        QString              fHtmlFolder;       //Folder containing the HTML pages copied from QResources
+        QString              fDocFolder;        //Folder containing the documentation copied from QResources
+        QString              fLibsFolder;       //Folder containing Libs copied from QResources
         
-    //Save/Recall the recent Files/Sessions 
+    //Save/Recall the recent Files/Sessions in settings 
         void                save_Recent(QList<QString>& recents, const QString& pathToSettings);
     
         void                recall_Recent(QList<QString>& recents, const QString& pathToSettings);
@@ -115,7 +119,7 @@ class FLApp : public QApplication
         void                set_Current_Session(const QString& pathName);
         void                update_Recent_Session();
     
-    //
+//---------------------- FLWindow creation ----------------------
         QString             createWindowFolder(const QString& sessionFolder, int index);
         QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
     
@@ -141,12 +145,12 @@ class FLApp : public QApplication
     //-----------------Questions about the current State
 
         FLWindow*           getActiveWin();
-        FLWindow*           getWinFromHttp(int port);
     
     //------- Remembering the last folder in which a file was openened
 		QString				fLastOpened;
   
     #ifdef REMOTE
+        // This server is a remote compilation service included in FaustLive
         remote_dsp_server*  fDSPServer;
     #endif
      
@@ -156,7 +160,7 @@ class FLApp : public QApplication
         void                changeRemoteServerPort();
     #endif
    
-//--------Server Response
+//--------Http Server Response
         FLWindow*           httpPortToWin(int port);
         void                changeDropPort();
         void                launch_Server();
