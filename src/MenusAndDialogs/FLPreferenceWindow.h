@@ -1,11 +1,11 @@
 //
-//  FaustLiveApp.h
+//  FLPreferenceWindow.h
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// FLApp is the centerpiece of FaustLive. The class controls all the windows, menu and actions of a user. 
+// The role of the preference Window is to display the preferences of FaustLive and to handle the changes of settings. 
 
 #ifndef _FLPreferenceWindow_h
 #define _FLPreferenceWindow_h

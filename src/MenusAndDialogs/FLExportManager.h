@@ -7,6 +7,11 @@
 //
 // FLExportManager is the interface that establish a connection with faustweb-server to export a faust application. 
 
+// There are multiple requests accepted by the server :
+/*  GET /targets : sends the JSON encoding the available targets
+    POST /filepost : response with a SHA Key if the file could be compiled
+    GET /sha/platform/architecture/binary.zip : response with the requested file that can then be written on the disk
+*/
 #ifndef _FLExportManager_h
 #define _FLExportManager_h
 
@@ -31,6 +36,7 @@ class FLTargetChooser : public QDialog{
         
         static FLTargetChooser*    _targetChooser;
         
+//---> a little redondant. Could it be possible to only have fTargets ?? 
         vector<string>                  fPlatforms;     // list of available export platforms
         map<string, vector<string> >    fTargets;       // plateform -> available targets
         

@@ -6,7 +6,9 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// ToolBar of the FaustLive Windows. 
+// FLToolBar shapes the settings of the FLWindow. Whenever a change in the settings is applied, the toolbar reacts by emitting signals, connected to the FLWindow.
+
+// Some Remote Control/ Publish features are commented because not finished to be implemented
 
 #ifndef _FLToolBar_h
 #define _FLToolBar_h
