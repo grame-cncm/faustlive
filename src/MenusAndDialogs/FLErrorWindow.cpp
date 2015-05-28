@@ -85,7 +85,7 @@ void FLErrorWindow::hideWin(){
 void FLErrorWindow::print_Error(const QString& text){
     
     QString inter = fErrorText->toPlainText(); 
-    QString wholeText = inter +"\n" +text;
+    QString wholeText = inter + "\n\n" + QDate::currentDate().toString() + "  " + QTime::currentTime().toString() +":\n" +text;
     
     fErrorText->setPlainText(wholeText);
     this->adjustSize();

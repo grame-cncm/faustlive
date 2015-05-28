@@ -387,7 +387,7 @@ Some attempts have be added to FaustLive but never finished. See
 \begin{itemize}
 \item FLRemoteDSPScanner (and its use in FLApp)
 \item FLRemoteServer (and its use in FLWindow)
-\item FLInterfaceManager : it is trying to handle the synchronization of all the interface that right now is not very usefull because handle by the QT interface but when there is no QT interface who handles it ? (-->FLInterfaceManager)
+\item FLInterfaceManager : The synchronization between all the interfaces sharing a unique DSP is done in the QTGUI. The problem being that if we don't have this QTGUI (see some of theses use cases), there is no synchronization. For that matter, a class called FLInterfaceManager has been created. It is not yet of a great interest but if those use cases are implemented, it will become essential.
 \end{itemize}
 
 \section{Notes on the Remote Server embedded in FaustLive}
