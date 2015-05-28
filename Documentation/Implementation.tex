@@ -124,7 +124,9 @@ One FLWindow contains multiple types of interface, some of which are optional.
 \item OSCUI : interface handling the OSC protocol for remote control 
 \end{itemize}
 
-For each type of interface, FLWindow has a set of functions : allocate, buildUserInterface, run, delete.
+For each type of interface, FLWindow has a set of functions : allocate, buildUserInterface, run, delete. \\
+
+The synchronization between all the interfaces sharing a unique DSP is done in the QTGUI. The problem being that if we don't have this QTGUI (see some use cases described in RemoteFeature.tex), there is no synchronization. For that matter, a class called FLInterfaceManager has been created. It is not yet of a great interest but if those use cases are implemented, it will become essential.
 
 \subsection{Audio client}
 
@@ -152,8 +154,8 @@ The class "FLToolBar" shapes the settings of the FLWindow. Whenever a change in 
 \item switchOsc : enable/disable OSC interface
 \item updateOSCInterface : update OSC interface with new port options
 \item switchHttp : enable/disable HTTP interface
-\item switchRelease : enable/disable factory publication
-\item switchRemoteControl : enable/disable remote control interface
+\item switchRelease : enable/disable factory publication (not yet implemented)
+\item switchRemoteControl : enable/disable remote control interface (not yet implemented)
 \end{itemize}
 
 \subsection{StatusBar}
@@ -170,7 +172,7 @@ The class "FLStatusBar" holds the processing machine parameter and creates the w
 In the constructor, a list of Menus is given to the FLWindow. Moreover, a window-specific menu is added, giving an access point to the following features :
 
 \begin{itemize}
-\item edit : opens the file corresponding to the running DSP. If the DSP is not linked to a source file, the user has the choice between saving the DSP as a new file or opening a temporary file. 
+\item edit : opens the file corresponding to the running DSP. If the DSP is not linked to a source file, the user has to save the DSP as a new file.
 \item paste : copies the content of the clipboard into the window, activating the update of the window.
 \item duplicate : sends a signal, captured by the application, for it to execute the duplication. 
 \item view\_qrcode : activates the remote HTTP control and displays the QrCode, corresponding to the HTML interface.
@@ -203,7 +205,8 @@ The role of FLSessionManager is to be the link with libfaust and libfaustremote,
 
 \subsection{Current Session Hierarchy}
 
-The current session is composed of : 
+The current session is saved in the user home directory and is called .FaustLive-CurrentSession-versionNumber. On Windows, you can configurate an environment variable FAUSTLIVE\_SESSIONDIR to specify an alternative directory name. \\
+The content of the session  is composed of : 
 \begin{itemize}
 \item Settings.ini : file containing the saved settings as described in FLSettings (\ref{FLSettings}).
 \item Examples : folder containing a copy of the example files of the Faust distribution
@@ -314,6 +317,8 @@ The OSC interfaces are, for now, only used as specific interfaces in the FLWindo
 
 \subsection{Remote interface}
 
+Not yet implemented. See RemoteFeatures.tex.
+
 %%%%%%%%%%%%%%%%%SETTING STRUCTURE%%%%%%%%%%%%%%%%
 \section{Setting Management}
 
@@ -359,7 +364,7 @@ The added feature of FLWinSettings, compared to QSettings, is to synchronize thr
 \section{FLFileWatcher}
 
 FLFileWatcher is a singleton. \\
-Its role is to maintain the list of files currently used in FaustLive as DSP source. When a file is modified, renamed or deleted, it is set to redirect the action to the file-corresponding window(s).
+Its role is to maintain the list of files currently used in FaustLive as DSP source or dependency. When a file is modified, renamed or deleted, it is set to redirect the action to the file-corresponding window(s).
 
 Whenever the signal directoryChanged is received on a watched directory, the content is compared to the previous one, in order to know if a file was renamed (same number of children files but new name) or deleted. 
 
@@ -540,7 +545,7 @@ Once you installed all that, you can execute : \\
 On Windows, you will have to modify FaustLive.pro with your own paths, depending on where you compiled the needed librairies. \\
 
 Then you can execute : \\
-{\it qmake -spec win32-msvc2012 (depending on your version of Visual Studio)} \\
+{\it qmake -spec win32-msvc2012 (depending on your version of Visual Studio) JVAR=1 NJVAR=1 PAVAR=1 REMVAR=1 (depending on the options you want to enable)} \\
 The solution created can be added in a new solution, that you can build and run. 
 
 \subsection{Create a new distribution}
