@@ -145,16 +145,16 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 
 \item Code Generation Options : In the parameters, you can change the compilation options of your running DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
 
-\item Additional Compilation Step : a new call to the faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
+\item Additional Compilation Step : a new call to the Faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
 
-\item Post-Compilation Script : after all the compilation steps, you can an arbitrary command line.
+\item Post-Compilation Script : after all the compilation steps, you can add an arbitrary command line.
 
 \end{itemize}
 
 \section{General Actions}
 
 \subsection{Take Snapshot}
- When you take a snapshot, the state of your application is saved : all the windows, their parameters (graphical parameters, connections, position on screen, compilation options, etc, ...). The created archive is a .tar that you can then reload on any FaustLive : it is platform-independent. 
+ When you take a snapshot, the state of your application is saved : all the windows, their parameters (graphical parameters, connections, position on screen, compilation options, etc, ...). The created archive is a .tar (platform-independent) that you can then reload on any FaustLive. 
 
 \subsection{Recall/Import Snapshot}
 You have two different ways to reload a snapshot into FaustLive : 
@@ -183,12 +183,12 @@ When you quit FaustLive, the state of the application is saved, so that it can b
 Any changes in the compilation options will be taken into account for all the new windows created. The one already running keep their parameters.
 \subsubsection{Audio}
  
-Depending on your operating system and on your version of FaustLive. Certain drivers are or not available.
+Depending on your operating system and on your version of FaustLive, certain drivers are or not available.
 The default drivers are :
 \begin{itemize}
-\item Coreaudio on OSX
+\item CoreAudio on OSX
 \item JACK on Linux
-\item Portaudio on Windows
+\item PortAudio on Windows
 \end{itemize}
 
 When you switch the audio architecture or its parameters, every running window is switching. The audio clients stop, the architecture is switched and the audio clients are restarted. If the update is not successfull, the previous architecture is restored. If it cannot be restored, the windows are closed. 
