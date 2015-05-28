@@ -366,6 +366,15 @@ void FLServerHttp::updateAvailableInterfaces(){
 
 //-------------- Special treatement for the JSON Request ----------
 
+
+// Standard Callback to store the server response to IPadd:5510/JSON
+static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
+{
+    std::ostream* os = static_cast<std::ostream*>(userp);
+    std::streamsize len = size * nmemb;
+    return (os->write(static_cast<char*>(buf), len)) ? len : 0;
+}
+
 // A request for the JSON, written as :
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
 int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber){
@@ -404,15 +413,6 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
     
     return sendPage(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
 }
-
-// Standard Callback to store the server response to IPadd:5510/JSON
-static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
-{
-    std::ostream* os = static_cast<std::ostream*>(userp);
-    std::streamsize len = size * nmemb;
-    return (os->write(static_cast<char*>(buf), len)) ? len : 0;
-}
-
 
 //----------Accessor to Max Client Number--------
 int FLServerHttp::getMaxClients(){ 
