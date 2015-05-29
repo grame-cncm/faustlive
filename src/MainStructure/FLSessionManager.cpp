@@ -377,7 +377,8 @@ QString FLSessionManager::ifFileToString(const QString& source){
 /* it is easy to get the file if it is public*/
 /* if we edit a file which source is a GDoc does it get open in the navigator ? (for : it's logical ; against : it really changes the behavior)*/
 /* we need a file watcher version for the GDoc use case */
-/* BIG PROBLEM : receiveDSP is asynchroneous ........ */
+/* PROBLEM 1 : receiveDSP is asynchroneous ........ */
+/* PROBLEM 2 : The google doc is always being saved so it's always asking for recompilation ........ */
 QString FLSessionManager::ifGoogleDocToString(const QString& source){
     
     //In case the text dropped is a web url
