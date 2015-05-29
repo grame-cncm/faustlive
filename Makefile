@@ -12,7 +12,12 @@ EXT =
 endif
 endif
 
-help : 
+all:
+	$(MAKE) -C Build/$(arch)
+	rm -rf FaustLive$(EXT)
+	cp -R Build/$(arch)/FaustLive$(EXT) .
+
+help: 
 	@echo "Usage : 'make; sudo make install'"
 	@echo "To enable Jack or NetJack driver : 'make JACK=1 NETJACK=1'"
 	@echo "To enable remote processing : 'make REMOTE=1'"
@@ -21,11 +26,6 @@ help :
 	@echo "make install : install FaustLive and its resources in Applications"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a FaustLive distribution as a .dmg file"
-
-all:
-	$(MAKE) -C Build/$(arch)
-	rm -rf FaustLive$(EXT)
-	cp -R Build/$(arch)/FaustLive$(EXT) .
 
 math_lib : 
 	$(MAKE) -C Build/$(arch) math_lib 
