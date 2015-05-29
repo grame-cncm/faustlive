@@ -5,7 +5,11 @@
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
-// FLRemoteDSPScanner is the interface that establish a connection with faustweb-server to export a faust application. 
+// FLRemoteDSPScanner is the interface that establish a connection to discover the remote compilation services.
+// It could then be possible to create a remote instance of a published remote factory
+
+
+//	This file is not yet used in FaustLive implementation
 
 #ifndef _FLRemoteDSPScanner_h
 #define _FLRemoteDSPScanner_h
@@ -24,29 +28,27 @@
 using namespace std;
 
 class FLRemoteDSPScanner : public QDialog{
-    Q_OBJECT
     
     private:
     
+        Q_OBJECT
         QVBoxLayout*            fLayout;
-    
         QListWidgetItem*        fCurrentItem;
-    
         QMap<QListWidgetItem*, QString>    fItemToSHA;
-    
         QString                 fSHAKey;
     
-        void        getVueFromInterfaceList(std::vector<std::pair<std::string, std::string> >  interfaceList, QListWidget* vue);
-    
+        void    getVueFromInterfaceList(std::vector<std::pair<std::string, std::string> >  interfaceList, QListWidget* vue);
         void    init();
     
     public:
+    
         FLRemoteDSPScanner(QWidget* parent = NULL);
         virtual ~FLRemoteDSPScanner();
     
-        QString   shaKey();
+        QString  shaKey();
     
-    public slots :
+    public slots:
+    
         void    itemDblClick(QListWidgetItem* item);    
         void    itemClicked(QListWidgetItem* item);    
         void    cancelDialog();

@@ -1,0 +1,93 @@
+
+\documentclass[a4paper]{article}
+\usepackage{pslatex}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\setlength\parskip{\medskipamount}
+\setlength\parindent{0pt}
+\usepackage{graphicx}
+\usepackage{amssymb}
+%\usepackage{hyperref}
+
+\makeatletter
+
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+\newcommand{\ASL}			{ASL}
+\newcommand{\OSC}[1]		{\texttt{#1}}
+\newcommand{\lra}			{$\leftrightarrow$}
+\newcommand{\seg}[1]		{Seg(#1)}
+
+\setlength{\parskip}{1mm}
+
+\makeatother
+
+\begin{document}
+
+\title{FaustLive - Validation Protocol \\ v.1.2}
+
+\author{Grame, Centre National de Création Musicale\\
+{\small <research@grame.fr>} \\
+\vspace{2mm}
+[ANR-12-CORD- 0009] and [ANR-13-BS02-0008]
+}
+
+\maketitle
+
+%=================================================================================================
+
+\newpage
+\section{Menus}
+
+\begin{itemize}
+\item Check all buttons
+\item Check right click
+\end{itemize}
+
+\section{Window}
+
+\begin{itemize}
+\item Drag and Drop --> file, string, url, wav, 
+\item Reversed Drag and Drop
+\item Styles
+\item Crossfade et connexions Jack
+\item Vérifier le suivi de renommage des fichiers
+\item Vérifier le suivi des fichiers
+\item Vérifier la mise à jour des fichiers dans la session courante
+\item Vérifier les params d'une W dupliquée
+\item Vérifier que plusieurs W qui pointent sur la même source sont mises à jour avec renommage et modifs.
+\end{itemize}
+
+\section{App}
+
+\begin{itemize}
+\item Vérifier que toutes les préf sont prises en compte 
+\item Vérifier que le visuel se met à jour si les params n'ont pas fonctionné ou si cancel
+\item Vérifier que les recents se mettent bien
+\item Vérifier la suppression des shaFolder
+\item Vérifier tous les export
+\end{itemize}
+
+\begin{itemize}
+\item Vérifier ce qu'il se passe si on supprime ou modifie des fichiers en dehors de l'exécution
+\item Vérifier tous les messages
+\item Vérifier que les Open s'ouvrent toujours au même endroit
+\end{itemize}
+
+\section{CC}
+
+Vérifier que le component creator fonctionne
+\begin{itemize}
+\item Vérifier le layout automatique
+\item Vérifier ce qu'il se passe s'il n'y a pas d'item
+\item 
+\end{itemize}
+
+\section{Make}
+
+Vérifier que tout ce qui est lié au remote ou à NetJack n'est pas actif quand on a fait make sans NJ.
+
+\end{document}
+
+
+
+

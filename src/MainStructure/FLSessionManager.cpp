@@ -1,5 +1,5 @@
 //
-//  FaustLiveApp.cpp
+//  FLSessionManager.cpp
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
@@ -13,16 +13,12 @@
 
 #include "FLErrorWindow.h"
 
-//#include "FLrenameDialog.h"
-
-#include "faust/llvm-dsp.h"
-#ifdef REMOTE
-#include "faust/remote-dsp.h"
-#endif
-
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
 
+/* When creating a new DSP, it is associated to a unique SHA Key calculated from 
+ the faust code, the name and the compilation options */
+/* This allows to accelerate compilation when reusing the same DSP */
 
 FLSessionManager* FLSessionManager::_sessionManager = 0;
 
@@ -45,94 +41,274 @@ void FLSessionManager::deleteInstance(){
     delete FLSessionManager::_sessionManager;
 }
 
-//---Managing SHAFolder content. SHAFolder modified date is updated whenever a file of the folder is used. Then when there are too many folder saved, the most former used folder is deleted
-void FLSessionManager::updateFolderDate(const QString& shaValue){
-    
-    QString shaFolder = fSessionFolder + "/SHAFolder/" + shaValue;
-    touchFolder(shaFolder);
-}
+//------------------- Compilation of the faust source ----------------------
 
-void FLSessionManager::cleanSHAFolder(){
-    QString shaFolder = fSessionFolder + "/SHAFolder";
+/* The compilation is divided into 2 steps : factory creation then instance creation */
+/* It is not possible to merge those 2 functions because some audio init is needed in between */
+
+QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
+    //-------Clean Factory Folder if needed
+    cleanSHAFolder();
     
-    QDir shaDir(shaFolder);
+    //-------Get Faust Code
     
-    QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
+    QString faustContent = ifUrlToString(source);
     
-    if(children.size() > kMaxSHAFolders){
+    //Path is whether the dsp source unmodified or the waveform converted
+    QString path("");
+    if(isSourceDSPPath(faustContent))
+        path = faustContent;
+    
+    faustContent = ifFileToString(faustContent);
+    
+    //------Get Name
+    
+    QString name = ifFileToName(path);
+    
+    if(name == "")
+        name = getDeclareName(faustContent);
+    
+    if(name == "")
+        name = "DefaultName";
+    
+    //--------Calculation of SHA Key
+    
+    //-----Extracting compilation Options from general options Or window options
+    QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
+    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt();
+    
+    QString faustOptions = defaultOptions;
+    int optLevel = defaultOptLevel;
+    
+    if(settings){
+        faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
+        optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
+    }
+    
+    int argc;
+	const char** argv = getFactoryArgv(path, faustOptions, argc);
+    string shaKey;
+    string err;
+    //    EXPAND DSP JUST TO GET SHA KEY
+    
+    if(expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == ""){
+        errorMsg = err.c_str();
+        return qMakePair(QString(""), (void*)NULL);
+    }
+//        shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
+//	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
+    
+    string optvalue = QString::number(optLevel).toStdString();
+    
+//    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();    
+//    string shaKey = FL_generate_sha1(fullShaString);
+    
+    QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
+    
+    string irFile = factoryFolder.toStdString() + "/" + shaKey;
+    
+    QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
+    
+//      Save source
+    QDir newFolder(factoryFolder);
+    newFolder.mkdir(factoryFolder);
+    
+    writeFile(faustFile, faustContent);
+    
+    string fileToCompile(faustFile.toStdString());
+    string nameToCompile(name.toStdString());
+    
+//---- CreateFactory settings
+    
+    factorySettings* mySetts = new factorySettings;
+    factory* toCompile = new factory;
+    string error = "";
+    
+    QString machineName = "local processing";
+    
+//------ Additionnal compilation step or options (if set so in settings)
+    if(settings){
+        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
+		
+		QString errMsg;
         
-        for(QFileInfoList::iterator it = children.begin(); it != children.end(); it++){
-//            printf("DATE OF CHILDREN = %s\n", it->lastModified().toString().toStdString().c_str());
+        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg))
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
+    }
+    
+//------ Compile local factory
+    if(machineName == "local processing"){
+        mySetts->fType = TYPE_LOCAL;
+        
+        //----Use IR Saving if possible
+        if(QFileInfo(irFile.c_str()).exists())
+			toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+        //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
+        
+        //----Create DSP Factory
+        if(toCompile->fLLVMFactory == NULL){
             
-            if(it == (children.end()-1)){
+            toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+            
+            if(settings){
+                settings->setValue("InputNumber", 0);
+                settings->setValue("OutputNumber", 0);
+            }
+            
+            if(toCompile->fLLVMFactory){
+                writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
+                //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
+                writeDependencies(getDependencies(toCompile->fLLVMFactory), shaKey.c_str());
                 
-                QString childToDelete = it->absoluteFilePath();
-                deleteDirectoryAndContent(childToDelete);
+                if(error != "")
+                    FLErrorWindow::_Instance()->print_Error(error.c_str());
+            }
+            else{
+                errorMsg = error.c_str();
+			    return qMakePair(QString(""), (void*)NULL);
             }
         }
     }
+//------ Compile remote factory
+    else if(settings){
+#ifdef REMOTE
+        mySetts->fType = TYPE_REMOTE;
         
-}
-
-//Default Names
-QList<QString> FLSessionManager::get_currentDefault(){
-    
-    QList<QString> currentDefault;
-    
-    FLSettings * generalSettings = FLSettings::_Instance();
-    
-    generalSettings->beginGroup("Windows");
-    QStringList groups  = generalSettings->childKeys();
-    
-    for(int i=0; i<groups.size(); i++){
+        string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
+        int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
-        QString settingPath = groups[i] + "/Name";
+        toCompile->fRemoteFactory = createRemoteDSPFactoryFromString(name.toStdString(), pathToContent(fileToCompile.c_str()).toStdString(), argc, argv, ip_server, port_server, error, optLevel);
         
-        QString settingName = generalSettings->value(settingPath, "").toString();
-        
-        if(settingName.indexOf(DEFAULTNAME) != -1){
-            currentDefault.push_back(settingName);
+        if(!toCompile->fRemoteFactory){
+            errorMsg = error.c_str();
+            return qMakePair(QString(""), (void*)NULL);
         }
+        
+        settings->setValue("InputNumber", toCompile->fRemoteFactory->getNumInputs());
+        settings->setValue("OutputNumber", toCompile->fRemoteFactory->getNumOutputs());
+#endif
     }
-    generalSettings->endGroup();
     
-    return currentDefault;
+//#ifdef REMOTE
+//    if(settings && settings->value("Release/Enabled", false).toBool()){
+//        deleteWinFromServer(settings);
+//    }
+//#endif
+    
+//----- Saving params because compilation was successfull (otherwise, we return before)
+    mySetts->fFactory = toCompile;
+    mySetts->fPath = path;
+    mySetts->fName = name;
+    
+//----- If a post-compilation script option is set : execute it !
+    if(settings && settings->value("Script/Options", "").toString() != ""){
+        QString erroMsg;
+        
+        if(!executeInstruction(settings->value("Script/Options", "").toString(), errorMsg))
+            FLErrorWindow::_Instance()->print_Error(errorMsg);
+        
+    }
+    
+    return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
-QString FLSessionManager::find_smallest_defaultName(){
+dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg){
     
-    //Conditional jump on currentDefault List...
+//----- Decode factory settings ------
+    factorySettings* mySetts = (factorySettings*)(factorySetts.second);
     
-    int index = 1;
-    QString nomEffet("");
-    bool found = false;
+    factory* toCompile = mySetts->fFactory;
     
-    QList<QString> currentDefault = get_currentDefault();
+    QString path = mySetts->fPath;
+    QString name = mySetts->fName;
+    int type = mySetts->fType;
     
-    do{
-        nomEffet = DEFAULTNAME;
-        nomEffet += "_";
-        nomEffet += QString::number(index);
+    dsp* compiledDSP = NULL;
+    
+//----Create Local DSP Instance
+    if(type == TYPE_LOCAL){
+
+        compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
+		if(compiledDSP == NULL)
+            errorMsg = "Impossible to compile DSP";
+    }
+#ifdef REMOTE
+//----Create Remote DSP Instance
+    else if(settings){
+        int sampleRate = settings->value("SampleRate", 44100).toInt();
+        int bufferSize = settings->value("BufferSize", 512).toInt();
         
-        QList<QString>::iterator it;
+        int errorToCatch;
         
-        for(it = currentDefault.begin(); it != currentDefault.end(); it++){
-            if(nomEffet.compare(*it) == 0){
-                found = true;
-                break;
+        // -----------CALCULATE ARGUMENTS------------
+        int argc;
+        const char** argv = getRemoteInstanceArgv(settings, argc);
+        
+        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, sampleRate, bufferSize, error_callback, error_callback_arg, errorToCatch);
+        
+        
+        if(compiledDSP == NULL){
+            
+            //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
+            if(errorToCatch == ERROR_FACTORY_NOTFOUND){
+                
+                QPair<QString, void*> fS = createFactory(source, settings, errorMsg);
+                
+                if(fS.second == NULL){
+                    errorMsg = "Impossible to find and recompile factory";
+                    return NULL;
+                }
+                
+                compiledDSP = createDSP(fS, source, settings, error_callback, error_callback_arg, errorMsg);
             }
-            else
-                found = false;
         }
-        index++;
         
-    }while(found);
+        if(compiledDSP == NULL)
+            errorMsg = getErrorFromCode(errorToCatch);
+    }
+#else
+	Q_UNUSED(source);
+	Q_UNUSED(error_callback);
+	Q_UNUSED(error_callback_arg);
+#endif
     
-    return nomEffet;
+    fDSPToFactory[compiledDSP] = mySetts;
+    
+    //-----Save settings
+    if(compiledDSP != NULL && settings){
+        settings->setValue("Path", path);
+        settings->setValue("Name", name);
+        settings->setValue("SHA", factorySetts.first);
+	}
+    
+//#ifdef REMOTE
+    //    if(settings && settings->value("Release/Enabled", false).toBool())
+    //        addWinToServer(settings);
+//#endif
+    return compiledDSP;
 }
 
-//Return declare name if there is one.
-//If the name exists in the session, the user is asked to choose another one
+// Factory and instances are associated not to have to maintain both from the ouside of the session manager
+void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP){
+    
+    factorySettings* factoryToDelete = fDSPToFactory[toDeleteDSP];
+    fDSPToFactory.remove(toDeleteDSP);
+    
+    if(factoryToDelete->fType == TYPE_LOCAL){
+        deleteDSPInstance((llvm_dsp*) toDeleteDSP);
+        deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
+    }
+#ifdef REMOTE
+    else{
+        deleteRemoteDSPInstance((remote_dsp*) toDeleteDSP);
+        deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
+    }
+#endif
+}
+
+//--- Managing Faust Source to obtain a name and a faust program as a string ---
+
+//Return declare name if there is one in the faust program
 QString FLSessionManager::getDeclareName(QString text){
     
     QString returning = "";
@@ -154,52 +330,29 @@ QString FLSessionManager::getDeclareName(QString text){
     return returning;
 }
 
-// Transforming DSP Name to make sure it is unique in the session
-QString FLSessionManager::nameToUniqueName(const QString& name, const QString& path){
-    
-    Q_UNUSED(path);
-    
-    QString newName(name);
-    
-    FLSettings* generalSettings = FLSettings::_Instance();
-    
-    generalSettings->beginGroup("Windows");
-    QStringList groups  = generalSettings->childKeys();
-    
-    for(int i=0; i<groups.size(); i++){
-        
-        QString settingPath = groups[i] + "/Path";
-        QString settingName = groups[i] + "/Name";
-        
-        QString tempPath = generalSettings->value(settingPath, "").toString();
-        QString tempName = generalSettings->value(settingName, "").toString();
-        
-//        printf("name to unique name \n");
-        /*
-        while(tempName == name && path != "" && path != tempPath){
-            
-            FLrenameDialog* Msg = new FLrenameDialog(newName, 0);
-            Msg->raise();
-            Msg->exec();
-            newName = Msg->getNewName();
-            
-            while(newName.indexOf(' ') != -1)
-                newName.remove(newName.indexOf(' '), 1);
-            
-            break;
-        }*/
-    }
-    generalSettings->endGroup();
-    
-    return newName;
-}
-
 bool FLSessionManager::isSourceDSPPath(const QString& source){
     
     if(QFileInfo(source).exists() && QFileInfo(source).completeSuffix() == "dsp")
         return true;
     else
         return false;
+}
+
+//For the use of google docs (not finished to implement)
+void FLSessionManager::receiveDSP(){
+    
+    QNetworkReply* response = (QNetworkReply*)QObject::sender();
+    
+    QByteArray key = response->readAll();
+    
+    //bool b = QDesktopServices::openUrl(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M"));
+    
+}
+
+//For the use of google docs (not finished to implement)
+void FLSessionManager::networkError(QNetworkReply::NetworkError){
+    
+//    QNetworkReply* response = (QNetworkReply*)QObject::sender();
 }
 
 QString FLSessionManager::ifFileToName(const QString& source){
@@ -220,24 +373,12 @@ QString FLSessionManager::ifFileToString(const QString& source){
         return source;
 }
 
-void FLSessionManager::receiveDSP(){
-    
-    QNetworkReply* response = (QNetworkReply*)QObject::sender();
-    
-    QByteArray key = response->readAll();
-    
-    printf("Finished receiving DSP = %s\n", key.data());
-    
-    //bool b = QDesktopServices::openUrl(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M"));
-    
-}
-
-void FLSessionManager::networkError(QNetworkReply::NetworkError){
-    
-    QNetworkReply* response = (QNetworkReply*)QObject::sender();
-    printf("Error Received = %s\n", response->errorString().toStdString().c_str());
-}
-
+/*not finished to implement*/
+/* it is easy to get the file if it is public*/
+/* if we edit a file which source is a GDoc does it get open in the navigator ? (for : it's logical ; against : it really changes the behavior)*/
+/* we need a file watcher version for the GDoc use case */
+/* PROBLEM 1 : receiveDSP is asynchroneous ........ */
+/* PROBLEM 2 : The google doc is always being saved so it's always asking for recompilation ........ */
 QString FLSessionManager::ifGoogleDocToString(const QString& source){
     
     //In case the text dropped is a web url
@@ -279,7 +420,9 @@ QString FLSessionManager::ifUrlToString(const QString& source){
     return UrlText;
 }
 
-//--Fill argv parameters with -I/-O/etc...
+//--------- Fill default arguments for local and remote compilation ----------
+
+//--Local params
 const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc){
     
     //--------Compilation Options 
@@ -288,11 +431,6 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     if(sourcePath == "")
         numberFixedParams = numberFixedParams-2;
-    
-//	if(destPath == ""){
-//        numberFixedParams = numberFixedParams-3;
-//		printf("number Params -3\n");
-//	}
 
     int iteratorParams = 0;
     
@@ -300,11 +438,16 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     numberFixedParams = numberFixedParams+2;
 #endif
     
-    //+7 = -I libraryPath -I currentFolder -O drawPath -svg
+    //+7 = -I libraryPath -I currentFolder
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
+    //argc += 1;
+    
     const char** argv = new const char*[argc];
+    
+    //argv[iteratorParams] = "-machine";
+    //iteratorParams++;
     
     argv[iteratorParams] = "-I";
     iteratorParams++;
@@ -331,28 +474,9 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         
         iteratorParams++;
     }
-    
-//	if(destPath != ""){
-//	  argv[iteratorParams] = "-O";
-//	  iteratorParams++;
-//    
-//	   QDir direct(destPath);
-//	   direct.mkdir(destPath);
-//    
-//	   string pathSVG = destPath.toStdString();
-//    
-//	   char* svgP = new char[pathSVG.size()+1];
-//	   strncpy( svgP, pathSVG.c_str(), pathSVG.size()+1);
-//	   argv[iteratorParams] = (const char*) svgP;
-//    
-//		printf("svg Path = %s\n", svgP);
-//
-//		iteratorParams++;
-//		argv[iteratorParams] = "-svg";
-//		iteratorParams++;
-//	}
+
 #ifdef _WIN32
-    //LLVM_MATH is added to resolve mathematical float functions, like powf
+    //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
     argv[iteratorParams] = "-l";
     iteratorParams++;
     argv[iteratorParams] = "llvm_math.ll";
@@ -381,7 +505,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
 
     return argv;
 }
-
+//--Remote params
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc){
     
     argc = 8;
@@ -421,6 +545,7 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     return argv;
 }
 
+//--Delete params
 void    FLSessionManager::deleteArgv(int argc, const char** argv){
     
     for(int i=0; i<argc; i++)
@@ -429,6 +554,7 @@ void    FLSessionManager::deleteArgv(int argc, const char** argv){
     delete[] argv;
 }
 
+//------------------- Generation of auxilary files ----------------------
 QString FLSessionManager::getErrorFromCode(int code){
     
 #ifdef REMOTE
@@ -451,7 +577,7 @@ QString FLSessionManager::getErrorFromCode(int code){
     return "ERROR not recognized";
 }
 
-bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& errorMsg){
+bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& sourcePath, const QString& faustOptions, const QString& name, QString& errorMsg){
     
     updateFolderDate(shaKey);
     
@@ -471,7 +597,7 @@ bool    FLSessionManager::generateAuxFiles(const QString& shaKey, const QString&
     return true;
 }
 
-bool    FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg){
+bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg){
     
     updateFolderDate(shaKey);
     
@@ -544,282 +670,60 @@ bool    FLSessionManager::generateSVG(const QString& shaKey, const QString& sour
     return true;
 }
 
-QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg){
-    //-------Clean Factory Folder if needed
-    cleanSHAFolder();
+//Calculate the faust expanded version
+QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString& source){
     
-    //-------Get Faust Code
+    string name_app = settings->value("Name", "").toString().toStdString();
+    string sha_key = settings->value("SHA", "").toString().toStdString();
     
-    QString faustContent = ifUrlToString(source);
-//    faustContent = ifWavToString(faustContent);
+    string dsp_content = source.toStdString();
     
-    //Path is whether the dsp source unmodified or the waveform converted
-    QString path("");
-    if(isSourceDSPPath(faustContent))
-        path = faustContent;
+    if(QFileInfo(source).exists())
+        dsp_content = pathToContent(source).toStdString();
     
-    printf("PATH = %s\n", path.toStdString().c_str());
+    int argc = 0;
     
-    faustContent = ifFileToString(faustContent);
-    
-    //------Get Name
-    
-    QString name = ifFileToName(path);
-    
-    if(name == "")
-        name = getDeclareName(faustContent);
-    
-    if(name == "")
-        name = "DefaultName";
-//        name = find_smallest_defaultName();
-//    
-//    printf("Name  of DSP = %s\n", name.toStdString().c_str());
-//    
-//    name = nameToUniqueName(name, path);
-    
-    //--------Calculation of SHA Key
-    
-//-----Extracting compilation Options from general options Or window options
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
-    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt();
     
-    QString faustOptions = defaultOptions;
-    int optLevel = defaultOptLevel;
+    QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     
-    if(settings){
-        faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-        optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
-    }
+    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
     
+    string error_msg("");
     
-    int argc;
-	const char** argv = getFactoryArgv(path, faustOptions, argc);
-    string shaKey;
-    string err;
-//    EXPAND DSP JUST TO GET SHA KEY
+    return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
+}
+
+//-----------------------Session Management----------------------------------
+
+//---Managing SHAFolder content. SHAFolder modified date is updated whenever a file of the folder is used. Then when there are too many folder saved, the most former used folder is deleted
+void FLSessionManager::updateFolderDate(const QString& shaValue){
     
-    printf("name = %s\n", name.toStdString().c_str());
-	for(int i=0; i<argc; i++)
-		printf("argv %i = %s\n", i, argv[i]);
+    QString shaFolder = fSessionFolder + "/SHAFolder/" + shaValue;
+    touchFolder(shaFolder);
+}
+
+void FLSessionManager::cleanSHAFolder(){
+    QString shaFolder = fSessionFolder + "/SHAFolder";
     
-    if(expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == ""){
-        errorMsg = err.c_str();
-        printf("ERROR IN EXPAND = %s\n", err.c_str());
-        return qMakePair(QString(""), (void*)NULL);
-    }
-//        shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
+    QDir shaDir(shaFolder);
     
-//	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
+    QFileInfoList children = shaDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
     
-    string optvalue = QString::number(optLevel).toStdString();
-    
-//    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
-    
-//    string shaKey = FL_generate_sha1(fullShaString);
-    
-    QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
-    
-    string irFile = factoryFolder.toStdString() + "/" + shaKey;
-    
-    QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
-    
-//      Save source
-    QDir newFolder(factoryFolder);
-    newFolder.mkdir(factoryFolder);
+    if(children.size() > kMaxSHAFolders){
         
-    writeFile(faustFile, faustContent);
-
-    string fileToCompile(faustFile.toStdString());
-    string nameToCompile(name.toStdString());
-  
-	//----CreateFactory
-
-    factorySettings* mySetts = new factorySettings;
-    factory* toCompile = new factory;
-    string error = "";
-    
-    QString machineName = "local processing";
-    
-    if(settings){
-        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
-		
-		QString errMsg;
-       
-        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg))
-			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
-    }
-    
-    if(machineName == "local processing"){
-       mySetts->fType = TYPE_LOCAL;
-        
-        //----Use IR Saving if possible
-        if(QFileInfo(irFile.c_str()).exists())
-			toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
-            //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
-
-        //----Create DSP Factory
-        if(toCompile->fLLVMFactory == NULL){
-
-            toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+        for(QFileInfoList::iterator it = children.begin(); it != children.end(); it++){
             
-            printf("ERROR IN CREATE FACTORY FROM FILE = %s\n", error.c_str());
-            
-            if(settings){
-                settings->setValue("InputNumber", 0);
-                settings->setValue("OutputNumber", 0);
-            }
-            
-            if(toCompile->fLLVMFactory){
-                writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
-                //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
-                write_dependencies(get_dependencies(toCompile->fLLVMFactory), shaKey.c_str());
+            if(it == (children.end()-1)){
                 
-                if(error != "")
-                    FLErrorWindow::_Instance()->print_Error(error.c_str());
-            }
-            else{
-                errorMsg = error.c_str();
-			    return qMakePair(QString(""), (void*)NULL);
+                QString childToDelete = it->absoluteFilePath();
+                deleteDirectoryAndContent(childToDelete);
             }
         }
     }
-    else if(settings){
-#ifdef REMOTE
-        mySetts->fType = TYPE_REMOTE;
-        
-        string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
-        int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
-        
-        toCompile->fRemoteFactory = createRemoteDSPFactoryFromString( name.toStdString(), pathToContent(fileToCompile.c_str()).toStdString(), argc, argv, ip_server, port_server, error, optLevel);
-        
-        if(!toCompile->fRemoteFactory){
-            errorMsg = error.c_str();
-            return qMakePair(QString(""), (void*)NULL);
-        }
-        
-        settings->setValue("InputNumber", toCompile->fRemoteFactory->numInputs());
-        settings->setValue("OutputNumber", toCompile->fRemoteFactory->numOutputs());
-#endif
-    }
     
-#ifdef REMOTE
-    if(settings && settings->value("Release/Enabled", false).toBool()){
-        deleteWinFromServer(settings);
-    }
-#endif
-    
-    mySetts->fFactory = toCompile;
-    mySetts->fPath = path;
-    mySetts->fName = name;
-    
-//    If a post-compilation script option is set : execute it !
-    if(settings && settings->value("Script/Options", "").toString() != ""){
-        QString erroMsg;
-        
-        if(!executeInstruction(settings->value("Script/Options", "").toString(), errorMsg))
-            FLErrorWindow::_Instance()->print_Error(errorMsg);
-    
-    }
-
-   return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
-dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, RemoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg){
-    
-    factorySettings* mySetts = (factorySettings*)(factorySetts.second);
-    
-    factory* toCompile = mySetts->fFactory;
-    
-    QString path = mySetts->fPath;
-    QString name = mySetts->fName;
-    int type = mySetts->fType;
-    
-    dsp* compiledDSP = NULL;
-    
-    if(type == TYPE_LOCAL){
-        
-        //----Create DSP Instance
-        compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
-		if(compiledDSP == NULL)
-            errorMsg = "Impossible to compile DSP";
-    }
-#ifdef REMOTE
-    else if(settings){
-        int sampleRate = settings->value("SampleRate", 44100).toInt();
-        int bufferSize = settings->value("BufferSize", 512).toInt();
-        
-        int errorToCatch;
-        
-// -----------CALCULATE ARGUMENTS------------
-        int argc;
-        const char** argv = getRemoteInstanceArgv(settings, argc);
-        
-        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, sampleRate, bufferSize, error_callback, error_callback_arg, errorToCatch);
-        
-        
-        if(compiledDSP == NULL){
-        
-//----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
-            if(errorToCatch == ERROR_FACTORY_NOTFOUND){
-                
-                QPair<QString, void*> fS = createFactory(source, settings, errorMsg);
-                
-                if(fS.second == NULL){
-                    errorMsg = "Impossible to find and recompile factory";
-                    return NULL;
-                }
-                    
-                compiledDSP = createDSP(fS, source, settings, error_callback, error_callback_arg, errorMsg);
-            }
-        }
-        
-        if(compiledDSP == NULL)
-            errorMsg = getErrorFromCode(errorToCatch);
-    }
-#else
-	Q_UNUSED(source);
-	Q_UNUSED(error_callback);
-	Q_UNUSED(error_callback_arg);
-#endif
-    
-    fDSPToFactory[compiledDSP] = mySetts;
-    
-    //-----Save settings
-    if(compiledDSP != NULL && settings){
-        settings->setValue("Path", path);
-        settings->setValue("Name", name);
-        settings->setValue("SHA", factorySetts.first);
-	}
-    
-#ifdef REMOTE
-    if(settings && settings->value("Release/Enabled", false).toBool()){
-        addWinToServer(settings);
-        printf("Enabled Release\n");
-    }
-    else
-        printf("Disabled Release\n");
-#endif
-    return compiledDSP;
-}
-
-void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP){
-    
-    factorySettings* factoryToDelete = fDSPToFactory[toDeleteDSP];
-    fDSPToFactory.remove(toDeleteDSP);
-    
-    if(factoryToDelete->fType == TYPE_LOCAL){
-        deleteDSPInstance((llvm_dsp*) toDeleteDSP);
-        deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
-    }
-#ifdef REMOTE
-    else{
-        deleteRemoteDSPInstance((remote_dsp*) toDeleteDSP);
-        deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
-    }
-#endif
-}
-
-//---------Session Management
 //Saving the sources of the windows in their designated folders
 void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
     
@@ -844,10 +748,9 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder){
         shaSource.copy(savedPath);
     }
     generalSettings->endGroup();
-        
 }
 
-//--Ask the user if he wants to save its DSP in an new location
+//--Ask the user if he wants to save its DSP in an new location (when the source is not a file)
 QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
     
     //------SLOTS FROM MENU ACTIONS THAT ARE REDIRECTED
@@ -875,20 +778,6 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent){
         return "";
 }
 
-//--Save temporary file from sha file
-QString FLSessionManager::saveTempFile(const QString& shaSource){
-    
-    QString tempShaPath = fSessionFolder + "/Temp/temp_" + shaSource + ".dsp";
-
-    QString shaPath = fSessionFolder + "/SHAFolder/" + shaSource + "/" + shaSource + ".dsp";
-    
-    QFile src(shaPath);    
-    src.copy(tempShaPath);
-    
-    return tempShaPath;
-    
-}
-
 //--Returns the content of sha file contained in the SHAFolder
 QString FLSessionManager::contentOfShaSource(const QString& shaSource){
    
@@ -897,7 +786,7 @@ QString FLSessionManager::contentOfShaSource(const QString& shaSource){
     return pathToContent(shaPath);
 }
 
-//--Restoration Menu
+//--Restoration Menu when a problem is emerging at session recalling time
 bool FLSessionManager::viewRestorationMsg(const QString& msg, const QString& yesMsg, const QString& noMsg){
     
     QMessageBox* existingNameMessage = new QMessageBox(QMessageBox::Warning, tr("Notification"), msg);
@@ -1081,8 +970,7 @@ map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file){
     return windowIndexToSource;
 }
 
-//    Pour l'histoire du contenu modifié ou du path, il faut continuer à vérifier le fichier original par rapport au fichier SHA. 
-//    --> Un problème relou d'aujourd'hui à résoudre est si : tu as rappelé un snapshot, ses fichiers originaux ont été modifié. Tu sais déjà qu'on travaille sur des copies mais on te le rappelle à chaque fois que tu restaures cette session. Le mieux serait de le prendre en compte dans le contenu du snapshot.
+// To know if the contant was modified or the path, the original file has to be compared to the SHA saved file
 void FLSessionManager::createSnapshot(const QString& snapshotFolder){
     
     QDir snapshot(snapshotFolder);
@@ -1137,32 +1025,10 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder){
         FLErrorWindow::_Instance()->print_Error(error);
 #endif
 }
-          
-//Calculate the faust expanded version
-QString FLSessionManager::get_expandedVersion(QSettings* settings, const QString& source){
-    
-    string name_app = settings->value("Name", "").toString().toStdString();
-    string sha_key = settings->value("SHA", "").toString().toStdString();
-    
-    string dsp_content = source.toStdString();
-    
-    if(QFileInfo(source).exists())
-        dsp_content = pathToContent(source).toStdString();
-    
-    int argc = 0;
-    
-    QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
-    
-    QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-    
-    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
 
-    string error_msg("");
-    
-    return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
-}
+//----------------------- Handle faust file dependencies ------------------
 
-QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDependency){
+QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDependency){
     
     QVector<QString> dependencies;
     std::vector<std::string> stdDependendies;
@@ -1171,13 +1037,12 @@ QVector<QString> FLSessionManager::get_dependencies(llvm_dsp_factory* factoryDep
 
     for(size_t i = 0; i<stdDependendies.size(); i++){
         dependencies.push_back(stdDependendies[i].c_str());
-        //printf("Dependency of FACTORY %i = %s\n", i, stdDependendies[i].c_str());
     }
 
     return dependencies;
 }
 
-QVector<QString> FLSessionManager::read_dependencies(const QString& shaValue){
+QVector<QString> FLSessionManager::readDependencies(const QString& shaValue){
     
     QVector<QString> dependencies;
     
@@ -1196,7 +1061,7 @@ QVector<QString> FLSessionManager::read_dependencies(const QString& shaValue){
     return dependencies;
 }
 
-void FLSessionManager::write_dependencies(QVector<QString> dependencies, const QString& shaValue){
+void FLSessionManager::writeDependencies(QVector<QString> dependencies, const QString& shaValue){
     
     QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
     
@@ -1208,56 +1073,51 @@ void FLSessionManager::write_dependencies(QVector<QString> dependencies, const Q
     }
 }
 
-//---------------------PUBLISH FACTORIES ON LOCAL SERVER-----------//
-
-#ifdef REMOTE
+//---------------------PUBLISH FACTORIES ON LOCAL SERVER------------------
+/* This is an attempt not finished to implement a publish service of DSP*/
+//#ifdef REMOTE
 //Add Window to Server through createRemoteFactory...
-bool FLSessionManager::addWinToServer(FLWinSettings* settings){
-    
-    QString sha_key = settings->value("SHA", "").toString();
-    string name = settings->value("Name", "").toString().toStdString()/*+ "_" + QString::number(settings->value("Release/Number", 0).toInt()).toStdString()*/;
-    
-    
-    printf("addWinToServer with name = %s\n", name.c_str());
-    
-    QString factoryFolder = fSessionFolder + "/SHAFolder/" + sha_key;
-    
-    QString fileToCompile = factoryFolder + "/" + sha_key + ".dsp";
-    
-    string error;
-    
-    QString faustOptions = settings->value("Compilation/FaustOptions", "").toString();
-    int optLevel = settings->value("Compilation/OptValue", 3).toInt();
-    
-    int argc;
-	const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
-    
-    int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
-    
-    remote_dsp_factory* onsenfout = createRemoteDSPFactoryFromString( name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, optLevel);
-    
-    printf("On s'en fout tu sais bien... = %p\n", onsenfout);
-    
-    if(onsenfout){
-        fPublishedFactories[sha_key] = onsenfout;
-        settings->setValue("Release/Number", settings->value("Release/Number", 0).toInt()+1);
-        return true;
-    }
-    else
-        return false;
-}
+//bool FLSessionManager::addWinToServer(FLWinSettings* settings){
+//    
+//    QString sha_key = settings->value("SHA", "").toString();
+//    string name = settings->value("Name", "").toString().toStdString()/*+ "_" + QString::number(settings->value("Release/Number", 0).toInt()).toStdString()*/;
+//    
+//    QString factoryFolder = fSessionFolder + "/SHAFolder/" + sha_key;
+//    
+//    QString fileToCompile = factoryFolder + "/" + sha_key + ".dsp";
+//    
+//    string error;
+//    
+//    QString faustOptions = settings->value("Compilation/FaustOptions", "").toString();
+//    int optLevel = settings->value("Compilation/OptValue", 3).toInt();
+//    
+//    int argc;
+//	const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
+//    
+//    int portValue = FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt();
+//    
+//    remote_dsp_factory* factory = createRemoteDSPFactoryFromString(name, pathToContent(fileToCompile).toStdString(), argc, argv, searchLocalIP().toStdString(), portValue, error, optLevel);
+//    
+//    if(factory){
+//        fPublishedFactories[sha_key] = factory;
+//        settings->setValue("Release/Number", settings->value("Release/Number", 0).toInt()+1);
+//        return true;
+//    }
+//    else
+//        return false;
+//}
 
 //Delete Window From Server through createRemoteFactory...
-void FLSessionManager::deleteWinFromServer(FLWinSettings* settings){
-    
-    QString sha_key = settings->value("SHA", "").toString();
-    
-    remote_dsp_factory* onsenfout = fPublishedFactories[sha_key];
-    if(onsenfout)
-        deleteRemoteDSPFactory(onsenfout);
-    
-}
-#endif
+//void FLSessionManager::deleteWinFromServer(FLWinSettings* settings){
+//    
+//    QString sha_key = settings->value("SHA", "").toString();
+//    
+//    remote_dsp_factory* factory = fPublishedFactories[sha_key];
+//    if(factory)
+//        deleteRemoteDSPFactory(factory);
+//    
+//}
+//#endif
 
 
 

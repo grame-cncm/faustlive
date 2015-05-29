@@ -25,31 +25,33 @@ using namespace std;
 
 class PA_audioSettings : public AudioSettings{
 
-    private :
+    private:
     
-	map<string, int> fInputdevices;
-	map<string, int> fOutputdevices;
+        map<string, int> fInputdevices;
+        map<string, int> fOutputdevices;
 
-    //Graphical CoreAudio Settings
-    QLineEdit*       fsplRate;
-    QLineEdit*       fBufSize;
-    QFormLayout*     fLayout;
-    QComboBox*       fInputDeviceBox;
-    QComboBox*       fOutputDeviceBox;
+        //Graphical PortAudio Settings
+        QLineEdit*       fsplRate;
+        QLineEdit*       fBufSize;
+        QFormLayout*     fLayout;
+        //QComboBox*       fInputDeviceBox;
+        //QComboBox*       fOutputDeviceBox;
 
-    public :
+        long get_BufferSize();
+        long get_SampleRate();
+
+    public:
+    
         PA_audioSettings(QGroupBox* parent);
-    
         virtual ~PA_audioSettings();
     
         virtual void setVisualSettings();
         virtual void storeVisualSettings();
     
         virtual bool isEqual(AudioSettings* as);
-        long    get_BufferSize();
-        long    get_SampleRate();
         virtual QString get_ArchiName();
-//        int		get_inputDevice();
+        
+//      int		get_inputDevice();
 //		int		get_ouputDevice();
 //		void	set_deviceList();
 };

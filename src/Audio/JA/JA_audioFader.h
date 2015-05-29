@@ -21,6 +21,8 @@ using namespace std;
 class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation
 {    
     
+    private:
+    
         dsp*            fDspIn;
         int				fNumInDspFade;      // number of input channels of inFading DSP
         int				fNumOutDspFade;     // number of output channels of inFading DSP
@@ -30,7 +32,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
 //      string          fPortName;
         jack_nframes_t  fBufferSize;
-    
         list<pair<string, string> > fConnectionsIn;		// Connections list
     
         float crossfade_calculation(int i, int j);
@@ -38,7 +39,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     public:
     
         JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
-    
         virtual ~JA_audioFader();
     
         virtual int	process(jack_nframes_t nframes);

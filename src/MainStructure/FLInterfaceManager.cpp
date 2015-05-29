@@ -23,8 +23,7 @@ FLInterfaceManager* FLInterfaceManager::_Instance(){
     return FLInterfaceManager::_interfaceManagerInstance;
 }
 
-void FLInterfaceManager::updateAllGuis()
-{
+void FLInterfaceManager::updateAllGuis(){
     if(fLocker.Lock()){
         
         std::list<GUI*>::iterator g;

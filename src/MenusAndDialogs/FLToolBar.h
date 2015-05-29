@@ -6,7 +6,9 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// ToolBar of the FaustLive Windows. 
+// FLToolBar shapes the settings of the FLWindow. Whenever a change in the settings is applied, the toolbar reacts by emitting signals, connected to the FLWindow.
+
+// Some Remote Control/ Publish features are commented because not finished to be implemented
 
 #ifndef _FLToolBar_h
 #define _FLToolBar_h
@@ -22,10 +24,10 @@ enum{
 };
 
 class FLToolBar : public QToolBar{
-    
-    Q_OBJECT
-    
+     
     private:
+    
+        Q_OBJECT
     
         int                 fButtonState;
         QPushButton*        fWindowOptions;
@@ -48,8 +50,8 @@ class FLToolBar : public QToolBar{
         QLineEdit*          fPortOutOscLine;   //Edit osc port
         QLineEdit*          fPortErrOscLine;
     
-        QCheckBox*          fRemoteControlCheckBox;
-        QLabel*             fRemoteControlIP;
+//        QCheckBox*          fRemoteControlCheckBox;
+//        QLabel*             fRemoteControlIP;
     
         QLineEdit*          fCVLine;  
         QLineEdit*          fMTULine;   
@@ -80,7 +82,7 @@ class FLToolBar : public QToolBar{
     public:
     
         FLToolBar(QSettings* settings, QWidget* parent = NULL);
-        ~FLToolBar();
+        virtual ~FLToolBar();
     
         void                syncVisualParams();
     
@@ -88,6 +90,7 @@ class FLToolBar : public QToolBar{
         void    switchOsc(bool on);
     
     public slots: 
+    
         void    modifiedOptions();
         void    expansionAction();
         void    collapseAction();
@@ -95,7 +98,7 @@ class FLToolBar : public QToolBar{
         void    enableButton(const QString&);
         void    enableButton(int);
     
-    signals :
+    signals:
     
         void    oscPortChanged();
         void    compilationOptionsChanged();

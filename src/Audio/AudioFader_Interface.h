@@ -17,7 +17,7 @@ class AudioFader_Interface
     public:
     
         AudioFader_Interface(){}
-        ~AudioFader_Interface(){}
+        virtual ~AudioFader_Interface(){}
     
         virtual void launch_fadeOut() = 0;
         virtual void launch_fadeIn() = 0;

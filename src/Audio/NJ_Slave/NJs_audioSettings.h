@@ -29,7 +29,7 @@ using namespace std;
 
 class NJs_audioSettings : public AudioSettings{
 
-    private :
+    private:
     
     //Graphical parameters
         QLineEdit*          fCVLine;
@@ -37,8 +37,15 @@ class NJs_audioSettings : public AudioSettings{
         QLineEdit*          fPortLine;
         QLineEdit*          fLatLine;
         QLineEdit*          fMTULine;
+        
+        int        get_compressionValue();
+        QString    get_IP();
+        int        get_Port();
+        int        get_latency();
+        int        get_mtu();
     
-    public :
+    public:
+    
         NJs_audioSettings(QGroupBox* parent);
         virtual ~NJs_audioSettings();
     
@@ -46,13 +53,6 @@ class NJs_audioSettings : public AudioSettings{
         virtual void storeVisualSettings();
     
         virtual bool isEqual(AudioSettings* as);
-    
-        int         get_compressionValue();
-        QString    get_IP();
-        int         get_Port();
-        int         get_latency();
-        int         get_mtu();
-    
         virtual QString get_ArchiName();
 };
 

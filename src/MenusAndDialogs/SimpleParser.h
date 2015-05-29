@@ -5,8 +5,10 @@
 #include <vector>
 #include <string>
 
+// Simple parser is made to parse the platforms and architectures available in FaustWeb from the JSON encoded returned by FaustWeb
+
 using namespace std;
 
-bool parseOperatingSystemsList (const char*& p, vector<string>& platforms, map<string, vector<string> >& M);
+bool parseOperatingSystemsList(const char*& p, vector<string>& platforms, map<string, vector<string> >& M);
 
 #endif // SIMPLEPARSER_H

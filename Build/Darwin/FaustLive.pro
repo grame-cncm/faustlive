@@ -78,6 +78,7 @@ LIBS+=$$system($$LLVM_CONFIG --ldflags)
 # The system libraries need a different option in LLVM 3.5 and later.
 LIBS+=$$system($$LLVM_CONFIG --system-libs 2>/dev/null)
 
+
 equals(static, 1){
 LIBS+=$$FAUSTDIR/lib/libHTTPDFaust.a
 LIBS+=$$FAUSTDIR/lib/libOSCFaust.a
@@ -105,8 +106,8 @@ equals(REMVAR, 1){
 	LIBS+=-lcurl
 	LIBS+=-llo
 	
-	HEADER += ../../src/Network/Server.h
-	SOURCES += ../../src/Network/Server.cpp
+#	HEADER += ../../src/Network/Server.h
+#	SOURCES += ../../src/Network/Server.cpp
 
 #	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
 #					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
@@ -245,7 +246,6 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/Audio/AudioFader_Implementation.h \
 			../../src/Audio/FJUI.h \
 			../../src/MenusAndDialogs/FLToolBar.h \
-			../../src/MenusAndDialogs/FLrenameDialog.h \
 			../../src/MenusAndDialogs/FLHelpWindow.h \
 			../../src/MenusAndDialogs/FLPresentationWindow.h \
 			../../src/MenusAndDialogs/FLErrorWindow.h \
@@ -269,7 +269,6 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \
             ../../src/Audio/AudioFader_Implementation.cpp \
         	../../src/MenusAndDialogs/FLToolBar.cpp \
-            ../../src/MenusAndDialogs/FLrenameDialog.cpp \
 			../../src/MenusAndDialogs/FLHelpWindow.cpp \
 			../../src/MenusAndDialogs/FLPresentationWindow.cpp \
             ../../src/MenusAndDialogs/FLErrorWindow.cpp \

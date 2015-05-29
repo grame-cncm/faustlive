@@ -1,5 +1,5 @@
 //
-//  FaustLiveApp.cpp
+//  FLPreferenceWIndow.cpp
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
@@ -17,8 +17,6 @@ FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
 
 FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
     
-//    setWindowFlags(Qt::FramelessWindowHint);
-
     init();
 }
 

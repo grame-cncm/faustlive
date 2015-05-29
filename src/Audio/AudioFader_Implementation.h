@@ -20,27 +20,26 @@
 #define kFadeCoefficient 0.00003255
 //#define kFadeOutCoefficient 0.000386
 
-
 class AudioFader_Implementation
 {
     protected:
     
-    volatile bool    fDoWeFadeOut;
-    volatile bool    fDoWeFadeIn;
-    
-    float   fInCoef;                 // Coefficients of multiplication   
-    float   fOutCoef;                // during audio crossfade
-    int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
-    
-    void    increment_crossFade();
-    
-    //Specific to the 2 clients crossfade
-    void    crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
+        volatile bool    fDoWeFadeOut;
+        volatile bool    fDoWeFadeIn;
+        
+        float   fInCoef;                 // Coefficients of multiplication   
+        float   fOutCoef;                // during audio crossfade
+        int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
+        
+        void    increment_crossFade();
+        
+        //Specific to the 2 clients crossfade
+        void    crossfade_Calcul(int numFrames, int numOutputs, float** outBuffer);
         
     public:
     
         AudioFader_Implementation();
-        ~AudioFader_Implementation();
+        virtual ~AudioFader_Implementation();
     
         void set_doWeFadeOut(bool val);
         void set_doWeFadeIn(bool val);

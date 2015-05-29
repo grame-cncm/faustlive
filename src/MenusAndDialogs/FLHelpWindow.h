@@ -24,7 +24,7 @@ using namespace std;
 
 struct MyMeta: public Meta{
     
-    public :
+    public:
     vector<pair<string, string> > datas;
     
     virtual void declare(const char* key, const char* value){
@@ -32,12 +32,11 @@ struct MyMeta: public Meta{
     }
 };
 
-
 class FLHelpWindow : public QMainWindow{
     
-    Q_OBJECT
+    private:
     
-    private :
+        Q_OBJECT
     
         QTextBrowser* fToolText;
         QTreeWidget*  fTreeLibs;
@@ -50,7 +49,7 @@ class FLHelpWindow : public QMainWindow{
     
         void    parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
     
-    public :
+    public:
     
         FLHelpWindow(const QString& libsFodler);
         virtual ~FLHelpWindow();
@@ -65,6 +64,7 @@ class FLHelpWindow : public QMainWindow{
         virtual void closeEvent(QCloseEvent* event);
     
     public slots:
+    
         void    setToolText(const QString & currentText);
         void    setAppPropertiesText(const QString& currentText);  
         void    setWinPropertiesText(const QString& currentText);

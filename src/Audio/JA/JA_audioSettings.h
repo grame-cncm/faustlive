@@ -15,11 +15,15 @@
 
 class JA_audioSettings : public AudioSettings{
 
-    QCheckBox*      fAutoConnectBox;
+    private:
+
+        QCheckBox*      fAutoConnectBox;
+        
+         bool           get_AutoConnect();
     
-    public :
-    JA_audioSettings(QGroupBox* parent);
+    public:
     
+        JA_audioSettings(QGroupBox* parent);
         virtual ~JA_audioSettings();
     
         virtual void    setVisualSettings();
@@ -28,8 +32,7 @@ class JA_audioSettings : public AudioSettings{
         virtual bool    isEqual(AudioSettings* as);
     
         virtual         QString get_ArchiName();
-    
-        bool            get_AutoConnect();
+       
 };
 
 #endif

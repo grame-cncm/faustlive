@@ -46,7 +46,6 @@ float JA_audioFader::crossfade_calculation(int i, int j){
         return 0;
 }
 
-
 JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size)
 {
     fDsp = NULL;
@@ -81,7 +80,7 @@ JA_audioFader::~JA_audioFader()
     }
 }
 
-bool JA_audioFader::init(const char* /*name*/, dsp* /*DSP*/){ return false;} 
+bool JA_audioFader::init(const char* /*name*/, dsp* /*DSP*/) { return false; } 
 
 bool JA_audioFader::init(const char* name) 
 {
@@ -115,7 +114,7 @@ bool JA_audioFader::set_dsp(dsp* DSP, const char* portsName)    {
     
     fBufferSize = jack_get_buffer_size(fClient);
     
-//        fInput_ports = new jack_port_t*[fNumInChans];
+//      fInput_ports = new jack_port_t*[fNumInChans];
 //      fOutput_ports = new jack_port_t*[fNumOutChans];
     
     for (int i = 0; i < fNumInChans; i++) {
@@ -245,7 +244,7 @@ void JA_audioFader::upDate_DSP(){
     delete [] fIntermediateFadeIn;
 }
 
-// jack callbacks
+// JACK callbacks
 int	JA_audioFader::process(jack_nframes_t nframes) 
 {
     AVOIDDENORMALS;
@@ -317,7 +316,6 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         
         fDsp->compute(nframes, fInChannel, fOutFinal);   
     }
-    
     
     return 0;
 }

@@ -96,7 +96,7 @@ To react to the menu's actions, FLApp implements a number of SLOTs. These slots 
 
 \subsection{Create a FLWindow}
 
-To create a FLWindow, the FLApp has to choose its settings. Their are three different ways to get them  :
+To create a FLWindow, the FLApp has to choose its settings. There are three different ways to get them  :
 
 \begin{itemize}
 \item Create new settings
@@ -124,7 +124,9 @@ One FLWindow contains multiple types of interface, some of which are optional.
 \item OSCUI : interface handling the OSC protocol for remote control 
 \end{itemize}
 
-For each type of interface, FLWindow has a set of functions : allocate, buildUserInterface, run, delete.
+For each type of interface, FLWindow has a set of functions : allocate, buildUserInterface, run, delete. \\
+
+The synchronization between all the interfaces sharing a unique DSP is done in the QTGUI. The problem being that if we don't have this QTGUI (see some use cases described in RemoteFeature.tex), there is no synchronization. For that matter, a class called FLInterfaceManager has been created. It is not yet of a great interest but if those use cases are implemented, it will become essential.
 
 \subsection{Audio client}
 
@@ -141,7 +143,7 @@ From the FLWindow point of view, the creation of an audio client is easy. An aud
 \end{itemize}
 \subsection{ToolBar}
 
-The class "FLToolBar" shapes the settings of the FLWindow. Whenever a change in the settings in applied, the toolbar reacts by emitting signals. So that from the FLWindow, we have this set of functions :
+The class "FLToolBar" shapes the settings of the FLWindow. Whenever a change in the settings is applied, the toolbar reacts by emitting signals. So that from the FLWindow, we have this set of functions :
 
 \begin{itemize}
 \item set\_ToolBar : the toolbar has to be created and its signals connected to the window SLOTs
@@ -152,8 +154,8 @@ The class "FLToolBar" shapes the settings of the FLWindow. Whenever a change in 
 \item switchOsc : enable/disable OSC interface
 \item updateOSCInterface : update OSC interface with new port options
 \item switchHttp : enable/disable HTTP interface
-\item switchRelease : enable/disable factory publication
-\item switchRemoteControl : enable/disable remote control interface
+\item switchRelease : enable/disable factory publication (not yet implemented)
+\item switchRemoteControl : enable/disable remote control interface (not yet implemented)
 \end{itemize}
 
 \subsection{StatusBar}
@@ -170,7 +172,7 @@ The class "FLStatusBar" holds the processing machine parameter and creates the w
 In the constructor, a list of Menus is given to the FLWindow. Moreover, a window-specific menu is added, giving an access point to the following features :
 
 \begin{itemize}
-\item edit : opens the file corresponding to the running DSP. If the DSP is not linked to a source file, the user has the choice between saving the DSP as a new file or opening a temporary file. 
+\item edit : opens the file corresponding to the running DSP. If the DSP is not linked to a source file, the user has to save the DSP as a new file.
 \item paste : copies the content of the clipboard into the window, activating the update of the window.
 \item duplicate : sends a signal, captured by the application, for it to execute the duplication. 
 \item view\_qrcode : activates the remote HTTP control and displays the QrCode, corresponding to the HTML interface.
@@ -203,7 +205,8 @@ The role of FLSessionManager is to be the link with libfaust and libfaustremote,
 
 \subsection{Current Session Hierarchy}
 
-The current session is composed of : 
+The current session is saved in the user home directory and is called .FaustLive-CurrentSession-versionNumber. On Windows, you can configurate an environment variable FAUSTLIVE\_SESSIONDIR to specify an alternative directory name. \\
+The content of the session  is composed of : 
 \begin{itemize}
 \item Settings.ini : file containing the saved settings as described in FLSettings (\ref{FLSettings}).
 \item Examples : folder containing a copy of the example files of the Faust distribution
@@ -271,7 +274,7 @@ This function creates a llvm\_dsp or a remote\_dsp depending on the type of fact
 
 \subsection{Delete Factories and Instances}
 
-Every dsp created is mapped to its factory, so that when you delete the DSP, FLSessionManager has a track of which factory to delete. 
+Every DSP created is mapped to its factory, so that when you delete the DSP, FLSessionManager has a track of which factory to delete. 
 
 \subsection{Session/Snapshot Restoration}
 
@@ -313,6 +316,8 @@ http://IPofLocalHost:portConfiguredInPreferences
 The OSC interfaces are, for now, only used as specific interfaces in the FLWindows. The central OSC server is not yet implemented. 
 
 \subsection{Remote interface}
+
+Not yet implemented. See RemoteFeatures.tex.
 
 %%%%%%%%%%%%%%%%%SETTING STRUCTURE%%%%%%%%%%%%%%%%
 \section{Setting Management}
@@ -359,7 +364,7 @@ The added feature of FLWinSettings, compared to QSettings, is to synchronize thr
 \section{FLFileWatcher}
 
 FLFileWatcher is a singleton. \\
-Its role is to maintain the list of files currently used in FaustLive as DSP source. When a file is modified, renamed or deleted, it is set to redirect the action to the file-corresponding window(s).
+Its role is to maintain the list of files currently used in FaustLive as DSP source or dependency. When a file is modified, renamed or deleted, it is set to redirect the action to the file-corresponding window(s).
 
 Whenever the signal directoryChanged is received on a watched directory, the content is compared to the previous one, in order to know if a file was renamed (same number of children files but new name) or deleted. 
 
@@ -399,7 +404,7 @@ FLExportManager contains two classes classes describing the two dialogs used in 
 %%%%%%%%%%%%%%%%%AUDIO STRUCTURE%%%%%%%%%%%%%%%%%
 \section{Audio \label{Audio}}
 
-In this section, we discuss the way the audio rendering is managed in FaustLive. 
+In this section, we discuss the way the audio rendering is managed in FaustLive (see also the Appendix).
 First, will be described the type of audio driver used into FaustLive and how the linking is done. Then, the algorithm of the crossfade will be explained, taking care of smoothing the transition between two DSPs relaying in the same window. 
 
 \subsection{Audio drivers used by FaustLive}
@@ -407,12 +412,12 @@ First, will be described the type of audio driver used into FaustLive and how th
 Depending on the operating system and the compiling options, it is possible to embed different audio architectures in FaustLive.
 Default drivers are :
 \begin{itemize}
-\item Coreaudio on OSX
-\item Jack on Linux
-\item Portaudio on Windows
+\item CoreAudio on OSX
+\item JACK on Linux
+\item PortAudio on Windows
 \end{itemize}
 
-Then Jack, NetJack and PortAudio can be added with make options : JACK=1 NETJACK=1 PORTAUDIO=1.
+Then JACK, NetJack and PortAudio can be added with make options : JACK=1 NETJACK=1 PORTAUDIO=1.
 
 \subsection{Code Organisation}
 
@@ -448,7 +453,7 @@ The crossfade functions are mixed to the audio features in the driver-specific a
 
 The role of the audio manager is to manipulate the audioFader(s) and manage the crossfade. Depending on the driver, there are two approaches of structure :
 \begin{itemize}
-\item the one managing one audioFader and fading two DSPs in its "process" function (Jack)
+\item the one managing one audioFader and fading two DSPs in its "process" function (JACK)
 \item the one managing two audioFaders, relaying with a fade in for one part and a fade out for the other (CoreAudio, NetJack, PortAudio)
 \end{itemize}
 
@@ -540,7 +545,7 @@ Once you installed all that, you can execute : \\
 On Windows, you will have to modify FaustLive.pro with your own paths, depending on where you compiled the needed librairies. \\
 
 Then you can execute : \\
-{\it qmake -spec win32-msvc2012 (depending on your version of Visual Studio)} \\
+{\it qmake -spec win32-msvc2012 (depending on your version of Visual Studio) JVAR=1 NJVAR=1 PAVAR=1 REMVAR=1 (depending on the options you want to enable)} \\
 The solution created can be added in a new solution, that you can build and run. 
 
 \subsection{Create a new distribution}
@@ -570,6 +575,15 @@ Then, once those libraries are compiled, you can execute {\it make dist} in Faus
 
 To create an installer with FaustLive.exe, you have to install InnoSetup. Then you can modify setup\_file.iss to your needs and run it.
 
+\section{Appendix}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/newAudioStructure}
+\caption{Audio Drivers Structure}
+\label{fig:FLWinSettings}
+\end{center}
+\end{figure}
 
 \end{document}
 

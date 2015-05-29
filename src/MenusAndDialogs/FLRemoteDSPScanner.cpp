@@ -6,10 +6,11 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+//	This file is not yet used in FaustLive implementation
 #include "FLRemoteDSPScanner.h"
 
 #ifdef REMOTE
-#include "faust/remote-dsp.h"
+#include "faust/dsp/remote-dsp.h"
 #endif
 using namespace std;
 

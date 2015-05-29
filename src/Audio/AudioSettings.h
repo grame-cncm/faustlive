@@ -18,11 +18,11 @@
 
 class AudioSettings : public QObject{
 
-    Q_OBJECT
+    private:
     
-    protected:
+        Q_OBJECT
     
-    public :
+    public:
     
         AudioSettings(QGroupBox* parent){ Q_UNUSED(parent); }
         virtual ~AudioSettings(){}
@@ -32,11 +32,13 @@ class AudioSettings : public QObject{
     
         virtual bool isEqual(AudioSettings* as) = 0;
         virtual bool operator==(AudioSettings& as){return isEqual(&as);}
-    
-    virtual QString get_ArchiName() = 0;
+        
+        virtual QString get_ArchiName() = 0;
 
     protected slots:
+    
         virtual void linkClicked(const QUrl&){}
+        
 };
 
 #endif

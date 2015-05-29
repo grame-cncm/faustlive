@@ -5,7 +5,7 @@
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
-// This Window is the interface to comunicate the errors or other messages to the user 
+// This Window is the interface to comunicate messages to the user
 
 #ifndef _FLMessageWindow_h
 #define _FLMessageWindow_h
@@ -21,12 +21,12 @@ using namespace std;
 
 class FLMessageWindow : public QDialog{
     
-    Q_OBJECT
+    private:
     
-    private :
+        Q_OBJECT
         QLabel*    fMessage;
     
-    public :
+    public:
     
         FLMessageWindow();
         virtual ~FLMessageWindow();   

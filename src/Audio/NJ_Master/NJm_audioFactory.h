@@ -16,12 +16,13 @@
 
 class NJm_audioFactory : public AudioFactory{
     
-    public :
-    NJm_audioFactory();
-    ~NJm_audioFactory();
+    public:
     
-    virtual AudioSettings* createAudioSettings(QGroupBox* parent);
-    virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
+        NJm_audioFactory();
+        virtual ~NJm_audioFactory();
+        
+        virtual AudioSettings* createAudioSettings(QGroupBox* parent);
+        virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg);
 };
 
 #endif

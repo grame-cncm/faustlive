@@ -19,30 +19,33 @@ class PA_audioFader;
 
 class PA_audioManager : public AudioManager{
 
-    Q_OBJECT
+    private:
     
-    bool                    fInit;
-    
-    PA_audioFader*          fCurrentAudio;
-    PA_audioFader*          fFadeInAudio;
+        Q_OBJECT
+        
+        bool                    fInit;
+        
+        PA_audioFader*          fCurrentAudio;
+        PA_audioFader*          fFadeInAudio;
 
-    public :
+    public:
+    
         PA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~PA_audioManager();
     
-    virtual bool init(const char*, dsp* DSP);
-    virtual bool initAudio(QString&, const char*);
-    virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
-    virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
-    virtual bool start();
-    virtual void stop();
-    
-    virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
-    virtual void start_Fade();
-    virtual void wait_EndFade();
+        virtual bool init(const char*, dsp* DSP);
+        virtual bool initAudio(QString&, const char*);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
+        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
+        virtual bool start();
+        virtual void stop();
+        
+        virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
+        virtual void start_Fade();
+        virtual void wait_EndFade();
 
-	virtual int get_buffer_size();
-    virtual int get_sample_rate();
+        virtual int get_buffer_size();
+        virtual int get_sample_rate();
 };
 
 #endif

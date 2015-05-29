@@ -8,7 +8,6 @@
 #include "FLServerHttp.h"
 
 #include "FLApp.h"
-#include "FLrenameDialog.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -26,9 +25,8 @@
 #include "utilities.h"
 
 #ifdef REMOTE
-#include "faust/remote-dsp.h"
+#include "faust/dsp/remote-dsp.h"
 #include "FLRemoteDSPScanner.h"
-#include "Server.h"
 #endif
 
 #include "FLSettings.h"
@@ -47,12 +45,13 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
 
+    //Connect drop on the HTML interface to the application action
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 
 #ifdef REMOTE
-    Server* serv = Server::_Instance();
-    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    fDSPServer = createRemoteDSPServer(0, NULL);
+    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 #endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
@@ -62,6 +61,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Base Name of application's windows
     fWindowBaseName = "FLW-";
     
+    //Choose default style color
     styleClicked(FLSettings::_Instance()->value("General/Style", "Default").toString());
     
 	//Initializing Recalling 
@@ -70,7 +70,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));
-//	setQuitOnLastWindowClosed(true);
 #else
     setQuitOnLastWindowClosed(false);
 #endif
@@ -116,8 +115,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     connect(FLPresentationWindow::_Instance(), SIGNAL(openHelp()), FLHelpWindow::_Instance(), SLOT(show()));
     connect(FLPresentationWindow::_Instance(), SIGNAL(openExample(const QString&)), this, SLOT(openExampleAction(const QString&)));
     
-    //fPresWin->setWindowFlags(*Qt::FramelessWindowHint);
-    //Initialiazing Remote Drop Server
+    //Initialiazing Remote HTTP Drop Server
     launch_Server();
     
     //If no event opened a window half a second after the application was created, a initialized window is created
@@ -131,9 +129,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 }
 
 FLApp::~FLApp(){
-
-//    QString tempPath = fSessionFolder + "/Temp";
-//    deleteDirectoryAndContent(tempPath);
     
     save_Recent_Files();
     save_Recent_Sessions();
@@ -160,6 +155,10 @@ FLApp::~FLApp(){
     FLSessionManager::deleteInstance();
 
     FLServerHttp::deleteInstance();
+    
+#ifdef REMOTE
+    deleteRemoteDSPServer(fDSPServer);
+#endif
 }
 
 void FLApp::create_Session_Hierarchy(){
@@ -198,7 +197,10 @@ void FLApp::create_Session_Hierarchy(){
         direct.mkdir(fSessionFolder);
     } 
     
-    //    To copy QT resources that where loaded at compilation with application.qrc
+/* ---- Resources that are contained in the QT binary (examples, documentation, libs, html files, etc)
+        need to be copied in the current session to really be manipulated */
+    
+    //   Copy QT resources that where loaded at compilation with application.qrc
     fExamplesFolder = fSessionFolder + separationChar  + "Examples";
     if(!QFileInfo(fExamplesFolder).exists()){
         QDir direct(fExamplesFolder);
@@ -228,7 +230,6 @@ void FLApp::create_Session_Hierarchy(){
         }
         
     }
-    
     
     fLibsFolder = fSessionFolder + separationChar  + "Libs";
     if(!QFileInfo(fLibsFolder).exists()){
@@ -286,7 +287,6 @@ void FLApp::create_Session_Hierarchy(){
         QDir direct(fDocFolder);
         direct.mkdir(fDocFolder);
     }  
-    
     
     QDir docDir(":/");
     
@@ -479,7 +479,6 @@ QMenu* FLApp::create_NavigateMenu(){
     QMenu* navigateMenu = new QMenu(tr("Navigate"), 0);
 
     return navigateMenu;
-    
 }
 
 QMenu* FLApp::create_HelpMenu(){
@@ -553,16 +552,6 @@ void FLApp::setup_Menu(){
     QMenu* fileMenu = create_FileMenu();
     
     //----------------MenuBar setups --- 
-/*#ifdef __APPLE__
-    QAction* closeAllAction = new QAction(tr("&Quit FaustLive"),NULL);
-    closeAllAction->setMenuRole(QAction::NoRole);
-    closeAllAction->setShortcut(tr("Ctrl+Q"));
-    closeAllAction->setToolTip(tr("Close the application"));   
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
-
-    fileMenu->addSeparator();
-    fileMenu->addAction(closeAllAction);
-#endif  */  
     
     fMenuBar->addMenu(fileMenu);
     
@@ -574,28 +563,6 @@ void FLApp::setup_Menu(){
     
     QMenu* helpMenu = create_HelpMenu();
     
-/*#ifdef __APPLE__
-    QAction* aboutQtAction = new QAction(tr("About Qt"), NULL);
-    aboutQtAction->setMenuRole(QAction::AboutQtRole);
-    aboutQtAction->setToolTip(tr("Show the library's About Box"));
-    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
-    
-    QAction* preferencesAction = new QAction(tr("Preferences"), NULL);
-    preferencesAction->setMenuRole(QAction::PreferencesRole);
-    preferencesAction->setToolTip(tr("Set the preferences of the application"));
-    connect(preferencesAction, SIGNAL(triggered()), this, SLOT(Preferences()));
-    
-    QAction* presentationAction = new QAction(tr("About FaustLive"), NULL);
-    presentationAction->setMenuRole(QAction::AboutRole);
-    presentationAction->setToolTip(tr("Show the presentation Menu"));
-    connect(presentationAction, SIGNAL(triggered()), this, SLOT(show_presentation_Action()));
-    
-    helpMenu->addSeparator();
-    helpMenu->addAction(preferencesAction);
-    helpMenu->addSeparator();
-    helpMenu->addAction(presentationAction);
-    helpMenu->addAction(aboutQtAction);
-#endif*/
     fMenuBar->addMenu(helpMenu);
 }
 
@@ -629,7 +596,6 @@ QList<int> FLApp::get_currentIndexes(){
         currentIndexes.push_back((*it)->get_indexWindow());
     }
     return currentIndexes;
-    
 }
 
 int FLApp::find_smallest_index(QList<int> currentIndexes){
@@ -711,9 +677,8 @@ QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, c
         string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
-    FJUI fui;
     
-    fui.update(jcPath.toStdString().c_str(), indexStringChanges);
+    FJUI::update(jcPath.toStdString().c_str(), indexStringChanges);
     
     return newPath;
 }
@@ -730,6 +695,7 @@ void FLApp::connectWindowSignals(FLWindow* win){
 
 //---------------NEW WINDOW
 
+//--General creation function
 FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
     
     if(FLW_List.size() >= numberWindows){
@@ -752,6 +718,7 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
             init = kInitBlue;
     }
     
+// Menus have to be created to be passed to the window
     QList<QMenu*> appMenus;
     appMenus.push_back(create_FileMenu());
     
@@ -762,6 +729,8 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
     
     FLWindow* win = new FLWindow(fWindowBaseName, index, fSessionFolder, windowSettings,appMenus);
     
+// Initialization of the window
+// Some of its signals have to be connected to the application slots
     if(win->init_Window(init, source, error)){
     
         FLW_List.push_back(win);
@@ -814,8 +783,7 @@ void FLApp::create_New_Window(const QString& source){
 
 //--Creation of Default Window from Menu
 void FLApp::create_Empty_Window(){ 
-    QString empty("");
-    create_New_Window(empty);
+    create_New_Window("");
 }
 
 //--------------NEW COMPONENT
@@ -857,7 +825,7 @@ bool FLApp::event(QEvent *ev){
 //--Open a dsp from disk
 void FLApp::open_New_Window(){ 
     
-    //    In case we are opening a new Window from the presentation Menu --> the application must not close
+    //    In case we are opening a new Window from the presentation Menu --> the application must not close : turning fRecalling to true is the trick
     fRecalling = true;
     
     FLWindow* win = getActiveWin();
@@ -1019,6 +987,7 @@ void FLApp::open_Recent_File(const QString& toto){
 
 //--------------OPEN Remote DSP
 
+/* Attempt never finished to scann remote machines and factory and open a remote instance (checkout FLRemoteDSPScanner)*/
 void FLApp::open_Remote_Window(){
 //    
 //    FLRemoteDSPScanner* dspScanner = new FLRemoteDSPScanner();
@@ -1117,7 +1086,7 @@ void FLApp::update_CurrentSession(){
     QList<FLWindow*>::iterator it;
     
     for (it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->save_Window();
+        (*it)->saveWindow();
 }
 
 //---------------SAVE SNAPSHOT FUNCTIONS
@@ -1192,7 +1161,6 @@ void FLApp::importSnapshotFromMenu(){
         fLastOpened = QFileInfo(fileName).absolutePath();
         recall_Snapshot(fileName, true);
 	}
-    
 }
 
 //----Recall or Import a Snapshot
@@ -1255,6 +1223,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     StopProgressSlot();
 }
 
+//--- Common function to the snapshots and the current session
 void FLApp::restoreSession( map<int, QString> restoredSources){
 
     map<int, QString>::iterator it;
@@ -1286,6 +1255,7 @@ bool FLApp::recall_CurrentSession(){
 	restoreSession(restoredSources);
     
 //  If no window could be recalled, it's considered that the audio driver could not be set.
+//  Then we go back to the default driver
     if(FLW_List.size() == 0){
 		fAudioCreator->reset_AudioArchitecture();
 
@@ -1310,7 +1280,6 @@ bool FLApp::recall_CurrentSession(){
 	fRecalling = false;
     
     return true;
-    
 }
 
 //--------------CLOSE
@@ -1345,7 +1314,6 @@ void FLApp::display_Progress(){
         layoutSave->addWidget(fPBar);
         savingMessage->setLayout(layoutSave);
         
-        //savingMessage->move((fScreenWidth-savingMessage->width())/2, (fScreenHeight-savingMessage->height())/2);
         savingMessage->adjustSize();
         centerOnPrimaryScreen(savingMessage);
         savingMessage->show();
@@ -1376,8 +1344,6 @@ void FLApp::update_ProgressBar(){
 
 //Quit FaustLive
 void FLApp::closeAllWindows(){
-    
-	printf("FLApp::closeAllWindows() with recalling = %i\n", fRecalling);
 
 //This function is called when there are no more windows. In case of session recallin, the application can not be closed !!
     if(fRecalling)
@@ -1391,11 +1357,11 @@ void FLApp::closeAllWindows(){
     QList<FLWindow*>::iterator it;
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++)
-        (*it)->save_Window();
+        (*it)->saveWindow();
     
     for(it = FLW_List.begin(); it != FLW_List.end(); it++){
             
-        (*it)->close_Window();
+        (*it)->closeWindow();
         (*it)->deleteLater();
     }
     
@@ -1415,7 +1381,6 @@ void FLApp::shut_AllWindows_FromMenu(){
 
 //Shut all Windows already coming from closeEvent
 void FLApp::shut_AllWindows_FromWindow(){
-
     while(FLW_List.size() != 0 ){
         FLWindow* win = *(FLW_List.begin());
 		common_shutAction(win);
@@ -1424,7 +1389,6 @@ void FLApp::shut_AllWindows_FromWindow(){
 
 //Close from Window Action
 void FLApp::close_Window_Action(){
-    
     FLWindow* win = (FLWindow*)QObject::sender();
     common_shutAction(win);
 }
@@ -1436,7 +1400,7 @@ void FLApp::common_shutAction(FLWindow* win){
     if(path != "")
         set_Current_File(path);
     
-    win->shut_Window();
+    win->shutWindow();
         
     QAction* action = fFrontWindow.key(win);
     fFrontWindow.remove(action);
@@ -1476,7 +1440,6 @@ void FLApp::updateNavigateMenus(){
             fNavigateMenu->addAction(ite.key());
         }
     }
-    
 }
 
 void FLApp::frontShow(){
@@ -1493,7 +1456,7 @@ void FLApp::duplicate(FLWindow* window){
     int val = find_smallest_index(get_currentIndexes());
 
     //Save then Copy the duplicated window's parameters
-    window->save_Window();
+    window->saveWindow();
     
     map<int, int> indexChanges;
     indexChanges[window->get_indexWindow()] = val;
@@ -1563,7 +1526,7 @@ void FLApp::open_F_doc(){
 #define LLVM_VERSION "3.x"
 #endif
 
-//Not Active Window containing version of all the librairies
+/* This window is not added to FaustLive. But it is supposed to contain the versions of all the librairies*/
 void FLApp::version_Action(){
     
     QDialog* versionWindow = new QDialog;
@@ -1613,7 +1576,6 @@ void FLApp::version_Action(){
 //-------------------------------PRESENTATION WINDOW-----------------------------
 
 void FLApp::show_presentation_Action(){
-    
     FLPresentationWindow::_Instance()->show();
     FLPresentationWindow::_Instance()->raise();
 }
@@ -1667,7 +1629,7 @@ void FLApp::update_AudioArchitecture(){
     
     //Save all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
-        (*it)->save_Window();
+        (*it)->saveWindow();
     
     //Stop all audio clients
     for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
@@ -1700,8 +1662,7 @@ void FLApp::update_AudioArchitecture(){
         
         for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
             
-            if(!(*it)->update_AudioArchitecture(error))
-            {
+            if(!(*it)->update_AudioArchitecture(error)) {
                 reinitSuccess = false;
                 break;
             }
@@ -1732,10 +1693,11 @@ void FLApp::update_AudioArchitecture(){
     }
     else{
         
-        for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+        for(it = FLW_List.begin() ; it != FLW_List.end(); it++) {
             (*it)->start_Audio();
+        }
         
-            fAudioCreator->tempSettingsToSavedSettings();
+        fAudioCreator->tempSettingsToSavedSettings();
 
         //If there is no current window, it is strange to show that msg
         if(FLW_List.size() != 0){
@@ -1761,21 +1723,9 @@ void FLApp::StopProgressSlot(){
     FLMessageWindow::_Instance()->hide();
 }
 
-//--------------------------FAUSTLIVE SERVER ------------------------------
+//-----------------------FAUSTLIVE HTTP DROP SERVER ---------------------------
 
-FLWindow* FLApp::getWinFromHttp(int port){
-    
-    QList<FLWindow*>::iterator it;
-    
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        
-        if(port == (*it)->get_Port())
-            return *it;
-    }
-    
-    return NULL;
-}
-
+/*For the needs of the Http drop server, the windows are identified by their http interface ports */
 FLWindow* FLApp::httpPortToWin(int port){
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
@@ -1785,7 +1735,7 @@ FLWindow* FLApp::httpPortToWin(int port){
     return NULL;
 }
 
-//Start FaustLive Server that wraps HTTP interface in droppable environnement 
+//Start FaustLive Server that wraps HTTP interface in a droppable environnement 
 void FLApp::launch_Server(){
     
     bool returning = true;
@@ -1829,7 +1779,7 @@ void FLApp::stop_Server(){
         FLServerHttp::_Instance()->stop();
 }
 
-//Update when a file is dropped on HTTP interface (= drop in FaustLive window)
+//Update when a file is dropped on HTTP interface (it has the same behavior as a drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port){
         
     FLWindow* win;
@@ -1869,25 +1819,23 @@ void FLApp::compile_HttpData(const char* data, int port){
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
     if(success){
         string url = win->get_HttpUrl().toStdString();
-        FLServerHttp::_Instance()->compile_Successfull(url);
+        FLServerHttp::_Instance()->compileSuccessfull(url);
     }
     else
-        FLServerHttp::_Instance()->compile_Failed(error.toStdString());
+        FLServerHttp::_Instance()->compileFailed(error.toStdString());
 }
 
 void FLApp::changeDropPort(){
-    
     stop_Server();
     launch_Server();
-    
 }
 
+//--------------------FAUSTLIVE REMOTE COMPILATION SERVER ------------------------
 #ifdef REMOTE
-void FLApp::changeRemoteServerPort(){
-
-    Server* serv = Server::_Instance();
-    serv->stop();
-    serv->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+void FLApp::changeRemoteServerPort()
+{
+    fDSPServer->stop();
+    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
 }
 #endif
 

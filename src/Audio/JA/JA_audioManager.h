@@ -19,32 +19,34 @@ class JA_audioFader;
 
 class JA_audioManager : public AudioManager{
 
-    Q_OBJECT
+    private:
+    
+        Q_OBJECT
 
-    JA_audioFader*          fCurrentAudio;
+        JA_audioFader* fCurrentAudio;
+        
+        virtual bool init(const char*, dsp* DSP);
+        static void shutdown_message(const char * msg, void* arg);
     
-    public :
-    
-    static void        shutdown_message(const char * msg, void* arg);
-    
-    JA_audioManager(shutdown_callback cb, void* arg);
+    public:
+        
+        JA_audioManager(shutdown_callback cb, void* arg);
         virtual ~JA_audioManager();
-    
-    virtual bool init(const char*, dsp* DSP);
-    virtual bool initAudio(QString& error, const char* name);
-    virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
-    virtual bool start();
-    virtual void stop();
-    
-    virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
-    virtual void start_Fade();
-    virtual void wait_EndFade();
-    
-    virtual void connect_Audio(string homeDir);
-    virtual void save_Connections(string homeDir);
+       
+        virtual bool initAudio(QString& error, const char* name);
+        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
+        virtual bool start();
+        virtual void stop();
+        
+        virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
+        virtual void start_Fade();
+        virtual void wait_EndFade();
+        
+        virtual void connect_Audio(string homeDir);
+        virtual void save_Connections(string homeDir);
 
-    virtual int get_buffer_size();
-    virtual int get_sample_rate();
+        virtual int get_buffer_size();
+        virtual int get_sample_rate();
 };
 
 #endif

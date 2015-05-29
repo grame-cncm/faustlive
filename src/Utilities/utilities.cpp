@@ -16,27 +16,6 @@
 #include <QWidgetList>
 
 
-////Returns the content of a file passed in path
-//QString pathToContent(QString path){
-//    
-//    QFile file(path);
-//    QString Content;
-//    
-//    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-//        //        printf("impossible to open content\n");
-//        Content = "";
-//        //        return Content;
-//    }
-//    while (!file.atEnd()) {
-//        //        printf("Content read\n");
-//        QByteArray line = file.readLine();
-//        Content += line.data();
-//    }
-//    
-//    //    printf("CONTENT = %s\n", Content.c_str());
-//    return Content;
-//}
-
 void writeFile(const QString& filePath, const QString& content){
     QFile f(filePath); 
      

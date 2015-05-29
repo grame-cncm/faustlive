@@ -1,0 +1,42 @@
+REMOTE PROCESSING SPECIFICATION
+
+An effect can be whether local or remote : an attribute is held
+
+Une liste des effets remote est gardée. 
+Elle est utilisée pour vérifier les noms utilisés.
+
+Un effet est supprimé direct de la liste dès qu'un effet remote est repassé en local ou est envoyé à un autre remote.
+
+
+Un fichier source peut être relié à plusieurs effets mais 1 SEUL local
+Lorsqu'il est modifié, un seul watcher (celui du premier démarré est activé).
+Il faut donc vérifier dans la liste des effets à savoir s'il faut en modifier d'autres.
+
+
+En quittant, si certains effets sont restés en remote, il faut les aligner sur les locaux pour la sauvegarde de la session.
+
+*******Différentiation des différents cas dans les différentes fonctions******
+
+ ----> FLEffect
+ 
+ Constructeur = doit prendre en compte Local / Remote
+ Destructeur = pareil
+ BuildFactory/UpdateFactory = kiff kiff
+ 
+ !!!!!!! Comment avoir les params IP/PORT dans Effect !!!!!!!!!
+ 
+ ----> FLWindow
+ 
+ drop = reste pareil
+ update_Win = prend en compte kCross, kGetLocal, kGetRemote pour savoir quoi créer/supprimer
+ update_remote = émettre un signal pour envoyer le fichier à passer en local/remote  
+ 
+ 
+----> FLApp
+
+getEffectFromSource = si l'effet à créer est remote, on ne récupère pas même s'il est déjà compilé
+synchronize_Window = faire la liste des remote et locaux pour savoir s'il faut les updater
+update_Window = 
+close_AllWindows = aligner les remote sur les locaux en terme de nommage
+verifier si les isSourceInEffectList ... n'ont pas besoin de changer!
+duplicate = que se passe-t-il lorsqu'on duplique

@@ -39,7 +39,7 @@
 
 FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. \\
 
-FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running without sound interruption or Jack disconnection.
+FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running without sound interruption or JACK disconnection.
 \vspace{\fill}
 %==================================================================================================
 \newpage
@@ -91,13 +91,13 @@ Three cases exist, depending on the origin of your application. In case the orig
 
 \subsection{Crossfade Characteristics}
 
-When the DSP is modified or switched within a window (drag and drop, source edition, ...), the two applications are crossfaded to avoid brutal interruption in the sound. If you are using Jack as audio driver, the connection remain for the common ports. If there are new ports, it is left to the user to connect them. 
+When the DSP is modified or switched within a window (drag and drop, source edition, ...), the two applications are crossfaded to avoid brutal interruption in the sound. If you are using JACK as audio driver, the connection remain for the common ports. If there are new ports, it is left to the user to connect them. 
 
 \subsection{Reversed Drag and Drop}
 You can drag your Faust code from your window to another window or another application like your Desktop, Browser, Text editor, ...
 
 \subsection{View SVG Diagram}
-You can view your SVG Diagram in the default appplication for .svg (Don't forget to configure file association : c.f README). Everytime your DSP is modified, the SVG diagram is updated.
+You can view your SVG Diagram in the default application for .svg (Don't forget to configure file association : c.f README). Everytime your DSP is modified, the SVG diagram is updated.
 
 \subsection{Duplicate Window}
 A Window can be duplicated with all it's parameters (graphical params, audio connections, compilation options, etc)
@@ -119,8 +119,8 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 	To access the interface, you can enter the address in your browser : http://yourIPaddress:port.	
 	Or, you can choose view QrCode then scan the code with your device to access the page directly. 
 
-\subsubsection{Osc Interface}
-	You can control your application remotly with the OSC protocol. 
+\subsubsection{OSC Interface}
+	You can control your application remotely with the OSC protocol. 
 	To enable this feature, you have two possibilities :
 	\begin{itemize}
 	\item In "Parameters", in the tab "OSC Interface", check "Enable"
@@ -145,16 +145,16 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 
 \item Code Generation Options : In the parameters, you can change the compilation options of your running DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
 
-\item Additionnal Compilation Step : a new call to the faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
+\item Additional Compilation Step : a new call to the Faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
 
-\item Post-Compilation Script : after all the compilation steps, you can an arbitrary command line.
+\item Post-Compilation Script : after all the compilation steps, you can add an arbitrary command line.
 
 \end{itemize}
 
 \section{General Actions}
 
 \subsection{Take Snapshot}
- When you take a snapshot, the state of your application is saved : all the windows, their parameters (graphical parameters, connections, position on screen, compilation options, etc, ...). The created archive is a .tar that you can then reload on any FaustLive : it is platform-independent. 
+ When you take a snapshot, the state of your application is saved : all the windows, their parameters (graphical parameters, connections, position on screen, compilation options, etc, ...). The created archive is a .tar (platform-independent) that you can then reload on any FaustLive. 
 
 \subsection{Recall/Import Snapshot}
 You have two different ways to reload a snapshot into FaustLive : 
@@ -183,12 +183,12 @@ When you quit FaustLive, the state of the application is saved, so that it can b
 Any changes in the compilation options will be taken into account for all the new windows created. The one already running keep their parameters.
 \subsubsection{Audio}
  
-Depending on your operating system and on your version of FaustLive. Certain drivers are or not available.
+Depending on your operating system and on your version of FaustLive, certain drivers are or not available.
 The default drivers are :
 \begin{itemize}
-\item Coreaudio on OSX
-\item Jack on Linux
-\item Portaudio on Windows
+\item CoreAudio on OSX
+\item JACK on Linux
+\item PortAudio on Windows
 \end{itemize}
 
 When you switch the audio architecture or its parameters, every running window is switching. The audio clients stop, the architecture is switched and the audio clients are restarted. If the update is not successfull, the previous architecture is restored. If it cannot be restored, the windows are closed. 
@@ -197,7 +197,7 @@ When you switch the audio architecture or its parameters, every running window i
 \begin{itemize}
 \item Enable HTTP interface automatically
 \item Enable OSC interface automatically
-\item Remote Compilation service : by default, FaustLive uses faustservice.grame.fr as compilation service but you can choose any another faustweb service.
+\item Remote Compilation service : by default, FaustLive uses faustservice.grame.fr as compilation service but you can choose any another FaustWeb service.
 \item Remote Dropping Port : port used to start the internal server, taking care of drops on html remote interfaces.
 
 \end{itemize}

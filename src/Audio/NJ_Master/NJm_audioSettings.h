@@ -17,7 +17,6 @@
 #define _NJm_audioSettings_h
 
 #include "AudioSettings.h"
-
 #include <string>
 
 #include <QtGui>
@@ -29,7 +28,8 @@ using namespace std;
 
 class NJm_audioSettings : public AudioSettings{
 
-    public :
+    public:
+    
         NJm_audioSettings(QGroupBox* parent);
         virtual ~NJm_audioSettings();
     

@@ -53,6 +53,7 @@
 <file>Libs/oscillator.lib</file>
 <file>Libs/reduce.lib</file>
 <file>Libs/instrument.lib</file>
+<file>Libs/tonestack.lib</file>
 <file>Libs/TestLibs.dsp</file>
 <file>Html/ServerAvailableInterfacesHead.html</file>
 <file>Html/ServerAvailableInterfacesTail.html</file>

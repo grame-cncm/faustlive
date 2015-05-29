@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// THIS IS THE SOURCE CODE TO CREATE llvm_math.ll TO ADD MISSING FUNCTIONS IN WINDOWS
 // clang -emit-llvm -O3 llvm_math.c -c -S -o llvm_math.ll
 
 void* llvm_malloc(size_t size)

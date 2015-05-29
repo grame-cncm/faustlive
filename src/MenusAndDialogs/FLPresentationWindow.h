@@ -22,13 +22,12 @@ using namespace std;
 
 class FLPresentationWindow : public QDialog{
     
-    Q_OBJECT
+    private:
     
-    private :
-    
+        Q_OBJECT
         QString     fExampleToOpen;
     
-    public :
+    public:
     
         FLPresentationWindow();
         virtual ~FLPresentationWindow();
@@ -57,6 +56,7 @@ class FLPresentationWindow : public QDialog{
         void    help();
     
     signals:
+    
         void    openExample(const QString&);
         void    newWin();
         void    openWin();

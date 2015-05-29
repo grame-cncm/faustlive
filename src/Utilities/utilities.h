@@ -52,5 +52,4 @@ string FL_generate_sha1(const string& dsp_content);
 
 void centerOnPrimaryScreen(QWidget* w);
 
-
 #endif

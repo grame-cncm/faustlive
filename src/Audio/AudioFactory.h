@@ -24,11 +24,12 @@ typedef void (* AudioShutdownCallback)(const char* message, void* arg);
 
 class AudioFactory{
 
-    public :
+    public:
+    
         AudioFactory(){}
         virtual ~AudioFactory(){}
 
-    virtual AudioSettings* createAudioSettings(QGroupBox* parent) = 0;
+        virtual AudioSettings* createAudioSettings(QGroupBox* parent) = 0;
         virtual AudioManager* createAudioManager(AudioShutdownCallback cb, void* arg) = 0;
     
 };

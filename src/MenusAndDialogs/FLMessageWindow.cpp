@@ -9,7 +9,7 @@
 #include "FLMessageWindow.h"
 #include "utilities.h"
 
-//-----------------------ERRORWINDOW IMPLEMENTATION
+//-----------------------MessageWINDOW IMPLEMENTATION
 
 FLMessageWindow* FLMessageWindow::_msgWindow = NULL;
 

@@ -4,17 +4,15 @@
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
+// This class was added to try questionning the update of the interfaces and their synchronization. 
+// I'm not so sure it has its use right now BUT it could be of some use with all the remote features.
 
+// When there is a QT interface, it is the one that handles the update of all guis but in a case where ther would  be none, it has to be handled differently
 // FLInterfaceManager keeps track of the interfaces registered and can update them, protecting multiple access to the interface list with a Mutex.
 // It is a singleton in order to be easily acccessible from any another class.
 
 #ifndef _FLInterfaceManager_h
 #define _FLInterfaceManager_h
-
-//#include <QtGui>
-//#if QT_VERSION >= 0x050000
-//#include <QtWidgets>
-//#endif
 
 #include <list>
 #include "faust/gui/GUI.h"
@@ -22,22 +20,23 @@
 
 class FLInterfaceManager
 {
-//    Q_OBJECT
+    private:
     
-public: 
-    
-    TMutex fLocker;
-    std::list<GUI*>	fGuiList;
-    
-    FLInterfaceManager();
-    ~FLInterfaceManager();
+        TMutex fLocker;
+        std::list<GUI*>	fGuiList;
+        
+        static FLInterfaceManager* _interfaceManagerInstance;
+        
+    public: 
+        
+        FLInterfaceManager();
+        virtual ~FLInterfaceManager();
 
-    static FLInterfaceManager* _Instance();
-    static FLInterfaceManager* _interfaceManagerInstance;
-
-    void updateAllGuis();
-    void registerGUI(GUI* ui);
-    void unregisterGUI(GUI* ui);
+        static FLInterfaceManager* _Instance();
+  
+        void updateAllGuis();
+        void registerGUI(GUI* ui);
+        void unregisterGUI(GUI* ui);
 };
 
 #endif

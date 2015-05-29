@@ -1,5 +1,5 @@
 //
-//  FaustLiveApp.cpp
+//  FLSettings.cpp
 //
 //  Created by Sarah Denoux on 12/04/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
@@ -24,8 +24,6 @@ void FLSettings::createInstance(const QString homePath){
     QString settingPath = homePath + "/Settings.ini";
     
     FLSettings::_settingsInstance = new FLSettings(settingPath, QSettings::IniFormat);
-    
-    //new FLSettings(QSettings::IniFormat, QSettings::UserScope, "FaustList", "Grame");
 }
 
 void FLSettings::deleteInstance(){

@@ -22,9 +22,6 @@
 #include <QtWidgets>
 #endif
 
-//#include "NJm_audioManager.h"
-
-//#include "tempName.h"
 
 class httpdUI;
 class QTGUI;
@@ -48,31 +45,41 @@ enum initType{
     kInitWhite
 };
 
-class FLWindow : public QMainWindow/*, public tempName*/
+class FLWindow : public QMainWindow
 {
-    Q_OBJECT
     
-    private : 
+    private: 
     
-        QDateTime        fLastMigration;
+        Q_OBJECT
     
-        QString          fHome;        //Folder of currentSession
+        QDateTime       fLastMigration;
     
+        QString         fHome;        //Folder of currentSession
+    
+//--- Handle toolbar
         FLToolBar*      fToolBar;
         void            set_ToolBar();
-
+    //Set fToolBar with current windows options
+        void            setWindowsOptions();
+    
+//--- Handle status
         FLStatusBar*    fStatusBar;
         void            set_StatusBar();
 
+//--- Handle menus
         QMenu*          fWindowMenu;
         void            set_MenuBar(QList<QMenu*> appMenus);
     
-        FLWinSettings*      fSettings;       //All the window settings
-        bool                fIsDefault;
-        QString             fSource;
-        QString             fWavSource;
-        QDateTime           fCreationDate;
+//--- All the window settings
+        QString         fWindowName;     //WindowName = Common Base Name + - + index
+        int             fWindowIndex;    //Unique index corresponding to this window
+        FLWinSettings*  fSettings;
+        bool            fIsDefault;
+        QString         fSource;
+        QString         fWavSource;
+        QDateTime       fCreationDate;
         
+//--- Interfaces
         QTGUI*          fInterface;      //User control interface
         FUI*            fRCInterface;     //Graphical parameters saving interface
 
@@ -86,33 +93,31 @@ class FLWindow : public QMainWindow/*, public tempName*/
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
     
+//--- Audio driver
         AudioManager*   fAudioManager;
         bool            fAudioManagerStopped;
     
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
     
-        string          fInstanceKey;
-        dsp*            fCurrent_DSP;    //DSP instance of the effect factory running
-
-        map<QString, std::pair<QString, int> >* fIPToHostName;  //Correspondance of remote machine IP to its name
-
-        QString         fWindowName;     //WindowName = Common Base Name + - + index
-        int             fWindowIndex;    //Unique index corresponding to this window
+//        string          fInstanceKey; /* Though to be used for remote interactions*/
+        
+//--- CURRENT DSP Instance
+        dsp*            fCurrent_DSP;
     
-    //Calculate a multiplication coefficient to place the window (and httpdWindow) on screen (avoiding overlapping of the windows)
+    //Calculate a multiplication coefficient to place the httpdWindow on screen (avoiding overlapping of the windows)
         int             calculate_Coef();
 
-    //Diplays the default interface with Message : Drop a DSP or Edit Me
+    //Diplays the default interface with Message : Drop a DSP
         void            print_initWindow(int typeInit);
     
+//--- Handle recents
         QList<std::pair<QString, QString> > fRecentFiles;
-        QStringList                 fRecentSessions;
-    
-//    Set fToolBar with current windows options
-        void            setWindowsOptions();
+        QStringList     fRecentSessions;
+            
+//-- Transforms Wav file into faust string
+        bool            ifWavToString(const QString& source, QString& newSource);
     
     signals :
-    //Informing of a drop, a close event, ...
         void            drop(QList<QString>);
         void            closeWin();
         void            shut_AllWindows();
@@ -133,28 +138,26 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            export_file();
         void            redirectSwitch();
     
-    public :
+    public:
     
     //####CONSTRUCTOR
     //@param : baseName = Window name
     //@param : index = Index of the window
-    //@param : effect = effect that will be contained in the window
-    //@param : x,y = position on screen
-    //@param : home = current Session folder
-    //@param : osc/httpd port = port on which remote interface will be built 
-    //@param : machineName = in case of remote processing, the name of remote machine
+    //@param : appHome = current Session folder
+    //@param : windowSettings = all the window settings 
+    //@param : appMenus = menus that will be displayed in its toolbar
 
         FLWindow(QString& baseName, int index, const QString& appHome, FLWinSettings* windowSettings, QList<QMenu*> appMenus);
         virtual ~FLWindow();
     
     //To close a window the safe way
         //At the end of application execution
-        void            close_Window();
+        void            closeWindow();
         //During the execution
-        void            shut_Window();  
+        void            shutWindow();  
     
     //Called when the X button of a window is triggered
-        virtual void    closeEvent ( QCloseEvent * event );
+        virtual void    closeEvent(QCloseEvent* event);
     
     //-- 4 steps in a interface's life
         bool            allocateInterfaces(const QString& nameEffect); 
@@ -168,17 +171,11 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
     
-    
-    //--Transforms Wav file into faust string
-        bool         ifWavToString(const QString& source, QString& newSource);
-    
-        bool            update_AudioArchitecture(QString& error);
-    
     //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
+        bool            update_AudioArchitecture(QString& error);
         void            stop_Audio();
         void            start_Audio();
     
-//        NJm_audioManager*          fAudio;
         static void*    startAudioSlave(void* arg);
     
 //    In case audio architecture collapses
@@ -189,17 +186,17 @@ class FLWindow : public QMainWindow/*, public tempName*/
         bool            setDSP(QString& error);
         void            update_AudioParams();
     //Drag and drop operations
-        virtual void    dropEvent ( QDropEvent * event );
-        virtual void    dragEnterEvent ( QDragEnterEvent * event );
-        virtual void    dragLeaveEvent ( QDragLeaveEvent * event );
+        virtual void    dropEvent(QDropEvent * event);
+        virtual void    dragEnterEvent(QDragEnterEvent * event);
+        virtual void    dragLeaveEvent(QDragLeaveEvent * event);
                 void    pressEvent();
-        virtual bool    eventFilter( QObject *obj, QEvent *ev );
+        virtual bool    eventFilter(QObject *obj, QEvent *ev);
 
     //Start or stop file/dependency watcher
         void            start_stop_watcher(bool on);
     
     //Save the graphical and audio connections of current DSP
-        void            save_Window();
+        void            saveWindow();
     
     //Recall the parameters (graphical and audio)
         void            recall_Window();
@@ -210,15 +207,10 @@ class FLWindow : public QMainWindow/*, public tempName*/
         QString         getPath();
         QString         getName();
     
-//        virtual string  getName();
-//        virtual string  json();
-    
         QString         getSHA();
         QString         get_source();
         int             get_Port();
         bool            is_Default();
-    
-    //Accessors to httpd Window
     
     //Functions to create an httpd interface
         void            viewQrCode();
@@ -227,8 +219,9 @@ class FLWindow : public QMainWindow/*, public tempName*/
     //In case of a right click, it is called
         virtual void    contextMenuEvent(QContextMenuEvent *ev);
     
-    public slots :
-    void            audioShutDown(const QString& msg);
+    public slots:
+    
+        void            audioShutDown(const QString& msg);
     
     //Modification of the compilation options
         void            modifiedOptions();
@@ -236,27 +229,18 @@ class FLWindow : public QMainWindow/*, public tempName*/
         void            resizingBig();
         void            resizingSmall();
 
+    //Modification of the HTTP interface
         void            switchHttp(bool);
         void            exportToPNG();    
         void            updateHTTPInterface();
-
+    
+    //Modification of the OSC interface
 		void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
 
         void            shut();
-#ifdef REMOTE
-        void            RemoteCallback(int);
-       
-        void            switchRemoteControl(bool);
-        virtual bool    createNJdspInstance(const string& name, const string& key, const string& celt, const string& ip, const string& port, const string& mtu, const string& latency);
-        virtual bool    startNJdspAudio();
-        void            stopNJdspAudio(const char*);
-        virtual void    cleanInactiveNJdspInstance();
-        
-        void            switchRelease(bool);
-#endif
-    
+
     //Raises and shows the window
         void            frontShow();
     //Error received
@@ -267,12 +251,29 @@ class FLWindow : public QMainWindow/*, public tempName*/
     
         static          int RemoteDSPCallback(int error_code, void* arg);
     
-    
     //Udpate the effect running in the window and all its related parameters.
     //@param : source = DSP that reemplaces the current one
         bool            update_Window(const QString& source);
         void            selfUpdate();
         void            selfNameUpdate(const QString& oldSource, const QString& newSource);
+
+#ifdef REMOTE
+        void            RemoteCallback(int);
+/*This is a never used attempt to implement remote control (checkout Network/FLRemoteServer)*/
+
+//        void            switchRemoteControl(bool);
+//        virtual bool    createNJdspInstance(const string& name, const string& key, 
+//                                        const string& celt, const string& ip, 
+//                                        const string& port, const string& mtu, 
+//                                        const string& latency);
+//        virtual bool    startNJdspAudio();
+//        void            stopNJdspAudio(const char*);
+//        virtual void    cleanInactiveNJdspInstance();
+//    
+//        void            switchRelease(bool);
+#endif
+    
+    
 };
 
 #endif

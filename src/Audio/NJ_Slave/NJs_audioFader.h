@@ -21,51 +21,53 @@
 
 class NJs_audioFader : public QObject, public netjackaudio, public AudioFader_Interface, public AudioFader_Implementation
 {
-    Q_OBJECT
+    private:
         
-    int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
-    
-    //static int net_restart(void* arg);
+        Q_OBJECT
+            
+        int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
         
-    virtual int restart_cb();
+        //static int net_restart(void* arg);
+            
+        virtual int restart_cb();
+            
+        virtual int set_sample_rate(jack_nframes_t nframes)
+        {
+            printf("New sample rate = %u\n", nframes);
+            fDsp->init(nframes);
+            return 0;
+        }
         
-    virtual int set_sample_rate(jack_nframes_t nframes)
-    {
-        printf("New sample rate = %u\n", nframes);
-        fDsp->init(nframes);
-        return 0;
-    }
-    
-    virtual void error_cb(int error_code)
-    {
-        std::stringstream err;
-        err<<error_code;
+        virtual void error_cb(int error_code)
+        {
+            std::stringstream err;
+            err<<error_code;
+            
+            emit error(err.str().c_str());
         
-        emit error(err.str().c_str());
-    
-    }
-    
-    void process(int count, float** inputs, float** outputs);
+        }
+        
+        void process(int count, float** inputs, float** outputs);
     
     public:
     
         NJs_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency = 2, QObject* parent = NULL);
-    
         virtual ~NJs_audioFader();
     
         virtual bool init(const char* name, dsp* DSP);
         bool         init(const char* name, int numInputs, int numOutputs);
         virtual bool set_dsp(dsp* DSP);
     
-//        virtual bool start();
-//        virtual void stop();
+//      virtual bool start();
+//      virtual void stop();
     
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
-    void        force_stopFade();
+        void force_stopFade();
     
-    signals :
+    signals:
+    
         void error(const char*);
 };
 

@@ -8,7 +8,7 @@
 
 #include "FLHelpWindow.h"
 #include "utilities.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
@@ -41,6 +41,7 @@ FLHelpWindow* FLHelpWindow::_Instance(){
 }
 
 //Set Text in Tools Menu of HELP
+// ---> this could probably be externalized
 void FLHelpWindow::setToolText(const QString & currentText){
     
     if(currentText.compare("FAUST") == 0)
@@ -138,6 +139,7 @@ void FLHelpWindow::setWinPropertiesText(const QString& currentText){
 }
 
 //Set Faust Lib Text in Help Menu
+/* We compile a test.dsp which imports all the faust libraries, declaring their characteristics in metadata to allow us to retrieve them */
 void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLibs){
 
 	int argc = 2;
@@ -331,23 +333,13 @@ void FLHelpWindow::init(){
     
     connect(fTreeLibs, SIGNAL(itemSelectionChanged()), this, SLOT(setLibText()));
     fTreeLibs->setMaximumWidth(150);
-    //    connect(fTreeLibs, SIGNAL(itemClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
-    //    connect(fTreeLibs, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(setLibText(QListWidgetItem *)));
     
     appLayout1->addWidget(fTreeLibs, 0, 0, 1, 1);
     
     fLibsText = new QPlainTextEdit;
     fLibsText->setReadOnly(true);
     fLibsText->setMinimumWidth(300);
-    //<<<<<<< Updated upstream
-    //    fLibsText->setPlainText("\nDouble Click on a library to open it.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These libraries exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
-    //=======
-    //>>>>>>> Stashed changes
-    
-    //    fLibsText->setPlainText("\nDouble Click On a Librairy to Open It.\nBe sure to set a default editor for .lib files.\n\n!! WARNING !!\n\n These librairies exist in your (hidden) Current Session Folder. If you want to modify them, you better save them in an other location.");
-    
-    //    fTreeLibs->setCurrentRow(0);
-    
+
     appLayout1->addWidget(fLibsText, 0, 1, 1, 2);
     
     myTabWidget->addTab(tab_app1, QString(tr("Faust Libraries")));
