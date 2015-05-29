@@ -47,11 +47,9 @@ list<GUI*> GUI::fGuiList;
 //------------CONSTRUCTION WINDOW
 //@param : baseName = Window name
 //@param : index = Index of the window
-//@param : effect = effect that will be contained in the window
-//@param : x,y = position on screen
 //@param : home = current Session folder
-//@param : osc/httpd port = port on which remote interface will be built 
-//@param : machineName = in case of remote processing, the name of remote machine
+//@param : windowSettings = parameters of the settings 
+//@param : appMenus = list of menus contained in the window
 FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSettings* windowSettings, QList<QMenu*> appMenus){
     
     connect(this, SIGNAL(audioError(const QString&)), this, SLOT(audioShutDown(const QString&)));
@@ -134,8 +132,6 @@ void FLWindow::start_stop_watcher(bool on){
 //--- Add possible wavfile to dependencies
     if(fWavSource != ""){
         dependencies.push_front(fWavSource);
-        
-        printf("WAV = %s added to deps\n", fWavSource.toStdString().c_str());
     }
     
     FLSessionManager::_Instance()->writeDependencies(dependencies, getSHA());
@@ -176,7 +172,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
 
     FLMessageWindow::_Instance()->hide();
     
-    if(factorySetts.second == NULL)
+    if(factorySetts.second == NULL) // testing if the factory pointer is null (= the compilation failed)
         return false;
   	
     if(!init_audioClient(errorMsg))
@@ -202,8 +198,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg){
             frontShow();
                         
             runInterfaces();
-            
-            printf("WINDOW STARTS WATCHER\n");
+
             start_stop_watcher(true);
             
             return true;
@@ -297,8 +292,6 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource){
 }
 
 void FLWindow::selfUpdate(){
-    
-    printf("SelfUpdate with source = %s\n", fSource.toStdString().c_str());
     
 //Avoiding the flicker when the source is saved - Mostly seeable on 10.9
 //    if(QFileInfo(fSource).exists()){
@@ -710,7 +703,6 @@ void FLWindow::setWindowsOptions(){
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
-//        printf("DESTINATION HOST = %s\n", fOscInterface->getDestAddress());
         
         fSettings->setValue("Osc/ErrPort", QString::number(fOscInterface->getUDPErr()));
     }
@@ -775,8 +767,6 @@ void FLWindow::redirectSwitch(){
 #ifdef REMOTE
     if(!update_Window(fSource)){
         fStatusBar->remoteFailed();
-        
-        printf(" FLWindow::redirectSwitch failed\n");
     }
 #endif
 }
@@ -1199,8 +1189,6 @@ void FLWindow::start_Audio(){
     
     QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
     
-    printf("Connect Audio = %s\n", connectFile.toStdString().c_str());
-    
     fAudioManager->connect_Audio(connectFile.toStdString());
     
     fClientOpen = true;
@@ -1221,7 +1209,6 @@ void FLWindow::audioShutDown(const char* msg, void* arg){
 }
 
 void FLWindow::audioShutDown_redirect(const char* msg){
-    printf("FLWindow::redirect\n");
     
 // Redirect with SIGNAL TO SWITCH THREAD (leave audio thread to go to the window thread) + Copy char* for it might be destructed within audio driver before we have time to print it
     QString errorMsg(msg);
@@ -1229,8 +1216,6 @@ void FLWindow::audioShutDown_redirect(const char* msg){
 }
 
 void FLWindow::audioShutDown(const QString& msg){
-    
-    printf("FLWindow::audioShutDown\n");
     
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     
