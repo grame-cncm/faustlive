@@ -6,6 +6,7 @@ $(mkdir $nameDist)
 $(mkdir $nameDist/Documentation)
 $(mkdir $nameDist/FaustLive)
 $(mkdir $nameDist/FilesToConfigure)
+$(mkdir $nameDist/Jack)
 
 cp Distributions/READ_ME_BEFORE_YOU_START.pdf $nameDist
 cp Distributions/Whats_New.pdf $nameDist
@@ -13,6 +14,7 @@ cp Distributions/Whats_New.pdf $nameDist
 cp Distributions/DefaultDSP.dsp $nameDist/FilesToConfigure
 cp Distributions/DefaultDSP.lib $nameDist/FilesToConfigure
 cp Distributions/process.svg 	$nameDist/FilesToConfigure
+cp Distributions/JackOSX.0.90.zip 	$nameDist/Jack
 
 cp ../../Documentation/faust-quick-reference.pdf $nameDist/Documentation
 cp ../../Documentation/UserManual.pdf $nameDist/Documentation/UserManual-$bN.pdf

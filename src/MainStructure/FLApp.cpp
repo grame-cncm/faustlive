@@ -45,6 +45,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     FLSettings::createInstance(fSessionFolder);
     FLSessionManager::createInstance(fSessionFolder);
 
+    //Connect drop on the HTML interface to the application action
     FLServerHttp::createInstance(fHtmlFolder.toStdString());
     connect(FLServerHttp::_Instance(), SIGNAL(compile(const char*, int)), this, SLOT(compile_HttpData(const char*, int)));
 
@@ -60,6 +61,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //Base Name of application's windows
     fWindowBaseName = "FLW-";
     
+    //Choose default style color
     styleClicked(FLSettings::_Instance()->value("General/Style", "Default").toString());
     
 	//Initializing Recalling 
@@ -68,7 +70,6 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifndef __APPLE__
     //For the application not to quit when the last window is closed
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(closeAllWindows()));
-//	setQuitOnLastWindowClosed(true);
 #else
     setQuitOnLastWindowClosed(false);
 #endif
