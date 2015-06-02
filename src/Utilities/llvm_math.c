@@ -11,7 +11,8 @@ void* llvm_malloc(size_t size)
     return malloc(size); 
 }
 
-void llvm_free(void *ptr){
+void llvm_free(void *ptr)
+{
     free(ptr);
 }
 
