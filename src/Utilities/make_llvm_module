@@ -1,7 +1,8 @@
-clang -m32  -emit-llvm -S llvm_math.c -o llvm_math_32.ll
+clang -m32 -emit-llvm -S llvm_math.c -o llvm_math_32.ll
 llc -march=cpp -cppgen=module -cppfname=llvm_32_module llvm_math_32.ll 
 
-clang -m64  -emit-llvm -S llvm_math.c -o llvm_math_64.ll
+clang -m64 -emit-llvm -S llvm_math.c -o llvm_math_64.ll
+clang -m64 -emit-llvm -S llvm_math.c -o llvm_math.ll
 llc -march=cpp -cppgen=module -cppfname=llvm_64_module llvm_math_64.ll 
 
 echo "namespace llvm { class Module; }" > llvm_math.h
