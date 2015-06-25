@@ -125,7 +125,7 @@ class FLServerHttp : public QObject
      
     public:
        
-        FLServerHttp();
+        FLServerHttp(const string& home);
         virtual ~FLServerHttp();
          
         bool        start();

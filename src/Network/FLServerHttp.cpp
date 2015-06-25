@@ -33,35 +33,35 @@ FLServerHttp* FLServerHttp::_serverInstance = NULL;
 //--------------------------FLSERVER-------------------------------------//
 int FLServerHttp::fNr_of_uploading_clients = 0;
 
-FLServerHttp::FLServerHttp()
+FLServerHttp::FLServerHttp(const string& home)
 {
+    fHome = home;
     fError = "";
     fUrl = "";
     fPosted = false;
     fCompiled = false;
     fHtml = "";
-    fJson ="";
+    fJson = "";
     fMax_clients = 20;
 }
 
 FLServerHttp::~FLServerHttp(){}
 
-void FLServerHttp::createInstance(const string& homeFolder)
+void FLServerHttp::createInstance(const string& home)
 {
-    FLServerHttp::_serverInstance = new FLServerHttp;
-    FLServerHttp::_serverInstance->fHome = homeFolder;
+    FLServerHttp::_serverInstance = new FLServerHttp(home);
 }
 
 void FLServerHttp::deleteInstance()
 {
     delete FLServerHttp::_serverInstance;
+    FLServerHttp::_serverInstance = NULL;
 }
 
 FLServerHttp* FLServerHttp::_Instance()
 {
     return FLServerHttp::_serverInstance;
 }
-
 
 //---------------------- START/STOP DAEMON ------------------------
 bool FLServerHttp::start()
@@ -82,7 +82,6 @@ bool FLServerHttp::start()
         printf("Server started = %p \n", fDaemon);
         return true;
     } else {
-        MHD_stop_daemon(fDaemon);
         return false;
     }
 }
@@ -92,9 +91,8 @@ void FLServerHttp::stop()
 {
     if (fDaemon) {
         MHD_stop_daemon(fDaemon);
+        fDaemon = 0;
     }
-    
-    fDaemon = 0;
 }
 
 //---------------------- HANDLE REQUESTS ------------------------
