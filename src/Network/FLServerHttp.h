@@ -1,12 +1,10 @@
 //
 //  FLServerHttp.h
-//  
 //
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
-
-// FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
+// FLServer wraps another httpPage (typically a httpdInterface) in a dropable page that can send a new source to FaustLive
 //
 // The GET requests treated by FLServer are :
 //         /availableInterfaces --> returns an HTML page describing all available HTML interfaces
