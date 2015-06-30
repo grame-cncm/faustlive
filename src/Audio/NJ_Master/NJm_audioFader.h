@@ -75,7 +75,7 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
-        void        force_stopFade();
+        void force_stopFade();
     
     signals:
     

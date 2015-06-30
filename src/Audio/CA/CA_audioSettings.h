@@ -27,13 +27,13 @@ class CA_audioSettings : public AudioSettings {
 
     private:
     
-    //Graphical CoreAudio Settings
+        //Graphical CoreAudio Settings
         QTextBrowser*       fsplRate;
         QLineEdit*          fBufSize;
     
     private slots:
     
-    //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
+        //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
         void linkClicked(const QUrl& link); 
     
     public:

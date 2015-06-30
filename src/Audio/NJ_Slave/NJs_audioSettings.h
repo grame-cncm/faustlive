@@ -31,7 +31,7 @@ class NJs_audioSettings : public AudioSettings{
 
     private:
     
-    //Graphical parameters
+        //Graphical parameters
         QLineEdit*          fCVLine;
         QLineEdit*          fIPLine;
         QLineEdit*          fPortLine;

@@ -19,41 +19,37 @@ class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader
     
     public:
 
-        crossfade_TCoreAudioRenderer(){
-    //        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
+        crossfade_TCoreAudioRenderer()
+        {
            reset_Values();
         }
         
-    //  Reimplementing audio callback to add the crossfade procedure
+        //  Reimplementing audio callback to add the crossfade procedure
         virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                                 const AudioTimeStamp *inTimeStamp,
                                 UInt32 inNumberFrames,
-                                AudioBufferList *ioData){
-            
-    //        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
-        
-        OSStatus err = noErr;
-        if (fDevNumInChans > 0) {
-            err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
-        }
-        if (err == noErr) {
-            for (int i = 0; i < fDevNumInChans; i++) {
-                fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+                                AudioBufferList *ioData)
+        {
+            OSStatus err = noErr;
+            if (fDevNumInChans > 0) {
+                err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
             }
-            for (int i = 0; i < fDevNumOutChans; i++) {
-                fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+            if (err == noErr) {
+                for (int i = 0; i < fDevNumInChans; i++) {
+                    fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+                }
+                for (int i = 0; i < fDevNumOutChans; i++) {
+                    fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+                }
+                fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+                
+                // ADDED LINE COMPARING TO BASIC COREAUDIO
+                crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
+            } else {
+                printError(err);
             }
-            fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
-            
-//            ADDED LINE COMPARING TO BASIC COREAUDIO
-            crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
-        } else {
-//            printf("AudioUnitRender error... %x\n", fInputData);
-            printError(err);
+            return err;
         }
-        return err;
-        
-    }
 };
 
 class CA_audioFader : public audio, public AudioFader_Interface

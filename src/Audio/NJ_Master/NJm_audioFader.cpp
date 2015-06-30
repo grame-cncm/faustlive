@@ -24,10 +24,8 @@ int NJm_audioFader::restart_cb()
 {
     printf("NJm_audioFader::RESTART = %i\n", fNumberRestartAttempts);
     
-    // printf("Network failure, restart...\n");
-    
     if (fNumberRestartAttempts < 9) {
-//        emit error("Network failure, restart...");    
+        // emit error("Network failure, restart...");    
         fNumberRestartAttempts++;
         return 0;
     } else {

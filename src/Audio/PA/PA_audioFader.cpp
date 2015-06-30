@@ -14,13 +14,6 @@ PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize){}
 
 PA_audioFader::~PA_audioFader(){}
 
-bool PA_audioFader::set_dsp(dsp* DSP)
-{
-    //set_dsp_aux(DSP);
-    portaudio::set_dsp(DSP);    // SL le 30/06/15
-    return true;
-}
-
 int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames) 
 {
     // process samples
@@ -45,10 +38,6 @@ bool PA_audioFader::get_FadeOut()
 {
     return get_doWeFadeOut();
 }
-
-int PA_audioFader::get_buffer_size() { return fBufferSize; }
-
-int PA_audioFader::get_sample_rate() { return fSampleRate; }
 
 
 
