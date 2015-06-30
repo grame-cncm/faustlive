@@ -18,8 +18,7 @@
 
 using namespace std;
 
-class PA_audioFader : public portaudio, public AudioFader_Interface, public AudioFader_Implementation
-{    
+class PA_audioFader : public portaudio, public AudioFader_Interface, public AudioFader_Implementation {    
     
     private:
     
@@ -31,8 +30,6 @@ class PA_audioFader : public portaudio, public AudioFader_Interface, public Audi
         virtual ~PA_audioFader();
     
         virtual bool set_dsp(dsp* DSP);
-//      virtual bool start();
-//      virtual void stop();
    
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();

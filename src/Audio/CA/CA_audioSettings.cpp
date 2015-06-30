@@ -11,14 +11,11 @@
 
 #include "FLSettings.h"
 
-CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
-    
+CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent)
+{
     QFormLayout* layout = new QFormLayout;
-    
     fBufSize = new QLineEdit;
-
-    fsplRate = new QTextBrowser;
-    
+   fsplRate = new QTextBrowser;
     string urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
     
     fsplRate->setOpenExternalLinks(false);
@@ -30,55 +27,51 @@ CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
     layout->addRow(fsplRate);
     
     parent->setLayout(layout);
-    
-    setVisualSettings();
+     setVisualSettings();
 }
 
-CA_audioSettings::~CA_audioSettings(){
-}
+CA_audioSettings::~CA_audioSettings()
+{}
 
 //Accessors to the Buffersize
-int CA_audioSettings::get_BufferSize(){
-    
-    if(isStringInt(fBufSize->text().toStdString().c_str()))
+int CA_audioSettings::get_BufferSize()
+{
+    if (isStringInt(fBufSize->text().toStdString().c_str())) {
         return atoi(fBufSize->text().toStdString().c_str());
-    else
+    } else {
         return 512;
+    }
 }
 
 //Real to Visual
-void CA_audioSettings::setVisualSettings(){
-    
+void CA_audioSettings::setVisualSettings()
+{
     fBufSize->setText(QString::number(FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
 }
 
 //Visual to Real
-void CA_audioSettings::storeVisualSettings(){
-    
+void CA_audioSettings::storeVisualSettings()
+{
     int value;
     
-    if(isStringInt(fBufSize->text().toStdString().c_str())){
-        
+    if (isStringInt(fBufSize->text().toStdString().c_str())) {
         value = atoi(fBufSize->text().toStdString().c_str());
-        
-        if(value == 0)
-            value = 512;
+        if (value == 0) value = 512;
+    } else {
+        value = 512;
     }
-    else
-            value = 512;
     
     fBufSize->setText(QString::number(value));
     FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", value);
 }
 
 //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
-void CA_audioSettings::linkClicked(const QUrl& link){
- 
+void CA_audioSettings::linkClicked(const QUrl& link)
+{
     string myLink = link.path().toStdString();
-    
     size_t pos = myLink.find("\\");
     
-    while(pos != string::npos){
+    while(pos != string::npos) {
         myLink.insert(pos + 1, 1, ' ');
         pos = myLink.find("\\", pos+2);
     }
@@ -87,23 +80,18 @@ void CA_audioSettings::linkClicked(const QUrl& link){
     system(myCmd.c_str());
     
     fsplRate->reload();
-    
 }
 
 //Operator== for CoreAudio Settings
-bool CA_audioSettings::isEqual(AudioSettings* as){
-    
+bool CA_audioSettings::isEqual(AudioSettings* as)
+{
     CA_audioSettings* settings1 = dynamic_cast<CA_audioSettings*>(as);
-    
-    if(settings1 != NULL && settings1->get_BufferSize() == get_BufferSize())
-        return true;
-    else
-        return false;
-        
+    return (settings1 != NULL && settings1->get_BufferSize() == get_BufferSize());
 }
 
 //Accessor to ArchitectureName
-QString CA_audioSettings::get_ArchiName(){
+QString CA_audioSettings::get_ArchiName()
+{
     return "CoreAudio";
 }
 

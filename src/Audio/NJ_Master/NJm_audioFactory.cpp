@@ -18,14 +18,14 @@ NJm_audioFactory::NJm_audioFactory(){}
 NJm_audioFactory::~NJm_audioFactory(){}
 
 //Creates Settings, corresponding to a NetJack object
-AudioSettings* NJm_audioFactory::createAudioSettings(QGroupBox* parent){
-    
+AudioSettings* NJm_audioFactory::createAudioSettings(QGroupBox* parent)
+{
     return new NJm_audioSettings(parent);
 }
 
 //Creates an AudioManager, corresponding to a NetJack object
-AudioManager* NJm_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg){
-    
+AudioManager* NJm_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg)
+{
     return new NJm_audioManager(cb, arg);
 }
 

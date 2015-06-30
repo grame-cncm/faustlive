@@ -14,37 +14,35 @@ PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize){}
 
 PA_audioFader::~PA_audioFader(){}
 
-bool PA_audioFader::set_dsp(dsp* DSP){
-    set_dsp_aux(DSP);
+bool PA_audioFader::set_dsp(dsp* DSP)
+{
+    //set_dsp_aux(DSP);
+    portaudio::set_dsp(DSP);    // SL le 30/06/15
     return true;
 }
 
 int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames) 
 {
     // process samples
-	//printf("Process Audio \n");
     fDsp->compute(frames, ibuf, obuf);
     crossfade_Calcul(fBufferSize, fDevNumOutChans, obuf);
-	
-/*	for(int i=0; i<fDsp->getNumOutputs(); i++){
-		for(int j=0; j<frames; j++){
-			printf("Output Buffer = %f\n", obuf[i][j]);
-		}
-	}*/
 	return paContinue;
 }
 
 // UpDate the list of ports needed by new DSP
-void PA_audioFader::launch_fadeOut(){
+void PA_audioFader::launch_fadeOut()
+{
     set_doWeFadeOut(true);
 }
 
 //Fade In is not needed, because the fade in and out are both launched in the same process
-void PA_audioFader::launch_fadeIn(){
+void PA_audioFader::launch_fadeIn()
+{
     set_doWeFadeIn(true);
 }
 
-bool PA_audioFader::get_FadeOut(){
+bool PA_audioFader::get_FadeOut()
+{
     return get_doWeFadeOut();
 }
 

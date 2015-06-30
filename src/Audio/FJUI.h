@@ -22,17 +22,15 @@ struct FJUI
 {
     
     // Saves the connections into the filename
-    static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > 	Connections)
+    static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > Connections)
 	{
         std::ofstream f(filename, ios::trunc);
-        
         std::list<std::pair<string, string> > ::const_iterator it;
         
-		for (it=Connections.begin(); it!=Connections.end(); it++)
+		for (it = Connections.begin(); it != Connections.end(); it++) {
 			f << endl<< "\"" <<it->first.c_str()<< "\"" << ' ' << "\""<< it->second.c_str()<< "\"";
+        }
         
-        
-//        printf("HOLA HOLA HOLALA\n");
 		f.close();
 	}
     

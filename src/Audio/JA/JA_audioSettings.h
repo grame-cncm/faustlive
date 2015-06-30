@@ -13,12 +13,11 @@
 
 #include "AudioSettings.h"
 
-class JA_audioSettings : public AudioSettings{
+class JA_audioSettings : public AudioSettings {
 
     private:
 
         QCheckBox*      fAutoConnectBox;
-        
          bool           get_AutoConnect();
     
     public:

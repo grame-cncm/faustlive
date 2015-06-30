@@ -1225,17 +1225,13 @@ void FLWindow::audioShutDown(const QString& msg){
 }
 
 //Switch of Audio architecture
-bool FLWindow::update_AudioArchitecture(QString& error){
-    
+bool FLWindow::update_AudioArchitecture(QString& error)
+{
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     delete fAudioManager;
     
     fAudioManager = creator->createAudioManager(FLWindow::audioShutDown, this);
-    
-    if(init_audioClient(error) && setDSP(error))
-        return true;
-    else
-        return false;
+    return (init_audioClient(error) && setDSP(error));
 }
 
 //Initialization of audio Client Reimplemented
@@ -1247,13 +1243,12 @@ bool FLWindow::init_audioClient(QString& error){
 //    if(numberInputs == 0 && numberOutputs == 0)
 //        return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
     
-	if(fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)){
-        
+	if (fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)) {
         update_AudioParams();
         return true;
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 void FLWindow::update_AudioParams(){

@@ -21,7 +21,7 @@ using namespace std;
 
 class AudioSettings;
 
-class AudioManager : public QObject, public audio{
+class AudioManager : public QObject, public audio {
 
     private:
 
@@ -45,14 +45,7 @@ class AudioManager : public QObject, public audio{
         
         virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
         virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
-        
-        /// SL : 16/04 : to remove ?
-        //virtual void change_Connections(std::string homeFolder, std::list<std::pair<std::string, std::string> > changeTable)
-        //    {Q_UNUSED(homeFolder); Q_UNUSED(changeTable);}
-        
-        virtual int get_buffer_size() = 0;
-        virtual int get_sample_rate() = 0;
-        
+           
     signals: 
         
         void errorSignal(const char*);

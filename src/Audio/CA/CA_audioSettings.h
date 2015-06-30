@@ -23,7 +23,7 @@
 
 using namespace std;
 
-class CA_audioSettings : public AudioSettings{
+class CA_audioSettings : public AudioSettings {
 
     private:
     

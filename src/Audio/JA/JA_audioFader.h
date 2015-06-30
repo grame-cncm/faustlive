@@ -18,8 +18,7 @@
 
 using namespace std;
 
-class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation
-{    
+class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation {    
     
     private:
     
@@ -30,7 +29,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
         float**         fIntermediateFadeOut;
         float**         fIntermediateFadeIn;
     
-//      string          fPortName;
         jack_nframes_t  fBufferSize;
         list<pair<string, string> > fConnectionsIn;		// Connections list
     
@@ -43,9 +41,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
         virtual int	process(jack_nframes_t nframes);
     
-        virtual bool init(const char* name, dsp* DSP); 
-    
-        virtual bool init(const char* name);
         bool set_dsp(dsp* DSP, const char* portsName);
         virtual bool start();
     

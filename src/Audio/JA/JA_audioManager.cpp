@@ -14,111 +14,112 @@
 #include <QFileInfo>
 #include "FLSettings.h"
 
-void JA_audioManager::shutdown_message(const char * msg, void* arg){
+void JA_audioManager::shutdown_message(const char * msg, void* arg)
+{
     Q_UNUSED(arg);
     Q_UNUSED(msg);
-    
     printf("JA_audioManager::SHUTDOWN\n");
 }
 
-JA_audioManager::JA_audioManager(shutdown_callback cb, void* arg): AudioManager(cb, arg){
-
+JA_audioManager::JA_audioManager(shutdown_callback cb, void* arg): AudioManager(cb, arg)
+{
     fCurrentAudio = new JA_audioFader;
     fCurrentAudio->shutdown(cb, arg);
 }
 
-JA_audioManager::~JA_audioManager(){
-
+JA_audioManager::~JA_audioManager()
+{
     delete fCurrentAudio;
 }
 
 //INIT/START/STOP on Current JackAudio
-bool JA_audioManager::initAudio(QString& error, const char* name){
-    
+bool JA_audioManager::initAudio(QString& error, const char* name)
+{
     printf("NAME INIT = %s\n", name);
     
-    if(fCurrentAudio->init(name))
+    if (fCurrentAudio->init(name, 0)) {
         return true;
-    else{
+    } else {
         error = "Impossible to init JackAudio Client";
         return false;
     }
 }
 
-bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name){
- 
+bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name)
+{
     printf("SET DSP = %s\n", port_name);
     
-    if(fCurrentAudio->set_dsp(DSP, port_name))
+    if (fCurrentAudio->set_dsp(DSP, port_name)) {
         return true;
-    else{
+    } else {
         error = "Impossible to init JackAudio Client";
         return false;
     }
 }
 
-bool JA_audioManager::init(const char* name, dsp* DSP){
+bool JA_audioManager::init(const char* name, dsp* DSP)
+{
     return fCurrentAudio->init(name, DSP);
 }
 
-bool JA_audioManager::start(){
+bool JA_audioManager::start()
+{
     return fCurrentAudio->start();
 }
 
-void JA_audioManager::stop(){
+void JA_audioManager::stop()
+{
     fCurrentAudio->stop();
 }
 
 //Init new dsp, that will fade in current audio
-bool JA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP){
-
+bool JA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
+{
     error = "";
-    
     fCurrentAudio->init_FadeIn_Audio(DSP, name);
     return true;
 }
 
 //Crossfade start
-void JA_audioManager::start_Fade(){
-
+void JA_audioManager::start_Fade()
+{
     fCurrentAudio->launch_fadeOut();
 }
 
 //When the crossfade ends, the DSP is updated in jackaudio Fader
-void JA_audioManager::wait_EndFade(){
-    
+void JA_audioManager::wait_EndFade()
+{
     while(fCurrentAudio->get_FadeOut() == true){}
-    
     fCurrentAudio->upDate_DSP();
 }
 
 //Recall Connections from saving file
-void JA_audioManager::connect_Audio(string homeDir){
-    
-    if(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()){
-        if(QFileInfo(homeDir.c_str()).exists()){
-            
+void JA_audioManager::connect_Audio(string homeDir)
+{
+    if (FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()) {
+        if (QFileInfo(homeDir.c_str()).exists()) {
             list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
-            
             fCurrentAudio->reconnect(connection);
-        }
-        else
+        } else {
             fCurrentAudio->default_connections();  
-    }
-    else
+        }
+    } else {
         printf("Do not connect\n");
+    }
 }
 
 //Save connections in file
-void JA_audioManager::save_Connections(string homeDir){
-    
+void JA_audioManager::save_Connections(string homeDir)
+{
     FJUI::saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
 }
 
-int JA_audioManager::get_buffer_size(){
+int JA_audioManager::get_buffer_size()
+{
     return fCurrentAudio->get_buffer_size();
 }
 
-int JA_audioManager::get_sample_rate(){
+int JA_audioManager::get_sample_rate()
+{
     return fCurrentAudio->get_sample_rate();
 }

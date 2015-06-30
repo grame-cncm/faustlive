@@ -26,7 +26,7 @@
 
 using namespace std;
 
-class NJm_audioSettings : public AudioSettings{
+class NJm_audioSettings : public AudioSettings {
 
     public:
     
