@@ -57,7 +57,8 @@ bool NJs_audioFader::init(const char* name, int numInputs, int numOutputs) {
 
 bool NJs_audioFader::set_dsp(dsp* DSP){
     
-    set_dsp_aux(DSP);
+    netjackaudio::set_dsp(DSP); // SL le 30/06/15
+    //set_dsp_aux(DSP);
     return true;
 }
 

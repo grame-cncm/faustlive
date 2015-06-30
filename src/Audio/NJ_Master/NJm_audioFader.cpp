@@ -84,7 +84,8 @@ bool NJm_audioFader::set_dsp(dsp* DSP){
     
     fDsp = DSP;
     DSP->buildUserInterface(this);
-    set_dsp_aux(DSP);
+    netjackaudio_midicontrol::set_dsp(DSP); // SL le 30/06/15
+    //set_dsp_aux(DSP);
     return true;
 }
 
