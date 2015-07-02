@@ -56,7 +56,7 @@ using namespace std;
 #define GET 0
 #define POST 1
 
-struct connection_info_struct {
+struct connection_info {
 
     int connectiontype;                         // GET or POST
     struct MHD_PostProcessor *postprocessor;    // the POST processor used internally by microhttpd

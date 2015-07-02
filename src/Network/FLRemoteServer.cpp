@@ -40,8 +40,8 @@ struct myMeta : public Meta
 
 //------------SLAVE DSP FACTORY-------------------------------
 
-string getJson(connection_info_struct* con_info){
-    
+string getJson(connection_info_struct* con_info) 
+{
     myMeta metadata;
     metadataDSPFactory(con_info->fLLVMFactory, &metadata);
     con_info->fNameApp = metadata.name;

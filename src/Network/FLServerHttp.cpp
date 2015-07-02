@@ -45,7 +45,7 @@ FLServerHttp::FLServerHttp(const string& home)
     fMax_clients = 20;
 }
 
-FLServerHttp::~FLServerHttp(){}
+FLServerHttp::~FLServerHttp() {}
 
 void FLServerHttp::createInstance(const string& home)
 {
@@ -67,7 +67,6 @@ FLServerHttp* FLServerHttp::_Instance()
 bool FLServerHttp::start()
 {
     unsigned short port = FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt();
-   
     fServerAddress = "http://" + searchLocalIP().toStdString() + ":" + QString::number(port).toStdString() + "/";
 
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
@@ -106,18 +105,18 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url)
     string responseHead = readFile(head.c_str()).toStdString();
     string responseTail = readFile(tail.c_str()).toStdString();
     
-//    Request for the server
+    // Request for the server
     if (strcmp(url,"/availableInterfaces") == 0) {
         return sendPage(connection, fHtml.c_str (), fHtml.size(), MHD_HTTP_OK, "text/html");
     
     } else if (strcmp(url,"/availableInterfaces/JSON") == 0) {
         return sendPage(connection, fJson.c_str (), fJson.size(), MHD_HTTP_OK, "application/json");
 
-//    Request for an interface
+    // Request for an interface
     } else if (strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")) {
         
         string urlAsString(url);
-//      As a JSON
+        // As a JSON
         if (urlAsString.find("JSON") != string::npos) {
             
             string portNumber(url);
@@ -125,7 +124,7 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url)
             
             return redirectJsonRequest(connection, portNumber);
         }  else {
-            // As an html interface
+        // As an html interface
             string portNumber(url);
             portNumber = portNumber.substr(1, portNumber.size()-1);
             
@@ -140,7 +139,7 @@ int FLServerHttp::handleGet(MHD_Connection *connection, const char* url)
 
 int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, void *info) 
 {
-    struct connection_info_struct *con_info = (connection_info_struct*)info;
+    connection_info *con_info = (connection_info*)info;
     int port = 0;
     
     if (con_info->winUrl.compare("") != 0 && con_info->winUrl.compare(fServerAddress) != 0) {
@@ -166,9 +165,7 @@ int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, 
 //Callback that parses the content of a post request
 int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
 {
-    struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
-    
-    // printf("FLServer::iteratePost DATA = %s/n", data);
+    connection_info *con_info = (connection_info*)coninfo_cls;
     
     if (size > 0) {
         
@@ -183,30 +180,32 @@ int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const c
     return MHD_YES;
 }
 
-
 //---------------------- HANDLE INCOMING CNX ------------------------
 
 //Callback answering to any request to the server
-int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char */**version*/, const char *upload_data, size_t *upload_data_size, void **con_cls)
+int FLServerHttp::answerToConnection(void *cls, 
+                                    MHD_Connection *connection, 
+                                    const char *url, 
+                                    const char *method, 
+                                    const char */**version*/, 
+                                    const char *upload_data, 
+                                    size_t *upload_data_size, 
+                                    void **con_cls)
 {
     FLServerHttp *server = (FLServerHttp*)cls;
     string errorPage = kErrorPage;
     
     if (NULL == *con_cls) {
-        struct connection_info_struct *con_info;
+        connection_info* con_info;
     
         if (fNr_of_uploading_clients >= server->getMaxClients()) {
             string busyServer(kBusyPage);
             return server->sendPage(connection, busyServer.c_str (), busyServer.size (), MHD_HTTP_SERVICE_UNAVAILABLE, "text/html");
         }
         
-        con_info = new connection_info_struct();
+        con_info = new connection_info();
         con_info->data = "";
         con_info->winUrl = "";
-        
-        if (NULL == con_info) {
-            return MHD_NO;
-        }
         
         if (0 == strcmp(method, "POST")) {
             
@@ -234,14 +233,13 @@ int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, cons
         return server->handleGet(connection, url);
     } else if (0 == strcmp(method, "POST")) {
     
-        struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
+        connection_info *con_info = (connection_info*)*con_cls;
         
         if (0 != *upload_data_size) {
             MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
             *upload_data_size = 0;
             return MHD_YES;
-        } 
-        else{
+        } else {
             return server->handlePost(connection, url, (void*)con_info);
         }
     } else {
@@ -253,7 +251,7 @@ int FLServerHttp::answerToConnection(void *cls, MHD_Connection *connection, cons
 int FLServerHttp::sendPage(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
 {
     int ret;
-    struct MHD_Response *response;
+    MHD_Response *response;
     
     response = MHD_create_response_from_buffer(length, (void*)page,
                                                MHD_RESPMEM_MUST_COPY);
@@ -271,7 +269,7 @@ int FLServerHttp::sendPage(struct MHD_Connection *connection, const char *page, 
 //Callback ending a client connection
 void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*/, void **con_cls, MHD_RequestTerminationCode /*toe*/)
 {
-    struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
+    connection_info *con_info = (connection_info*)*con_cls;
     
     if (!con_info) {
         return;
@@ -287,7 +285,6 @@ void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*
     delete con_info;
     *con_cls = NULL;
 }
-
 
 //---------------- FAUST RECOMPILATION RESULT -----------------------------
 void FLServerHttp::compileSuccessfull(const string& url)
@@ -332,7 +329,7 @@ void FLServerHttp::updateAvailableInterfaces()
     
     for (map<int, string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++) {
         
-        if(it != fDeclaredNames.begin())
+        if (it != fDeclaredNames.begin())
             json<<',';
         json << std::endl << '"' << it->second << '"' << ": [" << '"' << it->first << '"' << ']';
         
@@ -351,7 +348,6 @@ void FLServerHttp::updateAvailableInterfaces()
     html<<"</table>"<<std::endl;
     html<<std::endl<<readFile(interfacesTail.c_str()).toStdString();
     fHtml = html.str();
-    
 }
 
 //-------------- Special treatement for the JSON Request ----------
@@ -389,11 +385,11 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
         
         CURLcode res = curl_easy_perform(curl);
         
-        if(res == CURLE_OK){
+        if (res == CURLE_OK) {
 
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
-            if(respcode == 200)
+            if (respcode == 200)
                 resultingPage = oss.str();
         }
         

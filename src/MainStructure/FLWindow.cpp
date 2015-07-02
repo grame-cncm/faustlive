@@ -1172,7 +1172,7 @@ void FLWindow::stop_Audio(){
     //    if(!fEffect->isLocal()){
     //        
     //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
-    //        currentDSP->stopAudio();
+    //        currentDSP->stop();
     //    }
     
 #endif
@@ -1197,7 +1197,7 @@ void FLWindow::start_Audio(){
     //    if(!fEffect->isLocal()){
     //        
     //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
-    //        currentDSP->startAudio();
+    //        currentDSP->start();
     //    }
 #endif
 }
