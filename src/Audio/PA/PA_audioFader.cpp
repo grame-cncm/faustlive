@@ -10,15 +10,15 @@
 
 #include "PA_audioFader.h"
 
-PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize){}
+PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize) {}
 
-PA_audioFader::~PA_audioFader(){}
+PA_audioFader::~PA_audioFader() {}
 
 int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames) 
 {
     // process samples
     fDsp->compute(frames, ibuf, obuf);
-    crossfade_Calcul(fBufferSize, fDevNumOutChans, obuf);
+    crossfade_Calcul(frames, fDevNumOutChans, obuf);
 	return paContinue;
 }
 
