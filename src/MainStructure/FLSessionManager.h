@@ -142,7 +142,7 @@ class FLSessionManager : public QObject
         
         dsp* createDSP(QPair<QString, void*> factorySetts, 
                         const QString& source, FLWinSettings* settings,
-                        RemoteDSPErrorCallback error_callback, 
+                        remoteDSPErrorCallback error_callback, 
                         void* error_callback_arg, 
                         QString& errorMsg);
 

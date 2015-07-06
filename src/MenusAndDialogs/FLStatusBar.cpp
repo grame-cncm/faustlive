@@ -67,7 +67,7 @@ void FLStatusBar::openMachineMenu(){
     fIPToHostName.clear();
     
     // Browse the remote machines available
-    if(getRemoteMachinesAvailable(&fIPToHostName)){
+    if(getRemoteDSPMachines(&fIPToHostName)){
         
         // Add localhost to the machine list
         fIPToHostName[string("local processing")] = make_pair("", 0);

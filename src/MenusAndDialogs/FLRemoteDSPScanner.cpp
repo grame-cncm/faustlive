@@ -57,7 +57,7 @@ void FLRemoteDSPScanner::init(){
     
     std::map<std::string, std::pair<std::string, int> > machineList;
     
-//    if(getRemoteMachinesAvailable(&machineList)){
+//    if(getRemoteDSPMachines(&machineList)){
 //        
 //        for(std::map<std::string, std::pair<std::string, int> >::iterator it = machineList.begin(); it != machineList.end(); it++){
 //            
