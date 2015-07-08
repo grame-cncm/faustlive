@@ -39,7 +39,7 @@
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
 #else
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
 #include "faust/dsp/llvm-dsp.h"
