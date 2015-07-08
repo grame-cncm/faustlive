@@ -244,12 +244,22 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         const char** argv = getRemoteInstanceArgv(settings, argc);
         compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
         
+        /*
+        // Test 
         int argc1 = 0;
         const char* argv1[32];
         int errorToCatch1;
         
-        // Test 
-        //remote_audio* audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, sampleRate, bufferSize, errorToCatch1);
+        argv1[argc1++] = "--NJ_buffer_size";
+        string s1 = settings->value("BufferSize", 512).toString().toStdString();
+        argv1[argc1++] = s1.c_str();
+        
+        argv1[argc1++] = "--NJ_sample_rate";
+        string s2 = settings->value("SampleRate", 44100).toString().toStdString();
+        argv1[argc1++] = s2.c_str();
+        
+        remote_audio* audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, errorToCatch1);
+        */
         
         if (compiledDSP == NULL) {
             
