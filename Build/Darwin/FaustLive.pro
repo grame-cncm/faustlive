@@ -128,7 +128,7 @@ equals(REMVAR, 1){
 
 equals(CAVAR, 1){
 	message("COREAUDIO LINKED")
-	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices
+	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI
 	DEFINES += COREAUDIO
 	INCLUDEPATH += ../../src/Audio/CA
 	

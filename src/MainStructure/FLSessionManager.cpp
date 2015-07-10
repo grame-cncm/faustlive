@@ -11,6 +11,17 @@
 #include "utilities.h"
 #include "FLErrorWindow.h"
 
+
+/*
+#define __MACOSX_CORE__
+#include "faust/midi/rt-midi.h"
+#include "faust/gui/MidiUI.h"
+*/
+
+
+#define LLVM_DSP
+#include "faust/dsp/poly-dsp.h"
+
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
 
@@ -24,9 +35,21 @@ FLSessionManager* FLSessionManager::_sessionManager = 0;
 FLSessionManager::FLSessionManager(const QString& sessionFolder)
 {
     fSessionFolder = sessionFolder;
+    /*
+    // TODO
+    fMIDIManager = new rtmidi();
+    fMIDIManager->start();
+    */
 }
 
-FLSessionManager::~FLSessionManager(){}
+FLSessionManager::~FLSessionManager()
+{
+    /*
+    // TODO
+    fMIDIManager->stop();
+    delete fMIDIManager;
+    */
+}
 
 FLSessionManager* FLSessionManager::_Instance()
 {
@@ -59,20 +82,18 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     //Path is whether the dsp source unmodified or the waveform converted
     QString path("");
-    if (isSourceDSPPath(faustContent))
+    if (isSourceDSPPath(faustContent)) {
         path = faustContent;
+    }
     
     faustContent = ifFileToString(faustContent);
     
     //------Get Name
     
     QString name = ifFileToName(path);
-    
-    if (name == "")
-        name = getDeclareName(faustContent);
-    
-    if (name == "")
-        name = "DefaultName";
+    if (name == "") {
+        name = getDeclareName(faustContent, "DefaultName");
+    }
     
     //--------Calculation of SHA Key
     
@@ -228,9 +249,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
         compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
-		if (compiledDSP == NULL) {
+        /*
+        compiledDSP = new mydsp_poly(4, true, toCompile->fLLVMFactory);
+        if (compiledDSP == NULL) {
             errorMsg = "Impossible to compile DSP";
         }
+        fMIDIManager->addMidiIn(dynamic_cast<mydsp_poly*>(compiledDSP));
+        */
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
@@ -307,8 +332,8 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     fDSPToFactory.remove(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
-        deleteDSPInstance((llvm_dsp*) toDeleteDSP);
-        deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
+        //deleteDSPInstance((llvm_dsp*) toDeleteDSP);
+        //deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
     }
 #ifdef REMOTE
     else {
@@ -321,21 +346,19 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
 //--- Managing Faust Source to obtain a name and a Faust program as a string ---
 
 //Return declare name if there is one in the faust program
-QString FLSessionManager::getDeclareName(QString text)
+QString FLSessionManager::getDeclareName(QString text, QString default_name)
 {
-    QString returning = "";
+    QString returning = default_name;
     int pos = text.indexOf("declare name");
     
     if (pos != -1) {
         text.remove(0, pos);
-        
-        pos=text.indexOf("\"");
+        pos = text.indexOf("\"");
         if (pos != -1) {
             text.remove(0, pos+1);
         }
         pos = text.indexOf("\"");
         text.remove(pos, text.length()-pos);
-        
         returning = text;
     }
     
@@ -731,6 +754,7 @@ void FLSessionManager::saveCurrentSources(const QString& sessionFolder)
         QFile shaSource(shaPath);
         shaSource.copy(savedPath);
     }
+    
     generalSettings->endGroup();
 }
 
@@ -807,9 +831,9 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
         if (originalPath == "") {
             windowIndexToSource[groups[i].toInt()] = savedContent;
 //        In case it is a DSP
-        } else{
+        } else {
 //              In case path restoration was already treated
-            if(updated.contains(originalPath)){
+            if (updated.contains(originalPath)) {
                 windowIndexToSource[groups[i].toInt()] = windowIndexToSource[updated[originalPath]];
             } else {
 
@@ -828,7 +852,6 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
                 else if(QFileInfo(recallingPath).exists() && savedContent != originalContent) {
                     
                     QString msg = "The content of " + originalPath + " was modified. Do you want to reload " + originalPath+ " or an unmodified internal copy?";
-                    
                     if (viewRestorationMsg(msg, "Internal Copy", "Path")) {
                         windowIndexToSource[groups[i].toInt()] = savedContent; 
                     } else {
@@ -844,7 +867,6 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
                 updated[originalPath] = groups[i].toInt();
             }
         }
-            
     }
     
     generalSettings->endGroup();
@@ -866,7 +888,7 @@ void FLSessionManager::copySHAFolder(const QString& snapshotFolder)
     }
 }
 
-map<int, QString>   FLSessionManager::snapshotRestoration(const QString& file)
+map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
 {
     QString filename = file;
     

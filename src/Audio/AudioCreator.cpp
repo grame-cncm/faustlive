@@ -65,8 +65,8 @@ enum audioArchi{
 
 AudioCreator* AudioCreator::_instance = 0;
 
-AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
-    
+AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
+{
     fMenu = parent;
     fLayout = new QFormLayout;
     
@@ -96,13 +96,13 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
 
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
-//    Initializing current settings
+    // Initializing current settings
     fFactory = NULL;
     fSettingsBox = NULL;
     fCurrentSettings = NULL;
     savedSettingsToVisualSettings();
     
-//    Initialize temporary settings
+    // Initialize temporary settings
     fTempAudioIndex = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
     
     fTempBox = new QGroupBox();
@@ -110,15 +110,15 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL){
 }
 
 //Returns the instance of the audioCreator
-AudioCreator* AudioCreator::_Instance(QGroupBox* box){
-    if(_instance == 0)
+AudioCreator* AudioCreator::_Instance(QGroupBox* box)
+{
+    if (_instance == 0)
         _instance = new AudioCreator(box);
-    
     return _instance;
 }
 
-AudioCreator::~AudioCreator(){
-    
+AudioCreator::~AudioCreator()
+{
     fCurrentSettings->storeVisualSettings();
     
     delete fSettingsBox;
@@ -126,36 +126,33 @@ AudioCreator::~AudioCreator(){
     delete fCurrentSettings;
     delete fTempSettings;
     delete fFactory;
-    
     delete fAudioArchi;
     delete fLayout;
 }
 
 //Parsing ComboBox to find the index corresponding to a Drover Name
-int AudioCreator::driverNameToIndex(const QString& driverName){
-    
-    //  In case compilation options have changed, it is checked if it still exists
-    for(int i=0; i<fAudioArchi->count() ; i++){
-        
-        if(driverName == fAudioArchi->itemText(i))
+int AudioCreator::driverNameToIndex(const QString& driverName)
+{
+    // In case compilation options have changed, it is checked if it still exists
+    for (int i = 0; i<fAudioArchi->count() ; i++){
+        if (driverName == fAudioArchi->itemText(i))
             return i;
     }
-    
     return 0;
 }
 
 //Dynamic change when the audio index (= audio architecture) changes
-void AudioCreator::indexChanged(int index){
-
+void AudioCreator::indexChanged(int index)
+{
     printf("AudioCreator::indexChanged\n");
     
-    if(fFactory != NULL)
+    if (fFactory != NULL)
         delete fFactory;
     
-    if(fCurrentSettings != NULL)
+    if (fCurrentSettings != NULL)
         delete fCurrentSettings;
     
-    if(fSettingsBox != NULL)
+    if (fSettingsBox != NULL)
         delete fSettingsBox;
     
     fFactory = createFactory(index);
@@ -166,14 +163,15 @@ void AudioCreator::indexChanged(int index){
     fMenu->setLayout(fLayout);
 }
 
-void AudioCreator::reset_AudioArchitecture(){
+void AudioCreator::reset_AudioArchitecture()
+{
     fAudioArchi->setCurrentIndex(0);
     indexChanged(0);
 }
 
 //Creation of the Factory/Settings/Manager depending on audio index
-AudioFactory* AudioCreator::createFactory(int index){
-    
+AudioFactory* AudioCreator::createFactory(int index)
+{
     switch(index){
 #ifdef COREAUDIO
         case kCoreaudio:
@@ -208,32 +206,36 @@ AudioFactory* AudioCreator::createFactory(int index){
     }
 }
 
-AudioSettings* AudioCreator::createAudioSettings(QGroupBox* parent){
+AudioSettings* AudioCreator::createAudioSettings(QGroupBox* parent)
+{
     return fFactory->createAudioSettings(parent);
 }
 
-AudioManager* AudioCreator::createAudioManager(AudioShutdownCallback cb, void* arg){
+AudioManager* AudioCreator::createAudioManager(AudioShutdownCallback cb, void* arg)
+{
     return fFactory->createAudioManager(cb, arg);
 }
 
 //Accessors to the Settings
-QString AudioCreator::get_ArchiName(){
+QString AudioCreator::get_ArchiName()
+{
     return fCurrentSettings->get_ArchiName();
 }
 
 //Does the visual parameters concord to the stored settings?
 //Determines if the audio has to be reloaded
-bool AudioCreator::didSettingChanged(){
+bool AudioCreator::didSettingChanged()
+{
     
-    if(driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex()) {
+    if (driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString()) != fAudioArchi->currentIndex()) {
         return true;
     } else {
         
         printf("Current Settings = %p || Temp = %p\n", fCurrentSettings, fTempSettings);
         
-        if(!((*fCurrentSettings)==(*fTempSettings)))
+        if (!((*fCurrentSettings)==(*fTempSettings))) {
             return true;
-        else{
+        } else {
             
 //    Not really the right thing to do with the actual system but JA settings don't influence audio updates so it's directly stored --> to avoid update for just going from connect to disconnect or the other way around...
             visualSettingsToTempSettings();
@@ -244,46 +246,37 @@ bool AudioCreator::didSettingChanged(){
 }
 
 // Restoring saved Settings
-void AudioCreator::savedSettingsToVisualSettings(){
-    
+void AudioCreator::savedSettingsToVisualSettings()
+{
     int index = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
-    
     fAudioArchi->setCurrentIndex(index);     
     indexChanged(index);
 }
 
 //Storing temporarily the settings to test them
-void AudioCreator::visualSettingsToTempSettings(){
-    
+void AudioCreator::visualSettingsToTempSettings()
+{
     fTempAudioIndex = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
-    
     FLSettings::_Instance()->setValue("General/Audio/DriverName", fAudioArchi->currentText());
-    
     fCurrentSettings->storeVisualSettings();
 }
 
 //Store temporary settings
-void AudioCreator::tempSettingsToSavedSettings(){
-    
-    if(fTempBox != NULL)
-        delete fTempBox;
-    
+void AudioCreator::tempSettingsToSavedSettings()
+{
+    delete fTempBox;
     fTempBox = new QGroupBox();
-    
     fTempSettings = fFactory->createAudioSettings(fTempBox);
-    
-//    Synchronize saved settings & current settings in case of changes (like buffer size...)
+    // Synchronize saved settings & current settings in case of changes (like buffer size...)
     fCurrentSettings->setVisualSettings();
 }
 
 //Restoring settings
-void AudioCreator::restoreSavedSettings(){
-    
+void AudioCreator::restoreSavedSettings()
+{
     FLSettings::_Instance()->setValue("General/Audio/DriverName", fAudioArchi->itemText(fTempAudioIndex));
-
     fAudioArchi->setCurrentIndex(fTempAudioIndex);
     indexChanged(fTempAudioIndex);
-    
     fTempSettings->storeVisualSettings();
 }
 

@@ -34,7 +34,6 @@
 #include <QtNetwork>
 #include <map>
 
-
 // THI IS UGLY !!! (to fix...)
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
@@ -73,6 +72,8 @@ struct factorySettings {
     int             fType;
 };
 
+class rtmidi;
+
 class FLSessionManager : public QObject
 {
     
@@ -81,11 +82,13 @@ class FLSessionManager : public QObject
         Q_OBJECT
         
         QString         fSessionFolder;
+        
+        rtmidi*         fMIDIManager;
 
         static FLSessionManager* _sessionManager;
         
 //------ Handle name giving 
-        QString         getDeclareName(QString text);
+        QString         getDeclareName(QString text, QString default_name);
         
         QString         getErrorFromCode(int code);
         

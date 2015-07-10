@@ -38,7 +38,7 @@ class AudioCreator : public QObject{
     
         AudioFactory*   fFactory;   //Type of factory depending on audio Architecture
     
-        //Layout and menus that contain the audioArchi ComboBox and the Settings
+        //Layout and menus that contain the audio Archi ComboBox and the Settings
         QFormLayout*    fLayout;                
         QGroupBox*      fMenu;
         QGroupBox*      fSettingsBox;
@@ -46,8 +46,12 @@ class AudioCreator : public QObject{
         QComboBox*      fAudioArchi;
     
         //BOTH ARE NEEDED IN CASE THE UPDATE AUDIO DOES NOT WORK AND INTERMEDIATE SETTINGS HAVE TO BE SWITCHED BACK
-        AudioSettings*  fTempSettings;  //Visual settings that can change multiple times before being saved (when audio update is tested, fTempSetting stores the previous settings)
-        AudioSettings*  fCurrentSettings;       //Current audio settings saved
+        
+        //Visual settings that can change multiple times before being saved (when audio update is tested, fTempSetting stores the previous settings)
+        AudioSettings*  fTempSettings;   
+        
+        //Current saved audio settings           
+        AudioSettings*  fCurrentSettings;   
     
         int             driverNameToIndex(const QString& driverName);
     
