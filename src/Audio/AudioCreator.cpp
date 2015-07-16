@@ -69,7 +69,6 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
 {
     fMenu = parent;
     fLayout = new QFormLayout;
-    
     fAudioArchi = new QComboBox(fMenu);
     
 //Conditionnal compilation | the options are disabled when not chosen as qmake options
@@ -90,10 +89,8 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
     fAudioArchi->addItem("Alsa");
 #endif
 
-	printf("fAudioArchitectuer number of items = %i\n", fAudioArchi->count());
-    
+    printf("fAudioArchitecture number of items = %i\n", fAudioArchi->count());
     connect(fAudioArchi, SIGNAL(activated(int)), this, SLOT(indexChanged(int)));
-
     fLayout->addRow(new QLabel("Audio Architecture"), fAudioArchi);
     
     // Initializing current settings
@@ -180,7 +177,6 @@ AudioFactory* AudioCreator::createFactory(int index)
 #endif
 #ifdef PORTAUDIO
         case kPortaudio:
-            
             return new PA_audioFactory();
             break;
 #endif  
@@ -197,7 +193,6 @@ AudioFactory* AudioCreator::createFactory(int index)
 #endif  
 #ifdef ALSA
         case kAlsaaudio:
-            
             return new AL_audioFactory();
             break;
 #endif  

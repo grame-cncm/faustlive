@@ -11,16 +11,14 @@
 #include "utilities.h"
 #include "FLErrorWindow.h"
 
-
 /*
+#define LLVM_DSP
+#include "faust/dsp/poly-dsp.h"
+
 #define __MACOSX_CORE__
 #include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 */
-
-
-#define LLVM_DSP
-#include "faust/dsp/poly-dsp.h"
 
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
@@ -73,11 +71,10 @@ void FLSessionManager::deleteInstance()
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg)
 {
-    //-------Clean Factory Folder if needed
+    //-------Clean factory folder if needed
     cleanSHAFolder();
     
-    //-------Get Faust Code
-    
+    //-------Get Faust code
     QString faustContent = ifUrlToString(source);
     
     //Path is whether the dsp source unmodified or the waveform converted
@@ -88,14 +85,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     faustContent = ifFileToString(faustContent);
     
-    //------Get Name
-    
+    //------Get name
     QString name = ifFileToName(path);
     if (name == "") {
         name = getDeclareName(faustContent, "DefaultName");
     }
     
-    //--------Calculation of SHA Key
+    //--------Calculation of SHA key
     
     //-----Extracting compilation Options from general options Or window options
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
@@ -113,13 +109,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 	const char** argv = getFactoryArgv(path, faustOptions, argc);
     string shaKey;
     string err;
-    //    EXPAND DSP JUST TO GET SHA KEY
+    //EXPAND DSP JUST TO GET SHA KEY
     
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
         errorMsg = err.c_str();
         return qMakePair(QString(""), (void*)NULL);
     }
-//        shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
+//  shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
     string optvalue = QString::number(optLevel).toStdString();
@@ -131,7 +127,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string irFile = factoryFolder.toStdString() + "/" + shaKey;
     QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
     
-//      Save source
+// Save source
     QDir newFolder(factoryFolder);
     newFolder.mkdir(factoryFolder);
     
@@ -153,7 +149,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
 		QString errMsg;
         
-        if(!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), 
+        if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), 
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
         }
@@ -235,7 +231,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
 
-dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, FLWinSettings* settings, remoteDSPErrorCallback error_callback, void* error_callback_arg, QString& errorMsg)
+dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, 
+                                FLWinSettings* settings, remoteDSPErrorCallback error_callback, 
+                                void* error_callback_arg, QString& errorMsg)
 {
 //----- Decode factory settings ------
     factorySettings* mySetts = (factorySettings*)(factorySetts.second);
@@ -332,8 +330,8 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     fDSPToFactory.remove(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
-        //deleteDSPInstance((llvm_dsp*) toDeleteDSP);
-        //deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
+        deleteDSPInstance((llvm_dsp*) toDeleteDSP);
+        deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
     }
 #ifdef REMOTE
     else {
@@ -407,12 +405,11 @@ QString FLSessionManager::ifGoogleDocToString(const QString& source)
     int pos = source.indexOf("docs.google.com");
     QString UrlText(source);
     
-    //    Has to be at the beginning, otherwise, it can be a component containing an URL.
+    // Has to be at the beginning, otherwise, it can be a component containing an URL.
     if (pos != -1) {
-
         QNetworkRequest requete(QUrl("https://docs.google.com/a/grame.fr/document/d/13PkB1Ggxo-pFURPwgbS__WXaqGjaIPN9UA_oirRGh5M/export?format=txt"));
-        QNetworkAccessManager *m = new QNetworkAccessManager;
-        QNetworkReply * fGetKeyReply = m->get(requete);
+        QNetworkAccessManager* m = new QNetworkAccessManager;
+        QNetworkReply* fGetKeyReply = m->get(requete);
         
         connect(fGetKeyReply, SIGNAL(finished()), this, SLOT(receiveDSP()));
         connect(fGetKeyReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
@@ -421,15 +418,14 @@ QString FLSessionManager::ifGoogleDocToString(const QString& source)
     return UrlText;
 }
 
-//--Transforms an Url into faust string
+//--Transforms an Url into Faust string
 QString FLSessionManager::ifUrlToString(const QString& source)
 {
     //In case the text dropped is a web url
     int pos = source.indexOf("http://");
-    
     QString UrlText(source);
     
-    //    Has to be at the beginning, otherwise, it can be a component containing an URL.
+    //Has to be at the beginning, otherwise, it can be a component containing an URL.
     if (pos == 0) {
         UrlText = "process = component(\"";
         UrlText += source;
@@ -445,7 +441,6 @@ QString FLSessionManager::ifUrlToString(const QString& source)
 const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc)
 {
     //--------Compilation Options 
-    
     int numberFixedParams = 4;
     
     if (sourcePath == "")
@@ -476,8 +471,8 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     string libPath = libsFolder;
     char* libP = new char[libsFolder.size()+1];
-    strncpy( libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*) libP;
+    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
+    argv[iteratorParams] = (const char*)libP;
     iteratorParams++;
 
     if (sourcePath != "") {
@@ -488,8 +483,8 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         string path = sourceChemin.toStdString();
         
         char* libP2 = new char[sourceChemin.size()+1];
-        strncpy( libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*) libP2;
+        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
+        argv[iteratorParams] = (const char*)libP2;
         
         iteratorParams++;
     }
@@ -505,13 +500,13 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     //Parsing the compilationOptions from a string to a char**
     QString copy = faustOptions;
     
-    for (int i = numberFixedParams; i<  argc; i++) {
+    for (int i = numberFixedParams; i < argc; i++) {
         
         string parseResult(parse_compilationParams(copy));
         char* intermediate = new char[parseResult.size()+1];
-        strcpy(intermediate,parseResult.c_str());
+        strcpy(intermediate, parseResult.c_str());
         
-        //        OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
+        // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
         if (strcmp(intermediate, "-double") != 0) {
             argv[i] = (const char*)intermediate;
         } else{
@@ -578,8 +573,9 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
 //--Delete params
 void FLSessionManager::deleteArgv(int argc, const char** argv)
 {
-    for (int i = 0; i < argc; i++)
+    for (int i = 0; i < argc; i++) {
         delete argv[i];
+    }
     delete[] argv;
 }
 
@@ -587,7 +583,7 @@ void FLSessionManager::deleteArgv(int argc, const char** argv)
 QString FLSessionManager::getErrorFromCode(int code)
 {
 #ifdef REMOTE
-    if(code == ERROR_FACTORY_NOTFOUND) {
+    if (code == ERROR_FACTORY_NOTFOUND) {
         return "Impossible to create remote factory";
     } else if (code == ERROR_INSTANCE_NOTCREATED) {
         return "Impossible to create DSP Instance";
@@ -624,8 +620,9 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
 {
     updateFolderDate(shaKey);
     int argc = 7;
-    if (sourcePath == "")
+    if (sourcePath == "") {
         argc = argc-2;
+    }
     
     int iteratorParams = 0;
     
@@ -641,8 +638,8 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     string libPath = libsFolder;
     char* libP = new char[libsFolder.size()+1];
-    strncpy( libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*) libP;
+    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
+    argv[iteratorParams] = (const char*)libP;
     iteratorParams++;
     
     if (sourcePath != "") {
@@ -653,8 +650,8 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
         string path = sourceChemin.toStdString();
         
         char* libP2 = new char[sourceChemin.size()+1];
-        strncpy( libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*) libP2;
+        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
+        argv[iteratorParams] = (const char*)libP2;
         
         iteratorParams++;
     }
@@ -827,7 +824,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
         QString settingsPath = groups[i] + "/Path";
         QString originalPath = generalSettings->value(settingsPath, "").toString();
         
-//        In Case DSP Source Is Not a DSP File
+//        In case DSP Source is not a DSP File
         if (originalPath == "") {
             windowIndexToSource[groups[i].toInt()] = savedContent;
 //        In case it is a DSP
@@ -839,7 +836,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
 
                 QString originalContent = pathToContent(originalPath);
                 
-                //            In Case The Original File Was Deleted
+                // In case the original file was deleted
                 if (!QFileInfo(originalPath).exists()) {
                     QString msg = originalPath + " cannot be found! Do you want to reload it from an internal copy of your file?";
                     if (viewRestorationMsg(msg, "Yes", "No")) {
@@ -848,7 +845,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
                         windowIndexToSource[groups[i].toInt()] = "";
                     }
                 }
-                //            In Case The Original Content is Modified
+                // In case the original content is modified
                 else if(QFileInfo(recallingPath).exists() && savedContent != originalContent) {
                     
                     QString msg = "The content of " + originalPath + " was modified. Do you want to reload " + originalPath+ " or an unmodified internal copy?";
@@ -858,7 +855,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
                         windowIndexToSource[groups[i].toInt()] = originalPath;
                     }
                 }
-                //             In Normal Case
+                //             In normal case
                 else {
                     windowIndexToSource[groups[i].toInt()] = originalPath;
                 }
@@ -921,19 +918,19 @@ map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
         QString settingsPath = groups[i] + "/Path";
         QString originalPath = generalSettings->value(settingsPath, "").toString();
         
-        //        In Case DSP Source Is Not a DSP File
+        // In case DSP source is not a DSP file
         if (originalPath == "") {
             windowIndexToSource[groups[i].toInt()] = savedContent;
-        //        In case it is a DSP
+        // In case it is a DSP
         } else {
-            //              In case path restoration was already treated
+            // In case path restoration was already treated
             if (updated.contains(originalPath)) {
                 windowIndexToSource[groups[i].toInt()] = windowIndexToSource[updated[originalPath]];
             } else {
         
                 QString originalContent = pathToContent(originalPath);
     
-                //            In Case The Original File Was Deleted
+                // In case the original file was deleted
                 if (!QFileInfo(originalPath).exists() || savedContent != originalContent){
                     windowIndexToSource[groups[i].toInt()] = savedContent;
                     
@@ -1013,7 +1010,7 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder)
 #endif
 }
 
-//----------------------- Handle faust file dependencies ------------------
+//----------------------- Handle Faust file dependencies ------------------
 
 QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDependency)
 {

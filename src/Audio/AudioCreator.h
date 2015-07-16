@@ -26,7 +26,7 @@ class AudioManager;
 
 using namespace std;
 
-class AudioCreator : public QObject{
+class AudioCreator : public QObject {
    
     private:
     

@@ -22,12 +22,12 @@
 #include <QtWidgets>
 #endif
 
-
 class httpdUI;
 class QTGUI;
 class FLToolBar;
 class FLStatusBar;
 class OSCUI;
+class MIDIUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
@@ -80,15 +80,17 @@ class FLWindow : public QMainWindow
         QDateTime       fCreationDate;
         
 //--- Interfaces
-        QTGUI*          fInterface;      //User control interface
-        FUI*            fRCInterface;     //Graphical parameters saving interface
+        QTGUI*          fInterface;         //User control interface
+        FUI*            fRCInterface;       //Graphical parameters saving interface
 
         OSCUI*          fOscInterface;      //OSC interface 
+        MIDIUI*         fMIDIInterface;     //MIDI interface
+        
         void            allocateOscInterface();
         void            deleteOscInterface();
 
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
-        HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
+        HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address
 
 		void            allocateHttpInterface();
         void            deleteHttpInterface();

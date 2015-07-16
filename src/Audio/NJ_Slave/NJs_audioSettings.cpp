@@ -14,9 +14,12 @@
 // All of them are described visually by a QLineEdit
 
 #include "NJs_audioSettings.h"
-
 #include "utilities.h"
 #include "FLSettings.h"
+
+#define DEFAULT_PORT        19000
+#define DEFAULT_MTU         1500
+#define DEFAULT_LATENCY     2
 
 NJs_audioSettings::NJs_audioSettings(QGroupBox* parent) : AudioSettings(parent) 
 {
@@ -53,9 +56,9 @@ void NJs_audioSettings::setVisualSettings()
     
     fCVLine->setText(QString::number(settings->value("General/Audio/NetJackSlave/CV", -1).toInt()));
     fIPLine->setText(settings->value("General/Audio/NetJackSlave/IP", "225.3.19.154").toString());
-    fPortLine->setText(QString::number(settings->value("General/Audio/NetJackSlave/Port", 19000).toInt()));
-    fMTULine->setText(QString::number(settings->value("General/Audio/NetJackSlave/MTU", 1500).toInt()));
-    fLatLine->setText(QString::number(settings->value("General/Audio/NetJackSlave/Latency", 2).toInt()));
+    fPortLine->setText(QString::number(settings->value("General/Audio/NetJackSlave/Port", DEFAULT_PORT).toInt()));
+    fMTULine->setText(QString::number(settings->value("General/Audio/NetJackSlave/MTU", DEFAULT_MTU).toInt()));
+    fLatLine->setText(QString::number(settings->value("General/Audio/NetJackSlave/Latency", DEFAULT_LATENCY).toInt()));
 }
 
 //Visual Params TO Real params
@@ -75,22 +78,22 @@ void NJs_audioSettings::storeVisualSettings()
     if (isStringInt(fPortLine->text().toStdString().c_str())) {
         settings->setValue("General/Audio/NetJackSlave/Port", atoi(fPortLine->text().toStdString().c_str()));
     } else {
-        fPortLine->setText(QString::number(19000));
-        settings->setValue("General/Audio/NetJackSlave/Port", 19000);
+        fPortLine->setText(QString::number(DEFAULT_PORT));
+        settings->setValue("General/Audio/NetJackSlave/Port", DEFAULT_PORT);
     }
     
     if (isStringInt(fMTULine->text().toStdString().c_str())) {
         settings->setValue("General/Audio/NetJackSlave/MTU", atoi(fMTULine->text().toStdString().c_str()));
     } else{
-        fMTULine->setText(QString::number(1500));
-        settings->setValue("General/Audio/NetJackSlave/MTU", 1500);
+        fMTULine->setText(QString::number(DEFAULT_MTU));
+        settings->setValue("General/Audio/NetJackSlave/MTU", DEFAULT_MTU);
     }
     
     if(isStringInt(fLatLine->text().toStdString().c_str())) {
         settings->setValue("General/Audio/NetJackSlave/Latency", atoi(fLatLine->text().toStdString().c_str()));
     } else {
-        fLatLine->setText(QString::number(2));
-        settings->setValue("General/Audio/NetJackSlave/Latency", 2);
+        fLatLine->setText(QString::number(DEFAULT_LATENCY));
+        settings->setValue("General/Audio/NetJackSlave/Latency", DEFAULT_LATENCY);
     }
 }
 
@@ -122,7 +125,7 @@ int NJs_audioSettings::get_Port()
     if (isStringInt(fPortLine->text().toStdString().c_str())) {
         return atoi(fPortLine->text().toStdString().c_str());
     } else {
-        return 19000;
+        return DEFAULT_PORT;
     }
 }
 
@@ -131,7 +134,7 @@ int NJs_audioSettings::get_mtu()
     if (isStringInt(fMTULine->text().toStdString().c_str())) {
         return atoi(fMTULine->text().toStdString().c_str());
     } else {
-        return 1500;
+        return DEFAULT_MTU;
     }
 }
 
@@ -140,7 +143,7 @@ int NJs_audioSettings::get_latency()
     if (isStringInt(fLatLine->text().toStdString().c_str())) {
         return atoi(fLatLine->text().toStdString().c_str());
     } else {
-        return 2;
+        return DEFAULT_LATENCY;
     }
 }
 

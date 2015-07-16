@@ -7,25 +7,26 @@
 
 #include "FLSettings.h"
 
-
 FLSettings* FLSettings::_settingsInstance = 0;
+
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
-FLSettings::FLSettings( const QString & fileName, Format format, QObject * parent) : QSettings(fileName, format, parent){}
+FLSettings::FLSettings(const QString& fileName, Format format, QObject* parent) : QSettings(fileName, format, parent){}
 
 FLSettings::~FLSettings(){}
 
-FLSettings* FLSettings::_Instance(){
+FLSettings* FLSettings::_Instance()
+{
     return FLSettings::_settingsInstance;
 }
 
-void FLSettings::createInstance(const QString homePath){
-
+void FLSettings::createInstance(const QString homePath)
+{
     QString settingPath = homePath + "/Settings.ini";
-    
     FLSettings::_settingsInstance = new FLSettings(settingPath, QSettings::IniFormat);
 }
 
-void FLSettings::deleteInstance(){
+void FLSettings::deleteInstance()
+{
     delete FLSettings::_settingsInstance;
 }

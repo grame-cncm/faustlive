@@ -25,7 +25,7 @@ class AudioSettings : public QObject{
     public:
     
         AudioSettings(QGroupBox* parent){ Q_UNUSED(parent); }
-        virtual ~AudioSettings(){}
+        virtual ~AudioSettings() {}
     
         virtual void setVisualSettings() = 0;
         virtual void storeVisualSettings() = 0;

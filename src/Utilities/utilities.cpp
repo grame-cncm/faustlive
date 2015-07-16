@@ -159,8 +159,8 @@ bool cpDir(const QString &srcPath, const QString &dstPath)
 bool isStringInt(const char* word)
 {
     bool returning = true;
-    for (size_t i = 0; i < strlen(word); i++){
-        if(!isdigit(word[i])){
+    for (size_t i = 0; i < strlen(word); i++) {
+        if (!isdigit(word[i])) {
             returning = false;
             break;
         }
@@ -332,14 +332,12 @@ vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
 string FL_reorganize_compilation_options(QString compilationOptions)
 {
     int argc = get_numberParameters(compilationOptions);
-    
     vector<string> res1;
     for (int i = 0; i < argc; i++) {
         res1.push_back(parse_compilationParams(compilationOptions));
     }
     
     vector<string> res2 = reorganizeCompilationOptionsAux(res1);
-    
     string res3;
     string sep;
     for (size_t i = 0; i < res2.size(); i++) {
@@ -419,9 +417,7 @@ string parse_compilationParams(QString& compilOptions)
         }
     }
     
-    string returnin(returning.toStdString());
-    
-    return returnin;
+    return returning.toStdString();
 }
 
 // center a widget on the primary screen of the machine or 
