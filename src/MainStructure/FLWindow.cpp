@@ -10,6 +10,20 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/OSCUI.h"
 
+#if __APPLE__
+#define __MACOSX_CORE__ 1
+#endif
+
+#if __linux__
+#define __LINUX_ALSA__ 1
+#endif
+
+#if _WIN32
+#define __WINDOWS_MM__ 1
+#endif
+
+#include "faust/gui/MidiUI.h"
+
 #include "FLWindow.h"
 #include "HTTPWindow.h"
 
@@ -175,13 +189,15 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
 
     FLMessageWindow::_Instance()->hide();
     
-    if (factorySetts.second == NULL) // testing if the factory pointer is null (= the compilation failed)
+    if (factorySetts.second == NULL) { // testing if the factory pointer is null (= the compilation failed)
         return false;
+    }
   	
-    if (!init_audioClient(errorMsg))
+    if (!init_audioClient(errorMsg)) {
         return false;
+    }
 
-    fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
+    fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
 	
     if (fCurrent_DSP == NULL)
         return false;
@@ -254,11 +270,11 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         systemInstruct += exeFile + " ";
         systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
         
-        if(!QFileInfo(exeFile).exists())
+        if (!QFileInfo(exeFile).exists())
             FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
         
         QString errorMsg("");
-        if(!executeInstruction(systemInstruct, errorMsg))
+        if (!executeInstruction(systemInstruct, errorMsg))
             FLErrorWindow::_Instance()->print_Error(errorMsg);
         
         QString finalFileContent = "//The waveform was automatically generated in :\nimport(\"";
@@ -276,9 +292,9 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         
         newSource = destinationFile;
         return true;
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 void FLWindow::selfUpdate()
@@ -373,7 +389,6 @@ bool FLWindow::update_Window(const QString& source)
     }
 
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
-    
     bool isUpdateSucessfull = true;
     
     if (factorySetts.second == NULL)
@@ -381,7 +396,7 @@ bool FLWindow::update_Window(const QString& source)
     
     if (isUpdateSucessfull) {
         
-        charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, RemoteDSPCallback, this, errorMsg);
+        charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
         
         if (charging_DSP) {
             
@@ -390,7 +405,6 @@ bool FLWindow::update_Window(const QString& source)
             if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)) {
                 
                 fIsDefault = false;
-                
                 deleteInterfaces();
                 
                 //Set the new interface & Recall the parameters of the window
@@ -652,6 +666,7 @@ void FLWindow::set_ToolBar()
 	connect(fToolBar, SIGNAL(switch_http(bool)), this, SLOT(switchHttp(bool)));
 	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
 	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
+    connect(fToolBar, SIGNAL(switch_midi(bool)), this, SLOT(switchMIDI(bool)));
 
 #ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
@@ -662,10 +677,11 @@ void FLWindow::set_ToolBar()
 //Set the windows options with current values
 void FLWindow::setWindowsOptions()
 {
-    if (fHttpInterface)
+    if (fHttpInterface) {
         fSettings->setValue("Http/Port", fHttpInterface->getTCPPort());
+    }
 
-	if (fOscInterface){        
+	if (fOscInterface) {        
         fSettings->setValue("Osc/InPort", QString::number(fOscInterface->getUDPPort()));
         fSettings->setValue("Osc/OutPort", QString::number(fOscInterface->getUDPOut()));
         fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
@@ -755,6 +771,41 @@ void FLWindow::switchOsc(bool on)
     }
 }
 
+void FLWindow::switchMIDI(bool on)
+{
+    if (on) {
+        updateMIDIInterface();
+    } else {
+        deleteMIDIInterface();
+    }
+}
+
+void FLWindow::updateMIDIInterface()
+{
+    saveWindow();
+    deleteMIDIInterface();
+    allocateMIDIInterface();
+    fCurrent_DSP->buildUserInterface(fMIDIInterface);
+    recall_Window();
+    fMIDIInterface->run();
+    FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
+    setWindowsOptions();
+}
+
+void FLWindow::allocateMIDIInterface()
+{
+    fMIDIInterface = new MidiUI(fWindowName.toStdString());
+}
+
+void FLWindow::deleteMIDIInterface()
+{
+    if (fMIDIInterface) {
+        FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
+        delete fMIDIInterface;
+        fMIDIInterface = NULL;
+    }
+}
+
 void catch_OSCError(void* arg)
 {
     FLWindow* win = (FLWindow*)(arg);
@@ -765,33 +816,29 @@ void catch_OSCError(void* arg)
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface()
 {
-    deleteOscInterface();
-    if (fOscInterface == NULL) {
-        
-        int argc = 11;
-        
+    int argc = 11;
+    
 //---- Allocation for windows needs
-        char** argv = new char*[argc];
-        argv[0] = (char*)(fWindowName.toStdString().c_str());
-        argv[1] = (char*)"-port";
-        
-        string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
-        argv[2] = (char*) (inport.c_str());
-        argv[3] = (char*)"-xmit";
-        argv[4] = (char*)"1";
-        argv[5] = (char*)"-outport";
-        string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
-        argv[6] = (char*) (outport.c_str());
-        argv[7] = (char*)"-desthost";
-        string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
-        argv[8] = (char*) (dest.c_str());
-        argv[9] = (char*)"-errport";
-        string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
-        argv[10] = (char*) (errport.c_str());
+    char** argv = new char*[argc];
+    argv[0] = (char*)(fWindowName.toStdString().c_str());
+    argv[1] = (char*)"-port";
+    
+    string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
+    argv[2] = (char*) (inport.c_str());
+    argv[3] = (char*)"-xmit";
+    argv[4] = (char*)"1";
+    argv[5] = (char*)"-outport";
+    string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
+    argv[6] = (char*) (outport.c_str());
+    argv[7] = (char*)"-desthost";
+    string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
+    argv[8] = (char*) (dest.c_str());
+    argv[9] = (char*)"-errport";
+    string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
+    argv[10] = (char*) (errport.c_str());
 
-        fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
-		delete [] argv;
-    }
+    fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
+    delete [] argv;
 }
 
 void FLWindow::deleteOscInterface()
@@ -806,6 +853,7 @@ void FLWindow::deleteOscInterface()
 void FLWindow::updateOSCInterface()
 {
     saveWindow();
+    deleteOscInterface();
     allocateOscInterface();
     fCurrent_DSP->buildUserInterface(fOscInterface);
     recall_Window();
@@ -822,57 +870,57 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     setWindowTitle(intermediate);
     
     if (!fIsDefault) {
-        
         QScrollArea *sa = new QScrollArea( this );
         
         fInterface = new QTGUI(sa);
-//        fInterface = new QTGUI(this);  
-        sa->setWidgetResizable( true );
-        sa->setWidget( fInterface );
-
-//        sa->setAutoFillBackground(true);
-        
+        sa->setWidgetResizable(true);
+        sa->setWidget(fInterface);
         sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
         sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
         
         setCentralWidget(sa);
-//        setCentralWidget(fInterface);
         fInterface->installEventFilter(this);
-        
-        if (!fInterface)
-            return false;
     }
     
     fRCInterface = new FUI;
-    if (!fRCInterface)
-        return false;
   
-    if (fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()){
+    if (fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)).toBool()) {
         allocateHttpInterface();
     }
 
-	if (fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool())
+	if (fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)).toBool()) {
         allocateOscInterface();
+    }
+    
+    if (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Network/MIDIDefaultChecked", false)).toBool()) {
+        allocateMIDIInterface();
+    }
 
     return true;
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
-bool FLWindow::buildInterfaces(dsp* compiledDSP)
+void FLWindow::buildInterfaces(dsp* compiledDSP)
 {
-    if (fInterface)
+    if (fInterface) {
         compiledDSP->buildUserInterface(fInterface);
+    }
     
-    if (fRCInterface)
+    if (fRCInterface) {
         compiledDSP->buildUserInterface(fRCInterface);
-
-    if (fHttpInterface)
-        compiledDSP->buildUserInterface(fHttpInterface);   
-                 
-    if (fOscInterface)
+    }
+      
+    if (fHttpInterface) {
+        compiledDSP->buildUserInterface(fHttpInterface);  
+    }
+   
+    if (fOscInterface) {
         compiledDSP->buildUserInterface(fOscInterface);
-
-	return true;
+    }
+    
+    if (fMIDIInterface) {
+        compiledDSP->buildUserInterface(fMIDIInterface);
+    }
 }
 
 void FLWindow::runInterfaces()
@@ -884,11 +932,16 @@ void FLWindow::runInterfaces()
 
     if (fOscInterface) {
         fOscInterface->run();
-         FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
+        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
     }
     
-    if(fInterface) {
-//        fInterface->run();
+    if (fMIDIInterface) {
+        fMIDIInterface->run();
+        FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
+    }
+    
+    if (fInterface) {
+        //fInterface->run();
         fInterface->installEventFilter(this);
         FLInterfaceManager::_Instance()->registerGUI(fInterface);
     }
@@ -906,10 +959,8 @@ void FLWindow::deleteInterfaces()
     }
     
     deleteOscInterface();
-
-    if (fHttpInterface) {
-        deleteHttpInterface();
-    }
+    deleteHttpInterface();
+    deleteMIDIInterface();
     
     delete fRCInterface;
     fRCInterface = NULL;
@@ -987,15 +1038,11 @@ void FLWindow::closeWindow()
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
 
 #ifdef REMOTE
-    if (fStatusBar)
-        delete fStatusBar;
+    delete fStatusBar;
 #endif
 
-    if (fAudioManager)
-        delete fAudioManager;
-       
-    if (fToolBar)
-        delete fToolBar;
+    delete fAudioManager;
+    delete fToolBar;
     
     blockSignals(true);
 }
@@ -1017,7 +1064,7 @@ void FLWindow::dropEvent(QDropEvent* event)
 	*/
     if (event->mimeData()->hasUrls()) {
         
-        QList<QString>    sourceList;
+        QList<QString> sourceList;
         QList<QUrl> urls = event->mimeData()->urls();
         QList<QUrl>::iterator i;
         
@@ -1025,15 +1072,17 @@ void FLWindow::dropEvent(QDropEvent* event)
             
             QString fileName;
                 
-            if (i->isLocalFile())
+            if (i->isLocalFile()) {
                 fileName = i->toLocalFile();
-            else
-                fileName =  i->toString();
+            } else {
+                fileName = i->toString();
+            }
                 
-            if (i == urls.begin())
+            if (i == urls.begin()) {
                 update_Window(fileName);
-            else
+            } else {
                 sourceList.push_back(fileName);
+            }
             
             event->accept();
         }   
@@ -1056,7 +1105,7 @@ void FLWindow::dragEnterEvent(QDragEnterEvent* event)
     if (event->mimeData()->hasFormat("text/uri-list") || event->mimeData()->hasFormat("text/plain")) {
         
         if (event->mimeData()->hasUrls()) {
-            QList<QString>    sourceList;
+            QList<QString> sourceList;
             QList<QUrl> urls = event->mimeData()->urls();
             QList<QUrl>::iterator i;
             
@@ -1077,7 +1126,7 @@ void FLWindow::dragEnterEvent(QDragEnterEvent* event)
 
 void FLWindow::dragLeaveEvent(QDragLeaveEvent* /*event*/)
 {
-    //    setWindowFlags();
+    //setWindowFlags();
     centralWidget()->show();
 }
 
@@ -1184,8 +1233,8 @@ bool FLWindow::init_audioClient(QString& error)
     int numberInputs = fSettings->value("InputNumber", 0).toInt();
     int numberOutputs = fSettings->value("OutputNumber", 0).toInt();
     
-//    if(numberInputs == 0 && numberOutputs == 0)
-//        return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
+//  if(numberInputs == 0 && numberOutputs == 0)
+//      return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
     
 	if (fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)) {
         update_AudioParams();
@@ -1228,7 +1277,7 @@ void FLWindow::saveWindow()
     
     fAudioManager->save_Connections(connectFile.toStdString());
     
-//    Writing new settings in file (for infos to be synchronized)
+    //Writing new settings in file (for infos to be synchronized)
     fSettings->sync();
  }
 
@@ -1237,8 +1286,9 @@ void FLWindow::recall_Window()
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
     
-    if (QFileInfo(rcfilename).exists())
+    if (QFileInfo(rcfilename).exists()) {
         fRCInterface->recallState(rcfilename.toStdString().c_str());
+    }
 }
 
 //------------------------ACCESSORS
@@ -1283,8 +1333,8 @@ QString FLWindow::get_source()
 int FLWindow::calculate_Coef()
 {
     int multiplCoef = fWindowIndex;
-    while(multiplCoef > 20){
-        multiplCoef-=20;
+    while (multiplCoef > 20) {
+        multiplCoef -= 20;
     }
     return multiplCoef;
 }
@@ -1302,51 +1352,49 @@ void FLWindow::allocateHttpInterface()
 	argv[2] = charport;
     
     fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
+    //FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
 }
 
 void FLWindow::deleteHttpInterface()
 {
-    FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
-//    FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
-    delete fHttpInterface;
-    fHttpInterface = NULL;
+    if (fHttpInterface) {
+        FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
+        //FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
+        delete fHttpInterface;
+        fHttpInterface = NULL;
+    }
 }
 
-void FLWindow::updateHTTPInterface()
+void FLWindow::updateHttpInterface()
 {
     saveWindow();
-    if (fHttpInterface)
-        deleteHttpInterface();
-    
+    deleteHttpInterface();
     allocateHttpInterface();
-    
     fCurrent_DSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
-    
-//    FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
-    
     FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
-     setWindowsOptions();
+    setWindowsOptions();
 }
 
 void FLWindow::switchHttp(bool on)
 {
-    if (on)
-        updateHTTPInterface();
-    else
+    if (on) {
+        updateHttpInterface();
+    } else {
         deleteHttpInterface();
+    }
 }
 
 void FLWindow::viewQrCode()
 {
     if (!fIsDefault) {
         
-        if(fHttpInterface == NULL) {
+        if (fHttpInterface == NULL) {
             fToolBar->switchHttp(true);
         }
         
-        if (fHttpdWindow != NULL) {
+        if (fHttpdWindow) {
             delete fHttpdWindow;
             fHttpdWindow = NULL;
         }
@@ -1365,7 +1413,7 @@ void FLWindow::viewQrCode()
             fHttpdWindow->show();
             fHttpdWindow->adjustSize();
         } else {
-            errorPrint("Impossible to create Qr Code window");
+            errorPrint("Impossible to create QRCode window");
         }
     }
 }
@@ -1378,27 +1426,21 @@ void FLWindow::exportToPNG()
     filename = fileDialog->getSaveFileName(NULL, "PNG Name", tr(""), tr("(*.png)"));
     QString errorMsg;
     
-    if (!fInterface->toPNG(filename, errorMsg))
+    if (!fInterface->toPNG(filename, errorMsg)) {
         errorPrint(errorMsg.toStdString().c_str());
+    }
 }
 
 QString FLWindow::get_HttpUrl() 
 {
-    QString url("");
-    if(fHttpInterface)
-        url = "http://" + searchLocalIP() + ":" + QString::number(fHttpInterface->getTCPPort()) + "/";
-    return url;
+    return (fHttpInterface) ? ("http://" + searchLocalIP() + ":" + QString::number(fHttpInterface->getTCPPort()) + "/") : "";
 }
 
 //Accessor to Http & Osc Port
 int FLWindow::get_Port()
 {
-    if (fHttpInterface != NULL) {
-        return fHttpInterface->getTCPPort();
-    } else {
-        // If the interface is not enabled, it's not running on any port
-        return 0;
-    }
+    // If the interface is not enabled, it's not running on any port
+    return (fHttpInterface) ? fHttpInterface->getTCPPort() : 0;
 }
 
 //Redirection of a received error
@@ -1409,8 +1451,8 @@ void FLWindow::errorPrint(const QString& msg)
 
 #ifdef REMOTE
 //------------------REMOTE PROCESSING
-//---We have to separate into 2 functions because the action cannot be done in the audio thread that's why RemoteDSPCallback has to send a signal, received in the graphical thread.
-int FLWindow::RemoteDSPCallback(int error_code, void* arg)
+//---We have to separate into 2 functions because the action cannot be done in the audio thread that's why remoteDSPCallback has to send a signal, received in the graphical thread.
+int FLWindow::remoteDSPCallback(int error_code, void* arg)
 {
     FLWindow* errorWin = (FLWindow*) arg;
     errorWin->emit remoteCnxLost(error_code);
@@ -1545,7 +1587,8 @@ void FLWindow::RemoteCallback(int error_code)
 //    }
 //}
 #else
-int FLWindow::RemoteDSPCallback(int error_code, void* arg){
+int FLWindow::remoteDSPCallback(int error_code, void* arg)
+{
 	Q_UNUSED(error_code);
 	Q_UNUSED(arg);
     return -1;   
