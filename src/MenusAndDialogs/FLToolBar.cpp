@@ -413,7 +413,7 @@ bool FLToolBar::wasHttpSwitched()
 
 bool FLToolBar::wasMIDISwitched()
 {
-    return (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Network/MIDIDefaultChecked", false)) != fMIDICheckBox->isChecked());
+    return (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)) != fMIDICheckBox->isChecked());
 }
 
 bool FLToolBar::wasRemoteControlSwitched()
@@ -614,7 +614,7 @@ void FLToolBar::syncVisualParams()
     fHttpPort->setText(fSettings->value("Http/Port", "5510").toString());
     
     //------ MIDI    
-    fMIDICheckBox->setChecked(fSettings->value("MIDI/Enabled", generalSettings->value("General/Network/MIDIDefaultChecked", false)).toBool());
+    fMIDICheckBox->setChecked(fSettings->value("MIDI/Enabled", generalSettings->value("General/Control/MIDIDefaultChecked", false)).toBool());
 
 #ifdef REMOTE
     //------ RemoteProcessing

@@ -15,22 +15,22 @@ FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
-FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent){
-    
+FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent)
+{
     init();
 }
 
 FLPreferenceWindow::~FLPreferenceWindow(){}
 
-FLPreferenceWindow* FLPreferenceWindow::_Instance(){
-    if(_prefWindow == NULL)
+FLPreferenceWindow* FLPreferenceWindow::_Instance()
+{
+    if (_prefWindow == NULL)
         _prefWindow = new FLPreferenceWindow;
-    
     return _prefWindow;
 }
 
-void FLPreferenceWindow::init(){
-    
+void FLPreferenceWindow::init()
+{
     setWindowTitle("Preferences");
     
     QTabWidget* generalTabStructure = new QTabWidget(this);
@@ -97,7 +97,7 @@ void FLPreferenceWindow::init(){
     
     fServerLine = new QLineEdit(networkTab);
 
-    generalTabStructure->addTab(networkTab, tr("Network"));
+    generalTabStructure->addTab(networkTab, tr("Controllers"));
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Compilation Web Service")), fServerLine);
 #ifdef REMOTE
@@ -113,14 +113,18 @@ void FLPreferenceWindow::init(){
     networkLayout->addRow(new QLabel(tr("Remote Dropping Port")), fPortLine);
 
     networkLayout->addRow(new QLabel(tr("")));
-    networkLayout->addRow(new QLabel(tr("Enable Http Interface Automatically")), fHttpAuto);
+    networkLayout->addRow(new QLabel(tr("Enable HTTP Interface Automatically")), fHttpAuto);
 
     fOscAuto = new QCheckBox;
 
     networkLayout->addRow(new QLabel(tr("")));
-    networkLayout->addRow(new QLabel(tr("Enable Osc Interface Automatically")), fOscAuto);
-
+    networkLayout->addRow(new QLabel(tr("Enable OSC Interface Automatically")), fOscAuto);
     
+    fMIDIAuto = new QCheckBox;
+
+    networkLayout->addRow(new QLabel(tr("")));
+    networkLayout->addRow(new QLabel(tr("Enable MIDI Interface Automatically")), fMIDIAuto);
+  
     networkTab->setLayout(networkLayout);
     
     //------------------STYLE PREFERENCES
@@ -206,16 +210,17 @@ void FLPreferenceWindow::init(){
 }
 
 //Response to save button triggered in preferences
-void FLPreferenceWindow::save(){
-    
+void FLPreferenceWindow::save()
+{
     FLSettings* settings = FLSettings::_Instance();
     
-	if(isStringInt(fOptVal->text().toLatin1().data()))
+	if (isStringInt(fOptVal->text().toLatin1().data())) {
         settings->setValue("General/Compilation/OptValue", atoi(fOptVal->text().toLatin1().data()));
-    else
+    } else {
         settings->setValue("General/Compilation/OptValue", 3);
+    }
     
-    if(settings->value("General/Network/FaustWebUrl", "http://faustservices.grame.fr").toString() != fServerLine->text()){
+    if (settings->value("General/Network/FaustWebUrl", "http://faustservices.grame.fr").toString() != fServerLine->text()){
         settings->setValue("General/Network/FaustWebUrl", fServerLine->text());
         emit urlChanged();
     }
@@ -224,12 +229,13 @@ void FLPreferenceWindow::save(){
 #ifdef REMOTE
     int portVal;
     
-    if(isStringInt(fRemoteServerLine->text().toLatin1().data()))
+    if (isStringInt(fRemoteServerLine->text().toLatin1().data())) {
         portVal = atoi(fRemoteServerLine->text().toLatin1().data());
-    else
+    } else {
         portVal = 5555;
+    }
     
-    if(settings->value("General/Network/RemoteServerPort", 5555).toInt() != portVal){
+    if (settings->value("General/Network/RemoteServerPort", 5555).toInt() != portVal){
         settings->setValue("General/Network/RemoteServerPort", portVal);
         emit remoteServerPortChanged();
     }
@@ -237,30 +243,27 @@ void FLPreferenceWindow::save(){
 
     int value;
     
-    if(isStringInt(fPortLine->text().toLatin1().data()))
+    if (isStringInt(fPortLine->text().toLatin1().data())) {
         value = atoi(fPortLine->text().toLatin1().data());
-    else
+    } else {
         value = 7777;
+    }
     
-    if(settings->value("General/Network/HttpDropPort", 7777).toInt() != value){
+    if (settings->value("General/Network/HttpDropPort", 7777).toInt() != value){
         settings->setValue("General/Network/HttpDropPort", value);
         emit dropPortChange();
     }
     
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
-
     settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
-
-    
+    settings->setValue("General/Control/MIDIDefaultChecked", fMIDIAuto->isChecked());
     hide();
 }
 
-void FLPreferenceWindow::resetVisualObjects(){
-    
+void FLPreferenceWindow::resetVisualObjects()
+{
     fCompilModes->setText(FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString());
-    
     fOptVal->setText(QString::number(FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt()));
-    
     fServerLine->setText(FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
     
 #ifdef REMOTE
@@ -268,31 +271,28 @@ void FLPreferenceWindow::resetVisualObjects(){
 #endif
  
     fPortLine->setText(QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()));
-
     fHttpAuto->setChecked(FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool());
-
-     fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
-
+    fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
+    fMIDIAuto->setChecked(FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false).toBool());
 }
 
 //Response to cancel button triggered in preferences
-void FLPreferenceWindow::cancel(){
-    
+void FLPreferenceWindow::cancel()
+{
     resetVisualObjects();
-    
     fAudioCreator->savedSettingsToVisualSettings();
     hide();
 }
 
-void FLPreferenceWindow::closeEvent(QCloseEvent* /* event*/){
+void FLPreferenceWindow::closeEvent(QCloseEvent* /* event*/)
+{
     cancel();
 }
 
 //Style clicked in Menu
-void FLPreferenceWindow::styleClicked(){
-    
+void FLPreferenceWindow::styleClicked()
+{
     QPushButton* item = (QPushButton*)QObject::sender();
-    
     emit newStyle(item->text());
 }
 

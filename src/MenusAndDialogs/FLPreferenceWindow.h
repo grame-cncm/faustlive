@@ -30,6 +30,7 @@ class FLPreferenceWindow : public QDialog
         QLineEdit*          fPortLine;
         QCheckBox*          fHttpAuto;
         QCheckBox*          fOscAuto;
+        QCheckBox*          fMIDIAuto;
         
         AudioCreator*       fAudioCreator;
         QGroupBox*          fAudioBox;

@@ -892,7 +892,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
         allocateOscInterface();
     }
     
-    if (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Network/MIDIDefaultChecked", false)).toBool()) {
+    if (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool()) {
         allocateMIDIInterface();
     }
 
