@@ -19,6 +19,11 @@
 #endif
 using namespace std;
 
+
+#ifdef REMOTE
+    #include "faust/dsp/remote-dsp.h"
+#endif
+
 class FLStatusBar : public QStatusBar{
     
     private:
@@ -29,7 +34,7 @@ class FLStatusBar : public QStatusBar{
         QMenu*              fRemoteMenu;
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
-        map<string, pair<string, int> > fIPToHostName;  //Correspondance of remote machine IP to its name
+        map<string, remote_dsp_machine* > fIPToHostName;  //Correspondance of remote machine IP to its name
     
         QString             fFormerIp;
         int                 fFormerPort;

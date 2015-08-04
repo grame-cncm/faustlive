@@ -218,7 +218,7 @@ class FLWindow : public QMainWindow
         bool            is_Default();
     
     //Functions to create an httpd interface
-        void            viewQrCode();
+        void            viewQRCode();
         QString         get_HttpUrl();
     
     //In case of a right click, it is called

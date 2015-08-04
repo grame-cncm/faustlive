@@ -7,34 +7,26 @@
 //
 
 #include "FLStatusBar.h"
-
 #include "FLSettings.h"
-
 #include "utilities.h"
-
-#ifdef REMOTE
-    #include "faust/dsp/remote-dsp.h"
-#endif
 
 //--------------------------FLStatusBar
 
-FLStatusBar::FLStatusBar(QSettings* settings, QWidget* parent) : QStatusBar(parent){
-
+FLStatusBar::FLStatusBar(QSettings* settings, QWidget* parent) : QStatusBar(parent)
+{
     fSettings = settings;
-    
     setAutoFillBackground(true);
-    
     init();
-    
     setFixedHeight(40);
 }
 
-FLStatusBar::~FLStatusBar(){
+FLStatusBar::~FLStatusBar()
+{
     setRemoteSettings("local processing", "127.0.0.1", 7777);
 }
 
-void FLStatusBar::init(){
-
+void FLStatusBar::init()
+{
 #ifdef REMOTE
     fRemoteEnabled = false;
     fRemoteButton = new QPushButton();
@@ -60,28 +52,25 @@ void FLStatusBar::init(){
 }
 
 //Reaction to a click on the remote enabling button
-void FLStatusBar::openMachineMenu(){
-    
+void FLStatusBar::openMachineMenu()
+{
 #ifdef REMOTE    
     fRemoteMenu->clear();
     fIPToHostName.clear();
     
     // Browse the remote machines available
-    if(getRemoteDSPMachines(&fIPToHostName)){
+    if (getRemoteDSPMachines(&fIPToHostName)) {
         
         // Add localhost to the machine list
-        fIPToHostName[string("local processing")] = make_pair("", 0);
+        fIPToHostName[string("local processing")] = remote_dsp_machine::create("", 0, "");
         
-        map<string, pair <string, int> >::iterator it = fIPToHostName.begin();
+        map<string, remote_dsp_machine* >::iterator it = fIPToHostName.begin();
         
-        while(it!= fIPToHostName.end()){
-            
+        while (it!= fIPToHostName.end()) {
             // Add the machines to the menu passed in parameter 
             QAction* machineAction = new QAction(it->first.c_str(), fRemoteMenu);
             connect(machineAction, SIGNAL(triggered()), this, SLOT(switch_Machine()));
-            
             fRemoteMenu->addAction(machineAction); 
-            
             it++;
         }
         
@@ -90,8 +79,8 @@ void FLStatusBar::openMachineMenu(){
 #endif
 }
 
-void FLStatusBar::setRemoteSettings(const QString& name, const QString& ipServer, int portServer){
-    
+void FLStatusBar::setRemoteSettings(const QString& name, const QString& ipServer, int portServer)
+{
     fRemoteButton->setText(name);
     fSettings->setValue("RemoteProcessing/MachineName", name);
     fSettings->setValue("RemoteProcessing/MachineIP", ipServer);
@@ -99,28 +88,24 @@ void FLStatusBar::setRemoteSettings(const QString& name, const QString& ipServer
 }
 
 //Reaction to a click cancellation
-void FLStatusBar::remoteFailed(){
-
+void FLStatusBar::remoteFailed()
+{
     setRemoteSettings(fFormerName, fFormerIp, fFormerPort);
 }
 
-
 //--- Update when new processing machine is chosen
-void FLStatusBar::switch_Machine(){
-    
+void FLStatusBar::switch_Machine()
+{
 #ifdef REMOTE
     QAction* action = qobject_cast<QAction*>(sender());
-    string toto(action->text().toStdString());
+    string action_str(action->text().toStdString());
     
-    //    If the server is the same, there is no update
-    if(fSettings->value("RemoteProcessing/MachineName", "local processing").toString() != action->text()){
-        
+    // If the server is the same, there is no update
+    if (fSettings->value("RemoteProcessing/MachineName", "local processing").toString() != action->text()) {
         fFormerIp = fSettings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString();
         fFormerPort = fSettings->value("RemoteProcessing/MachinePort", 7777).toInt();
         fFormerName = fRemoteButton->text();
-        
-        setRemoteSettings(toto.c_str(), fIPToHostName[toto].first.c_str(), fIPToHostName[toto].second);
-        
+        setRemoteSettings(action_str.c_str(), fIPToHostName[action_str]->getIP().c_str(), fIPToHostName[action_str]->getPort());
         emit switchMachine();
     }
     

@@ -10,7 +10,7 @@
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
-FLWinSettings::FLWinSettings(int index , const QString & fileName, Format format, QObject * parent) : QSettings(fileName, format, parent)
+FLWinSettings::FLWinSettings(int index, const QString & fileName, Format format, QObject * parent) : QSettings(fileName, format, parent)
 {
     fIndex = index;
 }
@@ -36,7 +36,7 @@ FLWinSettings::~FLWinSettings()
 
 //Adds the pair <key, value> to the window settings 
 // AND synchronizes Path, Name and SHA in the general settings
-void FLWinSettings::setValue (const QString& key, const QVariant& value)
+void FLWinSettings::setValue(const QString& key, const QVariant& value)
 {
     QSettings::setValue(key, value);
     FLSettings* generalSettings = FLSettings::_Instance();

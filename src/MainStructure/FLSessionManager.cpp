@@ -64,7 +64,7 @@ void FLSessionManager::deleteInstance()
     delete FLSessionManager::_sessionManager;
 }
 
-//------------------- Compilation of the faust source ----------------------
+//------------------- Compilation of the Faust source ----------------------
 
 /* The compilation is divided into 2 steps : factory creation then instance creation */
 /* It is not possible to merge those 2 functions because some audio init is needed in between */
@@ -285,7 +285,6 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         */
         
         if (compiledDSP == NULL) {
-            
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
             if (errorToCatch == ERROR_FACTORY_NOTFOUND) {
                 QPair<QString, void*> fS = createFactory(source, settings, errorMsg);
@@ -588,7 +587,7 @@ QString FLSessionManager::getErrorFromCode(int code)
     } else if (code == ERROR_INSTANCE_NOTCREATED) {
         return "Impossible to create DSP Instance";
     } else if(code == ERROR_NETJACK_NOTSTARTED) {
-        return "NetJack Master not started";
+        return "NetJack master not started";
     } else if (code == ERROR_CURL_CONNECTION) {
         return "Curl connection failed";
     }
@@ -771,8 +770,9 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent)
         fileDialog->setConfirmOverwrite(true);
         QString filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
         
-        if (QFileInfo(filename).suffix().indexOf("dsp") == -1)
+        if (QFileInfo(filename).suffix().indexOf("dsp") == -1) {
             filename += ".dsp";
+        }
         
         writeFile(filename, sourceContent);
         return filename;
@@ -935,10 +935,11 @@ map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
                     windowIndexToSource[groups[i].toInt()] = savedContent;
                     
                     QString errorMsg;
-                    if (!QFileInfo(originalPath).exists())
+                    if (!QFileInfo(originalPath).exists()) {
                         errorMsg = originalPath + " was deleted. An internal copy is used to recall your DSP.";
-                    else
+                    } else {
                         errorMsg = "The content of " + originalPath + " was modified. An internal copy is used to recall your DSP";
+                    }
                     
                     FLErrorWindow::_Instance()->print_Error(errorMsg);
                     // ET IL FAUT FAIRE UN TRUC POUR PAS QU'ON TE LE RAPPELLE À CHAQUE RAPPEL DE CETTE SESSION 

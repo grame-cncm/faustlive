@@ -120,7 +120,7 @@ class FLSessionManager : public QObject
     
         void cleanSHAFolder();
         
-        QVector<QString>    getDependencies(llvm_dsp_factory* factoryDependency);
+        QVector<QString> getDependencies(llvm_dsp_factory* factoryDependency);
         
     private slots:
     
@@ -166,7 +166,7 @@ class FLSessionManager : public QObject
         map<int, QString>   snapshotRestoration(const QString& filename);
         
     
-/* This is an attempt not finished to implement a publish service of DSP to make them accessible from the outside */
+/* This is a not finished attempt to implement a publish service of DSP to make them accessible from the outside */
 //      #ifdef REMOTE
 //          bool addWinToServer(FLWinSettings* settings);
 //          void deleteWinFromServer(FLWinSettings* settings);

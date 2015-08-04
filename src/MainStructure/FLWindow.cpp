@@ -71,15 +71,14 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fSettings = windowSettings;
     fSettings->setValue("Release/Number", 0);
     
-    //  Enable Drag & Drop on window
+    // Enable Drag & Drop on window
     setAcceptDrops(true);
     
-    //  Creating Window Name
+    // Creating Window Name
     fWindowIndex = index;
     fWindowName = baseName +  QString::number(fWindowIndex);
     
     fIsDefault = false;
-//    fAudio = NULL;
     fAudioManagerStopped = false;
     
     // Initializing class members
@@ -95,16 +94,16 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     fToolBar = NULL;
     
-    //    Creating Window Folder
+    // Creating Window Folder
     fHome = home;
     
-    //    Creating Audio Manager
+    // Creating Audio Manager
     AudioCreator* creator = AudioCreator::_Instance(NULL);
     
     fAudioManager = creator->createAudioManager(FLWindow::audioShutDown, this);
     fClientOpen = false;
     
-    //    Set Menu & ToolBar
+    // Set Menu & ToolBar
     fLastMigration = QDateTime::currentDateTime();
     set_ToolBar();
 #ifdef REMOTE
@@ -230,7 +229,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
 //--Transforms Wav file into faust string
 bool FLWindow::ifWavToString(const QString& source, QString& newSource)
 {
-    //    --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
+    // --> à voir comment on gère, vu qu'on enregistre pas de fichier source "intermédiaire". Est-ce qu'on recalcule la waveform quand on demande d'éditer ??
     
     QString suffix = QFileInfo(source).completeSuffix();
     
@@ -270,12 +269,14 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         systemInstruct += exeFile + " ";
         systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
         
-        if (!QFileInfo(exeFile).exists())
+        if (!QFileInfo(exeFile).exists()) {
             FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
+        }
         
         QString errorMsg("");
-        if (!executeInstruction(systemInstruct, errorMsg))
+        if (!executeInstruction(systemInstruct, errorMsg)) {
             FLErrorWindow::_Instance()->print_Error(errorMsg);
+        }
         
         QString finalFileContent = "//The waveform was automatically generated in :\nimport(\"";
         finalFileContent += soundFileName + "_waveform.dsp";
@@ -289,7 +290,6 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         finalFileContent += "\n\n//Also, rtables are created in " + soundFileName + "_waveform.dsp" + " and are named : \n//" + soundFileName + "_rtable_i";
         
         writeFile(destinationFile, finalFileContent);
-        
         newSource = destinationFile;
         return true;
     } else {
@@ -391,8 +391,9 @@ bool FLWindow::update_Window(const QString& source)
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
     bool isUpdateSucessfull = true;
     
-    if (factorySetts.second == NULL)
+    if (factorySetts.second == NULL) {
         isUpdateSucessfull = false;
+    }
     
     if (isUpdateSucessfull) {
         
@@ -418,7 +419,6 @@ bool FLWindow::update_Window(const QString& source)
                     fAudioManager->wait_EndFade();
                     
                     //SWITCH the current DSP as the dropped one
-                    
                     dsp* VecInt = fCurrent_DSP;
                     fCurrent_DSP = charging_DSP;
                     charging_DSP = VecInt;
@@ -433,9 +433,7 @@ bool FLWindow::update_Window(const QString& source)
                     if (allocateInterfaces(savedName)) {
                         buildInterfaces(fCurrent_DSP);
                         recall_Window();
-                        
                         errorMsg = "Impossible to allocate new interface";
-                        
                         isUpdateSucessfull = false; 
                         sessionManager->deleteDSPandFactory(charging_DSP);
                         charging_DSP = NULL;
@@ -471,15 +469,11 @@ bool FLWindow::update_Window(const QString& source)
 // 2 cases : 
 //    1- Updating with a new DSP --> adjusting Size to the new interface
 //    2- Self Updating --> keeping the window as it is (could have been opened or shred)
-    if(newH != saveH || newW != saveW)
+    if (newH != saveH || newW != saveW)
         adjustSize();
 
     show();
-    
     return isUpdateSucessfull;
-//    }
-//    else
-//        return false;
 }
 
 //Reaction to source deletion
@@ -512,7 +506,6 @@ void FLWindow::set_MenuBar(QList<QMenu*> appMenus)
     it++;
     
     //-----------------Window
-    
     QAction* editAction = new QAction(tr("&Edit Faust Source"), this);
     editAction->setShortcut(tr("Ctrl+E"));
     editAction->setToolTip(tr("Edit the source"));
@@ -577,7 +570,7 @@ void FLWindow::edit()
     QString sourcePath = fSettings->value("Path", "").toString();
     QString pathToOpen = sourcePath;
     
-    if (sourcePath == ""){ 
+    if (sourcePath == "") { 
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
         //    In case user has saved his file in a new location
         if (pathToOpen != "" && pathToOpen != ".dsp") {
@@ -592,13 +585,14 @@ void FLWindow::edit()
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    if (!b)
+    if (!b) {
         errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
+    }
 }
 
 void FLWindow::paste()
 {
-    //Recuperation of Clipboard Content
+    // Recuperation of Clipboard Content
     const QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();
     
@@ -616,7 +610,7 @@ void FLWindow::duplicate()
 void FLWindow::view_qrcode()
 {
     fToolBar->switchHttp(true);    
-    viewQrCode();
+    viewQRCode();
 }
 
 void FLWindow::view_svg()
@@ -626,8 +620,9 @@ void FLWindow::view_svg()
     if (FLSessionManager::_Instance()->generateSVG(getSHA(), getPath(), svgPath, fWindowName, errorMsg)) {
         QString pathToOpen = fHome + "/Windows/" + fWindowName + "/" + fWindowName + "-svg/process.svg";
         QUrl url = QUrl::fromLocalFile(pathToOpen);
-        if (!QDesktopServices::openUrl(url))
+        if (!QDesktopServices::openUrl(url)) {
             errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
+        }
     } else {
         QString err ="Could not generate SVG diagram : " + errorMsg; 
         errorPrint(err);
@@ -647,7 +642,7 @@ void FLWindow::export_file()
 void FLWindow::shut()
 {
     emit close();
-    //    emit closeWin();
+    // emit closeWin();
 }
 
 //------------TOOLBAR RELATED ACTIONS
@@ -1025,8 +1020,9 @@ void FLWindow::closeWindow()
     start_stop_watcher(false);
     fSettings->sync();
     
-    if (fClientOpen && fAudioManager)
+    if (fClientOpen && fAudioManager) {
         fAudioManager->stop();
+    }
 
     deleteInterfaces();
 
@@ -1307,11 +1303,6 @@ QString FLWindow::getName()
 {
     return fSettings->value("Name", "").toString();
 }
-//
-//string FLWindow::name(){
-//    string name = getName().toStdString();
-//    return name;
-//}
 
 QString FLWindow::getPath(){
     return fSettings->value("Path", "").toString();
@@ -1352,14 +1343,12 @@ void FLWindow::allocateHttpInterface()
 	argv[2] = charport;
     
     fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
-    //FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
 }
 
 void FLWindow::deleteHttpInterface()
 {
     if (fHttpInterface) {
         FLServerHttp::_Instance()->removeHttpInterface(fHttpInterface->getTCPPort());
-        //FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
         delete fHttpInterface;
         fHttpInterface = NULL;
     }
@@ -1386,7 +1375,7 @@ void FLWindow::switchHttp(bool on)
     }
 }
 
-void FLWindow::viewQrCode()
+void FLWindow::viewQRCode()
 {
     if (!fIsDefault) {
         

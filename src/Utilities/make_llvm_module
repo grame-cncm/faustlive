@@ -8,3 +8,9 @@ llc -march=cpp -cppgen=module -cppfname=llvm_64_module llvm_math_64.ll
 echo "namespace llvm { class Module; }" > llvm_math.h
 echo "llvm::Module* llvm_32_module();" >> llvm_math.h
 echo "llvm::Module* llvm_64_module();" >> llvm_math.h
+
+
+clang -m32 -emit-llvm -S -target arm-apple-darwin14.0.0 llvm_memory.c -o llvm_memory.ll
+llc -march=cpp -cppgen=module -cppfname=llvm_32_module llvm_memory.ll
+
+clang -cc1  -emit-llvm -S -triple arm-apple-darwin14.0.0 llvm_memory.c -o llvm_memory.ll
