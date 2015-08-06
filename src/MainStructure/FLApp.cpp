@@ -51,6 +51,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifdef REMOTE
     fDSPServer = createRemoteDSPServer(0, NULL);
     fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    //fDSPServer = NULL;
 #endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
@@ -156,7 +157,8 @@ FLApp::~FLApp(){
     FLServerHttp::deleteInstance();
     
 #ifdef REMOTE
-    deleteRemoteDSPServer(fDSPServer);
+    if (fDSPServer)
+        deleteRemoteDSPServer(fDSPServer);
 #endif
 }
 
@@ -1818,8 +1820,10 @@ void FLApp::changeDropPort(){
 #ifdef REMOTE
 void FLApp::changeRemoteServerPort()
 {
-    fDSPServer->stop();
-    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    if (fDSPServer) {
+        fDSPServer->stop();
+        fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    }
 }
 #endif
 

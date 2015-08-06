@@ -11,6 +11,8 @@
 #include "utilities.h"
 #include "FLErrorWindow.h"
 
+#include <assert.h>
+
 /*
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
@@ -105,8 +107,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
     }
     
+    QString machineName = "local processing";
+    if (settings) {
+        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
+    }
+    
     int argc;
-	const char** argv = getFactoryArgv(path, faustOptions, argc);
+    const char** argv = getFactoryArgv(path, faustOptions, (machineName == "local processing") ? NULL : settings, argc);
     string shaKey;
     string err;
     //EXPAND DSP JUST TO GET SHA KEY
@@ -142,14 +149,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     factory* toCompile = new factory;
     string error = "";
     
-    QString machineName = "local processing";
-    
 //------ Additionnal compilation step or options (if set so in settings)
     if (settings) {
-        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
-		QString errMsg;
-        
-        if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), 
+        QString errMsg;
+        if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(),
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
         }
@@ -265,9 +268,10 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         // -----------CALCULATE ARGUMENTS------------
         int argc;
         const char** argv = getRemoteInstanceArgv(settings, argc);
-        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
+        //compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
         
-        /*
+        
+        
         // Test 
         int argc1 = 0;
         const char* argv1[32];
@@ -282,7 +286,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         argv1[argc1++] = s2.c_str();
         
         remote_audio* audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, errorToCatch1);
-        */
+        
         
         if (compiledDSP == NULL) {
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
@@ -437,41 +441,47 @@ QString FLSessionManager::ifUrlToString(const QString& source)
 //--------- Fill default arguments for local and remote compilation ----------
 
 //--Local params
-const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc)
+
+// TODO: string memory management....
+const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc)
 {
     //--------Compilation Options 
     int numberFixedParams = 4;
+    if (settings) {
+        numberFixedParams += 2;
+    }
     
-    if (sourcePath == "")
-        numberFixedParams = numberFixedParams-2;
+    if (sourcePath == "") {
+        numberFixedParams = numberFixedParams - 2;
+    }
 
     int iteratorParams = 0;
     
 #ifdef _WIN32
-    numberFixedParams = numberFixedParams+2;
+    numberFixedParams = numberFixedParams + 2;
 #endif
     
     //+7 = -I libraryPath -I currentFolder
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
-    //argc += 1;
-    
     const char** argv = new const char*[argc];
     
-    //argv[iteratorParams] = "-machine";
-    //iteratorParams++;
+    // 04/08 : TODO
+    if (settings) {
+        argv[iteratorParams] = "-m";
+        iteratorParams++;
+        argv[iteratorParams] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+        iteratorParams++;
+    }
     
     argv[iteratorParams] = "-I";
     iteratorParams++;
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
-    
-    string libPath = libsFolder;
-    char* libP = new char[libsFolder.size()+1];
-    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*)libP;
+    argv[iteratorParams] = strdup(libsFolder.c_str());
     iteratorParams++;
 
     if (sourcePath != "") {
@@ -480,11 +490,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
-        
-        char* libP2 = new char[sourceChemin.size()+1];
-        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*)libP2;
-        
+        argv[iteratorParams] = strdup(path.c_str());
         iteratorParams++;
     }
 
@@ -502,13 +508,12 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     for (int i = numberFixedParams; i < argc; i++) {
         
         string parseResult(parse_compilationParams(copy));
-        char* intermediate = new char[parseResult.size()+1];
-        strcpy(intermediate, parseResult.c_str());
+        char* intermediate = strdup(parseResult.c_str());
         
         // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
         if (strcmp(intermediate, "-double") != 0) {
             argv[i] = (const char*)intermediate;
-        } else{
+        } else {
             argc--;
             i--;
         }
@@ -601,7 +606,7 @@ bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& so
 {
     updateFolderDate(shaKey);
     int argc;
-    const char** argv = getFactoryArgv(sourcePath, faustOptions, argc);
+    const char** argv = getFactoryArgv(sourcePath, faustOptions, NULL, argc);
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
 	if (faustOptions != "") {
@@ -698,7 +703,7 @@ QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString&
     int argc = 0;
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
+    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, NULL, argc);
     string error_msg("");
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
