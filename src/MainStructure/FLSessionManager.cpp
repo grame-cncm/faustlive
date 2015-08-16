@@ -277,15 +277,20 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         const char* argv1[32];
         int errorToCatch1;
         
-        argv1[argc1++] = "--NJ_buffer_size";
+        argv1[argc1++] = "--LA_buffer_size";
         string s1 = settings->value("BufferSize", 512).toString().toStdString();
         argv1[argc1++] = s1.c_str();
         
-        argv1[argc1++] = "--NJ_sample_rate";
+        argv1[argc1++] = "--LA_sample_rate";
         string s2 = settings->value("SampleRate", 44100).toString().toStdString();
         argv1[argc1++] = s2.c_str();
         
         remote_audio* audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, errorToCatch1);
+        if (audio) {
+            audio->start();
+        } else {
+            printf("Error in createRemoteAudioInstance\n");
+        }
         
         
         if (compiledDSP == NULL) {
