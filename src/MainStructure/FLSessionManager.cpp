@@ -114,8 +114,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     int argc;
     const char** argv = getFactoryArgv(path, faustOptions, (machineName == "local processing") ? NULL : settings, argc);
-    string shaKey;
-    string err;
+    string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
     
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
@@ -452,18 +451,20 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
 {
     //--------Compilation Options 
     int numberFixedParams = 4;
+    
+    // MACHINE
     if (settings) {
         numberFixedParams += 2;
     }
     
     if (sourcePath == "") {
-        numberFixedParams = numberFixedParams - 2;
+        numberFixedParams -= 2;
     }
 
     int iteratorParams = 0;
     
 #ifdef _WIN32
-    numberFixedParams = numberFixedParams + 2;
+    numberFixedParams += 2;
 #endif
     
     //+7 = -I libraryPath -I currentFolder
@@ -472,7 +473,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     const char** argv = new const char*[argc];
     
-    // 04/08 : TODO
+    // MACHINE
     if (settings) {
         argv[iteratorParams] = "-m";
         iteratorParams++;
@@ -709,7 +710,7 @@ QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString&
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, NULL, argc);
-    string error_msg("");
+    string error_msg;
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
