@@ -31,7 +31,7 @@ using namespace std;
 FLServerHttp* FLServerHttp::_serverInstance = NULL;
 
 //--------------------------FLSERVER-------------------------------------//
-int FLServerHttp::fNr_of_uploading_clients = 0;
+int FLServerHttp::fUploadingClients = 0;
 
 FLServerHttp::FLServerHttp(const string& home)
 {
@@ -42,7 +42,7 @@ FLServerHttp::FLServerHttp(const string& home)
     fCompiled = false;
     fHtml = "";
     fJson = "";
-    fMax_clients = 20;
+    fMaxCients = 20;
 }
 
 FLServerHttp::~FLServerHttp() {}
@@ -198,7 +198,7 @@ int FLServerHttp::answerToConnection(void *cls,
     if (NULL == *con_cls) {
         connection_info* con_info;
     
-        if (fNr_of_uploading_clients >= server->getMaxClients()) {
+        if (fUploadingClients >= server->getMaxClients()) {
             string busyServer(kBusyPage);
             return server->sendPage(connection, busyServer.c_str (), busyServer.size (), MHD_HTTP_SERVICE_UNAVAILABLE, "text/html");
         }
@@ -216,7 +216,7 @@ int FLServerHttp::answerToConnection(void *cls,
                 return MHD_NO;
             }
             
-            fNr_of_uploading_clients++;
+            fUploadingClients++;
             
             con_info->connectiontype = POST;
             con_info->answercode = MHD_HTTP_OK;
@@ -253,8 +253,7 @@ int FLServerHttp::sendPage(struct MHD_Connection *connection, const char *page, 
     int ret;
     MHD_Response *response;
     
-    response = MHD_create_response_from_buffer(length, (void*)page,
-                                               MHD_RESPMEM_MUST_COPY);
+    response = MHD_create_response_from_buffer(length, (void*)page, MHD_RESPMEM_MUST_COPY);
     if (!response) {
         return MHD_NO;
     }
@@ -278,7 +277,7 @@ void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*
     if (con_info->connectiontype == POST) {
         if (NULL != con_info->postprocessor) {
             MHD_destroy_post_processor(con_info->postprocessor);
-            fNr_of_uploading_clients--;
+            fUploadingClients--;
         }
     }
     
@@ -402,7 +401,7 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
 //----------Accessor to Max Client Number--------
 int FLServerHttp::getMaxClients()
 { 
-    return fMax_clients; 
+    return fMaxCients; 
 }
 
 

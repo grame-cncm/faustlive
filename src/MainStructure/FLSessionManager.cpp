@@ -168,10 +168,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
         
         //----Create DSP Factory
-        if (toCompile->fLLVMFactory == NULL) {
+        if (!toCompile->fLLVMFactory) {
             
-            // Possible cleanup
-            deleteDSPFactory(toCompile->fLLVMFactory);
             // New allocation
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
             
@@ -201,6 +199,22 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
+        std::vector<std::pair<std::string, std::string> > factories_list;
+         
+        bool factories = getRemoteDSPFactories(ip_server, port_server, &factories_list);
+        if (factories) {
+            for (unsigned int i = 0; i < factories_list.size(); i++) {
+                std::pair<std::string, std::string> item = factories_list[i];
+                string name = item.first;
+                string sha_key = item.second;
+                printf("name = %s sha_key = %s\n", name.c_str(), sha_key.c_str());
+                remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(sha_key, ip_server, port_server);
+                if (factory) {
+                     printf("dsp_code %s\n", factory->getDSPCode().c_str());
+                }
+            }
+        }
+        
         // Possible cleanup
         deleteRemoteDSPFactory(toCompile->fRemoteFactory);
         // New allocation
@@ -212,8 +226,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             return qMakePair(QString(""), (void*)NULL);
         }
         
+        // SL : 26/08/15 : deactived for now
+        /*
         settings->setValue("InputNumber", toCompile->fRemoteFactory->getNumInputs());
         settings->setValue("OutputNumber", toCompile->fRemoteFactory->getNumOutputs());
+        */
 #endif
     }
     
@@ -296,8 +313,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
             printf("Error in createRemoteAudioInstance\n");
         }
         */
-        
-
+ 
         if (compiledDSP == NULL) {
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
             if (errorToCatch == ERROR_FACTORY_NOTFOUND) {
@@ -461,6 +477,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     int numberFixedParams = 4;
     
     // MACHINE
+    
     /*
     if (settings) {
         numberFixedParams += 2;
@@ -485,14 +502,28 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     // MACHINE
     /*
+    
     if (settings) {
-        argv[iteratorParams] = "-m";
+        argv[iteratorParams] = "-lm";
         iteratorParams++;
         argv[iteratorParams] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
         printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
         iteratorParams++;
     }
     */
+    
+    /*
+    if (settings) {
+        argv[iteratorParams] = "-rm";
+        //argv[iteratorParams] = "-lm";
+        iteratorParams++;
+        //argv[iteratorParams] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        argv[iteratorParams] = strdup(getDSPMachineTarget().c_str());
+        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+        iteratorParams++;
+    }
+    */
+    
     
     argv[iteratorParams] = "-I";
     iteratorParams++;

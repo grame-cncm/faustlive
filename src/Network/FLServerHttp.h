@@ -76,7 +76,7 @@ class FLServerHttp : public QObject
 
         Q_OBJECT
         
-        int             fMax_clients;
+        int             fMaxCients;
         string          fError;         // Not important right now
         string          fUrl;           // Url of wrapped http page 
         
@@ -94,7 +94,7 @@ class FLServerHttp : public QObject
         
         static FLServerHttp*    _serverInstance;
         
-        static int      fNr_of_uploading_clients;
+        static int      fUploadingClients;
         
         struct          MHD_Daemon* fDaemon;
         
