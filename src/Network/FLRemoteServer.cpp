@@ -40,8 +40,8 @@ struct myMeta : public Meta
 
 //------------SLAVE DSP FACTORY-------------------------------
 
-string getJson(connection_info_struct* con_info){
-    
+string getJson(connection_info_struct* con_info) 
+{
     myMeta metadata;
     metadataDSPFactory(con_info->fLLVMFactory, &metadata);
     con_info->fNameApp = metadata.name;
@@ -77,20 +77,21 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr){
 }
 
 // Allocation of real LLVM DSP INSTANCE
-FL_slave_dsp::FL_slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : slave_dsp(compression, ip, port, mtu, latency, server){
-
+FL_slave_dsp::FL_slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : slave_dsp(compression, ip, port, mtu, latency, server)
+{
     fDSP = createInstance(smartFactory);
 }
 
 // Desallocation of slave dsp resources
-FL_slave_dsp::~FL_slave_dsp(){
-
+FL_slave_dsp::~FL_slave_dsp()
+{
     deleteInstanceAndFactory(fDSP);
 }
 
 //----------------SERVER----------------------------------------
 
-Server::Server(){
+Server::Server()
+{
     fError = "";
     fDaemon = NULL;
 }
@@ -98,10 +99,9 @@ Server::Server(){
 Server::~Server(){}
     
 //---- START/STOP SERVER
-bool Server::start(int port){
-    
+bool Server::start(int port)
+{
     fPort = port;
-    
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -110,7 +110,7 @@ bool Server::start(int port){
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
                                request_completed, NULL, MHD_OPTION_END);
 
-    if(fDaemon){
+    if (fDaemon) {
         
         if (pthread_create(&fThread, NULL, Server::registration, this) != 0) {
             printf("RemoteServer::pthread_create failed\n");
@@ -123,27 +123,23 @@ bool Server::start(int port){
     }
 }
 
-void Server::stop(){
-   
+void Server::stop()
+{
     if (fDaemon) {
- 
-//        Faire un truc pour arrêter la boucle
-        
+        // Faire un truc pour arrêter la boucle
         pthread_cancel(fThread);
         pthread_join(fThread, NULL);
-        
         MHD_stop_daemon(fDaemon);
+        fDaemon = 0;
     }
-    
-    fDaemon = 0;
 }
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
-void* Server::start_audioSlave(void *arg ){
-    
+void* Server::start_audioSlave(void* arg)
+{
     slave_dsp* dspToStart = (slave_dsp*) arg;
     
-    if(dspToStart->fServer->fLocker.Lock()){
+    if (dspToStart->fServer->fLocker.Lock()) {
         
         bool success = false;
         
@@ -160,11 +156,11 @@ void* Server::start_audioSlave(void *arg ){
                 dspToStart->fServer->fRunningDsp.push_back(dspToStart);
                 success = true;
             }
-        }
-        else
+        } else {
             printf("Init slave audio failed\n");
+        }
         
-        if(!success)
+        if (!success)
             deleteSlaveDSPInstance(dspToStart);
             
         dspToStart->fServer->fLocker.Unlock();
@@ -173,8 +169,8 @@ void* Server::start_audioSlave(void *arg ){
 }
  
 //---- Creating response page with right header syntaxe
-int Server::send_page(MHD_Connection *connection, const char *page, int length, int status_code, const char * type){
-    
+int Server::send_page(MHD_Connection* connection, const char* page, int length, int status_code, const char* type)
+{
     struct MHD_Response *response;
     
     response = MHD_create_response_from_buffer(length, (void*)page,
@@ -191,16 +187,14 @@ int Server::send_page(MHD_Connection *connection, const char *page, int length, 
 //-------------------RESPONSE TO CONNEXION
 
 // Checking if every running DSP is really running or if any has stopped
-void Server::stop_NotActive_DSP(){
-    
+void Server::stop_NotActive_DSP()
+{
     list<slave_dsp*>::iterator it = fRunningDsp.begin();
     
-    while (it != fRunningDsp.end())
-    {
-        if(!(*it)->fAudio->is_connexion_active()){
+    while (it != fRunningDsp.end()) {
+        if (!(*it)->fAudio->is_connexion_active()){
             slave_dsp* toDelete = *it;
             it = fRunningDsp.erase(it); 
-            
             toDelete->fAudio->stop();
             deleteSlaveDSPInstance(toDelete);
         } else {
@@ -210,8 +204,8 @@ void Server::stop_NotActive_DSP(){
 }
 
 // Allocation/Initialization of connection struct
-connection_info_struct* Server::allocate_connection_struct(MHD_Connection *connection, const char *method){
-    
+connection_info_struct* Server::allocate_connection_struct(MHD_Connection *connection, const char *method)
+{
     struct connection_info_struct *con_info;
     
     con_info = new connection_info_struct();

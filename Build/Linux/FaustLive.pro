@@ -87,6 +87,7 @@ equals(static, 1){
 	LIBS+=-lmicrohttpd
 	LIBS+=-lcrypto
 	LIBS+=-lcurl
+	LIBS+=-lasound
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL

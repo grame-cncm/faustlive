@@ -19,11 +19,10 @@ For remote processing :
 - liblo (0.28 and higher)
 
 Other Packages
-- jackosx 	http://www.jackosx.com/
-- faust		https://sourceforge.net/projects/faudiostream/files/
+- JackOSX 	http://jackaudio.org/downloads/
+- Faust		https://sourceforge.net/projects/faudiostream/files/ (the "dynamic" version must be compiled)
 	cd FAUSTDIRECTORY
-	make
-	make httpd
+	make dynamic 
 	sudo make install
 	(  if you want to use remote processing
 	make remote
@@ -49,7 +48,7 @@ make JACK=1 NETJACK=1 PORTAUDIO=1
 To enable remote processing option
 make REMOTE=1
 
------------------WARNINGS
+-----------------WARNINGS---------------
 
 1) If you want to recompile with new compilation options, you will have to execute 
 	"make clean" before doing "make"
@@ -59,7 +58,7 @@ make REMOTE=1
 
 3) To use remote processing through wi-fi, set network parameters MTU on standard 1500.
 
----------------TO ADD A NEW AUDIO ARCHITECTURE
+---------------TO ADD A NEW AUDIO ARCHITECTURE---------------
 
 1) Implement the classes : 
 	- _audioFader
@@ -75,7 +74,11 @@ make REMOTE=1
 
 3) Modify FaustLive.pro to add the libraries through conditional Compilation
 
-----------------TO ADD FAUST LIBRAIRIES
+----------------TO ADD FAUST LIBRAIRIES---------------
 
 1) Add the library in "Resources" folder
 2) Add the library in application.qrc
+
+---------------TO CREATE the final DMG file---------------
+
+make dist

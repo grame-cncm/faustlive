@@ -34,12 +34,11 @@
 #include <QtNetwork>
 #include <map>
 
-
 // THI IS UGLY !!! (to fix...)
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
 #else
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
 #include "faust/dsp/llvm-dsp.h"
@@ -51,6 +50,7 @@ using namespace std;
 enum {
     TYPE_LOCAL, TYPE_REMOTE
 };
+
 
 union factory {
     llvm_dsp_factory* fLLVMFactory;
@@ -73,6 +73,8 @@ struct factorySettings {
     int             fType;
 };
 
+class rtmidi;
+
 class FLSessionManager : public QObject
 {
     
@@ -81,11 +83,13 @@ class FLSessionManager : public QObject
         Q_OBJECT
         
         QString         fSessionFolder;
+        
+        //rtmidi*         fMIDIManager;
 
         static FLSessionManager* _sessionManager;
         
 //------ Handle name giving 
-        QString         getDeclareName(QString text);
+        QString         getDeclareName(QString text, QString default_name);
         
         QString         getErrorFromCode(int code);
         
@@ -103,7 +107,7 @@ class FLSessionManager : public QObject
         
         void            copySHAFolder(const QString& snapshotFolder);
         
-        const char**    getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
+        const char**    getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc);
         
         const char**    getRemoteInstanceArgv(QSettings* winSettings, int& argc);
         void            deleteArgv(int argc, const char** argv);
@@ -116,7 +120,7 @@ class FLSessionManager : public QObject
     
         void cleanSHAFolder();
         
-        QVector<QString>    getDependencies(llvm_dsp_factory* factoryDependency);
+        QVector<QString> getDependencies(llvm_dsp_factory* factoryDependency);
         
     private slots:
     
@@ -142,7 +146,7 @@ class FLSessionManager : public QObject
         
         dsp* createDSP(QPair<QString, void*> factorySetts, 
                         const QString& source, FLWinSettings* settings,
-                        RemoteDSPErrorCallback error_callback, 
+                        remoteDSPErrorCallback error_callback, 
                         void* error_callback_arg, 
                         QString& errorMsg);
 
@@ -162,7 +166,7 @@ class FLSessionManager : public QObject
         map<int, QString>   snapshotRestoration(const QString& filename);
         
     
-/* This is an attempt not finished to implement a publish service of DSP to make them accessible from the outside */
+/* This is a not finished attempt to implement a publish service of DSP to make them accessible from the outside */
 //      #ifdef REMOTE
 //          bool addWinToServer(FLWinSettings* settings);
 //          void deleteWinFromServer(FLWinSettings* settings);

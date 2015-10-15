@@ -19,41 +19,37 @@ class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader
     
     public:
 
-        crossfade_TCoreAudioRenderer(){
-    //        printf("CA_AudioFader::crossfade_coreAudio constructor %p\n", this);
+        crossfade_TCoreAudioRenderer()
+        {
            reset_Values();
         }
         
-    //  Reimplementing audio callback to add the crossfade procedure
+        //  Reimplementing audio callback to add the crossfade procedure
         virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                                 const AudioTimeStamp *inTimeStamp,
                                 UInt32 inNumberFrames,
-                                AudioBufferList *ioData){
-            
-    //        printf("Tcoreaudio fils = %p || fadeOut? = %i\n", this, fDoWeFadeOut);
-        
-        OSStatus err = noErr;
-        if (fDevNumInChans > 0) {
-            err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
-        }
-        if (err == noErr) {
-            for (int i = 0; i < fDevNumInChans; i++) {
-                fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+                                AudioBufferList *ioData)
+        {
+            OSStatus err = noErr;
+            if (fDevNumInChans > 0) {
+                err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
             }
-            for (int i = 0; i < fDevNumOutChans; i++) {
-                fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+            if (err == noErr) {
+                for (int i = 0; i < fDevNumInChans; i++) {
+                    fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
+                }
+                for (int i = 0; i < fDevNumOutChans; i++) {
+                    fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+                }
+                fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+                
+                // ADDED LINE COMPARING TO BASIC COREAUDIO
+                crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
+            } else {
+                printError(err);
             }
-            fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
-            
-//            ADDED LINE COMPARING TO BASIC COREAUDIO
-            crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);
-        } else {
-//            printf("AudioUnitRender error... %x\n", fInputData);
-            printError(err);
+            return err;
         }
-        return err;
-        
-    }
 };
 
 class CA_audioFader : public audio, public AudioFader_Interface
@@ -66,21 +62,22 @@ class CA_audioFader : public audio, public AudioFader_Interface
         
     public:
     
-        CA_audioFader(int srate, int fpb){
-            
+        CA_audioFader(int srate, int fpb)
+        {
             fSampleRate = srate;
             fBufferSize = fpb;
         }
         
-        CA_audioFader(int fpb){ 
-            
+        CA_audioFader(int fpb)
+        { 
             fSampleRate = -1;
             fBufferSize = fpb;
         }
         
         virtual ~CA_audioFader(){}
         
-        virtual bool init(const char* /*name*/, dsp* DSP){
+        virtual bool init(const char* /*name*/, dsp* DSP)
+        {
             if (fCrossFadeDevice.OpenDefault(DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
                 printf("Cannot open CoreAudio device\n");
                 return false;
@@ -91,23 +88,25 @@ class CA_audioFader : public audio, public AudioFader_Interface
             return true;
         }
         
-        bool init(const char* /*name*/, int numInputs, int numOutputs){
+        bool init(const char* /*name*/, int numInputs, int numOutputs)
+        {
             if (fCrossFadeDevice.OpenDefault(numInputs, numOutputs, fBufferSize, fSampleRate) < 0) {
                 printf("Cannot open CoreAudio device\n");
                 return false;
-            }
-            else
+            } else {
                 return true;
+            }
         }
         
-        bool set_dsp(dsp* DSP){
-            
+        bool set_dsp(dsp* DSP)
+        {
             fCrossFadeDevice.set_dsp(DSP);
             DSP->init(fSampleRate);
             return true;
         }
         
-        virtual bool start(){
+        virtual bool start()
+        {
             if (fCrossFadeDevice.Start() < 0) {
                 printf("Cannot start CoreAudio device\n");
                 return false;
@@ -115,27 +114,32 @@ class CA_audioFader : public audio, public AudioFader_Interface
             return true;
         }
         
-        virtual void stop(){
+        virtual void stop()
+        {
             fCrossFadeDevice.Stop();
             fCrossFadeDevice.Close();
         }
         
-        virtual void launch_fadeOut(){
+        virtual void launch_fadeOut()
+        {
             fCrossFadeDevice.set_doWeFadeOut(true);
         }
         
-        virtual void launch_fadeIn(){
+        virtual void launch_fadeIn()
+        {
             fCrossFadeDevice.set_doWeFadeIn(true);
         }
         
-        virtual bool get_FadeOut(){
+        virtual bool get_FadeOut()
+        {
             return fCrossFadeDevice.get_doWeFadeOut();
         }
         
         virtual int get_buffer_size() { return fCrossFadeDevice.GetBufferSize(); }
         virtual int get_sample_rate() { return fCrossFadeDevice.GetSampleRate(); }
         
-        void force_stopFade(){
+        void force_stopFade()
+        {
             fCrossFadeDevice.reset_Values();
         }
     

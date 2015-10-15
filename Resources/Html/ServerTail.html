@@ -2,76 +2,72 @@
 </iframe>
 
 <script type=text/javascript>
-(function(){
+(function() {
 
-function FileDragHover(e) {
-
-e.stopPropagation();
-e.preventDefault();
-e.target.className = (e.type == "dragover" ? "hover" : "");
-}
-
-function FileSelectHandler(e) {
-
-FileDragHover(e);
-var files = e.target.files || e.dataTransfer.files;
-f = files[0];
-
-UploadFile(f);
-}
-
-function UploadFile(e) {
-
-FileDragHover(e);
-var files = e.target.files || e.dataTransfer.files;
-var file = files[0];
-
-if (location.host.indexOf("sitepointstatic") >= 0) return
-
-var request = new XMLHttpRequest();
-if (request.upload && file.size <= document.getElementById("MAX_FILE_SIZE").value) {
-
-var reader = new FileReader();
-
-var ext = file.name.split('.').pop();
-
-if(ext == "dsp"){
-
-reader.readAsText(file);  
-}
-reader.onloadend = function(e) {
-var allText = reader.result;
-var xhr = new XMLHttpRequest();
-var params = "var=" + encodeURIComponent(allText) + "&interfaceurl=" + document.getElementById("httpInterface").src;
-xhr.open("POST", '', true);
-xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-xhr.setRequestHeader("Content-length", params.length);
-xhr.setRequestHeader("Connection", "close");
-xhr.onreadystatechange = function() {
-    if(xhr.readyState == 4 && xhr.status == 200) {
-        document.getElementById("httpInterface").src = xhr.responseText;
+    function FileDragHover(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.target.className = (e.type == "dragover" ? "hover" : "");
     }
-}
-xhr.send(params);
-};
-}
-}
 
-function Init() {
-var filedrag1 = document.getElementById("filedrag");
+    function FileSelectHandler(e) {
 
-var xx = new XMLHttpRequest();
-if (xx.upload) {
-filedrag1.addEventListener("dragover", FileDragHover, false);
-filedrag1.addEventListener("dragleave", FileDragHover, false);
-filedrag1.addEventListener("drop", UploadFile, false);
-}
-}
+    FileDragHover(e);
+        var files = e.target.files || e.dataTransfer.files;
+        f = files[0];
 
-if (window.File && window.FileList && window.FileReader) {
+        UploadFile(f);
+    }
 
-Init();
-}
+    function UploadFile(e) {
+
+        FileDragHover(e);
+        var files = e.target.files || e.dataTransfer.files;
+        var file = files[0];
+
+        if (location.host.indexOf("sitepointstatic") >= 0) return;
+
+        var request = new XMLHttpRequest();
+        if (request.upload && file.size <= document.getElementById("MAX_FILE_SIZE").value) {
+
+            var reader = new FileReader();
+            var ext = file.name.split('.').pop();
+
+            if (ext == "dsp") {
+                reader.readAsText(file);  
+            }
+            
+            reader.onloadend = function(e) {
+                var allText = reader.result;
+                var xhr = new XMLHttpRequest();
+                var params = "var=" + encodeURIComponent(allText) + "&interfaceurl=" + document.getElementById("httpInterface").src;
+                xhr.open("POST", '', true);
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xhr.setRequestHeader("Content-length", params.length);
+                xhr.setRequestHeader("Connection", "close");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        document.getElementById("httpInterface").src = xhr.responseText;
+                    }
+                }
+                xhr.send(params);
+            };
+        }
+    }
+
+    function Init() {
+        var filedrag1 = document.getElementById("filedrag");
+        var xx = new XMLHttpRequest();
+            if (xx.upload) {
+                filedrag1.addEventListener("dragover", FileDragHover, false);
+                filedrag1.addEventListener("dragleave", FileDragHover, false);
+                filedrag1.addEventListener("drop", UploadFile, false);
+            }
+    }
+
+    if (window.File && window.FileList && window.FileReader) {
+        Init();
+    }
 })();
 
 </script>

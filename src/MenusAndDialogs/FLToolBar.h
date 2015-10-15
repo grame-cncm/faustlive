@@ -36,18 +36,20 @@ class FLToolBar : public QToolBar{
     
         QPushButton*        fSaveButton;
         
-        QLineEdit*          fOptionLine;     //Allows the addition of compilation options
-        QLineEdit*          fOptValLine;     //And the change of the llvm optimization level
+        QLineEdit*          fOptionLine;        //Allows the addition of compilation options
+        QLineEdit*          fOptValLine;        //And the change of the llvm optimization level
     
         QLineEdit*          fAutomaticExportLine;
         QLineEdit*          fScriptLine;
         
         QCheckBox*          fHttpCheckBox;
-        QLabel*             fHttpPort;      //Edit port http
+        QLabel*             fHttpPort;          //Edit http port 
+        
+        QCheckBox*          fMIDICheckBox;      //MIDI interface
         
         QCheckBox*          fOSCCheckBox;
-        QLineEdit*          fPortInOscLine;   //Edit osc port
-        QLineEdit*          fPortOutOscLine;   //Edit osc port
+        QLineEdit*          fPortInOscLine;     //Edit osc port
+        QLineEdit*          fPortOutOscLine;    //Edit osc port
         QLineEdit*          fPortErrOscLine;
     
 //        QCheckBox*          fRemoteControlCheckBox;
@@ -75,6 +77,7 @@ class FLToolBar : public QToolBar{
         bool                wasOscSwitched();
         bool                hasOscOptionsChanged();
         bool                wasHttpSwitched();
+        bool                wasMIDISwitched();
         bool                wasRemoteControlSwitched();
         bool                hasRemoteOptionsChanged();
         bool                hasReleaseOptionsChanged();;
@@ -88,6 +91,7 @@ class FLToolBar : public QToolBar{
     
         void    switchHttp(bool on);
         void    switchOsc(bool on);
+        void    switchMIDI(bool on);
     
     public slots: 
     
@@ -106,6 +110,7 @@ class FLToolBar : public QToolBar{
         void    sizeGrowth();
         void    sizeReduction();
         void    switch_http(bool on);
+        void    switch_midi(bool on);
         void    switch_osc(bool on);
         void    switch_remotecontrol(bool on);    
         void    switch_release(bool on);

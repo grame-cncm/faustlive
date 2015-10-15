@@ -15,7 +15,7 @@
 
 class NJm_audioFader;
 
-class NJm_audioManager : public AudioManager{
+class NJm_audioManager : public AudioManager {
 
     private: 
     

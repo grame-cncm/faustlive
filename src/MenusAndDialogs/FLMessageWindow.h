@@ -19,12 +19,12 @@
 
 using namespace std;
 
-class FLMessageWindow : public QDialog{
+class FLMessageWindow : public QDialog {
     
     private:
     
         Q_OBJECT
-        QLabel*    fMessage;
+        QLabel* fMessage;
     
     public:
     

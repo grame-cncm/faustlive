@@ -13,12 +13,10 @@
 
 //--------------------------FLToolBar
 
-FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
-
+FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent)
+{
     fSettings = settings;
-    
     fButtonState = fFold;
-    
     setAutoFillBackground(true);
 
     fWindowOptions = new QPushButton(">   Parameters");
@@ -61,18 +59,16 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent){
     init();
 }
 
-void FLToolBar::init(){
-    
+void FLToolBar::init()
+{
     fContainer = new QToolBox;
     fContainer->setStyleSheet("*{background-color: transparent}");
 
-//------- OSC Control
+    //------- OSC Control
     QWidget* oscBox = new QWidget();
-    
     fOSCCheckBox = new QCheckBox;
     
     connect(fOSCCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
-    
     QFormLayout* oscLayout = new QFormLayout;
     
     fPortInOscLine = new QLineEdit(tr(""), oscBox);
@@ -111,22 +107,32 @@ void FLToolBar::init(){
     oscBox->setLayout(oscLayout);
     
     fContainer->addItem(oscBox, "OSC Interface");
-//------- HTTP Control
+    
+    //------- HTTP Control
     QWidget* httpBox = new QWidget;
-
     fHttpCheckBox = new QCheckBox();
     
     connect(fHttpCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
-    
     QFormLayout* httpLayout = new QFormLayout;
-    
     fHttpPort = new QLabel(tr(""), httpBox);
     
     httpLayout->addRow(new QLabel(tr("Enable Interface")), fHttpCheckBox);
     httpLayout->addRow(new QLabel(tr("Port")), fHttpPort);
     
     httpBox->setLayout(httpLayout);
-    fContainer->addItem(httpBox, "Http Interface");
+    fContainer->addItem(httpBox, "HTTP Interface");
+      
+    //------- MIDI Control
+    QWidget* midiBox = new QWidget;
+    fMIDICheckBox = new QCheckBox();
+    
+    connect(fMIDICheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+    QFormLayout* midiLayout = new QFormLayout;
+    
+    midiLayout->addRow(new QLabel(tr("Enable Interface")), fMIDICheckBox);
+    
+    midiBox->setLayout(midiLayout);
+    fContainer->addItem(midiBox, "MIDI Interface");
  
 #ifdef REMOTE
 //-------- Remote Control
@@ -145,8 +151,8 @@ void FLToolBar::init(){
 //    fContainer->addItem(remoteControlBox, "Remote Control");
 //    
 //    
-//-------- Remote Processing
-    
+
+    //-------- Remote Processing
     QWidget* remoteBox = new QWidget;
     QFormLayout* remoteLayout = new QFormLayout;
     
@@ -221,8 +227,8 @@ void FLToolBar::init(){
     
     compilationLayout->addRow(new QLabel(""));
     compilationLayout->addRow(new QLabel("-----Additional Compilation Step-----"));
-    //------ Automatic Export
     
+    //------ Automatic Export
     fAutomaticExportLine = new QLineEdit(tr(""), compilationOptions);
     fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
     
@@ -236,7 +242,6 @@ void FLToolBar::init(){
     compilationLayout->addRow(new QLabel(""));
     
     //------ Post compilation scripting
-    
     compilationLayout->addRow(new QLabel("-------Post-Compilation Script-------"));
     
     fScriptLine = new QLineEdit(tr(""), compilationOptions);
@@ -247,7 +252,6 @@ void FLToolBar::init(){
     
     compilationLayout->addRow(new QLabel("Command Line"));    
     compilationLayout->addRow(fScriptLine);
-    //    compilationLayout->addRow(new QLabel("Ex: -lang ajs -o filename.js"));
     
     compilationOptions->setLayout(compilationLayout);
     fContainer->addItem(compilationOptions, tr("Compilation"));
@@ -256,14 +260,13 @@ void FLToolBar::init(){
 }
 
 ///*item*/ is useless but QT signal forces the slot parameters
-void FLToolBar::buttonStateChanged(){
-    
-    if(fButtonState == fFold){
+void FLToolBar::buttonStateChanged()
+{
+    if (fButtonState == fFold) {
         fButtonState = fUnFold;
         expansionAction();
         fWindowOptions->setText("V   Parameters");
-    } 
-    else{
+    } else {
         fButtonState = fFold;
         collapseAction();
         fWindowOptions->setText(">   Parameters");
@@ -271,8 +274,8 @@ void FLToolBar::buttonStateChanged(){
 }
 
 //TRICK to be able to add/remove objects from the toolbar 
-void FLToolBar::expansionAction(){
-    
+void FLToolBar::expansionAction()
+{
     fSaveButton->show();
     fContainer->show();
     
@@ -285,8 +288,8 @@ void FLToolBar::expansionAction(){
     emit sizeGrowth();
 }
 
-void FLToolBar::collapseAction(){
-    
+void FLToolBar::collapseAction()
+{
     removeAction(fAction1);
     removeAction(fAction2);
     
@@ -298,11 +301,9 @@ void FLToolBar::collapseAction(){
     setOrientation(Qt::Horizontal);
 }
 
-FLToolBar::~FLToolBar(){
-
-printf("delete window options \n");
+FLToolBar::~FLToolBar()
+{
     delete fWindowOptions;
-    printf("save button\n");
     delete fSaveButton;
     delete fOptionLine;
     delete fOptValLine;
@@ -310,116 +311,113 @@ printf("delete window options \n");
 
     delete fHttpCheckBox;
     delete fHttpPort;
+    
+    delete fMIDICheckBox;
 
     delete fOSCCheckBox;
     delete fPortInOscLine;
     delete fPortOutOscLine;
     delete fPortErrOscLine;
 
-
 #ifdef REMOTE
-//    delete fRemoteControlIP;
-//    delete fRemoteControlCheckBox;
+//  delete fRemoteControlIP;
+//  delete fRemoteControlCheckBox;
     delete fCVLine;
     delete fMTULine;
     delete fLatLine;
     delete fDestHostLine;
-//    delete fPublishBox;
+//  delete fPublishBox;
 #endif
     delete fContainer;
 }
 
 //Changes in parameters = enable save changes button
-void FLToolBar::enableButton(const QString& /*newText*/){
-
+void FLToolBar::enableButton(const QString& /*newText*/)
+{
     fSaveButton->setEnabled(hasStateChanged());
 }
 
-void FLToolBar::enableButton(int /*state*/){
+void FLToolBar::enableButton(int /*state*/)
+{
     fSaveButton->setEnabled(hasStateChanged());
 }
 
-bool FLToolBar::hasStateChanged(){
+bool FLToolBar::hasStateChanged()
+{
     return 
-        hasCompilationOptionsChanged()||
+        (hasCompilationOptionsChanged()||
         hasAutomaticExportChanged() ||
         hasScriptChanged() ||
         wasOscSwitched() ||
         hasOscOptionsChanged() ||
         wasHttpSwitched() ||
+        wasMIDISwitched() ||
         wasRemoteControlSwitched() ||
         hasRemoteOptionsChanged() ||
-        hasReleaseOptionsChanged();    
+        hasReleaseOptionsChanged());    
 }
 
-bool FLToolBar::hasCompilationOptionsChanged(){
-    
+bool FLToolBar::hasCompilationOptionsChanged()
+{
     FLSettings* generalSettings = FLSettings::_Instance();
-    
     QString val = fOptValLine->text();
     
     bool ok;
     int value = val.toInt(&ok);
-	if(!ok)
+	if (!ok)
         value = 3;
     
-    if(fOptionLine->text() != (fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString()) || 
-       value != fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt())
-            return true;
-    else
-        return false;
+    return (fOptionLine->text() != (fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString()) 
+            || value != fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt());
 }
 
-bool FLToolBar::hasAutomaticExportChanged(){
-    if(fAutomaticExportLine->text() != (fSettings->value("AutomaticExport/Options", "").toString()))
-        return true;
-    else
-        return false;
+bool FLToolBar::hasAutomaticExportChanged()
+{
+    return (fAutomaticExportLine->text() != (fSettings->value("AutomaticExport/Options", "").toString()));
+ }
+
+bool FLToolBar::hasScriptChanged()
+{
+    return (fScriptLine->text() != (fSettings->value("Script/Options", "").toString()));
 }
 
-bool FLToolBar::hasScriptChanged(){
-    if(fScriptLine->text() != (fSettings->value("Script/Options", "").toString()))
-        return true;
-    else
-        return false;
+bool FLToolBar::wasOscSwitched()
+{
+    return (fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)) != fOSCCheckBox->isChecked());
 }
 
-bool FLToolBar::wasOscSwitched(){
-
-    if(fSettings->value("Osc/Enabled", FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false)) != fOSCCheckBox->isChecked())
-        return true;
-	else
-		return false;
-}
-
-bool FLToolBar::hasOscOptionsChanged(){
-
-    if(fOSCCheckBox->isChecked()){
-        if(fPortInOscLine->text() != fSettings->value("Osc/InPort", "5510").toString())
+bool FLToolBar::hasOscOptionsChanged()
+{
+    if (fOSCCheckBox->isChecked()) {
+    
+        if (fPortInOscLine->text() != fSettings->value("Osc/InPort", "5510").toString())
             return true;
         
-        if(fPortOutOscLine->text() != fSettings->value("Osc/OutPort", "5511").toString())
+        if (fPortOutOscLine->text() != fSettings->value("Osc/OutPort", "5511").toString())
             return true;
         
-        if(fDestHostLine->text() != fSettings->value("Osc/DestHost", "localhost").toString())
+        if (fDestHostLine->text() != fSettings->value("Osc/DestHost", "localhost").toString())
             return true;
         
-        if(fPortErrOscLine->text() != fSettings->value("Osc/ErrPort", "5512").toString())
+        if (fPortErrOscLine->text() != fSettings->value("Osc/ErrPort", "5512").toString())
             return true;
     }
 
     return false;
 }
 
-bool FLToolBar::wasHttpSwitched(){
-
-    if(fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)) != fHttpCheckBox->isChecked())
-        return true;
-	else
-	    return false;
+bool FLToolBar::wasHttpSwitched()
+{
+    return (fSettings->value("Http/Enabled", FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false)) != fHttpCheckBox->isChecked());
 }
 
-bool FLToolBar::wasRemoteControlSwitched(){
+bool FLToolBar::wasMIDISwitched()
+{
+    return (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)) != fMIDICheckBox->isChecked());
+}
+
+bool FLToolBar::wasRemoteControlSwitched()
+{
 //#ifdef REMOTE  
 //    if(fSettings->value("RemoteControl/Enabled", false) != fRemoteControlCheckBox->isChecked())
 //        return true;
@@ -427,22 +425,23 @@ bool FLToolBar::wasRemoteControlSwitched(){
     return false;
 }
 
-bool FLToolBar::hasRemoteOptionsChanged(){
+bool FLToolBar::hasRemoteOptionsChanged()
+{
 #ifdef REMOTE
-    if(fCVLine->text() != fSettings->value("RemoteProcessing/CV", "64").toString())
+    if (fCVLine->text() != fSettings->value("RemoteProcessing/CV", "64").toString())
        return true;
 
-    if(fMTULine->text() != fSettings->value("RemoteProcessing/MTU", "1500").toString())
+    if (fMTULine->text() != fSettings->value("RemoteProcessing/MTU", "1500").toString())
        return true;
        
-    if(fLatLine->text() != fSettings->value("RemoteProcessing/Latency", "10").toString())
+    if (fLatLine->text() != fSettings->value("RemoteProcessing/Latency", "10").toString())
        return true;
 #endif
     return false;
 }
 
-bool FLToolBar::hasReleaseOptionsChanged(){
-    
+bool FLToolBar::hasReleaseOptionsChanged()
+{
 #ifdef REMOTE   
 //    if(fSettings->value("Release/Enabled", false) != fPublishBox->isChecked())
 //        return true;
@@ -451,88 +450,85 @@ bool FLToolBar::hasReleaseOptionsChanged(){
 }
 
 //Reaction to Apply Changes Button
-void FLToolBar::modifiedOptions(){
-    
-//	It's obliged to pass through variables. Otherwise, while one signal is emitted, some toolbar variables are modified from the outside and change the wanted behavior
+void FLToolBar::modifiedOptions()
+{
+ //	It's obliged to pass through variables. Otherwise, while one signal is emitted, some toolbar variables are modified from the outside and change the wanted behavior
     bool automaticExportOpt = false;
-//    bool scriptOpt = false;
-    bool compilationOpt= false;
+//  bool scriptOpt = false;
+    bool compilationOpt = false;
 
     bool oscSwitchOpt = false;
     bool oscSwitchVal = fOSCCheckBox->isChecked();
-    bool oscOpt= false;
+    bool oscOpt = false;
 
-    bool httpOpt= false;
+    bool httpOpt = false;
     bool httpSwitchVal = fHttpCheckBox->isChecked();
+    
+    bool MIDIOpt = false;
+    bool MIDISwitchVal = fMIDICheckBox->isChecked();
 
 #ifdef REMOTE
 //    bool remoteControlOpt= false;
 //    bool remoteControlVal = fRemoteControlCheckBox->isChecked();
-    bool remoteOpt= false;
+    bool remoteOpt = false;
 //    bool releaseOpt= false;
 //    bool releaseVal = fPublishBox->isChecked();
 #endif
-    if(hasAutomaticExportChanged()){
+    if (hasAutomaticExportChanged()) {
         fSettings->setValue("AutomaticExport/Options", fAutomaticExportLine->text());
-
 		automaticExportOpt = true;
     }
     
-    if(hasCompilationOptionsChanged()){
-        
+    if (hasCompilationOptionsChanged()) {
         fSettings->setValue("Compilation/OptValue", fOptValLine->text()); 
         fSettings->setValue("Compilation/FaustOptions", fOptionLine->text()); 
-
 		compilationOpt = true;
     }
 
-    if(hasScriptChanged()){
+    if (hasScriptChanged()) {
         fSettings->setValue("Script/Options", fScriptLine->text());
-        
-//        scriptOpt = true;
+//      scriptOpt = true;
     }
     
-    if(hasOscOptionsChanged()){
-        
+    if (hasOscOptionsChanged()) {
         fSettings->setValue("Osc/InPort", fPortInOscLine->text());
         fSettings->setValue("Osc/OutPort", fPortOutOscLine->text());
         fSettings->setValue("Osc/DestHost", fDestHostLine->text());
         fSettings->setValue("Osc/ErrPort", fPortErrOscLine->text());
         
-        if(wasOscSwitched()){
-            
+        if (wasOscSwitched()) {
             fSettings->setValue("Osc/Enabled", fOSCCheckBox->isChecked());
-            
             oscSwitchOpt = true;        
         }
 //-- Port changes are declared only if osc isn't switched & if osc is on
-        else
+        else {
 			oscOpt = true;
-    }
-    else if(wasOscSwitched()){
+        }
+    } else if (wasOscSwitched()) {
         fSettings->setValue("Osc/Enabled", fOSCCheckBox->isChecked());
-        
         oscSwitchOpt = true;
     }
 
-    if(wasHttpSwitched()){
+    if (wasHttpSwitched()) {
         fSettings->setValue("Http/Enabled", fHttpCheckBox->isChecked());
-        
         httpOpt = true;
     }
-
+    
+    if (wasMIDISwitched()) {
+        fSettings->setValue("MIDI/Enabled", fMIDICheckBox->isChecked());
+        MIDIOpt = true;
+    }
+ 
 #ifdef REMOTE
 //    if(wasRemoteControlSwitched()){
 //       fSettings->setValue("RemoteControl/Enable", fRemoteControlCheckBox->isChecked());   
 //        
 //        remoteControlOpt = true;
 //    }
-    if(hasRemoteOptionsChanged()){
-        
+    if (hasRemoteOptionsChanged()) {
         fSettings->setValue("RemoteProcessing/CV", fCVLine->text());  
         fSettings->setValue("RemoteProcessing/MTU", fMTULine->text());   
         fSettings->setValue("RemoteProcessing/Latency", fLatLine->text());  
-        
         remoteOpt = true;
     }
     
@@ -543,61 +539,69 @@ void FLToolBar::modifiedOptions(){
 #endif
 
     //	Now emit signals if needed
-	if(automaticExportOpt)
+	if (automaticExportOpt)
         emit generateNewAuxFiles();
 //    if(scriptOpt)
 //        emit execScript();
-	if(compilationOpt)
+	if (compilationOpt)
         emit compilationOptionsChanged();
 
-	if(oscSwitchOpt)
+	if (oscSwitchOpt)
         emit switch_osc(oscSwitchVal);
-	if(oscOpt)
+        
+	if (oscOpt)
         emit oscPortChanged();
 
-	if(httpOpt)
+	if (httpOpt)
         emit switch_http(httpSwitchVal);
+        
+    if (MIDIOpt)
+        emit switch_midi(MIDISwitchVal);
 
 #ifdef REMOTE
 //	if(remoteControlOpt)
 //        emit switch_remotecontrol(remoteControlVal);
-    if(remoteOpt)
+    if (remoteOpt)
         emit compilationOptionsChanged();
 //    if(releaseOpt)
 //        emit switch_release(releaseVal);
 #endif
-
     fSaveButton->setEnabled(false);
 }
                              
-void FLToolBar::switchHttp(bool on){
-
+void FLToolBar::switchHttp(bool on)
+{
 	fHttpCheckBox->setChecked(on);
     modifiedOptions();
-
 }
 
-void FLToolBar::switchOsc(bool on){
-
+void FLToolBar::switchOsc(bool on)
+{
 	fOSCCheckBox->setChecked(on);
     modifiedOptions();
 }
 
-void FLToolBar::syncVisualParams(){
-    
+void FLToolBar::switchMIDI(bool on)
+{
+	fMIDICheckBox->setChecked(on);
+    modifiedOptions();
+}
+
+void FLToolBar::syncVisualParams()
+{
     FLSettings* generalSettings= FLSettings::_Instance();
     
-//---- Compilation
+    //---- Compilation
     fOptionLine->setText(fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString());
     fOptValLine->setText(QString::number(fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt()));
     
-//---- Automatic Export
+    //---- Automatic Export
     fAutomaticExportLine->setText(fSettings->value("AutomaticExport/Options", "").toString());
     
-//---- Post Compilation Script
+    //---- Post Compilation Script
     fScriptLine->setText(fSettings->value("Script/Options", "").toString());
 
-//------ OSC
+    //------ OSC
     fOSCCheckBox->setChecked(fSettings->value("Osc/Enabled", generalSettings->value("General/Network/OscDefaultChecked", false)).toBool());
     
     fPortInOscLine->setText(fSettings->value("Osc/InPort", "5510").toString());
@@ -605,13 +609,15 @@ void FLToolBar::syncVisualParams(){
     fDestHostLine->setText(fSettings->value("Osc/DestHost", "localhost").toString());
     fPortErrOscLine->setText(fSettings->value("Osc/ErrPort", "5512").toString());
 
-//------ Http    
+    //------ Http    
     fHttpCheckBox->setChecked(fSettings->value("Http/Enabled", generalSettings->value("General/Network/HttpDefaultChecked", false)).toBool());
-    
     fHttpPort->setText(fSettings->value("Http/Port", "5510").toString());
+    
+    //------ MIDI    
+    fMIDICheckBox->setChecked(fSettings->value("MIDI/Enabled", generalSettings->value("General/Control/MIDIDefaultChecked", false)).toBool());
 
 #ifdef REMOTE
-//------ RemoteProcessing
+    //------ RemoteProcessing
     fCVLine->setText(fSettings->value("RemoteProcessing/CV", "64").toString());  
     fMTULine->setText(fSettings->value("RemoteProcessing/MTU", "1500").toString());   
     fLatLine->setText(fSettings->value("RemoteProcessing/Latency", "10").toString());  

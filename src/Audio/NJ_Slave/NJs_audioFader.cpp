@@ -24,12 +24,11 @@ int NJs_audioFader::restart_cb()
 {
     // printf("Network failure, restart...\n");
     
-    if(fNumberRestartAttempts < 10){
+    if (fNumberRestartAttempts < 10) {
         emit error("Network failure, restart...");    
         fNumberRestartAttempts++;
         return 0;
-    }
-    else{
+    } else {
         emit error("Impossible to restart Network");
         fNumberRestartAttempts = 0;
     }
@@ -45,34 +44,39 @@ void NJs_audioFader::process(int count,  float** inputs, float** outputs)
      crossfade_Calcul(count, fDsp->getNumOutputs(), outputs);
 }
 
-bool NJs_audioFader::init(const char* name, dsp* DSP) {
-    
+bool NJs_audioFader::init(const char* name, dsp* DSP) 
+{
     return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
 }
 
-bool NJs_audioFader::init(const char* name, int numInputs, int numOutputs) {
-    
+bool NJs_audioFader::init(const char* name, int numInputs, int numOutputs) 
+{
     return init_aux(name, numInputs, numOutputs, 0, 0);
 }
 
-bool NJs_audioFader::set_dsp(dsp* DSP){
-    
-    set_dsp_aux(DSP);
+bool NJs_audioFader::set_dsp(dsp* DSP)
+{
+     netjackaudio::set_dsp(DSP); // SL le 30/06/15
+    //set_dsp_aux(DSP);
     return true;
 }
 
-void NJs_audioFader::launch_fadeIn(){
+void NJs_audioFader::launch_fadeIn()
+{
     set_doWeFadeIn(true);
 }
 
-void NJs_audioFader::launch_fadeOut(){
+void NJs_audioFader::launch_fadeOut()
+{
     set_doWeFadeOut(true);
 }
 
-bool NJs_audioFader::get_FadeOut(){
+bool NJs_audioFader::get_FadeOut()
+{
     return get_doWeFadeOut();
 }
 
-void NJs_audioFader::force_stopFade(){
+void NJs_audioFader::force_stopFade()
+{
     reset_Values();
 }

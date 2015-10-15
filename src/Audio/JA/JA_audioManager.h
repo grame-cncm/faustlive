@@ -17,7 +17,7 @@
 
 class JA_audioFader;
 
-class JA_audioManager : public AudioManager{
+class JA_audioManager : public AudioManager {
 
     private:
     

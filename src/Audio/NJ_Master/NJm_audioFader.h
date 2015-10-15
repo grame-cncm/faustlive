@@ -19,8 +19,7 @@
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
 
-class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public AudioFader_Interface, public AudioFader_Implementation
-{
+class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public AudioFader_Interface, public AudioFader_Implementation {
 
     private: 
     
@@ -34,7 +33,6 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
             
         virtual int set_sample_rate(jack_nframes_t nframes)
         {
-    //        printf("New sample rate = %u\n", nframes);
             fDsp->init(nframes);
             return 0;
         }
@@ -74,13 +72,10 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
         bool         init(const char* name, int numInputs, int numOutputs);
         virtual bool set_dsp(dsp* DSP);
     
-//      virtual bool start();
-//      virtual void stop();
-    
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();
-        void        force_stopFade();
+        void force_stopFade();
     
     signals:
     

@@ -7,25 +7,25 @@
 
 #include "FLInterfaceManager.h"
 
-
 FLInterfaceManager* FLInterfaceManager::_interfaceManagerInstance = NULL;
+
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
 FLInterfaceManager::FLInterfaceManager(){}
 
 FLInterfaceManager::~FLInterfaceManager(){}
 
-FLInterfaceManager* FLInterfaceManager::_Instance(){
-    
-    if(_interfaceManagerInstance == NULL)
+FLInterfaceManager* FLInterfaceManager::_Instance()
+{
+    if (_interfaceManagerInstance == NULL)
         FLInterfaceManager::_interfaceManagerInstance = new FLInterfaceManager;
     
     return FLInterfaceManager::_interfaceManagerInstance;
 }
 
-void FLInterfaceManager::updateAllGuis(){
-    if(fLocker.Lock()){
-        
+void FLInterfaceManager::updateAllGuis()
+{
+    if (fLocker.Lock()){
         std::list<GUI*>::iterator g;
         for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
             (*g)->updateAllZones();
@@ -34,19 +34,17 @@ void FLInterfaceManager::updateAllGuis(){
     }
 }
 
-void FLInterfaceManager::registerGUI(GUI* ui){
-    
-    if(fLocker.Lock()){
-    
+void FLInterfaceManager::registerGUI(GUI* ui)
+{
+    if (fLocker.Lock()) {
         fGuiList.push_back(ui);
         fLocker.Unlock();
     }
 }
 
-void FLInterfaceManager::unregisterGUI(GUI* ui){
-    
-    if(fLocker.Lock()){
-        
+void FLInterfaceManager::unregisterGUI(GUI* ui)
+{
+    if (fLocker.Lock()) {
         fGuiList.remove(ui);
         fLocker.Unlock();
     }

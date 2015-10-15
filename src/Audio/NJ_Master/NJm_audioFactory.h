@@ -14,7 +14,7 @@
 
 #include "AudioFactory.h"
 
-class NJm_audioFactory : public AudioFactory{
+class NJm_audioFactory : public AudioFactory {
     
     public:
     

@@ -6,7 +6,6 @@
 //
 
 #include "FLServerHttp.h"
-
 #include "FLApp.h"
 
 #ifdef _WIN32
@@ -52,6 +51,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 #ifdef REMOTE
     fDSPServer = createRemoteDSPServer(0, NULL);
     fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    //fDSPServer = NULL;
 #endif
     //Initializing screen parameters
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
@@ -80,7 +80,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     
     //Initializing menu actions 
     fRecentFileAction = new QAction* [kMAXRECENT];
-    for(int i=0; i<kMAXRECENT; i++){
+    for (int i = 0; i < kMAXRECENT; i++) {
         fRecentFileAction[i] = new QAction(NULL);
         fRecentFileAction[i]->setVisible(false);
         connect(fRecentFileAction[i], SIGNAL(triggered()), this, SLOT(open_Recent_File()));
@@ -89,7 +89,7 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     fRrecentSessionAction = new QAction* [kMAXRECENT];
     fIrecentSessionAction = new QAction* [kMAXRECENT];
     
-    for(int i=0; i<kMAXRECENT; i++){
+    for (int i = 0; i < kMAXRECENT; i++) {
         fRrecentSessionAction[i] = new QAction(NULL);
         fRrecentSessionAction[i]->setVisible(false);
         connect(fRrecentSessionAction[i], SIGNAL(triggered()), this, SLOT(recall_Recent_Session()));
@@ -157,7 +157,8 @@ FLApp::~FLApp(){
     FLServerHttp::deleteInstance();
     
 #ifdef REMOTE
-    deleteRemoteDSPServer(fDSPServer);
+    if (fDSPServer)
+        deleteRemoteDSPServer(fDSPServer);
 #endif
 }
 
@@ -1506,7 +1507,7 @@ void FLApp::open_FL_doc(){
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    if(!b)
+    if (!b)
         errorPrinting("Impossible to open FaustLive documentation ! Make sure a file association is set up for .pdf.");
 }
 
@@ -1517,7 +1518,7 @@ void FLApp::open_F_doc(){
     QUrl url = QUrl::fromLocalFile(pathToOpen);
     bool b = QDesktopServices::openUrl(url);
     
-    if(!b)
+    if (!b)
         errorPrinting("Impossible to open Faust documentation ! Make sure a file association is set up for .pdf.");
 }
 
@@ -1602,14 +1603,12 @@ void FLApp::styleClicked(const QString& style){
 
 //Preference triggered from Menu
 void FLApp::Preferences(){
-    
     FLPreferenceWindow::_Instance()->exec();
     audioPrefChanged();
 }
 
 void FLApp::audioPrefChanged(){
-    if(fAudioCreator->didSettingChanged()){
-        
+    if (fAudioCreator->didSettingChanged()) {
         fAudioCreator->visualSettingsToTempSettings();
         update_AudioArchitecture();
     } 
@@ -1628,17 +1627,16 @@ void FLApp::update_AudioArchitecture(){
     display_CompilingProgress("Updating Audio Architecture...");
     
     //Save all audio clients
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++)    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++)    
         (*it)->saveWindow();
     
     //Stop all audio clients
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++)
         (*it)->stop_Audio();
     
     //Try to init new audio architecture
-    for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
-        
-        if(!(*it)->update_AudioArchitecture(error)){
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
+        if(!(*it)->update_AudioArchitecture(error)) {
             updateSuccess = false;
             updateFailPointer = it;
             break;
@@ -1648,29 +1646,27 @@ void FLApp::update_AudioArchitecture(){
     bool reinitSuccess = true;
     
     //If init failed, reinit old audio Architecture
-    if(!updateSuccess){
+    if (!updateSuccess) {
           
         errorPrinting(errorToPrint);
         errorPrinting(error);
         
 //        If some audio did start before the failure, they have to be stopped again
-        for(it = FLW_List.begin() ; it != updateFailPointer; it++)
+        for (it = FLW_List.begin(); it != updateFailPointer; it++)
             (*it)->stop_Audio();
         
 //        Switch back to previous architecture
         fAudioCreator->restoreSavedSettings();
         
-        for(it = FLW_List.begin() ; it != FLW_List.end(); it++){
-            
-            if(!(*it)->update_AudioArchitecture(error)) {
+        for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
+            if (!(*it)->update_AudioArchitecture(error)) {
                 reinitSuccess = false;
                 break;
             }
         }
         
 //        In case switch back fails, every window is closed
-        if(!reinitSuccess){
-            
+        if (!reinitSuccess) {
             shut_AllWindows_FromMenu();
             
             errorToPrint += fAudioCreator->get_ArchiName();
@@ -1678,22 +1674,18 @@ void FLApp::update_AudioArchitecture(){
             
             errorPrinting(errorToPrint);
             errorPrinting(error);
-        }
-        else{
-            
+        } else {
             for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
                 (*it)->start_Audio();
             
             errorToPrint = fAudioCreator->get_ArchiName();
             errorToPrint += " was reinitialized";
             errorPrinting(errorToPrint);
-            
         }
         
-    }
-    else{
+    } else {
         
-        for(it = FLW_List.begin() ; it != FLW_List.end(); it++) {
+        for (it = FLW_List.begin() ; it != FLW_List.end(); it++) {
             (*it)->start_Audio();
         }
         
@@ -1729,7 +1721,7 @@ void FLApp::StopProgressSlot(){
 FLWindow* FLApp::httpPortToWin(int port){
     
     for(QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
-        if((*it)->get_Port() == port)
+        if ((*it)->get_Port() == port)
             return *it;
     }
     return NULL;
@@ -1739,28 +1731,23 @@ FLWindow* FLApp::httpPortToWin(int port){
 void FLApp::launch_Server(){
     
     bool returning = true;
-    
     int i = 0;
-        
     bool started = true;
     
     while(!FLServerHttp::_Instance()->start()){
         
         started = false;
-        
         QString s("Server Could Not Start On Port ");
         s += QString::number(FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt());
-            
         errorPrinting(s);
-            
         FLSettings::_Instance()->setValue("General/Network/HttpDropPort", FLSettings::_Instance()->value("General/Network/HttpDropPort", 7777).toInt()+1);
         
-        if(i > 15){
+        if (i > 15){
             returning = false;
             break;
-        }
-        else
+        } else {
             i++;
+        }
     } 
     
     if(!returning)
@@ -1776,7 +1763,7 @@ void FLApp::launch_Server(){
 
 //Stop FaustLive Server
 void FLApp::stop_Server(){
-        FLServerHttp::_Instance()->stop();
+    FLServerHttp::_Instance()->stop();
 }
 
 //Update when a file is dropped on HTTP interface (it has the same behavior as a drop in FaustLive window)
@@ -1808,8 +1795,7 @@ void FLApp::compile_HttpData(const char* data, int port){
             
         if(win != NULL)
             success = true;
-    }
-    else{
+    } else {
         win = httpPortToWin(port);
         
         if(win->update_Window(source))
@@ -1817,12 +1803,12 @@ void FLApp::compile_HttpData(const char* data, int port){
     }
     
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
-    if(success){
+    if (success){
         string url = win->get_HttpUrl().toStdString();
         FLServerHttp::_Instance()->compileSuccessfull(url);
-    }
-    else
+    } else {
         FLServerHttp::_Instance()->compileFailed(error.toStdString());
+    }
 }
 
 void FLApp::changeDropPort(){
@@ -1834,8 +1820,10 @@ void FLApp::changeDropPort(){
 #ifdef REMOTE
 void FLApp::changeRemoteServerPort()
 {
-    fDSPServer->stop();
-    fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    if (fDSPServer) {
+        fDSPServer->stop();
+        fDSPServer->start(FLSettings::_Instance()->value("General/Network/RemoteServerPort", 5555).toInt());
+    }
 }
 #endif
 

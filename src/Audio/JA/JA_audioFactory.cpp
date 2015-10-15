@@ -18,14 +18,14 @@ JA_audioFactory::JA_audioFactory(){}
 JA_audioFactory::~JA_audioFactory(){}
 
 //Creates Settings, corresponding to a JackAudio object
-AudioSettings* JA_audioFactory::createAudioSettings(QGroupBox* parent){
-    
+AudioSettings* JA_audioFactory::createAudioSettings(QGroupBox* parent)
+{
     return new JA_audioSettings(parent);
 }
 
 //Creates an AudioManager, corresponding to a JackAudio object 
-AudioManager* JA_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg){
-    
+AudioManager* JA_audioFactory::createAudioManager(AudioShutdownCallback cb, void* arg)
+{
     return new JA_audioManager(cb, arg);
 }
 

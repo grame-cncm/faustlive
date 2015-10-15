@@ -1,12 +1,10 @@
 //
 //  FLServerHttp.h
-//  
 //
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
-
-// FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
+// FLServer wraps another httpPage (typically a httpdInterface) in a dropable page that can send a new source to FaustLive
 //
 // The GET requests treated by FLServer are :
 //         /availableInterfaces --> returns an HTML page describing all available HTML interfaces
@@ -58,7 +56,7 @@ using namespace std;
 #define GET 0
 #define POST 1
 
-struct connection_info_struct {
+struct connection_info {
 
     int connectiontype;                         // GET or POST
     struct MHD_PostProcessor *postprocessor;    // the POST processor used internally by microhttpd
@@ -78,7 +76,7 @@ class FLServerHttp : public QObject
 
         Q_OBJECT
         
-        int             fMax_clients;
+        int             fMaxCients;
         string          fError;         // Not important right now
         string          fUrl;           // Url of wrapped http page 
         
@@ -96,7 +94,7 @@ class FLServerHttp : public QObject
         
         static FLServerHttp*    _serverInstance;
         
-        static int      fNr_of_uploading_clients;
+        static int      fUploadingClients;
         
         struct          MHD_Daemon* fDaemon;
         
@@ -127,7 +125,7 @@ class FLServerHttp : public QObject
      
     public:
        
-        FLServerHttp();
+        FLServerHttp(const string& home);
         virtual ~FLServerHttp();
          
         bool        start();

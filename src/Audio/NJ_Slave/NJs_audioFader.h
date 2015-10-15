@@ -25,7 +25,7 @@ class NJs_audioFader : public QObject, public netjackaudio, public AudioFader_In
         
         Q_OBJECT
             
-        int     fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
+        int fNumberRestartAttempts;  // Number of attempts of reconnexion before considering that the connection is lost
         
         //static int net_restart(void* arg);
             
@@ -57,10 +57,7 @@ class NJs_audioFader : public QObject, public netjackaudio, public AudioFader_In
         virtual bool init(const char* name, dsp* DSP);
         bool         init(const char* name, int numInputs, int numOutputs);
         virtual bool set_dsp(dsp* DSP);
-    
-//      virtual bool start();
-//      virtual void stop();
-    
+       
         virtual void launch_fadeIn();
         virtual void launch_fadeOut();
         virtual bool get_FadeOut();

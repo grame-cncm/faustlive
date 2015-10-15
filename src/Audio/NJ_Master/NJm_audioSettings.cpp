@@ -29,11 +29,13 @@ void NJm_audioSettings::setVisualSettings(){}
 void NJm_audioSettings::storeVisualSettings(){}
 
 //Operator== for NetJack Settings
-bool NJm_audioSettings::isEqual(AudioSettings*){
+bool NJm_audioSettings::isEqual(AudioSettings*)
+{
     return true;
 }
 
-QString NJm_audioSettings::get_ArchiName(){
+QString NJm_audioSettings::get_ArchiName()
+{
     return "NetJackMaster";
 }
 

@@ -9,33 +9,28 @@
 
 #include <iostream> 
 #include <fstream>
-
 #include <openssl/sha.h>
 
 #include <QtNetwork>
 #include <QWidgetList>
 
-
-void writeFile(const QString& filePath, const QString& content){
+void writeFile(const QString& filePath, const QString& content)
+{
     QFile f(filePath); 
      
-    if(f.open(QFile::WriteOnly | QIODevice::Truncate)){
-        
+    if (f.open(QFile::WriteOnly | QIODevice::Truncate)) {
         QTextStream textWriting(&f);
-        
         textWriting<<content;
-        
         f.close();
     }
 }
 
-QString readFile(const QString& filePath){
-    
+QString readFile(const QString& filePath)
+{
     QString content("");
     QFile f(filePath);
     
-    if(f.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         content = QLatin1String(f.readAll());
         f.close();
     }
@@ -64,26 +59,23 @@ QString pathToContent(const QString& path)
     return result;
 }
 
-void touchFolder(const QString& path){
-    
+void touchFolder(const QString& path)
+{
     QString instruction = "touch " + path;
-    
     QString error("");
-    
     executeInstruction(instruction, error);
-    
 }
 
-bool executeInstruction(const QString& instruct, QString& errorMsg){
+bool executeInstruction(const QString& instruct, QString& errorMsg)
+{
     QProcess myCmd;
     QByteArray error;
     
     myCmd.start(instruct);
     myCmd.waitForFinished();
-    
     error = myCmd.readAllStandardError();
     
-    if(myCmd.readChannel() == QProcess::StandardError ) {
+    if (myCmd.readChannel() == QProcess::StandardError ) {
         errorMsg = error.data();
 		return false;
 	} else {
@@ -91,39 +83,38 @@ bool executeInstruction(const QString& instruct, QString& errorMsg){
 	}
 }
 
-
 //Delete recursively the content of a folder
-void deleteDirectoryAndContent(const QString& directory){
-
+void deleteDirectoryAndContent(const QString& directory)
+{
     QString rmInstruct("rm -r ");
     rmInstruct += directory;
-    
     QString errorMsg("");
-    
     executeInstruction(rmInstruct, errorMsg);
 }
 
-bool tarFolder(const QString& folder, QString& errorMsg){
-    
+bool tarFolder(const QString& folder, QString& errorMsg)
+{
     QString systemInstruct("tar cfv ");
     systemInstruct += folder + ".tar " + folder;
-    
     return executeInstruction(systemInstruct, errorMsg);
 }
 
-bool untarFolder(const QString& folder, QString& errorMsg){
-    
+bool untarFolder(const QString& folder, QString& errorMsg)
+{
     QString systemInstruct("tar xfv ");
     systemInstruct += folder +" -C /";
-    
     return executeInstruction(systemInstruct, errorMsg);
 }
 
 //Remove a directory
-bool rmDir(const QString &dirPath){
+bool rmDir(const QString &dirPath)
+{
     QDir dir(dirPath);
-    if (!dir.exists())
+    
+    if (!dir.exists()) {
         return true;
+    }
+        
     foreach(const QFileInfo &info, dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
         if (info.isDir()) {
             if (!rmDir(info.filePath()))
@@ -138,8 +129,8 @@ bool rmDir(const QString &dirPath){
 }
 
 //Copy a directory
-bool cpDir(const QString &srcPath, const QString &dstPath){
-    
+bool cpDir(const QString &srcPath, const QString &dstPath)
+{
     rmDir(dstPath);
     QDir parentDstDir(QFileInfo(dstPath).path());
     if (!parentDstDir.mkdir(QFileInfo(dstPath).fileName()))
@@ -165,12 +156,11 @@ bool cpDir(const QString &srcPath, const QString &dstPath){
 }
 
 //Verify if the word is a number
-bool isStringInt(const char* word){
-    
+bool isStringInt(const char* word)
+{
     bool returning = true;
-    
-    for(size_t i=0; i<strlen(word); i++){
-        if(!isdigit(word[i])){
+    for (size_t i = 0; i < strlen(word); i++) {
+        if (!isdigit(word[i])) {
             returning = false;
             break;
         }
@@ -178,28 +168,24 @@ bool isStringInt(const char* word){
     return returning;
 }
 
-
-
 //Search IP adress in ifconfig result
-QString searchLocalIP(){
-    
+QString searchLocalIP()
+{
     printf("Utilities... Search for IP\n");
     
     QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
-    
     QList<QHostAddress>::iterator it;
-    
     QString localhost("localhost"); 
     
     for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
-		if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost){
+		if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
 			printf("HOST = %s at pos = %i\n", it->toString().toStdString().c_str(), it->toString().indexOf("169."));
 			//Filter strange windows default adress 169.x.x.x
 			if(it->toString().indexOf("169.") != 0)
 	            return it->toString();
-		}
-        else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+		} else if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost) {
             localhost = it->toString();
+        }
     }
     
     return localhost;
@@ -211,7 +197,6 @@ const char* lopts(char *argv[], const char *name, const char* def)
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
 }
-
 
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 bool parseKey(vector<string> options, const string& key, int& position)
@@ -347,15 +332,12 @@ vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
 string FL_reorganize_compilation_options(QString compilationOptions)
 {
     int argc = get_numberParameters(compilationOptions);
-    
     vector<string> res1;
     for (int i = 0; i < argc; i++) {
-        
         res1.push_back(parse_compilationParams(compilationOptions));
     }
     
     vector<string> res2 = reorganizeCompilationOptionsAux(res1);
-    
     string res3;
     string sep;
     for (size_t i = 0; i < res2.size(); i++) {
@@ -365,7 +347,6 @@ string FL_reorganize_compilation_options(QString compilationOptions)
     
     return "\"" + res3 + "\"";
 }
-
 
 string FL_generate_sha1(const string& dsp_content)
 {
@@ -389,24 +370,22 @@ string FL_generate_sha1(const string& dsp_content)
 //---------------COMPILATION OPTIONS
 
 //Get number of compilation options
-int get_numberParameters(const QString& compilOptions){
-    
+int get_numberParameters(const QString& compilOptions)
+{
     int argc = 0;
     int pos = compilOptions.indexOf("-");
     
-    while(pos != -1 && pos < compilOptions.size()){
+    while (pos != -1 && pos < compilOptions.size()) {
         
         argc++;
-        
         pos = compilOptions.indexOf(" ", pos);
         
-        while(pos != -1 && pos < compilOptions.size()){
-            
-            if(compilOptions[pos] == ' ')
+        while (pos != -1 && pos < compilOptions.size()) {
+            if (compilOptions[pos] == ' ') {
                 pos++;
-            else if(compilOptions[pos] == '-')
+            } else if(compilOptions[pos] == '-') {
                 break;
-            else{
+            } else {
                 argc++;
                 pos = compilOptions.indexOf(" ", pos);
             }
@@ -414,51 +393,43 @@ int get_numberParameters(const QString& compilOptions){
     }
     
     return argc;
-    
 }
 
 //Hand Made Parser
 //Returns : the first option found, skipping the ' '
 //CompilOptions : the rest of the options are kept in
-string parse_compilationParams(QString& compilOptions){
-    
+string parse_compilationParams(QString& compilOptions)
+{
     QString returning = "";
-    
     int pos = 0;
     
-    while(pos != -1 && pos < compilOptions.size()){
-        if(compilOptions[pos] == ' ')
+    while (pos != -1 && pos < compilOptions.size()) {
+        if (compilOptions[pos] == ' ') {
             pos++;
-        else{
+        } else {
             int pos2 = compilOptions.indexOf(" ", pos);
-            
             returning = compilOptions.mid(pos, pos2-pos);
-            
-            if(pos2 == -1)
+            if (pos2 == -1) {
                 pos2 = compilOptions.size();
+            }
             compilOptions.remove(0, pos2);
-            
             break;
         }
     }
     
-    string returnin(returning.toStdString());
-    
-    return returnin;
+    return returning.toStdString();
 }
 
 // center a widget on the primary screen of the machine or 
 // on the screen of the top level widget
 void centerOnPrimaryScreen(QWidget* w)
 {
-    
     QDesktopWidget *dw = QApplication::desktop();
 	QWidgetList l = QApplication::topLevelWidgets();
     
-	if (l.empty())
+	if (l.empty()) {
     	w->move(dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center());
-    else {
-        
+    } else {
     	QWidget* topwidget = l.first();	
     	w->move(dw->screenGeometry(topwidget).center() - w->geometry().center());
     }

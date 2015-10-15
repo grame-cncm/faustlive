@@ -22,12 +22,12 @@
 #include <QtWidgets>
 #endif
 
-
 class httpdUI;
 class QTGUI;
 class FLToolBar;
 class FLStatusBar;
 class OSCUI;
+class MidiUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
@@ -80,18 +80,23 @@ class FLWindow : public QMainWindow
         QDateTime       fCreationDate;
         
 //--- Interfaces
-        QTGUI*          fInterface;      //User control interface
-        FUI*            fRCInterface;     //Graphical parameters saving interface
+        QTGUI*          fInterface;         //User control interface
+        FUI*            fRCInterface;       //Graphical parameters saving interface
 
         OSCUI*          fOscInterface;      //OSC interface 
+        MidiUI*         fMIDIInterface;     //MIDI interface
+        
+        httpdUI*        fHttpInterface;     //Httpd interface for distance control      
+        HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address
+
         void            allocateOscInterface();
         void            deleteOscInterface();
 
-        httpdUI*        fHttpInterface;     //Httpd interface for distance control      
-        HTTPWindow*     fHttpdWindow;    //Supporting QRcode and httpd address
-
 		void            allocateHttpInterface();
         void            deleteHttpInterface();
+        
+        void            allocateMIDIInterface();
+        void            deleteMIDIInterface();
     
 //--- Audio driver
         AudioManager*   fAudioManager;
@@ -161,7 +166,7 @@ class FLWindow : public QMainWindow
     
     //-- 4 steps in a interface's life
         bool            allocateInterfaces(const QString& nameEffect); 
-        bool            buildInterfaces(dsp* dsp);
+        void            buildInterfaces(dsp* dsp);
         void            runInterfaces();
         void            deleteInterfaces();
     
@@ -213,7 +218,7 @@ class FLWindow : public QMainWindow
         bool            is_Default();
     
     //Functions to create an httpd interface
-        void            viewQrCode();
+        void            viewQRCode();
         QString         get_HttpUrl();
     
     //In case of a right click, it is called
@@ -230,15 +235,19 @@ class FLWindow : public QMainWindow
         void            resizingSmall();
 
     //Modification of the HTTP interface
+        void            updateHttpInterface();
         void            switchHttp(bool);
         void            exportToPNG();    
-        void            updateHTTPInterface();
     
     //Modification of the OSC interface
 		void            updateOSCInterface();
         void            switchOsc(bool);
         void            disableOSCInterface();
-
+        
+    //Modification of the MIDI interface
+        void            updateMIDIInterface();
+        void            switchMIDI(bool);
+   
         void            shut();
 
     //Raises and shows the window
@@ -249,7 +258,7 @@ class FLWindow : public QMainWindow
     //The window has to be warned in case its source file is deleted
         void            source_Deleted();
     
-        static          int RemoteDSPCallback(int error_code, void* arg);
+        static          int remoteDSPCallback(int error_code, void* arg);
     
     //Udpate the effect running in the window and all its related parameters.
     //@param : source = DSP that reemplaces the current one

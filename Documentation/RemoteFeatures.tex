@@ -81,11 +81,11 @@ The main difficulty is to think through the interactions of every feature:
 \item remote rendering (NetJack)
 \end{itemize}
 
-For each feature, the compilation chain has to be  make sure we have the exact same behavior (compilation, synchronization of params/edition, crossfade, session saving/recall, etc). \\
+For each feature, the compilation chain has to be made sure we have the exact same behavior (compilation, synchronization of params/edition, crossfade, session saving/recall, etc). \\
 
-For now, it is possible to use the remote processing or the publish feature but it was never validated that every thing works together. \\
+For now, it is possible to use the remote processing or the publish feature, but it was never validated that everything works together. \\
 
-Moreover, FaustLive was created as a pile of features that were more or less independent. This is why FaustLive can have multiple servers running : 1 for each HTTP interface + 1 to center all HTTP interfaces + 1 for remote processing + etc
+Moreover, FaustLive was created as a pile of features that were more or less independent. This is why FaustLive can have multiple servers running : 1 for each HTTP interface + 1 to centralize all HTTP interfaces + 1 for remote processing + etc
 
 There might be a way to simplify this. 
 
@@ -93,12 +93,12 @@ There might be a way to simplify this.
 \section{All the use cases}
 
 %%%%%%%%%%%%%%MAIN CONFIG%%%%%%%%%%%%%%%%%
-\subsection{FaustLive Main Use}
+\subsection{FaustLive main use}
 This is the usual configuration for any Faust application, whether it is a standalone application, a plugin or running in FaustLive.
 \begin{figure}[!h]
 \begin{center}
 \includegraphics[width=0.7\columnwidth]{images/1CCC}
-\caption{Control-Compute-Communicate Division for the main uses of FaustLive}
+\caption{Control-Compute-Communicate Division for the main use of FaustLive}
 \label{fig:1CCC}
 \end{center}
 \end{figure}
@@ -106,7 +106,7 @@ This is the usual configuration for any Faust application, whether it is a stand
 \begin{figure}[!h]
 \begin{center}
 \includegraphics[width=\columnwidth]{images/CCC1}
-\caption{Creation of the Interface/DSP/Driver for the main uses of FaustLive}
+\caption{Creation of the Interface/DSP/Driver for the main use of FaustLive}
 \label{fig:CCC1}
 \end{center}
 \end{figure}
@@ -114,7 +114,7 @@ This is the usual configuration for any Faust application, whether it is a stand
 %%%%%%%%%%%%%%REMOTE CONTROL%%%%%%%%%%%%%%%%%
 \newpage
 \subsection{ Using the remote control (OSC, HTTP or other?)} \label{remotecontrol}
-FaustLive creates an interface OSC or HTTP which means launching a server that waits for remote interfaces to synchronize. \\
+FaustLive creates a OSC or HTTP interface, which means launching a server that waits for remote interfaces to synchronize. \\
 From the remote device, we can then create the corresponding interface.\\
 
 An idea implemented for HTTP remote interfaces but not OSC:
@@ -185,13 +185,13 @@ Combining use case {\ref{remotecontrol}} and use case {\ref{remoterendering}}.
 
 1 use case is implemented in FaustLive:
 \begin{itemize}
-\item FaustLive sends code to create a remote factory then uses its proxy DSP to create the control interface and communicate with the audio driver.
+\item FaustLive sends code to create a remote factory, then uses its proxy DSP to create the control interface and communicate with the audio driver.
 \end{itemize}
 You can access this use case through the scrolling menu containing the available servers below the window. \\
 
 The 2nd use case is conceivable but not implemented:
 \begin{itemize}
-\item FaustLive discovers remote servers and its available factories. Then it can request a remote instance then uses the proxy DSP to create the interface and communicate with the audio driver.
+\item FaustLive discovers remote servers and their available factories. Then it can request a remote instance, then uses the proxy DSP to create the interface and communicate with the audio driver.
 \end{itemize}
 
 \begin{figure}[!h]
@@ -223,7 +223,7 @@ Combining use case {\ref{remotecontrol}} and use case {\ref{remoteprocessing}}.
 
 1 use case is implemented in FaustLive:
 \begin{itemize}
-\item use the OSC or HTTP control combined with the remote processing, code sended by FaustLive.
+\item use the OSC or HTTP control combined with the remote processing, code sent by FaustLive.
 \end{itemize}
 
 The imaginary use cases are all combination of the imaginary use cases of {\ref{remotecontrol}} and {\ref{remoteprocessing}}.
@@ -253,7 +253,7 @@ The remote processing use cases are described on {\ref {remoteprocessing}}. \\
 
 1 use case is implemented in FaustLive:
 \begin{itemize}
-\item NetJack is used to communicate between machines and render remotly. The communication between "Control" and "Communicate" runs through FaustLive. (combine \ref{remoterendering} and \ref{remoteprocessing})
+\item NetJack is used to communicate between machines and remotely render. The communication between "Control" and "Communicate" runs through FaustLive. (combine \ref{remoterendering} and \ref{remoteprocessing})
 \end{itemize}
 
 The 2nd use case is conceivable but not implemented:
@@ -289,7 +289,7 @@ The 2nd use case is conceivable but not implemented:
 This is the opposite of use case {\ref {remoteprocessing}} from FaustLive point of view. \\
 This is the same use case {\ref {remoteprocessing}} from the remote device point of view. \\
 
-The mobile device discovers remote factories on FaustLive and requests a remote instance then uses its proxy DSP to create the control interface and communicate with the audio driver. \\
+The mobile device discovers remote factories on FaustLive and requests a remote instance, then uses its proxy DSP to create the control interface and communicate with the audio driver. \\
 This use case is "more or less" available in FaustLive. The trick is to switch to a local remote processing server. The factory is then public on the server and accessible for remote devices. The remote instance is totally independent from the local instance. It just uses the server running in FaustLive. It would be nice to rethink this, in order to share the same system of Factory/Instance creation (in FLSessionManager). \\
 
 An idea would be to have the possibility to "publish" the factory without quitting the local processing of the current running DSP. \\
@@ -387,7 +387,7 @@ Some attempts have be added to FaustLive but never finished. See
 \begin{itemize}
 \item FLRemoteDSPScanner (and its use in FLApp)
 \item FLRemoteServer (and its use in FLWindow)
-\item FLInterfaceManager : The synchronization between all the interfaces sharing a unique DSP is done in the QTGUI. The problem being that if we don't have this QTGUI (see some of theses use cases), there is no synchronization. For that matter, a class called FLInterfaceManager has been created. It is not yet of a great interest but if those use cases are implemented, it will become essential.
+\item FLInterfaceManager : the synchronization between all the interfaces sharing a unique DSP is done in the QTGUI. The problem being that if we don't have this QTGUI (see some of theses use cases), there is no synchronization. For that matter, a class called FLInterfaceManager has been created. It is not yet of a great interest but if those use cases are implemented, it will become essential.
 \end{itemize}
 
 \section{Notes on the Remote Server embedded in FaustLive}
