@@ -1,6 +1,7 @@
 ######################################################################
 # FAUSTLIVE.PRO
 ######################################################################
+QMAKE_MAC_SDK = macosx10.11
 
 # THANKS TO QMAKE, THIS FILE WILL PRODUCE THE MAKEFILE OF FAUSTLIVE APPLICATION
 # IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED
@@ -19,7 +20,7 @@ isEmpty(LLVM_CONFIG) {
 isEmpty(LLVM_VERSION) {
 	LLVM_VERSION = $$system($$LLVM_CONFIG --version)
 }
- 
+
 ## Application Settings
 OBJECTS_DIR += ../../src/objectsFolder
 MOC_DIR += ../../src/objectsFolder
@@ -89,14 +90,14 @@ LIBS+=-lOSCFaust
 LIBS+=-lqrencode
 LIBS+=-lmicrohttpd
 LIBS+=-lcrypto
-	  
+
 LIBS+=-lcurl
 LIBS+=-L/opt/local/lib
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 
-########## DEFINES/LIBS/SOURCES/... 
+########## DEFINES/LIBS/SOURCES/...
 ########## depending on audio drivers | remote processing feature
 
 equals(REMVAR, 1){
@@ -104,22 +105,22 @@ equals(REMVAR, 1){
 	LIBS+=-lfaustremote
 	LIBS+=-lcurl
 	LIBS+=-llo
-	
+
 #	HEADER += ../../src/Network/Server.h
 #	SOURCES += ../../src/Network/Server.cpp
 
 #	INCLUDEPATH += /Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer \
 #					/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote
-#	
-	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h 
+#
+	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/tempName.h \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/TMutex.h \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.h \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.h \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.h \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Server.h
-#				
-	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp 
+#
+	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_DSP.cpp \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/server_netjackaudio.cpp \
 #				/Users/denoux/faudiostream-code_FAUST2/embedded/faustremote/RemoteServer/Slave_Factory.cpp \
@@ -131,15 +132,15 @@ equals(CAVAR, 1){
 	LIBS+= -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI
 	DEFINES += COREAUDIO
 	INCLUDEPATH += ../../src/Audio/CA
-	
+
 	HEADERS += 	../../src/Audio/CA/CA_audioFactory.h\
 				../../src/Audio/CA/CA_audioSettings.h\
 				../../src/Audio/CA/CA_audioManager.h\
-				../../src/Audio/CA/CA_audioFader.h 
-				
+				../../src/Audio/CA/CA_audioFader.h
+
 	SOURCES += 	../../src/Audio/CA/CA_audioFactory.cpp \
 				../../src/Audio/CA/CA_audioSettings.cpp \
-				../../src/Audio/CA/CA_audioManager.cpp 
+				../../src/Audio/CA/CA_audioManager.cpp
 }else{
 	message("COREAUDIO NOT LINKED")
 }
@@ -148,30 +149,30 @@ equals(JVAR, 1){
 	message("JACK LINKED")
 	LIBS+= -ljack
 	DEFINES += JACK
-	
+
 	INCLUDEPATH += ../../src/Audio/JA
-		
+
 	HEADERS += 	../../src/Audio/JA/JA_audioFactory.h \
 				../../src/Audio/JA/JA_audioSettings.h \
 				../../src/Audio/JA/JA_audioManager.h \
 				../../src/Audio/JA/JA_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/JA/JA_audioSettings.cpp \
 				../../src/Audio/JA/JA_audioManager.cpp \
 				../../src/Audio/JA/JA_audioFactory.cpp \
-				../../src/Audio/JA/JA_audioFader.cpp 
+				../../src/Audio/JA/JA_audioFader.cpp
 }else{
 	message("JACK NOT LINKED")
-}	
+}
 
 equals(NJVAR, 1){
 	message("NETJACK LINKED")
 	LIBS += -ljacknet
 	DEFINES += NETJACK
-	
+
 	INCLUDEPATH += ../../src/Audio/NJ_Master \
 					../../src/Audio/NJ_Slave
-	
+
 	HEADERS += 	../../src/Audio/NJ_Master/NJm_audioFactory.h \
 				../../src/Audio/NJ_Master/NJm_audioSettings.h \
 				../../src/Audio/NJ_Master/NJm_audioManager.h \
@@ -179,8 +180,8 @@ equals(NJVAR, 1){
 				../../src/Audio/NJ_Slave/NJs_audioFactory.h \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
 				../../src/Audio/NJ_Slave/NJs_audioManager.h \
-				../../src/Audio/NJ_Slave/NJs_audioFader.h 
-	
+				../../src/Audio/NJ_Slave/NJs_audioFader.h
+
 	SOURCES += 	../../src/Audio/NJ_Master/NJm_audioFactory.cpp \
 				../../src/Audio/NJ_Master/NJm_audioSettings.cpp \
 				../../src/Audio/NJ_Master/NJm_audioManager.cpp \
@@ -188,51 +189,51 @@ equals(NJVAR, 1){
 				../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
-				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
+				../../src/Audio/NJ_Slave/NJs_audioFader.cpp
 }else{
 	message("NETJACK NOT LINKED")
-}		
+}
 
 equals(ALVAR, 1){
 	message("ALSA LINKED")
 	LIBS += -lasound
 	DEFINES += ALSA
-	
+
 	INCLUDEPATH += ../../src/Audio/AL
-	
+
 	HEADERS += 	../../src/Audio/AL/AL_audioFactory.h \
 				../../src/Audio/AL/AL_audioSettings.h \
 				../../src/Audio/AL/AL_audioManager.h \
 				../../src/Audio/AL/AL_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/AL/AL_audioFactory.cpp \
 				../../src/Audio/AL/AL_audioSettings.cpp \
-				../../src/Audio/AL/AL_audioManager.cpp 
+				../../src/Audio/AL/AL_audioManager.cpp
 }else{
 	message("ALSA NOT LINKED")
-}		
+}
 
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
-	
-	LIBS += -lportaudio	
+
+	LIBS += -lportaudio
 	DEFINES += PORTAUDIO
-	
+
 	INCLUDEPATH += ../../src/Audio/PA
-	
+
 	HEADERS += 	../../src/Audio/PA/PA_audioFactory.h \
 				../../src/Audio/PA/PA_audioSettings.h \
 				../../src/Audio/PA/PA_audioManager.h \
 				../../src/Audio/PA/PA_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/PA/PA_audioFader.cpp \
 				../../src/Audio/PA/PA_audioFactory.cpp \
 				../../src/Audio/PA/PA_audioSettings.cpp \
-				../../src/Audio/PA/PA_audioManager.cpp 
+				../../src/Audio/PA/PA_audioManager.cpp
 }else{
 	message("PORT AUDIO NOT LINKED")
-}		
+}
 
 ########## HEADERS AND SOURCES OF PROJECT
 
@@ -286,6 +287,3 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
 			../../src/Utilities/main.cpp
-
-
-
