@@ -14,7 +14,7 @@ isEmpty(FAUSTDIR) {
 isEmpty(LLVM_CONFIG) {
 	LLVM_CONFIG = llvm-config
 }
- 
+
 isEmpty(CURL_CONFIG) {
 	CURL_CONFIG = curl-config
 }
@@ -53,7 +53,7 @@ QMAKE_INFO_PLIST = FaustLiveInfo.plist
 
 DEPENDPATH += $$FAUSTDIR/include/faust/gui
 INCLUDEPATH += .
-INCLUDEPATH += /opt/local/include	
+INCLUDEPATH += /opt/local/include
 INCLUDEPATH += ../../src/Audio
 INCLUDEPATH += ../../src/MenusAndDialogs
 INCLUDEPATH += ../../src/MainStructure
@@ -63,9 +63,9 @@ INCLUDEPATH += ../../src/Utilities
 LIBS+=-L$$FAUSTDIR/lib/ -L/usr/lib/ -L/opt/local/lib
 
 equals(static, 1){
-	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -lfaust -Wl,-Bdynamic
+	LIBS+=-Wl,-static -lHTTPDFaust -lOSCFaust -lfaust -lqrencode -lmicrohttpd -Wl,-Bdynamic
 } else {
-	LIBS+=-lHTTPDFaust -lOSCFaust -lfaust
+	LIBS+=-lHTTPDFaust -lOSCFaust -lfaust -lqrencode -lmicrohttpd
 }
 
 
@@ -80,11 +80,11 @@ equals(static, 1){
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libtasn1.a
 	#LIBS+=-lp11-kit
 	#LIBS+=-lcurl
-	#LIBS+=-Wl,-static	
+	#LIBS+=-Wl,-static
 }
 
-	LIBS+=-lqrencode
-	LIBS+=-lmicrohttpd
+#	LIBS+=-lqrencode
+#	LIBS+=-lmicrohttpd
 	LIBS+=-lcrypto
 	LIBS+=-lcurl
 	LIBS+=-lasound
@@ -100,10 +100,10 @@ equals(REMVAR, 1){
 	LIBS+=-lcurl
 	LIBS+=-llo
 	LIBS+=-ldbus-1 -lrt
-	
+
 	HEADERS += ../../src/MenusAndDialogs/FLStatusBar.h
 	SOURCES += ../../src/MenusAndDialogs/FLStatusBar.cpp
-		
+
 	#HEADERS += ../../src/Network/Server.h
 	#SOURCES += ../../src/Network/Server.cpp
 }
@@ -112,83 +112,83 @@ equals(JVAR, 1){
 	message("JACK LINKED")
 	LIBS+= -ljack
 	DEFINES += JACK
-	
+
 	INCLUDEPATH += ../../src/Audio/JA
-		
+
 	HEADERS += 	../../src/Audio/JA/JA_audioFactory.h \
 				../../src/Audio/JA/JA_audioSettings.h \
 				../../src/Audio/JA/JA_audioManager.h \
 				../../src/Audio/JA/JA_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/JA/JA_audioSettings.cpp \
 				../../src/Audio/JA/JA_audioManager.cpp \
 				../../src/Audio/JA/JA_audioFactory.cpp \
-				../../src/Audio/JA/JA_audioFader.cpp 
+				../../src/Audio/JA/JA_audioFader.cpp
 }else{
 	message("JACK NOT LINKED")
-}	
+}
 
 equals(NJVAR, 1){
 	message("NETJACK LINKED")
 	LIBS += -ljacknet
 	DEFINES += NETJACK
-	
+
 	INCLUDEPATH += ../../src/Audio/NJ_Slave
-	
+
 	HEADERS += 	../../src/Audio/NJ_Slave/NJs_audioFactory.h \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.h \
 				../../src/Audio/NJ_Slave/NJs_audioManager.h \
-				../../src/Audio/NJ_Slave/NJs_audioFader.h 
-	
+				../../src/Audio/NJ_Slave/NJs_audioFader.h
+
 	SOURCES += 	../../src/Audio/NJ_Slave/NJs_audioFactory.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioSettings.cpp \
 				../../src/Audio/NJ_Slave/NJs_audioManager.cpp \
-				../../src/Audio/NJ_Slave/NJs_audioFader.cpp 
+				../../src/Audio/NJ_Slave/NJs_audioFader.cpp
 }else{
 	message("NETJACK NOT LINKED")
-}		
+}
 
 equals(ALVAR, 1){
 	message("ALSA LINKED")
 	LIBS += -lasound
 	DEFINES += ALSA
-	
+
 	INCLUDEPATH += ../../src/Audio/AL
-	
+
 	HEADERS += 	../../src/Audio/AL/AL_audioFactory.h \
 				../../src/Audio/AL/AL_audioSettings.h \
 				../../src/Audio/AL/AL_audioManager.h \
 				../../src/Audio/AL/AL_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/AL/AL_audioFactory.cpp \
 				../../src/Audio/AL/AL_audioSettings.cpp \
-				../../src/Audio/AL/AL_audioManager.cpp 
+				../../src/Audio/AL/AL_audioManager.cpp
 }else{
 	message("ALSA NOT LINKED")
-}		
+}
 
 equals(PAVAR, 1){
 	message("PORT AUDIO LINKED")
-	
+
 ##	LIBS += -lportaudio_x86
 	LIBS += -lportaudio
-	
+
 	DEFINES += PORTAUDIO
-	
+
 	INCLUDEPATH += ../../src/Audio/PA
-	
+
 	HEADERS += 	../../src/Audio/PA/PA_audioFactory.h \
 				../../src/Audio/PA/PA_audioSettings.h \
 				../../src/Audio/PA/PA_audioManager.h \
 				../../src/Audio/PA/PA_audioFader.h \
-	
+
 	SOURCES += 	../../src/Audio/PA/PA_audioFader.cpp \
 				../../src/Audio/PA/PA_audioFactory.cpp \
 				../../src/Audio/PA/PA_audioSettings.cpp \
-				../../src/Audio/PA/PA_audioManager.cpp 
+				../../src/Audio/PA/PA_audioManager.cpp
 }else{
 	message("PORT AUDIO NOT LINKED")
-}		
+}
 
 ########## LIBS AND FLAGS
 
@@ -227,7 +227,7 @@ HEADERS +=  ../../src/Utilities/utilities.h \
             ../../src/MainStructure/FLInterfaceManager.h \
             ../../src/MenusAndDialogs/SimpleParser.h \
 			../../src/Network/HTTPWindow.h \
-			$$FAUSTDIR/include/faust/gui/faustqt.h 
+			$$FAUSTDIR/include/faust/gui/faustqt.h
 
 SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Audio/AudioCreator.cpp \
@@ -251,6 +251,3 @@ SOURCES += 	../../src/Utilities/utilities.cpp \
 			../../src/Network/HTTPWindow.cpp \
 			../../src/MenusAndDialogs/SimpleParser.cpp \
 			../../src/Utilities/main.cpp
-
-
-
