@@ -1,7 +1,6 @@
 ######################################################################
 # FAUSTLIVE.PRO
 ######################################################################
-QMAKE_MAC_SDK = macosx10.11
 
 # THANKS TO QMAKE, THIS FILE WILL PRODUCE THE MAKEFILE OF FAUSTLIVE APPLICATION
 # IT DESCRIBES ALL THE LINKED LIBRAIRIES, COMPILATION OPTIONS, THE SOURCES TO BE COMPILED
@@ -33,6 +32,7 @@ CONFIG += exceptions rtti
 
 equals(platform, target_10_9){
 ## This needs to be set correctly for OS X 10.9 and later.
+#QMAKE_MAC_SDK = macosx10.11
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
 
