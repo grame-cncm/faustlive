@@ -26,30 +26,6 @@ declare copyright "Grame";
 declare version "0.1";
 declare license "LGPL"; 
 
-declare Sum "the sum  of a block of n input samples
-
-USAGE:
-sumn(n);";
-
-declare Max "the max  of a block of n input samples
-
-USAGE:
-maxn(n);";
-
-declare Min "the min  of a block of n input samples
-
-USAGE:
-minn(n);";
-
-declare Mean "the mean of a block of n input samples
-
-USAGE:
-mean(n)";
-
-declare RMS "the RMS  of a block of n input samples
-
-USAGE:
-RMS(n);";
 
 //---------------------------------------------------------------
 // Provides various operations on block of samples
