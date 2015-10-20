@@ -143,7 +143,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
-    
     factorySettings* mySetts = new factorySettings;
     factory* toCompile = new factory;
     string error = "";
@@ -484,7 +483,8 @@ QString FLSessionManager::ifUrlToString(const QString& source)
 const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc)
 {
     //--------Compilation Options 
-    int numberFixedParams = 4;
+    int numberFixedParams = 2;
+    int iteratorParams = 0;
     
     // MACHINE
     /*
@@ -493,12 +493,10 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     }
     */
     
-    if (sourcePath == "") {
-        numberFixedParams -= 2;
+    if (sourcePath != "") {
+        numberFixedParams += 2;
     }
-
-    int iteratorParams = 0;
-    
+  
 #ifdef _WIN32
     numberFixedParams += 2;
 #endif
@@ -510,74 +508,58 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     const char** argv = new const char*[argc];
     
     // MACHINE
-    
-    if (settings) {
-        argv[iteratorParams] = "-lm";
-        iteratorParams++;
-        argv[iteratorParams] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
-        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
-        iteratorParams++;
-    }
-    
-    
     /*
     if (settings) {
-        argv[iteratorParams] = "-rm";
-        //argv[iteratorParams] = "-lm";
-        iteratorParams++;
-        //argv[iteratorParams] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
-        argv[iteratorParams] = strdup(getDSPMachineTarget().c_str());
+        argv[iteratorParams++] = "-lm";
+        argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
         printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
-        iteratorParams++;
     }
     */
     
-    
-    argv[iteratorParams] = "-I";
-    iteratorParams++;
-    
-    //The library path is where libraries like the scheduler architecture file are = currentSession
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
-    argv[iteratorParams] = strdup(libsFolder.c_str());
-    iteratorParams++;
-
+    /*
+    if (settings) {
+        argv[iteratorParams++] = "-rm";
+        //argv[iteratorParams++] = "-lm";
+        //argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        argv[iteratorParams++] = strdup(getDSPMachineTarget().c_str());
+        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+    }
+    */
+ 
+    // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams] = "-I";   
-        iteratorParams++;
-        
+        argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
-        argv[iteratorParams] = strdup(path.c_str());
-        iteratorParams++;
-    }
-
+        argv[iteratorParams++] = strdup(path.c_str());
+   }
+    
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
-    argv[iteratorParams] = "-l";
-    iteratorParams++;
-    argv[iteratorParams] = "llvm_math.ll";
-    iteratorParams++;
+    argv[iteratorParams++] = "-l";
+    argv[iteratorParams++] = "llvm_math.ll";
 #endif
     
     //Parsing the compilationOptions from a string to a char**
     QString copy = faustOptions;
     
     for (int i = numberFixedParams; i < argc; i++) {
-        
         string parseResult(parse_compilationParams(copy));
         char* intermediate = strdup(parseResult.c_str());
-        
         // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
         if (strcmp(intermediate, "-double") != 0) {
-            argv[i] = (const char*)intermediate;
-        } else {
-            argc--;
-            i--;
+            argv[iteratorParams++] = (const char*)intermediate;
         }
     }
+     
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    argv[iteratorParams++] = "-I";
+    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    argv[iteratorParams++] = strdup(libsFolder.c_str());
 
     return argv;
 }
+
 //--Remote params
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc)
 {
@@ -585,48 +567,33 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     const char** argv = new const char*[argc];
     
     argv[0] = "--NJ_ip";
-    QString localString = searchLocalIP();
-    string ip(localString.toStdString());
-    
-    char* ipString = new char[ip.size()+1];
-    strncpy(ipString, ip.c_str(), ip.size()+1);
-    argv[1] = (const char*)ipString;
+    string ip = searchLocalIP().toStdString();
+    argv[1] = strdup(ip.c_str());
     
     argv[2] = "--NJ_latency";
     QString latency = winSettings->value("RemoteProcessing/Latency", "10").toString();
     string lat = latency.toStdString();
-    
-    char* latString = new char[lat.size()+1];
-    strncpy(latString, lat.c_str(), lat.size()+1);
-    argv[3] = (const char*)latString;
+    argv[3] = strdup(lat.c_str());
   
     argv[4] = "--NJ_compression";
     QString cv = winSettings->value("RemoteProcessing/CV", "64").toString();
     string compression = cv.toStdString();
-    char* cvString = new char[compression.size()+1];
-    strncpy(cvString, compression.c_str(), compression.size()+1);
-    argv[5] = (const char*)cvString;
+    argv[5] = strdup(compression.c_str());
     
     argv[6] = "--NJ_mtu";
     QString mtu = winSettings->value("RemoteProcessing/MTU", "1500").toString();
     string mtuVal = mtu.toStdString();
-    char* mtuString = new char[mtuVal.size()+1];
-    strncpy(mtuString, mtuVal.c_str(), mtuVal.size()+1);
-    argv[7] = (const char*)mtuString;
+    argv[7] = strdup(mtuVal.c_str());
     
     argv[8] = "--NJ_buffer_size";
     QString buffer_size = winSettings->value("BufferSize", 512).toString();
     string buffer_sizeVal = buffer_size.toStdString();
-    char* buffer_sizeString = new char[buffer_sizeVal.size()+1];
-    strncpy(buffer_sizeString, buffer_sizeVal.c_str(), buffer_sizeVal.size()+1);
-    argv[9] = (const char*)buffer_sizeString;
+    argv[9] = strdup(buffer_sizeVal.c_str());
     
     argv[10] = "--NJ_sample_rate";
     QString sample_rate = winSettings->value("SampleRate", 44100).toString();
     string sample_rateVal = sample_rate.toStdString();
-    char* sample_rateString = new char[sample_rateVal.size()+1];
-    strncpy(sample_rateString, sample_rateVal.c_str(), sample_rateVal.size()+1);
-    argv[11] = (const char*)sample_rateString;
+    argv[11] = strdup(sample_rateVal.c_str());
     
     return argv;
 }
@@ -680,60 +647,42 @@ bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& so
 bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg)
 {
     updateFolderDate(shaKey);
-    int argc = 7;
-    if (sourcePath == "") {
-        argc = argc-2;
+    int iteratorParams = 0;
+    int argc = 5;
+    
+    if (sourcePath != "") {
+        argc += 2;
     }
     
-    int iteratorParams = 0;
-    
 #ifdef _WIN32
-    argc = argc+2;
+    argc += 2;
 #endif
     
     const char** argv = new const char*[argc];
-    argv[iteratorParams] = "-I";
-    iteratorParams++;
-    
-    //The library path is where libraries like the scheduler architecture file are = currentSession
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
-    string libPath = libsFolder;
-    char* libP = new char[libsFolder.size()+1];
-    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*)libP;
-    iteratorParams++;
-    
+     
+    // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams] = "-I";   
-        iteratorParams++;
-        
+        argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
-        
-        char* libP2 = new char[sourceChemin.size()+1];
-        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*)libP2;
-        
-        iteratorParams++;
+        argv[iteratorParams++] = strdup(path.c_str());
     }
+    
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    argv[iteratorParams++] = "-I";
+    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    argv[iteratorParams++] = strdup(libsFolder.c_str());
 
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf
-    argv[iteratorParams] = "-l";
-    iteratorParams++;
-    argv[iteratorParams] = "llvm_math.ll";
-    iteratorParams++;
+    argv[iteratorParams++] = "-l";
+    argv[iteratorParams++] = "llvm_math.ll";
 #endif
     
     string pathSVG = svgPath.toStdString();
-    char* svgP = new char[pathSVG.size()+1];
-    strncpy(svgP, pathSVG.c_str(), pathSVG.size()+1);
-    
-    argv[iteratorParams] = "-svg";
-    iteratorParams++;
-    argv[iteratorParams] = "-O";
-    iteratorParams++;
-    argv[iteratorParams] = (const char*) svgP;
+    argv[iteratorParams++] = "-svg";
+    argv[iteratorParams++] = "-O";
+    argv[iteratorParams++] = strdup(pathSVG.c_str());
     
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
     
