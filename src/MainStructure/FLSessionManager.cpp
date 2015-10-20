@@ -11,6 +11,8 @@
 #include "utilities.h"
 #include "FLErrorWindow.h"
 
+#include <assert.h>
+
 /*
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
@@ -105,10 +107,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         optLevel = settings->value("Compilation/OptValue", defaultOptLevel).toInt();
     }
     
+    QString machineName = "local processing";
+    if (settings) {
+        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
+    }
+    
     int argc;
-	const char** argv = getFactoryArgv(path, faustOptions, argc);
-    string shaKey;
-    string err;
+    const char** argv = getFactoryArgv(path, faustOptions, (machineName == "local processing") ? NULL : settings, argc);
+    string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
     
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
@@ -137,19 +143,14 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
-    
     factorySettings* mySetts = new factorySettings;
     factory* toCompile = new factory;
     string error = "";
     
-    QString machineName = "local processing";
-    
 //------ Additionnal compilation step or options (if set so in settings)
     if (settings) {
-        machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
-		QString errMsg;
-        
-        if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(), 
+        QString errMsg;
+        if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(),
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
         }
@@ -166,8 +167,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
         
         //----Create DSP Factory
-        if (toCompile->fLLVMFactory == NULL) {
+        if (!toCompile->fLLVMFactory) {
             
+            // New allocation
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
             
             if (settings) {
@@ -196,6 +198,25 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
         
+        std::vector<std::pair<std::string, std::string> > factories_list;
+         
+        bool factories = getRemoteDSPFactories(ip_server, port_server, &factories_list);
+        if (factories) {
+            for (unsigned int i = 0; i < factories_list.size(); i++) {
+                std::pair<std::string, std::string> item = factories_list[i];
+                string name = item.first;
+                string sha_key = item.second;
+                printf("name = %s sha_key = %s\n", name.c_str(), sha_key.c_str());
+                remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(sha_key, ip_server, port_server);
+                if (factory) {
+                     printf("dsp_code %s\n", factory->getDSPCode().c_str());
+                }
+            }
+        }
+        
+        // Possible cleanup
+        deleteRemoteDSPFactory(toCompile->fRemoteFactory);
+        // New allocation
         toCompile->fRemoteFactory = createRemoteDSPFactoryFromString(name.toStdString(), pathToContent(fileToCompile.c_str()).toStdString(), 
                                         argc, argv, ip_server, port_server, error, optLevel);
         
@@ -204,8 +225,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             return qMakePair(QString(""), (void*)NULL);
         }
         
+        // SL : 26/08/15 : deactived for now
+        /*
         settings->setValue("InputNumber", toCompile->fRemoteFactory->getNumInputs());
         settings->setValue("OutputNumber", toCompile->fRemoteFactory->getNumOutputs());
+        */
 #endif
     }
     
@@ -230,6 +254,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     return qMakePair(QString(shaKey.c_str()), (void*)(mySetts));
 }
+
+#ifdef REMOTE
+remote_audio* audio = NULL;
+#endif
 
 dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, 
                                 FLWinSettings* settings, remoteDSPErrorCallback error_callback, 
@@ -266,6 +294,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         int argc;
         const char** argv = getRemoteInstanceArgv(settings, argc);
         compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
+        //compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
         
         /*
         // Test 
@@ -273,17 +302,27 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         const char* argv1[32];
         int errorToCatch1;
         
-        argv1[argc1++] = "--NJ_buffer_size";
+        argv1[argc1++] = "--LA_buffer_size";
         string s1 = settings->value("BufferSize", 512).toString().toStdString();
         argv1[argc1++] = s1.c_str();
         
-        argv1[argc1++] = "--NJ_sample_rate";
+        argv1[argc1++] = "--LA_sample_rate";
         string s2 = settings->value("SampleRate", 44100).toString().toStdString();
         argv1[argc1++] = s2.c_str();
         
-        remote_audio* audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, errorToCatch1);
-        */
+        if (audio) {
+            audio->stop();
+            deleteRemoteAudioInstance(audio);
+        }
         
+        audio = createRemoteAudioInstance(toCompile->fRemoteFactory, argc1, argv1, errorToCatch1);
+        if (audio) {
+            audio->start();
+        } else {
+            printf("Error in createRemoteAudioInstance\n");
+        }
+        */
+     
         if (compiledDSP == NULL) {
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
             if (errorToCatch == ERROR_FACTORY_NOTFOUND) {
@@ -329,13 +368,15 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     fDSPToFactory.remove(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
-        deleteDSPInstance((llvm_dsp*) toDeleteDSP);
+        deleteDSPInstance((llvm_dsp*)toDeleteDSP);
         deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
+        factoryToDelete->fFactory->fLLVMFactory = NULL;
     }
 #ifdef REMOTE
     else {
-        deleteRemoteDSPInstance((remote_dsp*) toDeleteDSP);
+        deleteRemoteDSPInstance((remote_dsp*)toDeleteDSP);
         deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
+        factoryToDelete->fFactory->fRemoteFactory = NULL;
     }
 #endif
 }
@@ -437,85 +478,88 @@ QString FLSessionManager::ifUrlToString(const QString& source)
 //--------- Fill default arguments for local and remote compilation ----------
 
 //--Local params
-const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc)
+
+// TODO: string memory management....
+const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc)
 {
     //--------Compilation Options 
-    int numberFixedParams = 4;
-    
-    if (sourcePath == "")
-        numberFixedParams = numberFixedParams-2;
-
+    int numberFixedParams = 2;
     int iteratorParams = 0;
     
+    // MACHINE
+    /*
+    if (settings) {
+        numberFixedParams += 2;
+    }
+    */
+    
+    if (sourcePath != "") {
+        numberFixedParams += 2;
+    }
+  
 #ifdef _WIN32
-    numberFixedParams = numberFixedParams+2;
+    numberFixedParams += 2;
 #endif
     
     //+7 = -I libraryPath -I currentFolder
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
-    //argc += 1;
-    
     const char** argv = new const char*[argc];
     
-    //argv[iteratorParams] = "-machine";
-    //iteratorParams++;
+    // MACHINE
+    /*
+    if (settings) {
+        argv[iteratorParams++] = "-lm";
+        argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+    }
+    */
     
-    argv[iteratorParams] = "-I";
-    iteratorParams++;
-    
-    //The library path is where libraries like the scheduler architecture file are = currentSession
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
-    
-    string libPath = libsFolder;
-    char* libP = new char[libsFolder.size()+1];
-    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*)libP;
-    iteratorParams++;
-
+    /*
+    if (settings) {
+        argv[iteratorParams++] = "-rm";
+        //argv[iteratorParams++] = "-lm";
+        //argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        argv[iteratorParams++] = strdup(getDSPMachineTarget().c_str());
+        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+    }
+    */
+ 
+    // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams] = "-I";   
-        iteratorParams++;
-        
+        argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
-        
-        char* libP2 = new char[sourceChemin.size()+1];
-        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*)libP2;
-        
-        iteratorParams++;
-    }
-
+        argv[iteratorParams++] = strdup(path.c_str());
+   }
+    
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
-    argv[iteratorParams] = "-l";
-    iteratorParams++;
-    argv[iteratorParams] = "llvm_math.ll";
-    iteratorParams++;
+    argv[iteratorParams++] = "-l";
+    argv[iteratorParams++] = "llvm_math.ll";
 #endif
     
     //Parsing the compilationOptions from a string to a char**
     QString copy = faustOptions;
     
     for (int i = numberFixedParams; i < argc; i++) {
-        
         string parseResult(parse_compilationParams(copy));
-        char* intermediate = new char[parseResult.size()+1];
-        strcpy(intermediate, parseResult.c_str());
-        
+        char* intermediate = strdup(parseResult.c_str());
         // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
         if (strcmp(intermediate, "-double") != 0) {
-            argv[i] = (const char*)intermediate;
-        } else{
-            argc--;
-            i--;
+            argv[iteratorParams++] = (const char*)intermediate;
         }
     }
+     
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    argv[iteratorParams++] = "-I";
+    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    argv[iteratorParams++] = strdup(libsFolder.c_str());
 
     return argv;
 }
+
 //--Remote params
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc)
 {
@@ -523,48 +567,33 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     const char** argv = new const char*[argc];
     
     argv[0] = "--NJ_ip";
-    QString localString = searchLocalIP();
-    string ip(localString.toStdString());
-    
-    char* ipString = new char[ip.size()+1];
-    strncpy(ipString, ip.c_str(), ip.size()+1);
-    argv[1] = (const char*)ipString;
+    string ip = searchLocalIP().toStdString();
+    argv[1] = strdup(ip.c_str());
     
     argv[2] = "--NJ_latency";
     QString latency = winSettings->value("RemoteProcessing/Latency", "10").toString();
     string lat = latency.toStdString();
-    
-    char* latString = new char[lat.size()+1];
-    strncpy(latString, lat.c_str(), lat.size()+1);
-    argv[3] = (const char*)latString;
+    argv[3] = strdup(lat.c_str());
   
     argv[4] = "--NJ_compression";
     QString cv = winSettings->value("RemoteProcessing/CV", "64").toString();
     string compression = cv.toStdString();
-    char* cvString = new char[compression.size()+1];
-    strncpy(cvString, compression.c_str(), compression.size()+1);
-    argv[5] = (const char*)cvString;
+    argv[5] = strdup(compression.c_str());
     
     argv[6] = "--NJ_mtu";
     QString mtu = winSettings->value("RemoteProcessing/MTU", "1500").toString();
     string mtuVal = mtu.toStdString();
-    char* mtuString = new char[mtuVal.size()+1];
-    strncpy(mtuString, mtuVal.c_str(), mtuVal.size()+1);
-    argv[7] = (const char*)mtuString;
+    argv[7] = strdup(mtuVal.c_str());
     
     argv[8] = "--NJ_buffer_size";
     QString buffer_size = winSettings->value("BufferSize", 512).toString();
     string buffer_sizeVal = buffer_size.toStdString();
-    char* buffer_sizeString = new char[buffer_sizeVal.size()+1];
-    strncpy(buffer_sizeString, buffer_sizeVal.c_str(), buffer_sizeVal.size()+1);
-    argv[9] = (const char*)buffer_sizeString;
+    argv[9] = strdup(buffer_sizeVal.c_str());
     
     argv[10] = "--NJ_sample_rate";
     QString sample_rate = winSettings->value("SampleRate", 44100).toString();
     string sample_rateVal = sample_rate.toStdString();
-    char* sample_rateString = new char[sample_rateVal.size()+1];
-    strncpy(sample_rateString, sample_rateVal.c_str(), sample_rateVal.size()+1);
-    argv[11] = (const char*)sample_rateString;
+    argv[11] = strdup(sample_rateVal.c_str());
     
     return argv;
 }
@@ -601,7 +630,7 @@ bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& so
 {
     updateFolderDate(shaKey);
     int argc;
-    const char** argv = getFactoryArgv(sourcePath, faustOptions, argc);
+    const char** argv = getFactoryArgv(sourcePath, faustOptions, NULL, argc);
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
 	if (faustOptions != "") {
@@ -618,60 +647,42 @@ bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& so
 bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourcePath, const QString& svgPath, const QString& name, QString& errorMsg)
 {
     updateFolderDate(shaKey);
-    int argc = 7;
-    if (sourcePath == "") {
-        argc = argc-2;
+    int iteratorParams = 0;
+    int argc = 5;
+    
+    if (sourcePath != "") {
+        argc += 2;
     }
     
-    int iteratorParams = 0;
-    
 #ifdef _WIN32
-    argc = argc+2;
+    argc += 2;
 #endif
     
     const char** argv = new const char*[argc];
-    argv[iteratorParams] = "-I";
-    iteratorParams++;
-    
-    //The library path is where libraries like the scheduler architecture file are = currentSession
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
-    string libPath = libsFolder;
-    char* libP = new char[libsFolder.size()+1];
-    strncpy(libP, libPath.c_str(), libsFolder.size()+1);
-    argv[iteratorParams] = (const char*)libP;
-    iteratorParams++;
-    
+     
+    // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams] = "-I";   
-        iteratorParams++;
-        
+        argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
-        
-        char* libP2 = new char[sourceChemin.size()+1];
-        strncpy(libP2, path.c_str(), sourceChemin.size()+1);
-        argv[iteratorParams] = (const char*)libP2;
-        
-        iteratorParams++;
+        argv[iteratorParams++] = strdup(path.c_str());
     }
+    
+    //The library path is where libraries like the scheduler architecture file are = currentSession
+    argv[iteratorParams++] = "-I";
+    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    argv[iteratorParams++] = strdup(libsFolder.c_str());
 
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf
-    argv[iteratorParams] = "-l";
-    iteratorParams++;
-    argv[iteratorParams] = "llvm_math.ll";
-    iteratorParams++;
+    argv[iteratorParams++] = "-l";
+    argv[iteratorParams++] = "llvm_math.ll";
 #endif
     
     string pathSVG = svgPath.toStdString();
-    char* svgP = new char[pathSVG.size()+1];
-    strncpy(svgP, pathSVG.c_str(), pathSVG.size()+1);
-    
-    argv[iteratorParams] = "-svg";
-    iteratorParams++;
-    argv[iteratorParams] = "-O";
-    iteratorParams++;
-    argv[iteratorParams] = (const char*) svgP;
+    argv[iteratorParams++] = "-svg";
+    argv[iteratorParams++] = "-O";
+    argv[iteratorParams++] = strdup(pathSVG.c_str());
     
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
     
@@ -698,8 +709,8 @@ QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString&
     int argc = 0;
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
-    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, argc);
-    string error_msg("");
+    const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, NULL, argc);
+    string error_msg;
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
@@ -1017,7 +1028,7 @@ QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDepe
 {
     QVector<QString> dependencies;
     std::vector<std::string> stdDependendies;
-    stdDependendies = getLibraryList(factoryDependency);
+    stdDependendies = getDSPFactoryLibraryList(factoryDependency);
 
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());

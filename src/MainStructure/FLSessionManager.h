@@ -107,7 +107,7 @@ class FLSessionManager : public QObject
         
         void            copySHAFolder(const QString& snapshotFolder);
         
-        const char**    getFactoryArgv(const QString& sourcePath, const QString& faustOptions, int& argc);
+        const char**    getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc);
         
         const char**    getRemoteInstanceArgv(QSettings* winSettings, int& argc);
         void            deleteArgv(int argc, const char** argv);

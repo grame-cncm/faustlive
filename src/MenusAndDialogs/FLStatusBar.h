@@ -39,6 +39,7 @@ class FLStatusBar : public QStatusBar{
         QString             fFormerIp;
         int                 fFormerPort;
         QString             fFormerName;
+        QString             fFormerTarget;
     
         void                init();
     
@@ -50,8 +51,8 @@ class FLStatusBar : public QStatusBar{
         void        setNewOptions(const QString& ip, int port, const QString& newName);
     
         void        remoteFailed();
-        void        setRemoteSettings(const QString& name, const QString& ipServer, int portServer);
-    
+        void        setRemoteSettings(const QString& name, const QString& ipServer, int portServer, const QString& target);
+     
     public slots: 
     
         void        openMachineMenu();
