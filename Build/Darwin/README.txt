@@ -28,7 +28,7 @@ Other Packages
 	make remote
 	sudo make install  )
 	(  if you want to use waveforms
-	make sound2faust (static for libsndfile)
+	make sound2faust ('static' : mandatory for libsndfile to be statically linked)
 	sudo make install  )
 
 Make sure to download the current development trunk of these libraries.
