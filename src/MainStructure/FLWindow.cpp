@@ -23,6 +23,7 @@
 #endif
 
 #include "faust/gui/MidiUI.h"
+#include "faust/midi/RtMidi.cpp"
 
 #include "FLWindow.h"
 #include "HTTPWindow.h"
