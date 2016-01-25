@@ -18,9 +18,8 @@ Available in package manager :
 - libcrypto
 
 Available on sourceforge.net:
-- libfaust (from branch faust2)
+- libfaust (from branch Faust2)
 - libHTTPDFaust (make httpd in faust distribution)
-
 
 For Remote Processing Features :
 - libfaustremote (make remote in faust distribution)

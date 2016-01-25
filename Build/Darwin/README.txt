@@ -20,16 +20,17 @@ For remote processing :
 
 Other Packages
 - JackOSX 	http://jackaudio.org/downloads/
-- Faust		https://sourceforge.net/projects/faudiostream/files/ (the "dynamic" version must be compiled)
+- Faust2	https://sourceforge.net/projects/faudiostream/files/ (the "dynamic" version must be compiled)
 	cd FAUSTDIRECTORY
 	make dynamic 
+    make httpd
 	sudo make install
-	(  if you want to use remote processing
+	(if you want to use remote processing
 	make remote
-	sudo make install  )
-	(  if you want to use waveforms
+	sudo make install)
+	(if you want to use waveforms
 	make sound2faust ('static' : mandatory for libsndfile to be statically linked)
-	sudo make install  )
+	sudo make install)
 
 Make sure to download the current development trunk of these libraries.
 

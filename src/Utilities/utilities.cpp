@@ -191,13 +191,6 @@ QString searchLocalIP()
     return localhost;
 }
 
-const char* lopts(char *argv[], const char *name, const char* def)
-{
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
-}
-
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 bool parseKey(vector<string> options, const string& key, int& position)
 {
