@@ -812,10 +812,10 @@ void catch_OSCError(void* arg)
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface()
 {
-    int argc = 11;
+    int argc = 11 + 1; // NULL terminated argv
     
 //---- Allocation for windows needs
-    char** argv = new char*[argc];
+    char** argv = new char*[argc + 1];
     argv[0] = (char*)(fWindowName.toStdString().c_str());
     argv[1] = (char*)"-port";
     
@@ -832,6 +832,8 @@ void FLWindow::allocateOscInterface()
     argv[9] = (char*)"-errport";
     string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
     argv[10] = (char*) (errport.c_str());
+    
+    argv[argc] = 0; // NULL terminated argv
 
     fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
     delete [] argv;
@@ -1334,7 +1336,8 @@ int FLWindow::calculate_Coef()
 void FLWindow::allocateHttpInterface()
 {
     QString windowTitle = fWindowName + ":" + getName();
-    char* argv[3];
+    int argc = 3;
+    char* argv[argc + 1];
 	char charport[5];
 	int port = 5510 + fWindowIndex;
 	sprintf(charport, "%d", port);
@@ -1342,6 +1345,8 @@ void FLWindow::allocateHttpInterface()
     argv[0] = (char*)(windowTitle.toStdString().c_str());
     argv[1] = "-port";
 	argv[2] = charport;
+    
+    argv[argc] = 0; // NULL terminated argv
     
     fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
 }

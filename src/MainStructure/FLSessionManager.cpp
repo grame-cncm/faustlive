@@ -505,7 +505,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
-    const char** argv = new const char*[argc];
+    const char** argv = new const char*[argc + 1];
     
     // MACHINE
     /*
@@ -556,14 +556,15 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
-
+    
+    argv[argc] = 0; // NULL terminated argv
     return argv;
 }
 
 //--Remote params
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc)
 {
-    argc = 12;
+    argc = 12 + 1; // NULL terminated argv
     const char** argv = new const char*[argc];
     
     argv[0] = "--NJ_ip";
@@ -595,6 +596,7 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     string sample_rateVal = sample_rate.toStdString();
     argv[11] = strdup(sample_rateVal.c_str());
     
+    argv[argc] = 0; // NULL terminated argv
     return argv;
 }
 
