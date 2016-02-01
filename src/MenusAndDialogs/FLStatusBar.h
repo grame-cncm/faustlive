@@ -34,8 +34,9 @@ class FLStatusBar : public QStatusBar{
         QMenu*              fRemoteMenu;
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
+    #ifdef REMOTE    
         map<string, remote_dsp_machine* > fIPToHostName;  //Correspondance of remote machine IP to its name
-    
+    #endif
         QString             fFormerIp;
         int                 fFormerPort;
         QString             fFormerName;
