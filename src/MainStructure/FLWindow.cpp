@@ -812,7 +812,7 @@ void catch_OSCError(void* arg)
 //Allocation of Interfaces
 void FLWindow::allocateOscInterface()
 {
-    int argc = 11 + 1; // NULL terminated argv
+    int argc = 11; 
     
 //---- Allocation for windows needs
     char** argv = new char*[argc + 1];
@@ -1337,7 +1337,7 @@ void FLWindow::allocateHttpInterface()
 {
     QString windowTitle = fWindowName + ":" + getName();
     int argc = 3;
-    char* argv[argc + 1];
+    char* argv[4];  // NULL terminated argv
 	char charport[5];
 	int port = 5510 + fWindowIndex;
 	sprintf(charport, "%d", port);

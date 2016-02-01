@@ -564,7 +564,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
 //--Remote params
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc)
 {
-    argc = 12 + 1; // NULL terminated argv
+    argc = 12; 
     const char** argv = new const char*[argc];
     
     argv[0] = "--NJ_ip";
