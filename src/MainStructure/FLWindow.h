@@ -282,7 +282,6 @@ class FLWindow : public QMainWindow
 //        void            switchRelease(bool);
 #endif
     
-    
 };
 
 #endif

@@ -6,11 +6,9 @@
 //
 
 #include "faust/gui/faustqt.h"
+#include "faust/dsp/dsp.h"
 
 #include "FLComponentWindow.h"
-
-#include "faust/audio/dsp.h"
-
 #include "FLSessionManager.h"
 #include "FLWinSettings.h"
 #include "utilities.h"

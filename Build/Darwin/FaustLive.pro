@@ -37,6 +37,14 @@ equals(platform, target_10_9){
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
 
+equals(platform, target_10_10){
+## This needs to be set correctly for OS X 10.10 and later.
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
+equals(spec, macx-clang){
+QMAKE_MAC_SDK = macosx10.11
+}
+}
+
 ## QT libraries needed
 QT+=widgets
 QT+=core

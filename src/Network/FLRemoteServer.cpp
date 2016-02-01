@@ -31,7 +31,7 @@ struct myMeta : public Meta
     string name;
     
     virtual void declare(const char* key, const char* value){
-        if(strcmp(key, "name") == 0) {
+        if (strcmp(key, "name") == 0) {
             name = value;
         }
     }
@@ -57,7 +57,7 @@ string getJson(connection_info_struct* con_info)
         
     deleteDSPInstance(dsp);
     
-//    con_info->fNumInstances = 1;
+    // con_info->fNumInstances = 1;
     
     return answer;
 }
@@ -451,9 +451,9 @@ bool Server::startAudio(const string& shakey){
     
     list<slave_dsp*>::iterator it;
     
-    for(it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
         
-        if(shakey.compare((*it)->key())==0){
+        if (shakey.compare((*it)->key())==0){
             if((*it)->start_audio()) {
                 return true;
             }
@@ -467,9 +467,9 @@ void Server::stopAudio(const string& shakey){
     
     list<slave_dsp*>::iterator it;
     
-    for(it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
         
-        if(shakey.compare((*it)->key())==0){
+        if (shakey.compare((*it)->key())==0){
             (*it)->stop_audio();
         }
     }
@@ -482,11 +482,10 @@ bool Server::getJsonFromKey(connection_info_struct* con_info){
     con_info->fNameApp = fAvailableFactories[SHA_Key].first;
     con_info->fLLVMFactory = fAvailableFactories[SHA_Key].second;
     
-    if(con_info->fLLVMFactory){
+    if (con_info->fLLVMFactory) {
         con_info->fAnswerstring = getJson(con_info);
         return true;
-    }
-    else{
+    } else {
         con_info->fAnswerstring = "Factory Not Found!";
         return false;
     }
@@ -495,27 +494,25 @@ bool Server::getJsonFromKey(connection_info_struct* con_info){
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-    if(con_info->fSHAKey != ""){
+    if (con_info->fSHAKey != "") {
         
         //  Sort out compilation options
-        
         int argc = con_info->fCompilationOptions.size();
-        const char* argv[argc];
+        const char* argv[argc + 1];
         
-        for(int i=0; i<argc; i++){
+        for(int i = 0; i < argc; i++){
             argv[i] = (con_info->fCompilationOptions[i]).c_str();
         }
+        argv[argc] = 0; // NULL terminated argv
         
-        string error("");
-        
+        string error;
         con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
         
-        if(con_info->fLLVMFactory){
+        if (con_info->fLLVMFactory) {
             fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
             
             //      Once the factory is compiled, the json is stored as answerstring
             con_info->fAnswerstring = getJson(con_info);
-            
             return true;
         }
     }
@@ -530,18 +527,18 @@ bool Server::createInstance(connection_info_struct* con_info){
     
     llvm_dsp_factory* realFactory = fAvailableFactories[con_info->fFactoryKey].second;
     
-    if(realFactory != NULL){
+    if (realFactory) {
         
         printf("Instance\n");
         
         slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCV, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         
-        if(dsp)
+        if (dsp)
             dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
         
         pthread_t myNewThread;
         
-        if(dsp && !pthread_create(&myNewThread, NULL, Server::start_audioSlave, dsp)){
+        if (dsp && !pthread_create(&myNewThread, NULL, Server::start_audioSlave, dsp)){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {

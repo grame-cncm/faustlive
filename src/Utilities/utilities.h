@@ -32,8 +32,6 @@ bool isStringInt(const char* word);
 
 QString searchLocalIP();
 
-const char* lopts(char *argv[], const char *name, const char* def);
-
 int get_numberParameters(const QString& compilOptions);
 
 string parse_compilationParams(QString& compilOptions);

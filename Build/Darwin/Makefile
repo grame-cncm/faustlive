@@ -4,12 +4,13 @@ qm := $(shell which qmake)
 
 # This needs to be set correctly for OS X 10.9 and later.
 platform = $(shell test `uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4` -gt 12 && echo target_10_9)
+platform = $(shell test `uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4` -gt 13 && echo target_10_10)
 # Figure out the right makespec for the Qt version that we have.
-spec = $(shell test `qmake --version | tail -1 | sed -e 's/^.*version \([0-9]*\).*$$/\1/'` -gt 4 && echo macx-clang || echo macx-g++)
+spec = $(shell test `$(qm) --version | tail -1 | sed -e 's/^.*version \([0-9]*\).*$$/\1/'` -gt 4 && echo macx-clang || echo macx-g++)
 
 SPEC := -spec $(spec)
 DST  := "FaustLive.app/Contents/MacOS"
-QM-DEFS := "platform=$(platform)" "CAVAR=1"
+QM-DEFS := "platform=$(platform)" "spec=$(spec)" "CAVAR=1"
 
 # The following FAUSTDIR and LLVM_CONFIG variables also override defaults set
 # in the project file.

@@ -144,10 +144,9 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 
 	int argc = 2;
 #ifdef _WIN32
-
-	argc = argc+2;
+	argc = argc + 2;
 #endif
-    const char** argv = new const char*[argc];
+    const char** argv = new const char*[argc + 1];
     
     argv[0] = "-I";
     
@@ -159,13 +158,14 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 	argv[2] = "-l";
 	argv[3] = "llvm_math.ll";
 #endif
+    argv[argc] = 0; // NULL terminated argv
     string getError;
     
     string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
 
     llvm_dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
 
-	if(temp != NULL){
+	if (temp != NULL) {
 
 		MyMeta* meta = new MyMeta;
     
