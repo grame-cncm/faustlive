@@ -22,10 +22,8 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
     private:
     
-        dsp*            fDspIn;
-        int				fNumInDspFade;      // number of input channels of inFading DSP
-        int				fNumOutDspFade;     // number of output channels of inFading DSP
-    
+        dsp*            fDSPIn;
+      
         float**         fIntermediateFadeOut;
         float**         fIntermediateFadeIn;
     
