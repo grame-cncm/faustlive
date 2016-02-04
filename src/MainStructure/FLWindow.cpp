@@ -27,10 +27,7 @@
 
 #include "FLWindow.h"
 #include "HTTPWindow.h"
-
-list<GUI*> GUI::fGuiList;
 #include "FLInterfaceManager.h"
-
 #include "FLToolBar.h"
 #include "FLServerHttp.h"
 
@@ -40,13 +37,11 @@ list<GUI*> GUI::fGuiList;
 
 #include "AudioCreator.h"
 #include "AudioManager.h"
-
 #include "utilities.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
 #include "FLSessionManager.h"
 #include "FLExportManager.h"
-
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
@@ -56,6 +51,9 @@ list<GUI*> GUI::fGuiList;
 #endif
 
 #include "faust/dsp/llvm-dsp.h"
+
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
 
