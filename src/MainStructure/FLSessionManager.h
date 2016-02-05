@@ -51,7 +51,6 @@ enum {
     TYPE_LOCAL, TYPE_REMOTE
 };
 
-
 union factory {
     llvm_dsp_factory* fLLVMFactory;
 #ifdef REMOTE

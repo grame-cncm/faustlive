@@ -43,23 +43,9 @@ float JA_audioFader::crossfade_calculation(int i, int j)
     }
 }
 
-JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size)
+JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio(icon_data, icon_size)
 {
-    fDSP = NULL;
-    fClient = NULL;
-    fShutdown = 0;
-    fShutdownArg = 0;
-    
     reset_Values();
-    
-    if (icon_data) {
-        fIconData = malloc(icon_size);
-        fIconSize = icon_size;
-        memcpy(fIconData, icon_data, icon_size);
-    } else {
-        fIconData = NULL;
-        fIconSize = 0;
-    }
 }
 
 JA_audioFader::~JA_audioFader() 
@@ -68,28 +54,6 @@ JA_audioFader::~JA_audioFader()
     if (fIconData) {
         free(fIconData);
     }
-}
-
-//Set DSP
-bool JA_audioFader::set_dsp(dsp* dsp, const char* portsName)    
-{
-    fDSP = dsp;
-    
-    fBufferSize = jack_get_buffer_size(fClient);
-    
-    for (int i = 0; i < fDSP->getNumInputs(); i++) {
-        char buf[256];
-        snprintf(buf, 256, "in_%d", i);
-        fInputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
-    }
-    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-        char buf[256];
-        snprintf(buf, 256, "out_%d", i);
-        fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
-    }
-    
-    fDSP->init(jack_get_sample_rate(fClient));
-    return true;
 }
 
 bool JA_audioFader::start()
@@ -158,13 +122,13 @@ void JA_audioFader::launch_fadeOut()
     //Allocation of the intermediate buffers needed for the crossfade
     fIntermediateFadeOut = new float*[fDSP->getNumOutputs()];
     for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-        fIntermediateFadeOut[i] = new float[fBufferSize];
+        fIntermediateFadeOut[i] = new float[jack_get_buffer_size(fClient)];
     }
     
     fIntermediateFadeIn = new float*[fDSPIn->getNumOutputs()];
     
     for(int i = 0; i < fDSPIn->getNumOutputs();i++) {
-        fIntermediateFadeIn[i] = new float[fBufferSize];
+        fIntermediateFadeIn[i] = new float[jack_get_buffer_size(fClient)];
     }
     
     set_doWeFadeOut(true); 
@@ -177,7 +141,6 @@ bool JA_audioFader::get_FadeOut() { return get_doWeFadeOut(); }
 // The inFading DSP becomes the current one
 void JA_audioFader::upDate_DSP()
 {
-    
     //Erase the extra ports
     if (fDSP->getNumInputs() > fDSPIn->getNumInputs()) {
         for (int i = fDSPIn->getNumInputs(); i < fDSP->getNumInputs(); i++){
@@ -228,8 +191,9 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         
         //Step 2 : Mixing the 2 DSP in the final output buffer taking into account the number of IN/OUT ports of the in- and out-coming DSP
         
-        for (int i = 0; i < numOutPorts; i++) 
+        for (int i = 0; i < numOutPorts; i++) {
             fOutFinal[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes); 
+        }
         
         if (fDSP->getNumOutputs() < fDSPIn->getNumOutputs()) {
             for (size_t i = 0; i < nframes; i++) {

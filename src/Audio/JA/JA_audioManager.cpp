@@ -49,7 +49,7 @@ bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name)
 {
     printf("SET DSP = %s\n", port_name);
     
-    if (fCurrentAudio->set_dsp(DSP, port_name)) {
+    if (fCurrentAudio->set_dsp(DSP)) {
         return true;
     } else {
         error = "Impossible to init JackAudio Client";

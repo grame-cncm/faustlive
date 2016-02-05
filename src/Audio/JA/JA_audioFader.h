@@ -22,12 +22,11 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
     private:
     
-        dsp*            fDSPIn;
+        dsp* fDSPIn;
       
-        float**         fIntermediateFadeOut;
-        float**         fIntermediateFadeIn;
+        float** fIntermediateFadeOut;
+        float** fIntermediateFadeIn;
     
-        jack_nframes_t  fBufferSize;
         list<pair<string, string> > fConnectionsIn;		// Connections list
         
         virtual int	process(jack_nframes_t nframes);
@@ -39,7 +38,6 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
         JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
         virtual ~JA_audioFader();
     
-        bool set_dsp(dsp* DSP, const char* portsName);
         virtual bool start();
     
         virtual void init_FadeIn_Audio(dsp* DSP, const char* portsName);  

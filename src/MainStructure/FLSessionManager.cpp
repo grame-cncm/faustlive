@@ -10,6 +10,7 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 #include "FLErrorWindow.h"
+#include "faust/dsp/timed-dsp.h"
 
 #include <assert.h>
 
@@ -277,11 +278,14 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
         /*
         compiledDSP = new mydsp_poly(4, true, toCompile->fLLVMFactory);
-        if (compiledDSP == NULL) {
+        if (!compiledDSP) {
             errorMsg = "Impossible to compile DSP";
         }
         fMIDIManager->addMidiIn(dynamic_cast<mydsp_poly*>(compiledDSP));
         */
+        
+        // For in-buffer MIDI control
+        compiledDSP = new timed_dsp(compiledDSP);
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
@@ -323,11 +327,11 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         }
         */
      
-        if (compiledDSP == NULL) {
+        if (!compiledDSP) {
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
             if (errorToCatch == ERROR_FACTORY_NOTFOUND) {
                 QPair<QString, void*> fS = createFactory(source, settings, errorMsg);
-                if (fS.second == NULL) {
+                if (!fS.second) {
                     errorMsg = "Impossible to find and recompile factory";
                     return NULL;
                 }
@@ -335,7 +339,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
             }
         }
         
-        if (compiledDSP == NULL) {
+        if (!compiledDSP) {
             errorMsg = getErrorFromCode(errorToCatch);
         }
     }
@@ -348,7 +352,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     fDSPToFactory[compiledDSP] = mySetts;
     
     //-----Save settings
-    if (compiledDSP != NULL && settings) {
+    if (compiledDSP && settings) {
         settings->setValue("Path", path);
         settings->setValue("Name", name);
         settings->setValue("SHA", factorySetts.first);
@@ -368,13 +372,15 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     fDSPToFactory.remove(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
-        deleteDSPInstance((llvm_dsp*)toDeleteDSP);
+        //deleteDSPInstance((llvm_dsp*)toDeleteDSP);
+        delete toDeleteDSP;
         deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
         factoryToDelete->fFactory->fLLVMFactory = NULL;
     }
 #ifdef REMOTE
     else {
-        deleteRemoteDSPInstance((remote_dsp*)toDeleteDSP);
+        //deleteRemoteDSPInstance((remote_dsp*)toDeleteDSP);
+        delete toDeleteDSP;
         deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
         factoryToDelete->fFactory->fRemoteFactory = NULL;
     }

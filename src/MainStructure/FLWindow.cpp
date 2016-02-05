@@ -187,7 +187,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
 
     FLMessageWindow::_Instance()->hide();
     
-    if (factorySetts.second == NULL) { // testing if the factory pointer is null (= the compilation failed)
+    if (!factorySetts.second) { // testing if the factory pointer is null (= the compilation failed)
         return false;
     }
   	
@@ -196,9 +196,10 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     }
 
     fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
-	
-    if (fCurrent_DSP == NULL)
+    
+    if (!fCurrent_DSP) {
         return false;
+    }
     
     if (init != kNoInit) {
         fIsDefault = true;
@@ -390,14 +391,14 @@ bool FLWindow::update_Window(const QString& source)
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
     bool isUpdateSucessfull = true;
     
-    if (factorySetts.second == NULL) {
+    if (!factorySetts.second) {
         isUpdateSucessfull = false;
     }
     
     if (isUpdateSucessfull) {
         
         charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
-        
+         
         if (charging_DSP) {
             
             QString newName = fSettings->value("Name", "").toString();
@@ -428,19 +429,20 @@ bool FLWindow::update_Window(const QString& source)
                     fWavSource = wavsource;
                     
                     isUpdateSucessfull = true;
-                } else {
-                    if (allocateInterfaces(savedName)) {
-                        buildInterfaces(fCurrent_DSP);
-                        recall_Window();
-                        errorMsg = "Impossible to allocate new interface";
-                        isUpdateSucessfull = false; 
-                        sessionManager->deleteDSPandFactory(charging_DSP);
-                        charging_DSP = NULL;
-                        if (fSettings) {
-                            fSettings->setValue("Path", savedPath);
-                            fSettings->setValue("Name", savedName);
-                            fSettings->setValue("SHA", savedSHA);
-                        }
+                    
+                } else if (allocateInterfaces(savedName)) {
+                
+                    buildInterfaces(fCurrent_DSP);
+                    recall_Window();
+                    errorMsg = "Impossible to allocate new interface";
+                    isUpdateSucessfull = false; 
+                    sessionManager->deleteDSPandFactory(charging_DSP);
+                    charging_DSP = NULL;
+                    
+                    if (fSettings) {
+                        fSettings->setValue("Path", savedPath);
+                        fSettings->setValue("Name", savedName);
+                        fSettings->setValue("SHA", savedSHA);
                     }
                 }
                 
@@ -983,7 +985,7 @@ void FLWindow::print_initWindow(int typeInit)
     
     dropImage.scaledToHeight(10, Qt::SmoothTransformation);
     QLabel *image = new QLabel();
-    //    image->setMinimumSize (dropImage.width()*3, dropImage.height()*3);
+    // image->setMinimumSize (dropImage.width()*3, dropImage.height()*3);
     
     image->installEventFilter(this);
     image->setPixmap(dropImage);
@@ -1383,7 +1385,7 @@ void FLWindow::viewQRCode()
 {
     if (!fIsDefault) {
         
-        if (fHttpInterface == NULL) {
+        if (!fHttpInterface) {
             fToolBar->switchHttp(true);
         }
         
