@@ -82,9 +82,7 @@ class FLSessionManager : public QObject
         Q_OBJECT
         
         QString         fSessionFolder;
-        
-        //rtmidi*         fMIDIManager;
-
+ 
         static FLSessionManager* _sessionManager;
         
 //------ Handle name giving 

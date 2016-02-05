@@ -14,14 +14,8 @@
 
 #include <assert.h>
 
-/*
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
-
-#define __MACOSX_CORE__
-#include "faust/midi/rt-midi.h"
-#include "faust/gui/MidiUI.h"
-*/
 
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
@@ -36,21 +30,10 @@ FLSessionManager* FLSessionManager::_sessionManager = 0;
 FLSessionManager::FLSessionManager(const QString& sessionFolder)
 {
     fSessionFolder = sessionFolder;
-    /*
-    // TODO
-    fMIDIManager = new rtmidi();
-    fMIDIManager->start();
-    */
 }
 
 FLSessionManager::~FLSessionManager()
-{
-    /*
-    // TODO
-    fMIDIManager->stop();
-    delete fMIDIManager;
-    */
-}
+{}
 
 FLSessionManager* FLSessionManager::_Instance()
 {
@@ -276,12 +259,12 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
         compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
+        
         /*
         compiledDSP = new mydsp_poly(4, true, toCompile->fLLVMFactory);
         if (!compiledDSP) {
             errorMsg = "Impossible to compile DSP";
         }
-        fMIDIManager->addMidiIn(dynamic_cast<mydsp_poly*>(compiledDSP));
         */
         
         // For in-buffer MIDI control
