@@ -260,12 +260,9 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     if (type == TYPE_LOCAL) {
         compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
         
-        /*
-        compiledDSP = new mydsp_poly(4, true, toCompile->fLLVMFactory);
-        if (!compiledDSP) {
-            errorMsg = "Impossible to compile DSP";
-        }
-        */
+        // Polyphonic mode
+        //compiledDSP = new mydsp_poly(8, createDSPInstance(toCompile->fLLVMFactory), true);
+        
         
         // For in-buffer MIDI control
         compiledDSP = new timed_dsp(compiledDSP);

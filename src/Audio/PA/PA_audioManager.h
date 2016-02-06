@@ -17,7 +17,7 @@
 
 class PA_audioFader;
 
-class PA_audioManager : public AudioManager{
+class PA_audioManager : public AudioManager {
 
     private:
     

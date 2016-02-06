@@ -109,9 +109,9 @@ void CA_audioManager::wait_EndFade()
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
     QDateTime currentTime(QDateTime::currentDateTime());
         
-    while (fCurrentAudio->get_FadeOut() == 1) {
+    while (fCurrentAudio->get_FadeOut()) {
         QDateTime currentTime2(QDateTime::currentDateTime());
-        if(currentTime.secsTo(currentTime2)>3){
+        if (currentTime.secsTo(currentTime2) > 3) {
             printf("STOPPED PROGRAMATICALLY\n");
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();

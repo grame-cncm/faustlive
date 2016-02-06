@@ -89,7 +89,7 @@ void JA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void JA_audioManager::wait_EndFade()
 {
-    while(fCurrentAudio->get_FadeOut() == true){}
+    while (fCurrentAudio->get_FadeOut()) {}
     fCurrentAudio->upDate_DSP();
 }
 

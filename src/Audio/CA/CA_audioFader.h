@@ -41,7 +41,7 @@ class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
-                fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+                fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
                 
                 // ADDED LINE COMPARING TO BASIC COREAUDIO
                 crossfade_Calcul(inNumberFrames, fDevNumOutChans, fOutChannel);

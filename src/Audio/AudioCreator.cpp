@@ -109,7 +109,7 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
 //Returns the instance of the audioCreator
 AudioCreator* AudioCreator::_Instance(QGroupBox* box)
 {
-    if (_instance == 0)
+    if (!_instance)
         _instance = new AudioCreator(box);
     return _instance;
 }
@@ -131,7 +131,7 @@ AudioCreator::~AudioCreator()
 int AudioCreator::driverNameToIndex(const QString& driverName)
 {
     // In case compilation options have changed, it is checked if it still exists
-    for (int i = 0; i<fAudioArchi->count() ; i++){
+    for (int i = 0; i<fAudioArchi->count(); i++) {
         if (driverName == fAudioArchi->itemText(i))
             return i;
     }
@@ -143,14 +143,9 @@ void AudioCreator::indexChanged(int index)
 {
     printf("AudioCreator::indexChanged\n");
     
-    if (fFactory != NULL)
-        delete fFactory;
-    
-    if (fCurrentSettings != NULL)
-        delete fCurrentSettings;
-    
-    if (fSettingsBox != NULL)
-        delete fSettingsBox;
+    delete fFactory;
+    delete fCurrentSettings;
+    delete fSettingsBox;
     
     fFactory = createFactory(index);
     fSettingsBox = new QGroupBox;
@@ -169,7 +164,7 @@ void AudioCreator::reset_AudioArchitecture()
 //Creation of the Factory/Settings/Manager depending on audio index
 AudioFactory* AudioCreator::createFactory(int index)
 {
-    switch(index){
+    switch(index) {
 #ifdef COREAUDIO
         case kCoreaudio:
             return new CA_audioFactory();

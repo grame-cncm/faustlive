@@ -102,7 +102,7 @@ void PA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void PA_audioManager::wait_EndFade()
 {
-    while(fCurrentAudio->get_FadeOut() == 1){}
+    while (fCurrentAudio->get_FadeOut()) {}
     fCurrentAudio->stop();
     PA_audioFader* intermediate = fCurrentAudio;
     fCurrentAudio = fFadeInAudio;

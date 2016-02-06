@@ -108,7 +108,7 @@ void NJm_audioManager::wait_EndFade()
 {
     QDateTime currentTime(QDateTime::currentDateTime());
     
-    while (fCurrentAudio->get_FadeOut() == 1) {
+    while (fCurrentAudio->get_FadeOut()) {
         printf("STOPED PROGRAMATICALLY\n");
         fFadeInAudio->force_stopFade();
         fCurrentAudio->force_stopFade();
