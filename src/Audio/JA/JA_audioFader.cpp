@@ -120,15 +120,15 @@ int JA_audioFader::reconnect(list<pair<string, string> > Connections)
 void JA_audioFader::launch_fadeOut()
 {
     //Allocation of the intermediate buffers needed for the crossfade
+      
+    fIntermediateFadeIn = new float*[fDSPIn->getNumOutputs()];
+    for(int i = 0; i < fDSPIn->getNumOutputs();i++) {
+        fIntermediateFadeIn[i] = new float[jack_get_buffer_size(fClient)];
+    }
+  
     fIntermediateFadeOut = new float*[fDSP->getNumOutputs()];
     for (int i = 0; i < fDSP->getNumOutputs(); i++) {
         fIntermediateFadeOut[i] = new float[jack_get_buffer_size(fClient)];
-    }
-    
-    fIntermediateFadeIn = new float*[fDSPIn->getNumOutputs()];
-    
-    for(int i = 0; i < fDSPIn->getNumOutputs();i++) {
-        fIntermediateFadeIn[i] = new float[jack_get_buffer_size(fClient)];
     }
     
     set_doWeFadeOut(true); 
