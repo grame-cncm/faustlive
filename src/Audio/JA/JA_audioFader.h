@@ -18,7 +18,7 @@
 
 using namespace std;
 
-class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation {    
+class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public AudioFader_Implementation {    
     
     private:
     
@@ -29,7 +29,7 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
         list<pair<string, string> > fConnectionsIn;		// Connections list
         
-        virtual int	process(jack_nframes_t nframes);
+        virtual int	processAudio(jack_nframes_t nframes);
     
         float crossfade_calculation(int i, int j);
     

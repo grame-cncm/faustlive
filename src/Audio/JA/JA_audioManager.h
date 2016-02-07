@@ -47,6 +47,9 @@ class JA_audioManager : public AudioManager {
 
         virtual int get_buffer_size();
         virtual int get_sample_rate();
+        
+        // Needed to give 'jackaudio_midi = midi_handler' object to MidiUI interface
+        JA_audioFader* getAudioFader() { return fCurrentAudio; }
 };
 
 #endif

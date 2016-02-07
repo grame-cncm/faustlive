@@ -45,6 +45,8 @@
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
+#include "JA_audioManager.h"
+#include "JA_audioFader.h"
 
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
@@ -778,6 +780,9 @@ void FLWindow::switchMIDI(bool on)
 
 void FLWindow::updateMIDIInterface()
 {
+    // Needed for MidiUI
+    //stop_Audio();
+
     saveWindow();
     deleteMIDIInterface();
     allocateMIDIInterface();
@@ -786,11 +791,20 @@ void FLWindow::updateMIDIInterface()
     fMIDIInterface->run();
     FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
     setWindowsOptions();
+    
+    // Needed for MidiUI
+    //start_Audio();
 }
 
 void FLWindow::allocateMIDIInterface()
 {
-    fMIDIInterface = new MidiUI(fWindowName.toStdString());
+    JA_audioManager* manager = dynamic_cast<JA_audioManager*>(fAudioManager);
+    // Special case for JACK audio manager
+    if (manager) {
+        fMIDIInterface = new MidiUI(manager->getAudioFader());
+    } else {
+        fMIDIInterface = new MidiUI(fWindowName.toStdString());
+    }
 }
 
 void FLWindow::deleteMIDIInterface()
@@ -923,7 +937,7 @@ void FLWindow::buildInterfaces(dsp* compiledDSP)
 
 void FLWindow::runInterfaces()
 {
-    if (fHttpInterface){
+    if (fHttpInterface) {
         fHttpInterface->run();
         FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
     }
@@ -1016,7 +1030,7 @@ void FLWindow::shutWindow()
     deleteDirectoryAndContent(winFolder);
 }
 
-//Closing the window without removing its property for example when the application is quit
+//Closing the window without removing its property for example when the application quits
 void FLWindow::closeWindow()
 {
     hide();
@@ -1029,7 +1043,7 @@ void FLWindow::closeWindow()
 
     deleteInterfaces();
 
-    if (fHttpdWindow){
+    if (fHttpdWindow) {
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
     }
@@ -1177,6 +1191,24 @@ void FLWindow::stop_Audio()
 #endif
     fAudioManager->stop();
     fClientOpen = false;
+    
+    // Stop interfaces
+    /*
+    if (fHttpInterface) {
+        FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
+        fHttpInterface->stop();
+    }
+
+    if (fOscInterface) {
+        FLInterfaceManager::_Instance()->unregisterGUI(fOscInterface);
+        fOscInterface->stop();
+    }
+    
+    if (fMIDIInterface) {
+        FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
+        fMIDIInterface->stop();
+    }
+    */
 }
 
 void FLWindow::start_Audio()
@@ -1194,6 +1226,24 @@ void FLWindow::start_Audio()
     //        currentDSP->start();
     //    }
 #endif
+
+    // Run interfaces
+    /*
+    if (fHttpInterface) {
+        fHttpInterface->run();
+        FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
+    }
+
+    if (fOscInterface) {
+        fOscInterface->run();
+        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
+    }
+    
+    if (fMIDIInterface) {
+        fMIDIInterface->run();
+        FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
+    }
+    */
 }
 
 //In case audio clients collapse, the architecture has to be changed
@@ -1458,7 +1508,7 @@ void FLWindow::RemoteCallback(int error_code)
 {
     QDateTime currentTime(QDateTime::currentDateTime());
     if (fLastMigration.secsTo(currentTime) > 3) {
-        if (error_code == ERROR_NETJACK_WRITE || error_code == ERROR_NETJACK_READ){
+        if (error_code == ERROR_NETJACK_WRITE || error_code == ERROR_NETJACK_READ) {
             errorPrint("Remote Connection Error.\nSwitching back to local processing.");
             fStatusBar->setRemoteSettings("local processing", "127.0.0.1", 7777, "");
             redirectSwitch();

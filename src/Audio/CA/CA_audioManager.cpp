@@ -16,6 +16,7 @@ CA_audioManager::CA_audioManager(AudioShutdownCallback cb, void* arg) : AudioMan
 {
     fBufferSize = FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
     fCurrentAudio = new CA_audioFader(fBufferSize);
+    fFadeInAudio = 0;
 }
 
 CA_audioManager::~CA_audioManager()
@@ -51,7 +52,7 @@ bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/
 {
     if (fInit) {
         return fCurrentAudio->set_dsp(DSP);
-    } else if(init(fName, DSP)) {
+    } else if (init(fName, DSP)) {
         FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
         return true;
     } else {
@@ -84,7 +85,7 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
     
     if (fFadeInAudio->init(name, DSP)) {
         return true;
-    } else{
+    } else {
         error = "Impossible to init new Core Audio Client";
         return false;
     }
@@ -93,7 +94,7 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
 //Crossfade start
 void CA_audioManager::start_Fade()
 {
-   fFadeInAudio->launch_fadeIn();
+    fFadeInAudio->launch_fadeIn();
     fCurrentAudio->launch_fadeOut();
     
     if (!fFadeInAudio->start()) {

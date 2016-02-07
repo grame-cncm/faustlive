@@ -15,7 +15,7 @@
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
 
-class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader_Implementation{
+class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader_Implementation {
     
     public:
 

@@ -43,19 +43,15 @@ float JA_audioFader::crossfade_calculation(int i, int j)
     }
 }
 
-JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio(icon_data, icon_size)
+JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio_midi(icon_data, icon_size)
 {
     reset_Values();
 }
 
 JA_audioFader::~JA_audioFader() 
-{ 
-    //stop(); 
-    if (fIconData) {
-        free(fIconData);
-    }
-}
+{}
 
+// Redefine jackaudio method
 bool JA_audioFader::start()
 {
     if (jack_activate(fClient)) {
@@ -164,7 +160,7 @@ void JA_audioFader::upDate_DSP()
 }
 
 // JACK callbacks
-int	JA_audioFader::process(jack_nframes_t nframes) 
+int JA_audioFader::processAudio(jack_nframes_t nframes) 
 {
     AVOIDDENORMALS;
     // Retrieve JACK inputs/output audio buffers
@@ -178,13 +174,16 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         
         //Step 1 : Calculation of intermediate buffers
         
-        fDSP->compute(nframes, fInChannel, fIntermediateFadeOut);
+        // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
+        fDSP->compute(-1, nframes, fInChannel, fIntermediateFadeOut);
         float** fInChannelDspIn = (float**)alloca(fDSPIn->getNumInputs() * sizeof(float*));
         
         for (int i = 0; i < fDSPIn->getNumInputs(); i++) {
             fInChannelDspIn[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
         }
-        fDSPIn->compute(nframes, fInChannelDspIn, fIntermediateFadeIn); 
+        
+        // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
+        fDSPIn->compute(-1, nframes, fInChannelDspIn, fIntermediateFadeIn); 
         
         int numOutPorts = max(fDSP->getNumOutputs(), fDSPIn->getNumOutputs());
 		float** fOutFinal = (float**)alloca(numOutPorts * sizeof(float*));
@@ -238,7 +237,9 @@ int	JA_audioFader::process(jack_nframes_t nframes)
         for (int i = 0; i < fDSP->getNumOutputs(); i++) {
             fOutFinal[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
         }
-        fDSP->compute(nframes, fInChannel, fOutFinal);   
+        
+        // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
+        fDSP->compute(-1, nframes, fInChannel, fOutFinal);   
     }
     
     return 0;
