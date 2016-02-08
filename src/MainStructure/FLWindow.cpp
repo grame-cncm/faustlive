@@ -771,18 +771,22 @@ void FLWindow::switchOsc(bool on)
 
 void FLWindow::switchMIDI(bool on)
 {
+    // Needed for MidiUI
+    stop_Audio();
+    
     if (on) {
         updateMIDIInterface();
     } else {
         deleteMIDIInterface();
     }
+    
+    // Needed for MidiUI
+    start_Audio();
 }
 
 void FLWindow::updateMIDIInterface()
 {
-    // Needed for MidiUI
-    //stop_Audio();
-
+    printf("updateMIDIInterface\n");
     saveWindow();
     deleteMIDIInterface();
     allocateMIDIInterface();
@@ -791,9 +795,6 @@ void FLWindow::updateMIDIInterface()
     fMIDIInterface->run();
     FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
     setWindowsOptions();
-    
-    // Needed for MidiUI
-    //start_Audio();
 }
 
 void FLWindow::allocateMIDIInterface()
@@ -809,7 +810,9 @@ void FLWindow::allocateMIDIInterface()
 
 void FLWindow::deleteMIDIInterface()
 {
+    printf("deleteMIDIInterface\n");
     if (fMIDIInterface) {
+        printf("deleteMIDIInterface OK \n");
         FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
         delete fMIDIInterface;
         fMIDIInterface = NULL;
@@ -1182,68 +1185,36 @@ void FLWindow::stop_Audio()
 {
 #ifdef REMOTE
     
-    //    if(!fEffect->isLocal()){
-    //        
+    //    if (!fEffect->isLocal()) {
     //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
     //        currentDSP->stop();
     //    }
     
 #endif
-    fAudioManager->stop();
-    fClientOpen = false;
-    
-    // Stop interfaces
-    /*
-    if (fHttpInterface) {
-        FLInterfaceManager::_Instance()->unregisterGUI(fHttpInterface);
-        fHttpInterface->stop();
+    if (fClientOpen) {
+        printf("stop_Audio\n");
+        fAudioManager->stop();
+        fClientOpen = false;
     }
-
-    if (fOscInterface) {
-        FLInterfaceManager::_Instance()->unregisterGUI(fOscInterface);
-        fOscInterface->stop();
-    }
-    
-    if (fMIDIInterface) {
-        FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
-        fMIDIInterface->stop();
-    }
-    */
 }
 
 void FLWindow::start_Audio()
 {
-    recall_Window();
-    fAudioManager->start();
-    QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
-    fAudioManager->connect_Audio(connectFile.toStdString());
-    fClientOpen = true;
-    
-#ifdef REMOTE
-    //    if(!fEffect->isLocal()){
-    //        
-    //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
-    //        currentDSP->start();
-    //    }
-#endif
-
-    // Run interfaces
-    /*
-    if (fHttpInterface) {
-        fHttpInterface->run();
-        FLInterfaceManager::_Instance()->registerGUI(fHttpInterface);
+    if (!fClientOpen) {
+        printf("start_Audio\n");
+        recall_Window();
+        fAudioManager->start();
+        QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
+        fAudioManager->connect_Audio(connectFile.toStdString());
+        fClientOpen = true;
+        
+    #ifdef REMOTE
+        //    if (!fEffect->isLocal()) {
+        //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+        //        currentDSP->start();
+        //    }
+    #endif
     }
-
-    if (fOscInterface) {
-        fOscInterface->run();
-        FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
-    }
-    
-    if (fMIDIInterface) {
-        fMIDIInterface->run();
-        FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
-    }
-    */
 }
 
 //In case audio clients collapse, the architecture has to be changed

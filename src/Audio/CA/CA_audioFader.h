@@ -74,7 +74,11 @@ class CA_audioFader : public audio, public AudioFader_Interface
             fBufferSize = fpb;
         }
         
-        virtual ~CA_audioFader(){}
+        virtual ~CA_audioFader()
+        {
+            fCrossFadeDevice.Stop();
+            fCrossFadeDevice.Close();
+        }
         
         virtual bool init(const char* /*name*/, dsp* DSP)
         {
@@ -117,7 +121,6 @@ class CA_audioFader : public audio, public AudioFader_Interface
         virtual void stop()
         {
             fCrossFadeDevice.Stop();
-            fCrossFadeDevice.Close();
         }
         
         virtual void launch_fadeOut()

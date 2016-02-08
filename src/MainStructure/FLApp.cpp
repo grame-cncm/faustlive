@@ -1627,12 +1627,14 @@ void FLApp::update_AudioArchitecture(){
     display_CompilingProgress("Updating Audio Architecture...");
     
     //Save all audio clients
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++)    
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
         (*it)->saveWindow();
+    }
     
     //Stop all audio clients
-    for (it = FLW_List.begin(); it != FLW_List.end(); it++)
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
         (*it)->stop_Audio();
+    }
     
     //Try to init new audio architecture
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
@@ -1652,8 +1654,9 @@ void FLApp::update_AudioArchitecture(){
         errorPrinting(error);
         
 //        If some audio did start before the failure, they have to be stopped again
-        for (it = FLW_List.begin(); it != updateFailPointer; it++)
+        for (it = FLW_List.begin(); it != updateFailPointer; it++) {
             (*it)->stop_Audio();
+        }
         
 //        Switch back to previous architecture
         fAudioCreator->restoreSavedSettings();
@@ -1675,8 +1678,9 @@ void FLApp::update_AudioArchitecture(){
             errorPrinting(errorToPrint);
             errorPrinting(error);
         } else {
-            for(it = FLW_List.begin() ; it != FLW_List.end(); it++)
+            for (it = FLW_List.begin() ; it != FLW_List.end(); it++) {
                 (*it)->start_Audio();
+            }
             
             errorToPrint = fAudioCreator->get_ArchiName();
             errorToPrint += " was reinitialized";
@@ -1692,7 +1696,7 @@ void FLApp::update_AudioArchitecture(){
         fAudioCreator->tempSettingsToSavedSettings();
 
         //If there is no current window, it is strange to show that msg
-        if(FLW_List.size() != 0){
+        if (FLW_List.size() != 0) {
             errorToPrint = fAudioCreator->get_ArchiName() + " successfully started.";
             errorPrinting(errorToPrint);
         }
