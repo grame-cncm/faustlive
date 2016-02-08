@@ -1617,8 +1617,7 @@ void FLApp::audioPrefChanged(){
 //Update Audio Architecture of all opened windows
 void FLApp::update_AudioArchitecture(){
     
-    QList<FLWindow*>::iterator it;
-    QList<FLWindow*>::iterator updateFailPointer;
+    QList<FLWindow*>::iterator updateFailPointer, it;
     
     bool updateSuccess = true;
     QString errorToPrint;
@@ -1634,11 +1633,13 @@ void FLApp::update_AudioArchitecture(){
     //Stop all audio clients
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
         (*it)->stop_Audio();
+        // Possibly delete MIDI interface
+        (*it)->deleteMIDIInterface();
     }
     
     //Try to init new audio architecture
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        if(!(*it)->update_AudioArchitecture(error)) {
+        if (!(*it)->update_AudioArchitecture(error)) {
             updateSuccess = false;
             updateFailPointer = it;
             break;
@@ -1691,6 +1692,8 @@ void FLApp::update_AudioArchitecture(){
         
         for (it = FLW_List.begin() ; it != FLW_List.end(); it++) {
             (*it)->start_Audio();
+            // Possibly restart MIDI interface
+            (*it)->updateMIDIInterface();
         }
         
         fAudioCreator->tempSettingsToSavedSettings();

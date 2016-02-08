@@ -786,15 +786,16 @@ void FLWindow::switchMIDI(bool on)
 
 void FLWindow::updateMIDIInterface()
 {
-    printf("updateMIDIInterface\n");
-    saveWindow();
-    deleteMIDIInterface();
-    allocateMIDIInterface();
-    fCurrent_DSP->buildUserInterface(fMIDIInterface);
-    recall_Window();
-    fMIDIInterface->run();
-    FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
-    setWindowsOptions();
+    if (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool()) {
+        saveWindow();
+        deleteMIDIInterface();
+        allocateMIDIInterface();
+        fCurrent_DSP->buildUserInterface(fMIDIInterface);
+        recall_Window();
+        fMIDIInterface->run();
+        FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
+        setWindowsOptions();
+    }
 }
 
 void FLWindow::allocateMIDIInterface()
@@ -810,9 +811,7 @@ void FLWindow::allocateMIDIInterface()
 
 void FLWindow::deleteMIDIInterface()
 {
-    printf("deleteMIDIInterface\n");
     if (fMIDIInterface) {
-        printf("deleteMIDIInterface OK \n");
         FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
         delete fMIDIInterface;
         fMIDIInterface = NULL;
@@ -1192,7 +1191,6 @@ void FLWindow::stop_Audio()
     
 #endif
     if (fClientOpen) {
-        printf("stop_Audio\n");
         fAudioManager->stop();
         fClientOpen = false;
     }
@@ -1201,7 +1199,6 @@ void FLWindow::stop_Audio()
 void FLWindow::start_Audio()
 {
     if (!fClientOpen) {
-        printf("start_Audio\n");
         recall_Window();
         fAudioManager->start();
         QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
