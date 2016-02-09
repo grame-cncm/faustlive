@@ -106,7 +106,7 @@ class FLWindow : public QMainWindow
 //        string          fInstanceKey; /* Though to be used for remote interactions*/
         
 //--- CURRENT DSP Instance
-        dsp*            fCurrent_DSP;
+        dsp*            fCurrentDSP;
     
     //Calculate a multiplication coefficient to place the httpdWindow on screen (avoiding overlapping of the windows)
         int             calculate_Coef();
@@ -246,6 +246,10 @@ class FLWindow : public QMainWindow
     //Modification of the MIDI interface
         void            updateMIDIInterface();
         void            switchMIDI(bool);
+        
+    //Modification of the Polyphony support
+        //void            updatePolyphony();
+        void            switchPoly(bool);
    
         void            shut();
 

@@ -258,14 +258,11 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
-        compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
-        
-        // Polyphonic mode
-        //compiledDSP = new mydsp_poly(8, createDSPInstance(toCompile->fLLVMFactory), true);
-        
+        llvm_dsp* dsp_instance = createDSPInstance(toCompile->fLLVMFactory);
         
         // For in-buffer MIDI control
-        compiledDSP = new timed_dsp(compiledDSP);
+        //compiledDSP = new timed_dsp(new mydsp_poly(1, dsp_instance, true));
+        compiledDSP = new timed_dsp(dsp_instance);
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance

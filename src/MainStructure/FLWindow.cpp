@@ -94,7 +94,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 
     fInterface = NULL;
     fRCInterface = NULL;
-    fCurrent_DSP = NULL;
+    fCurrentDSP = NULL;
     
     fToolBar = NULL;
     
@@ -200,9 +200,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         return false;
     }
 
-    fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+    fCurrentDSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
     
-    if (!fCurrent_DSP) {
+    if (!fCurrentDSP) {
         return false;
     }
     
@@ -212,7 +212,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     }
 
     if (allocateInterfaces(fSettings->value("Name", "").toString())) {
-        buildInterfaces(fCurrent_DSP);
+        buildInterfaces(fCurrentDSP);
         if (setDSP(errorMsg)) {
             start_Audio();
             frontShow();
@@ -226,8 +226,8 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         errorMsg = "Interface could not be allocated";
     }
     
-    sessionManager->deleteDSPandFactory(fCurrent_DSP);
-    fCurrent_DSP = NULL;
+    sessionManager->deleteDSPandFactory(fCurrentDSP);
+    fCurrentDSP = NULL;
     return false;
 }
 
@@ -380,7 +380,7 @@ bool FLWindow::update_Window(const QString& source)
     hide();
     
     //creating the new DSP instance
-    dsp* charging_DSP = NULL;
+    dsp* charging_dsp = NULL;
     //    if(newEffect->isLocal())
     
     QString errorMsg("");
@@ -402,13 +402,13 @@ bool FLWindow::update_Window(const QString& source)
     
     if (isUpdateSucessfull) {
         
-        charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+        charging_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
          
-        if (charging_DSP) {
+        if (charging_dsp) {
             
             QString newName = fSettings->value("Name", "").toString();
             
-            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)) {
+            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_dsp)) {
                 
                 fIsDefault = false;
                 deleteInterfaces();
@@ -416,7 +416,7 @@ bool FLWindow::update_Window(const QString& source)
                 //Set the new interface & Recall the parameters of the window
                 if (allocateInterfaces(newName)) {
                     
-                    buildInterfaces(charging_DSP);
+                    buildInterfaces(charging_dsp);
                     recall_Window();
                     
                     //Start crossfade and wait for its end
@@ -424,11 +424,11 @@ bool FLWindow::update_Window(const QString& source)
                     fAudioManager->wait_EndFade();
                     
                     //SWITCH the current DSP as the dropped one
-                    dsp* VecInt = fCurrent_DSP;
-                    fCurrent_DSP = charging_DSP;
-                    charging_DSP = VecInt;
+                    dsp* tmp = fCurrentDSP;
+                    fCurrentDSP = charging_dsp;
+                    charging_dsp = tmp;
                     
-                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
+                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_dsp);
                     
                     fSource = sourceToCompile;
                     fWavSource = wavsource;
@@ -437,12 +437,12 @@ bool FLWindow::update_Window(const QString& source)
                     
                 } else if (allocateInterfaces(savedName)) {
                 
-                    buildInterfaces(fCurrent_DSP);
+                    buildInterfaces(fCurrentDSP);
                     recall_Window();
                     errorMsg = "Impossible to allocate new interface";
                     isUpdateSucessfull = false; 
-                    sessionManager->deleteDSPandFactory(charging_DSP);
-                    charging_DSP = NULL;
+                    sessionManager->deleteDSPandFactory(charging_dsp);
+                    charging_dsp = NULL;
                     
                     if (fSettings) {
                         fSettings->setValue("Path", savedPath);
@@ -668,6 +668,7 @@ void FLWindow::set_ToolBar()
 	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
 	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     connect(fToolBar, SIGNAL(switch_midi(bool)), this, SLOT(switchMIDI(bool)));
+    connect(fToolBar, SIGNAL(switch_poly(bool)), this, SLOT(switchPoly(bool)));
 
 #ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
@@ -787,13 +788,32 @@ void FLWindow::switchMIDI(bool on)
     start_Audio();
 }
 
+void FLWindow::switchPoly(bool on)
+{
+    // Needed for Poly DSP
+    stop_Audio();
+    
+    printf("switchPoly %d\n", on);
+    string voice = fSettings->value("Polyphony/Voice", "4").toString().toStdString();
+    printf("switchPoly  voice %s\n", voice.c_str());
+  
+    if (on) {
+        ///
+    } else {
+        ///
+    }
+    
+    // Needed for Poly DSP
+    start_Audio();
+} 
+
 void FLWindow::updateMIDIInterface()
 {
     if (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool()) {
         saveWindow();
         deleteMIDIInterface();
         allocateMIDIInterface();
-        fCurrent_DSP->buildUserInterface(fMIDIInterface);
+        fCurrentDSP->buildUserInterface(fMIDIInterface);
         recall_Window();
         fMIDIInterface->run();
         FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
@@ -876,7 +896,7 @@ void FLWindow::updateOSCInterface()
     saveWindow();
     deleteOscInterface();
     allocateOscInterface();
-    fCurrent_DSP->buildUserInterface(fOscInterface);
+    fCurrentDSP->buildUserInterface(fOscInterface);
     recall_Window();
     fOscInterface->run();
     FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
@@ -891,7 +911,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     setWindowTitle(intermediate);
     
     if (!fIsDefault) {
-        QScrollArea *sa = new QScrollArea( this );
+        QScrollArea *sa = new QScrollArea(this);
         
         fInterface = new QTGUI(sa);
         sa->setWidgetResizable(true);
@@ -1057,7 +1077,7 @@ void FLWindow::closeWindow()
         fHttpdWindow = NULL;
     }
     
-    FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
+    FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
 
 #ifdef REMOTE
     delete fStatusBar;
@@ -1162,7 +1182,7 @@ void FLWindow::pressEvent()
     fileIcon.load(":/Images/FileIcon.png");
     reverseDrag->setPixmap(fileIcon);
     
-    if (QFileInfo(fSource).exists()){
+    if (QFileInfo(fSource).exists()) {
         QList<QUrl> listUrls;
         QUrl newURL(fSource);
         listUrls.push_back(newURL);
@@ -1192,7 +1212,7 @@ void FLWindow::stop_Audio()
 #ifdef REMOTE
     
     //    if (!fEffect->isLocal()) {
-    //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+    //        remote_dsp* currentDSP = (remote_dsp*) fCurrentDSP;
     //        currentDSP->stop();
     //    }
     
@@ -1214,7 +1234,7 @@ void FLWindow::start_Audio()
         
     #ifdef REMOTE
         //    if (!fEffect->isLocal()) {
-        //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+        //        remote_dsp* currentDSP = (remote_dsp*) fCurrentDSP;
         //        currentDSP->start();
         //    }
     #endif
@@ -1276,7 +1296,7 @@ void FLWindow::update_AudioParams()
 
 bool FLWindow::setDSP(QString& error)
 {
-    bool success = fAudioManager->setDSP(error, fCurrent_DSP, fSettings->value("Name", "").toString().toStdString().c_str());
+    bool success = fAudioManager->setDSP(error, fCurrentDSP, fSettings->value("Name", "").toString().toStdString().c_str());
     update_AudioParams();
     return success;
 }
@@ -1373,7 +1393,7 @@ void FLWindow::allocateHttpInterface()
     
     argv[argc] = 0; // NULL terminated argv
     
-    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrentDSP->getNumInputs(), fCurrentDSP->getNumOutputs(), 3, argv, false);
 }
 
 void FLWindow::deleteHttpInterface()
@@ -1390,7 +1410,7 @@ void FLWindow::updateHttpInterface()
     saveWindow();
     deleteHttpInterface();
     allocateHttpInterface();
-    fCurrent_DSP->buildUserInterface(fHttpInterface);
+    fCurrentDSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
     FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
@@ -1542,11 +1562,11 @@ void FLWindow::RemoteCallback(int error_code)
 //        dspToStart->fAudio = new NJm_audioManager(NULL, NULL);
 //    connect(dspToStart->fAudio, SIGNAL(errorSignal(const char*)), dspToStart, SLOT(stopNJdspAudio(const char*)));
 //    
-//        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrent_DSP)) {
+//        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrentDSP)) {
 //            if (!dspToStart->fAudio->start())
 //                printf("Start slave audio failed\n");
 //            else{
-//                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrent_DSP->getNumInputs(), dspToStart->fCurrent_DSP->getNumOutputs());
+//                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrentDSP->getNumInputs(), dspToStart->fCurrentDSP->getNumOutputs());
 //                success = true;
 //            }
 //        }
@@ -1587,8 +1607,8 @@ void FLWindow::RemoteCallback(int error_code)
 //}
 //
 //string FLWindow::json(){
-//    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
-//    fCurrent_DSP->buildUserInterface(&json);    
+//    JSONUI json(fCurrentDSP->getNumInputs(), fCurrentDSP->getNumOutputs());
+//    fCurrentDSP->buildUserInterface(&json);    
 //    string answer = json.JSON();
 //    
 //    return answer;
