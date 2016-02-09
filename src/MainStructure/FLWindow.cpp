@@ -45,8 +45,11 @@
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
+
+#ifdef JACK
 #include "JA_audioManager.h"
 #include "JA_audioFader.h"
+#endif
 
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
@@ -800,6 +803,7 @@ void FLWindow::updateMIDIInterface()
 
 void FLWindow::allocateMIDIInterface()
 {
+#ifdef JACK
     JA_audioManager* manager = dynamic_cast<JA_audioManager*>(fAudioManager);
     // Special case for JACK audio manager
     if (manager) {
@@ -807,6 +811,9 @@ void FLWindow::allocateMIDIInterface()
     } else {
         fMIDIInterface = new MidiUI(fWindowName.toStdString());
     }
+#else
+    fMIDIInterface = new MidiUI(fWindowName.toStdString());
+#endif
 }
 
 void FLWindow::deleteMIDIInterface()
