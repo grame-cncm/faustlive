@@ -50,25 +50,24 @@ struct FJUI
 //            f>>cote;
             cote = f.get();
             
-            if(f.good()){
+            if (f.good()) {
                 
-                if(cote == '\"'){
+                if (cote == '\"') {
                     gORn++;
-                } 
-                else if(gORn == 1)
-                    g+=cote;
-                else if(gORn == 3)
-                    n+=cote;
+                } else if (gORn == 1) {
+                    g += cote;
+                }else if (gORn == 3) {
+                    n += cote;
+                }
                 
-                if(gORn == 4){
+                if (gORn == 4) { 
                     Connections.push_back(make_pair(g,n));
 //                    printf("Connect = %s To %s\n", g.c_str(), n.c_str());
                     gORn = 0;
                     g = "";
                     n = "";
                 }
-                
-//                printf("g = %s || n = %s\n", g.c_str(), n.c_str());
+//              printf("g = %s || n = %s\n", g.c_str(), n.c_str());
             }
 		}
 		f.close();
@@ -87,24 +86,24 @@ struct FJUI
 			readF >> port1 >> port2;
             
             std::map<std::string,std::string>::iterator it;
-            for(it = changeTable.begin(); it != changeTable.end() ; it++){
+            for (it = changeTable.begin(); it != changeTable.end() ; it++) {
                 
                 size_t pos = port1.find(it->first);
-                if(pos != std::string::npos){
+                if (pos != std::string::npos) {
                     char nextCharacter = port1[pos+it->first.length()];
                     //This way freeverb1 is not recognized in freeverb12!
-                    if(nextCharacter == ':'){
+                    if (nextCharacter == ':') {
                         port1.erase(pos, it->first.length());
                         port1.insert(pos, it->second);
                         break;
                     }
                 }
             }
-            for(it = changeTable.begin(); it != changeTable.end() ; it++){
+            for (it = changeTable.begin(); it != changeTable.end() ; it++) {
                 size_t pos = port2.find(it->first);
-                if(pos != std::string::npos){
+                if (pos != std::string::npos) {
                     char nextCharacter = port2[pos+it->first.length()];
-                    if(nextCharacter == ':'){
+                    if (nextCharacter == ':') {
                         port2.erase(pos, it->first.length());
                         port2.insert(pos, it->second);
                         break;

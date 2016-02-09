@@ -14,10 +14,10 @@ PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize) {
 
 PA_audioFader::~PA_audioFader() {}
 
-int PA_audioFader::processAudio(float** ibuf, float** obuf, unsigned long frames) 
+int PA_audioFader::processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
 {
-    // process samples
-    fDsp->compute(frames, ibuf, obuf);
+    // Process samples
+    fDsp->compute(current_time * 1000000., frames, ibuf, obuf);
     crossfade_Calcul(frames, fDevNumOutChans, obuf);
 	return paContinue;
 }

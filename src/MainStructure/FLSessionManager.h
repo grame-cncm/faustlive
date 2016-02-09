@@ -51,7 +51,6 @@ enum {
     TYPE_LOCAL, TYPE_REMOTE
 };
 
-
 union factory {
     llvm_dsp_factory* fLLVMFactory;
 #ifdef REMOTE
@@ -83,9 +82,7 @@ class FLSessionManager : public QObject
         Q_OBJECT
         
         QString         fSessionFolder;
-        
-        //rtmidi*         fMIDIManager;
-
+ 
         static FLSessionManager* _sessionManager;
         
 //------ Handle name giving 

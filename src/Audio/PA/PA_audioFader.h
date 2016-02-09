@@ -22,7 +22,7 @@ class PA_audioFader : public portaudio, public AudioFader_Interface, public Audi
     
     private:
     
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames);
+        virtual int processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames);
     
     public:
     

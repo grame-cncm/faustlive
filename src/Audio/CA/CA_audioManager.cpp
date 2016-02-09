@@ -16,6 +16,8 @@ CA_audioManager::CA_audioManager(AudioShutdownCallback cb, void* arg) : AudioMan
 {
     fBufferSize = FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
     fCurrentAudio = new CA_audioFader(fBufferSize);
+    fFadeInAudio = 0;
+    fInit = false;
 }
 
 CA_audioManager::~CA_audioManager()
@@ -24,8 +26,9 @@ CA_audioManager::~CA_audioManager()
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(QString& /*error*/, const char* name)
+bool CA_audioManager::initAudio(QString& error, const char* name)
 {
+    error = "";
     fName = name;
     fInit = false;
     return true;
@@ -50,8 +53,9 @@ bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char
 bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/)
 {
     if (fInit) {
-        return fCurrentAudio->set_dsp(DSP);
-    } else if(init(fName, DSP)) {
+        fCurrentAudio->set_dsp(DSP);
+        return true;
+    } else if (init(fName, DSP)) {
         FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
         return true;
     } else {
@@ -84,7 +88,7 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
     
     if (fFadeInAudio->init(name, DSP)) {
         return true;
-    } else{
+    } else {
         error = "Impossible to init new Core Audio Client";
         return false;
     }
@@ -93,13 +97,13 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
 //Crossfade start
 void CA_audioManager::start_Fade()
 {
-   fFadeInAudio->launch_fadeIn();
+    fFadeInAudio->launch_fadeIn();
     fCurrentAudio->launch_fadeOut();
     
     if (!fFadeInAudio->start()) {
         printf("CoreAudio did not Start\n");
     } else {
-        printf("CoreAudio Totally Started\n");
+        printf("CoreAudio totally Started\n");
     }
 }
 
@@ -109,9 +113,9 @@ void CA_audioManager::wait_EndFade()
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
     QDateTime currentTime(QDateTime::currentDateTime());
         
-    while (fCurrentAudio->get_FadeOut() == 1) {
+    while (fCurrentAudio->get_FadeOut()) {
         QDateTime currentTime2(QDateTime::currentDateTime());
-        if(currentTime.secsTo(currentTime2)>3){
+        if (currentTime.secsTo(currentTime2) > 3) {
             printf("STOPPED PROGRAMATICALLY\n");
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();

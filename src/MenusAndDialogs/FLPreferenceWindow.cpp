@@ -15,7 +15,7 @@ FLPreferenceWindow* FLPreferenceWindow::_prefWindow = NULL;
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
-FLPreferenceWindow::FLPreferenceWindow(QWidget * parent) : QDialog(parent)
+FLPreferenceWindow::FLPreferenceWindow(QWidget* parent) : QDialog(parent)
 {
     init();
 }
@@ -24,7 +24,7 @@ FLPreferenceWindow::~FLPreferenceWindow(){}
 
 FLPreferenceWindow* FLPreferenceWindow::_Instance()
 {
-    if (_prefWindow == NULL)
+    if (!_prefWindow)
         _prefWindow = new FLPreferenceWindow;
     return _prefWindow;
 }

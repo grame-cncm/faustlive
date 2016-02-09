@@ -21,6 +21,8 @@ PA_audioManager::PA_audioManager(AudioShutdownCallback cb, void* arg): AudioMana
 	long bs = FLSettings::_Instance()->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
     long sr = FLSettings::_Instance()->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     fCurrentAudio = new PA_audioFader(sr, bs);
+    fFadeInAudio = 0;
+    fInit = false;
 }
 
 PA_audioManager::~PA_audioManager()
@@ -38,7 +40,7 @@ bool PA_audioManager::initAudio(QString& error, const char* /*name*/)
 
 bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs)
 {
-	if (fCurrentAudio->init(port_name, numInputs, numOutputs/*, fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)){
+	if (fCurrentAudio->init(port_name, numInputs, numOutputs/*, fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)) {
         fInit = true;
         return true;
     } else {
@@ -102,7 +104,7 @@ void PA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void PA_audioManager::wait_EndFade()
 {
-    while(fCurrentAudio->get_FadeOut() == 1){}
+    while (fCurrentAudio->get_FadeOut()) {}
     fCurrentAudio->stop();
     PA_audioFader* intermediate = fCurrentAudio;
     fCurrentAudio = fFadeInAudio;

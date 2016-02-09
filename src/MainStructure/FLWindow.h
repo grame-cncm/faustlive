@@ -96,7 +96,6 @@ class FLWindow : public QMainWindow
         void            deleteHttpInterface();
         
         void            allocateMIDIInterface();
-        void            deleteMIDIInterface();
     
 //--- Audio driver
         AudioManager*   fAudioManager;
@@ -265,7 +264,9 @@ class FLWindow : public QMainWindow
         bool            update_Window(const QString& source);
         void            selfUpdate();
         void            selfNameUpdate(const QString& oldSource, const QString& newSource);
-
+              
+        void            deleteMIDIInterface();
+  
 #ifdef REMOTE
         void            RemoteCallback(int);
 /*This is a never used attempt to implement remote control (checkout Network/FLRemoteServer)*/

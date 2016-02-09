@@ -37,7 +37,7 @@ NJs_audioManager::~NJs_audioManager()
 //INIT interface to correspond to JackAudio init interface
 bool NJs_audioManager::initAudio(QString& /*error*/, const char* /*name*/)
 {
-   fInit = false;
+    fInit = false;
     return true;
 }
 

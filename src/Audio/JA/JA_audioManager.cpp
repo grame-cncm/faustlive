@@ -48,13 +48,8 @@ bool JA_audioManager::initAudio(QString& error, const char* name)
 bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name)
 {
     printf("SET DSP = %s\n", port_name);
-    
-    if (fCurrentAudio->set_dsp(DSP, port_name)) {
-        return true;
-    } else {
-        error = "Impossible to init JackAudio Client";
-        return false;
-    }
+    fCurrentAudio->set_dsp(DSP, port_name);
+    return true;
 }
 
 bool JA_audioManager::init(const char* name, dsp* DSP)
@@ -89,7 +84,7 @@ void JA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void JA_audioManager::wait_EndFade()
 {
-    while(fCurrentAudio->get_FadeOut() == true){}
+    while (fCurrentAudio->get_FadeOut()) {}
     fCurrentAudio->upDate_DSP();
 }
 

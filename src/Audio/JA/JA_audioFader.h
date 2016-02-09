@@ -18,19 +18,18 @@
 
 using namespace std;
 
-class JA_audioFader : public jackaudio, public AudioFader_Interface, public AudioFader_Implementation {    
+class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public AudioFader_Implementation {    
     
     private:
     
-        dsp*            fDSPIn;
+        dsp* fDSPIn;
       
-        float**         fIntermediateFadeOut;
-        float**         fIntermediateFadeIn;
+        float** fIntermediateFadeOut;
+        float** fIntermediateFadeIn;
     
-        jack_nframes_t  fBufferSize;
         list<pair<string, string> > fConnectionsIn;		// Connections list
         
-        virtual int	process(jack_nframes_t nframes);
+        virtual int	processAudio(jack_nframes_t nframes);
     
         float crossfade_calculation(int i, int j);
     
@@ -38,8 +37,10 @@ class JA_audioFader : public jackaudio, public AudioFader_Interface, public Audi
     
         JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
         virtual ~JA_audioFader();
-    
+        
+        // Special version that names the JACK ports
         bool set_dsp(dsp* DSP, const char* portsName);
+    
         virtual bool start();
     
         virtual void init_FadeIn_Audio(dsp* DSP, const char* portsName);  
