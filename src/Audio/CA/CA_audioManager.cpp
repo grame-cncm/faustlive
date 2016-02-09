@@ -17,6 +17,7 @@ CA_audioManager::CA_audioManager(AudioShutdownCallback cb, void* arg) : AudioMan
     fBufferSize = FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt();
     fCurrentAudio = new CA_audioFader(fBufferSize);
     fFadeInAudio = 0;
+    fInit = false;
 }
 
 CA_audioManager::~CA_audioManager()
@@ -25,8 +26,9 @@ CA_audioManager::~CA_audioManager()
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(QString& /*error*/, const char* name)
+bool CA_audioManager::initAudio(QString& error, const char* name)
 {
+    error = "";
     fName = name;
     fInit = false;
     return true;
@@ -51,7 +53,8 @@ bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char
 bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/)
 {
     if (fInit) {
-        return fCurrentAudio->set_dsp(DSP);
+        fCurrentAudio->set_dsp(DSP);
+        return true;
     } else if (init(fName, DSP)) {
         FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
         return true;
@@ -100,7 +103,7 @@ void CA_audioManager::start_Fade()
     if (!fFadeInAudio->start()) {
         printf("CoreAudio did not Start\n");
     } else {
-        printf("CoreAudio Totally Started\n");
+        printf("CoreAudio totally Started\n");
     }
 }
 

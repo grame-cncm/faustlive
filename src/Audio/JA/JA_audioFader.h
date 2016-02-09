@@ -37,6 +37,9 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
     
         JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
         virtual ~JA_audioFader();
+        
+        // Special version that names the JACK ports
+        bool set_dsp(dsp* DSP, const char* portsName);
     
         virtual bool start();
     

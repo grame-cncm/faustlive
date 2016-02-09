@@ -24,8 +24,8 @@ class AudioFader_Implementation
 {
     protected:
     
-        volatile bool    fDoWeFadeOut;
-        volatile bool    fDoWeFadeIn;
+        volatile bool fDoWeFadeOut;
+        volatile bool fDoWeFadeIn;
         
         float   fInCoef;                 // Coefficients of multiplication   
         float   fOutCoef;                // during audio crossfade

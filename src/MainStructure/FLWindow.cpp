@@ -1244,7 +1244,7 @@ bool FLWindow::update_AudioArchitecture(QString& error)
     return (init_audioClient(error) && setDSP(error));
 }
 
-//Initialization of audio Client Reimplemented
+//Initialization of audio client reimplemented
 bool FLWindow::init_audioClient(QString& error)
 {
     int numberInputs = fSettings->value("InputNumber", 0).toInt();

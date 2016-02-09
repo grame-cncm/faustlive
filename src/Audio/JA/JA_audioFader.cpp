@@ -51,14 +51,35 @@ JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio
 JA_audioFader::~JA_audioFader() 
 {}
 
+ // Special version that names the JACK ports
+bool JA_audioFader::set_dsp(dsp* dsp, const char* portsName)    
+{
+    fDSP = dsp;
+    
+    for (int i = 0; i < fDSP->getNumInputs(); i++) {
+        char buf[256];
+        snprintf(buf, 256, "%s_In_%d", portsName, i);
+        fInputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
+    }
+    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+        char buf[256];
+        snprintf(buf, 256, "%s_Out_%d", portsName, i);
+        fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
+    }
+    
+    fDSP->init(jack_get_sample_rate(fClient));
+    return true;
+}
+
 // Redefine jackaudio method
 bool JA_audioFader::start()
 {
     if (jack_activate(fClient)) {
         fprintf(stderr, "Cannot activate client");
         return false;
+    } else {
+        return true;
     }
-    return true;
 }
 
 //Init second DSP in Jack Client

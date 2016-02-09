@@ -85,11 +85,12 @@ class CA_audioFader : public audio, public AudioFader_Interface
             if (fCrossFadeDevice.OpenDefault(DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
                 printf("Cannot open CoreAudio device\n");
                 return false;
+            } else {
+                fCrossFadeDevice.set_dsp(DSP);
+                // If -1 was given, fSampleRate will be changed by OpenDefault
+                DSP->init(fSampleRate);
+                return true;
             }
-            fCrossFadeDevice.set_dsp(DSP);
-            // If -1 was given, fSampleRate will be changed by OpenDefault
-            DSP->init(fSampleRate);
-            return true;
         }
         
         bool init(const char* /*name*/, int numInputs, int numOutputs)
@@ -102,11 +103,10 @@ class CA_audioFader : public audio, public AudioFader_Interface
             }
         }
         
-        bool set_dsp(dsp* DSP)
+        void set_dsp(dsp* DSP)
         {
             fCrossFadeDevice.set_dsp(DSP);
             DSP->init(fSampleRate);
-            return true;
         }
         
         virtual bool start()
@@ -114,8 +114,9 @@ class CA_audioFader : public audio, public AudioFader_Interface
             if (fCrossFadeDevice.Start() < 0) {
                 printf("Cannot start CoreAudio device\n");
                 return false;
+            } else {
+                return true;
             }
-            return true;
         }
         
         virtual void stop()
