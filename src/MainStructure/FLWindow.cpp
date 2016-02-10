@@ -184,9 +184,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     FLMessageWindow::_Instance()->raise();
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
-
     FLMessageWindow::_Instance()->hide();
     
     if (!factorySetts.second) { // testing if the factory pointer is null (= the compilation failed)
@@ -208,24 +206,20 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         print_initWindow(init);
     }
 
-    if (allocateInterfaces(fSettings->value("Name", "").toString())) {
-        buildInterfaces(fCurrentDSP);
-        if (setDSP(errorMsg)) {
-            start_Audio();
-            frontShow();
-            runInterfaces();
-            start_stop_watcher(true);
-            return true;
-        } else {
-            deleteInterfaces();
-        }
+    allocateInterfaces(fSettings->value("Name", "").toString());
+    buildInterfaces(fCurrentDSP);
+    if (setDSP(errorMsg)) {
+        start_Audio();
+        frontShow();
+        runInterfaces();
+        start_stop_watcher(true);
+        return true;
     } else {
-        errorMsg = "Interface could not be allocated";
+        deleteInterfaces();
+        sessionManager->deleteDSPandFactory(fCurrentDSP);
+        fCurrentDSP = NULL;
+        return false;
     }
-    
-    sessionManager->deleteDSPandFactory(fCurrentDSP);
-    fCurrentDSP = NULL;
-    return false;
 }
 
 //--Transforms Wav file into faust string
@@ -388,11 +382,7 @@ bool FLWindow::update_Window(const QString& source)
     }
 
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
-    bool isUpdateSucessfull = true;
-    
-    if (!factorySetts.second) {
-        isUpdateSucessfull = false;
-    }
+    bool isUpdateSucessfull = factorySetts.second;
     
     if (isUpdateSucessfull) {
         
@@ -409,43 +399,25 @@ bool FLWindow::update_Window(const QString& source)
                 deleteInterfaces();
                 
                 //Set the new interface & Recall the parameters of the window
-                if (allocateInterfaces(newName)) {
+                allocateInterfaces(newName);
                     
-                    buildInterfaces(charging_dsp);
-                    recall_Window();
-                    
-                    //Start crossfade and wait for its end
-                    fAudioManager->start_Fade();
-                    fAudioManager->wait_EndFade();
-                    
-                    //SWITCH the current DSP as the dropped one
-                    dsp* tmp = fCurrentDSP;
-                    fCurrentDSP = charging_dsp;
-                    charging_dsp = tmp;
-                    
-                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_dsp);
-                    
-                    fSource = sourceToCompile;
-                    fWavSource = wavsource;
-                    
-                    isUpdateSucessfull = true;
-                    
-                } else if (allocateInterfaces(savedName)) {
+                buildInterfaces(charging_dsp);
+                recall_Window();
                 
-                    buildInterfaces(fCurrentDSP);
-                    recall_Window();
-                    errorMsg = "Impossible to allocate new interface";
-                    isUpdateSucessfull = false; 
-                    sessionManager->deleteDSPandFactory(charging_dsp);
-                    charging_dsp = NULL;
-                    
-                    if (fSettings) {
-                        fSettings->setValue("Path", savedPath);
-                        fSettings->setValue("Name", savedName);
-                        fSettings->setValue("SHA", savedSHA);
-                    }
-                }
+                //Start crossfade and wait for its end
+                fAudioManager->start_Fade();
+                fAudioManager->wait_EndFade();
                 
+                //SWITCH the current DSP as the dropped one
+                dsp* tmp = fCurrentDSP;
+                fCurrentDSP = charging_dsp;
+                charging_dsp = tmp;
+                
+                FLSessionManager::_Instance()->deleteDSPandFactory(charging_dsp);
+                
+                fSource = sourceToCompile;
+                fWavSource = wavsource;
+                    
                 //Step 12 : Launch User Interface
                 runInterfaces();
             }
@@ -784,21 +756,33 @@ void FLWindow::switchMIDI(bool on)
 
 void FLWindow::switchPoly(bool on)
 {
-    // Needed for Poly DSP
     stop_Audio();
     
     printf("switchPoly %d\n", on);
     string voice = fSettings->value("Polyphony/Voice", "4").toString().toStdString();
     printf("switchPoly  voice %s\n", voice.c_str());
-  
-    if (on) {
-        ///
-    } else {
-        ///
-    }
     
-    // Needed for Poly DSP
-    start_Audio();
+    FLSessionManager* sessionManager = FLSessionManager::_Instance();
+    
+    sessionManager->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
+    
+    QString errorMsg;
+    QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
+   
+    fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
+    
+    allocateInterfaces(fSettings->value("Name", "").toString()),
+    buildInterfaces(fCurrentDSP);
+    
+    if (update_AudioArchitecture(errorMsg)) {
+        start_Audio();
+        frontShow();
+        runInterfaces();
+        start_stop_watcher(true);
+    } else {
+        deleteInterfaces();
+    }
 } 
 
 void FLWindow::updateMIDIInterface()
