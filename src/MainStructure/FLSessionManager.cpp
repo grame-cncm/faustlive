@@ -260,8 +260,21 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     if (type == TYPE_LOCAL) {
         llvm_dsp* dsp_instance = createDSPInstance(toCompile->fLLVMFactory);
         
+        string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
+        bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
+        printf("polyphony %d voices %s\n", polyphony, voices.c_str());
+        
+        /*
+        // Polyphony support
+        if (polyphony) {
+            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp_instance, true);
+        } else {
+            compiledDSP = dsp_instance;
+        }
+        */
+         
         // For in-buffer MIDI control
-        //compiledDSP = new timed_dsp(new mydsp_poly(1, dsp_instance, true));
+        //compiledDSP = new timed_dsp(compiledDSP);
         compiledDSP = new timed_dsp(dsp_instance);
     }
 #ifdef REMOTE

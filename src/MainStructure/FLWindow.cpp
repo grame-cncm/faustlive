@@ -113,12 +113,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #ifdef REMOTE
     fStatusBar = NULL;
     set_StatusBar();
-#endif
-    set_MenuBar(appMenus);
-    
-#ifdef REMOTE
     connect(this, SIGNAL(remoteCnxLost(int)), this, SLOT(RemoteCallback(int)));
 #endif
+    set_MenuBar(appMenus);
 }
 
 FLWindow::~FLWindow()
@@ -257,10 +254,11 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
 #endif
         
 #ifdef __linux__
-        if(QFileInfo("/usr/local/bin/sound2faust").exists())
+        if (QFileInfo("/usr/local/bin/sound2faust").exists()) {
             exeFile = "/usr/local/bin/sound2faust";
-        else
+        } else {
             exeFile = "./sound2faust";   
+        }
 #endif
         
 #ifdef __APPLE__
@@ -378,11 +376,7 @@ bool FLWindow::update_Window(const QString& source)
     
     saveWindow();
     hide();
-    
-    //creating the new DSP instance
-    dsp* charging_dsp = NULL;
-    //    if(newEffect->isLocal())
-    
+ 
     QString errorMsg("");
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QString sourceToCompile = source;
@@ -402,7 +396,8 @@ bool FLWindow::update_Window(const QString& source)
     
     if (isUpdateSucessfull) {
         
-        charging_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+        //creating the new DSP instance
+        dsp* charging_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
          
         if (charging_dsp) {
             
@@ -475,8 +470,9 @@ bool FLWindow::update_Window(const QString& source)
 // 2 cases : 
 //    1- Updating with a new DSP --> adjusting Size to the new interface
 //    2- Self Updating --> keeping the window as it is (could have been opened or shred)
-    if (newH != saveH || newW != saveW)
+    if (newH != saveH || newW != saveW) {
         adjustSize();
+    }
 
     show();
     return isUpdateSucessfull;
@@ -503,7 +499,6 @@ void FLWindow::contextMenuEvent(QContextMenuEvent* ev)
 void FLWindow::set_MenuBar(QList<QMenu*> appMenus)
 {
     //----------------FILE
-    //    
     QMenuBar *myMenuBar = new QMenuBar(NULL);
     setMenuBar(myMenuBar);
     QList<QMenu*>::iterator it = appMenus.begin();
@@ -578,7 +573,7 @@ void FLWindow::edit()
     
     if (sourcePath == "") { 
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
-        //    In case user has saved his file in a new location
+        // In case user has saved his file in a new location
         if (pathToOpen != "" && pathToOpen != ".dsp") {
             update_Window(pathToOpen);
         } else {
@@ -586,12 +581,10 @@ void FLWindow::edit()
         }
     }
     
-    FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
+    FLSessionManager::_Instance()->updateFolderDate(fSettings->value("SHA", "").toString());
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
-    bool b = QDesktopServices::openUrl(url);
-    
-    if (!b) {
+    if (!QDesktopServices::openUrl(url)) {
         errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
     }
 }
@@ -704,8 +697,9 @@ void FLWindow::generateAuxFiles()
 {
 	QString errorMsg;
 
-    if (!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
-		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errorMsg);
+    if (!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg)) {
+		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ") + errorMsg);
+    }
 }
 
 //Reaction to the resizing the toolbar
@@ -727,11 +721,11 @@ void FLWindow::resizingBig()
     //    winSize += fToolBar->minimumSize();
     //   
     //    
-//    QSize winMinSize = minimumSize();
-//    winMinSize += fToolBar->geometry().size();
+    //    QSize winMinSize = minimumSize();
+    //    winMinSize += fToolBar->geometry().size();
     
-    //    setGeometry(0,0,winSize.width(), winSize.height());
-//    setMinimumSize(winMinSize);
+    // setGeometry(0,0,winSize.width(), winSize.height());
+    // setMinimumSize(winMinSize);
     //
     adjustSize();
 }
@@ -751,7 +745,7 @@ void FLWindow::set_StatusBar()
 void FLWindow::redirectSwitch()
 {
 #ifdef REMOTE
-    if(!update_Window(fSource)){
+    if (!update_Window(fSource)) {
         fStatusBar->remoteFailed();
     }
 #endif
@@ -1096,14 +1090,7 @@ void FLWindow::dropEvent(QDropEvent* event)
 {
     //The widget was hidden from crossing of an object through the window
     this->centralWidget()->show();
-/*
-	int numberCharToErase = 0;
-#ifndef _WIN32
-	numberCharToErase = 8;
-#else
-	numberCharToErase = 7;
-#endif
-	*/
+
     if (event->mimeData()->hasUrls()) {
         
         QList<QString> sourceList;
@@ -1212,7 +1199,7 @@ void FLWindow::stop_Audio()
 #ifdef REMOTE
     
     //    if (!fEffect->isLocal()) {
-    //        remote_dsp* currentDSP = (remote_dsp*) fCurrentDSP;
+    //        remote_dsp* currentDSP = (remote_dsp*)fCurrentDSP;
     //        currentDSP->stop();
     //    }
     
@@ -1234,7 +1221,7 @@ void FLWindow::start_Audio()
         
     #ifdef REMOTE
         //    if (!fEffect->isLocal()) {
-        //        remote_dsp* currentDSP = (remote_dsp*) fCurrentDSP;
+        //        remote_dsp* currentDSP = (remote_dsp*)fCurrentDSP;
         //        currentDSP->start();
         //    }
     #endif
@@ -1276,9 +1263,6 @@ bool FLWindow::init_audioClient(QString& error)
 {
     int numberInputs = fSettings->value("InputNumber", 0).toInt();
     int numberOutputs = fSettings->value("OutputNumber", 0).toInt();
-    
-//  if(numberInputs == 0 && numberOutputs == 0)
-//      return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
     
 	if (fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)) {
         update_AudioParams();
@@ -1491,7 +1475,9 @@ void FLWindow::errorPrint(const QString& msg)
 
 #ifdef REMOTE
 //------------------REMOTE PROCESSING
-//---We have to separate into 2 functions because the action cannot be done in the audio thread that's why remoteDSPCallback has to send a signal, received in the graphical thread.
+// We have to separate into 2 functions because the action cannot be done in the audio thread 
+// that's why remoteDSPCallback has to send a signal, received in the graphical thread.
+
 int FLWindow::remoteDSPCallback(int error_code, void* arg)
 {
     FLWindow* errorWin = (FLWindow*) arg;
