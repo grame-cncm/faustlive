@@ -153,8 +153,9 @@ void FLWindow::start_stop_watcher(bool on)
     
     FLSessionManager::_Instance()->writeDependencies(dependencies, getSHA());
     
-    if (fSettings->value("Path", "").toString() != "")
+    if (fSettings->value("Path", "").toString() != "") {
         dependencies.push_front(fSettings->value("Path", "").toString());
+    }
 
     if (on) {
         fCreationDate = fCreationDate.currentDateTime();
@@ -408,7 +409,7 @@ bool FLWindow::update_Window(const QString& source)
                 fAudioManager->start_Fade();
                 fAudioManager->wait_EndFade();
                 
-                //SWITCH the current DSP as the dropped one
+                //Switch the current DSP as the dropped one
                 dsp* tmp = fCurrentDSP;
                 fCurrentDSP = charging_dsp;
                 charging_dsp = tmp;
@@ -418,7 +419,7 @@ bool FLWindow::update_Window(const QString& source)
                 fSource = sourceToCompile;
                 fWavSource = wavsource;
                     
-                //Step 12 : Launch User Interface
+                //Launch User Interface
                 runInterfaces();
             }
         }
@@ -595,7 +596,7 @@ void FLWindow::view_svg()
             errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
         }
     } else {
-        QString err ="Could not generate SVG diagram : " + errorMsg; 
+        QString err = "Could not generate SVG diagram : " + errorMsg; 
         errorPrint(err);
     }
 }
@@ -749,30 +750,34 @@ void FLWindow::switchPoly(bool on)
     switchPolyMIDI();
 }
 
-// We may want poly with or without MIDI, so redo enerything
+// We may want poly with or without MIDI, so redo everything
 void FLWindow::switchPolyMIDI()
 {
-    FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QString errorMsg;
+    FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
   
+    saveWindow();
     stop_Audio();
-     
-    sessionManager->deleteDSPandFactory(fCurrentDSP);
+    
     deleteInterfaces();
-
+    sessionManager->deleteDSPandFactory(fCurrentDSP);
+  
     fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
     
-    allocateInterfaces(fSettings->value("Name", "").toString());
-    buildInterfaces(fCurrentDSP);
-    
     if (update_AudioArchitecture(errorMsg)) {
+         
+        allocateInterfaces(fSettings->value("Name", "").toString());
+        buildInterfaces(fCurrentDSP);
+   
         start_Audio();
         frontShow();
         runInterfaces();
         start_stop_watcher(true);
+        
     } else {
         deleteInterfaces();
+        errorPrint(errorMsg);
     }
 } 
 
@@ -885,8 +890,8 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
         fInterface = new QTGUI(sa);
         sa->setWidgetResizable(true);
         sa->setWidget(fInterface);
-        sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
-        sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+        sa->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         
         setCentralWidget(sa);
         fInterface->installEventFilter(this);
@@ -1426,7 +1431,7 @@ void FLWindow::exportToPNG()
     QString errorMsg;
     
     if (!fInterface->toPNG(filename, errorMsg)) {
-        errorPrint(errorMsg.toStdString().c_str());
+        errorPrint(errorMsg);
     }
 }
 
