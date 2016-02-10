@@ -209,6 +209,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
 
     allocateInterfaces(fSettings->value("Name", "").toString());
     buildInterfaces(fCurrentDSP);
+    
     if (setDSP(errorMsg)) {
         start_Audio();
         frontShow();
@@ -388,13 +389,13 @@ bool FLWindow::update_Window(const QString& source)
     if (isUpdateSucessfull) {
         
         //creating the new DSP instance
-        dsp* charging_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+        dsp* new_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
          
-        if (charging_dsp) {
+        if (new_dsp) {
             
             QString newName = fSettings->value("Name", "").toString();
             
-            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_dsp)) {
+            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), new_dsp)) {
                 
                 fIsDefault = false;
                 deleteInterfaces();
@@ -402,7 +403,7 @@ bool FLWindow::update_Window(const QString& source)
                 //Set the new interface & Recall the parameters of the window
                 allocateInterfaces(newName);
                     
-                buildInterfaces(charging_dsp);
+                buildInterfaces(new_dsp);
                 recall_Window();
                 
                 //Start crossfade and wait for its end
@@ -410,11 +411,11 @@ bool FLWindow::update_Window(const QString& source)
                 fAudioManager->wait_EndFade();
                 
                 //Switch the current DSP as the dropped one
-                dsp* tmp = fCurrentDSP;
-                fCurrentDSP = charging_dsp;
-                charging_dsp = tmp;
+                dsp* old_dsp = fCurrentDSP;
+                fCurrentDSP = new_dsp;
                 
-                FLSessionManager::_Instance()->deleteDSPandFactory(charging_dsp);
+                //Delete old dsp
+                FLSessionManager::_Instance()->deleteDSPandFactory(old_dsp);
                 
                 fSource = sourceToCompile;
                 fWavSource = wavsource;
@@ -427,19 +428,19 @@ bool FLWindow::update_Window(const QString& source)
     
     start_stop_watcher(true);
     
-    if (!isUpdateSucessfull) {
-        errorPrint(errorMsg);
-    } else {
+    if (isUpdateSucessfull) {
         emit windowNameChanged();
+    } else {
+        errorPrint(errorMsg);
     }
 
     FLMessageWindow::_Instance()->hide();
-
+    
     if (fInterface) {
         newW = fInterface->minimumSizeHint().width();
         newH = fInterface->minimumSizeHint().height();
     }
-
+ 
 // 2 cases : 
 //    1- Updating with a new DSP --> adjusting Size to the new interface
 //    2- Self Updating --> keeping the window as it is (could have been opened or shred)
@@ -681,7 +682,7 @@ void FLWindow::resizingSmall()
 //  fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
 //  setWindowsOptions();
     
-    setMinimumSize(QSize(0,0));
+    setMinimumSize(QSize(0, 0));
     adjustSize();
     addToolBar(Qt::TopToolBarArea, fToolBar);
 }
@@ -757,7 +758,21 @@ void FLWindow::switchPolyMIDI()
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
   
+    float saveW = 0.0;
+    float saveH = 0.0;
+    
+    float newW = 0.0;
+    float newH = 0.0;
+    
+    if (fInterface) {
+        saveW = fInterface->minimumSizeHint().width();
+        saveH = fInterface->minimumSizeHint().height();
+    }
+    
     saveWindow();
+    hide();
+   
+    start_stop_watcher(false);
     stop_Audio();
     
     deleteInterfaces();
@@ -771,10 +786,22 @@ void FLWindow::switchPolyMIDI()
         buildInterfaces(fCurrentDSP);
    
         start_Audio();
-        frontShow();
         runInterfaces();
         start_stop_watcher(true);
         
+        FLMessageWindow::_Instance()->hide();
+
+        if (fInterface) {
+            newW = fInterface->minimumSizeHint().width();
+            newH = fInterface->minimumSizeHint().height();
+        }
+     
+        if (newH != saveH || newW != saveW) {
+            adjustSize();
+        }
+
+        show();
+      
     } else {
         deleteInterfaces();
         errorPrint(errorMsg);
