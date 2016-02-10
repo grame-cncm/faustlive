@@ -244,6 +244,8 @@ class FLWindow : public QMainWindow
         void            switchOsc(bool);
         void            disableOSCInterface();
         
+        void            switchPolyMIDI();
+        
     //Modification of the MIDI interface
         void            updateMIDIInterface();
         void            switchMIDI(bool);

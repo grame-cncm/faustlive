@@ -741,38 +741,29 @@ void FLWindow::switchOsc(bool on)
 
 void FLWindow::switchMIDI(bool on)
 {
-    // Needed for MidiUI
-    stop_Audio();
-    
-    if (on) {
-        updateMIDIInterface();
-    } else {
-        deleteMIDIInterface();
-    }
-    
-    // Needed for MidiUI
-    start_Audio();
+    switchPolyMIDI();
 }
 
 void FLWindow::switchPoly(bool on)
 {
-    stop_Audio();
-    
-    printf("switchPoly %d\n", on);
-    string voice = fSettings->value("Polyphony/Voice", "4").toString().toStdString();
-    printf("switchPoly  voice %s\n", voice.c_str());
-    
+    switchPolyMIDI();
+}
+
+// We may want poly with or without MIDI, so redo enerything
+void FLWindow::switchPolyMIDI()
+{
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
-    sessionManager->deleteDSPandFactory(fCurrentDSP);
-    deleteInterfaces();
-    
     QString errorMsg;
     QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
-   
+  
+    stop_Audio();
+     
+    sessionManager->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
+
     fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
     
-    allocateInterfaces(fSettings->value("Name", "").toString()),
+    allocateInterfaces(fSettings->value("Name", "").toString());
     buildInterfaces(fCurrentDSP);
     
     if (update_AudioArchitecture(errorMsg)) {

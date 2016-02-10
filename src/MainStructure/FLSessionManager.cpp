@@ -262,11 +262,11 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
-        printf("polyphony %d voices %s\n", polyphony, voices.c_str());
+        bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
         
-        // Polyphony support
+        // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp_instance, true);
+            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp_instance, midi);
         } else {
             compiledDSP = dsp_instance;
         }
