@@ -31,11 +31,11 @@ class PA_audioSettings : public AudioSettings{
         map<string, int> fOutputdevices;
 
         //Graphical PortAudio Settings
-        QLineEdit*       fsplRate;
-        QLineEdit*       fBufSize;
-        QFormLayout*     fLayout;
-        //QComboBox*       fInputDeviceBox;
-        //QComboBox*       fOutputDeviceBox;
+        QLineEdit*       fSampleRate;
+        QLineEdit*       fBufferSize;
+        
+        //QComboBox*   fInputDeviceBox;
+        //QComboBox*   fOutputDeviceBox;
 
         long get_BufferSize();
         long get_SampleRate();

@@ -9,9 +9,7 @@
 // NJm_audioManager controls 2 NJm_audioFader. It can switch from one to another with a crossfade or it can act like a simple netjack-dsp
 
 #include "NJm_audioManager.h"
-
 #include "NJm_audioFader.h"
-
 #include "FLSettings.h"
 
 NJm_audioManager::NJm_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg)

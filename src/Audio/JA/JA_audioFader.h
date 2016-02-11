@@ -6,7 +6,8 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-// This class adds new features to jackaudio so that the dsp of the audioClient can be dynamically changed. MoreOver, the two dsp will be switched with a crossfade between them. 
+// This class adds new features to jackaudio so that the dsp of the audioClient can be dynamically changed. 
+// Moreover, the two dsp will be switched with a crossfade between them. 
 
 #ifndef _JA_audioFader_h
 #define _JA_audioFader_h

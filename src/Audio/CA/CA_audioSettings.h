@@ -28,8 +28,8 @@ class CA_audioSettings : public AudioSettings {
     private:
     
         //Graphical CoreAudio Settings
-        QTextBrowser*       fsplRate;
-        QLineEdit*          fBufSize;
+        QTextBrowser*       fSampleRate;
+        QLineEdit*          fBufferSize;
     
     private slots:
     

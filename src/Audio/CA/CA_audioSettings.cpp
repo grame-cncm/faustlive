@@ -14,55 +14,50 @@
 CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent)
 {
     QFormLayout* layout = new QFormLayout;
-    fBufSize = new QLineEdit;
-   fsplRate = new QTextBrowser;
+    fBufferSize = new QLineEdit;
+    fSampleRate = new QTextBrowser;
     string urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
     
-    fsplRate->setOpenExternalLinks(false);
-    fsplRate->setHtml(urlText.c_str());
-    fsplRate->setFixedHeight(70);
-    connect(fsplRate, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(linkClicked(const QUrl&)));
+    fSampleRate->setOpenExternalLinks(false);
+    fSampleRate->setHtml(urlText.c_str());
+    fSampleRate->setFixedHeight(70);
+    connect(fSampleRate, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(linkClicked(const QUrl&)));
     
-    layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
-    layout->addRow(fsplRate);
+    layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufferSize);
+    layout->addRow(fSampleRate);
     
     parent->setLayout(layout);
-     setVisualSettings();
+    setVisualSettings();
 }
 
 CA_audioSettings::~CA_audioSettings()
-{}
+{
+    // TO CHECK
+    //delete fBufferSize;
+    //delete fSampleRate;
+}
 
 //Accessors to the Buffersize
 int CA_audioSettings::get_BufferSize()
 {
-    if (isStringInt(fBufSize->text().toStdString().c_str())) {
-        return atoi(fBufSize->text().toStdString().c_str());
-    } else {
-        return 512;
-    }
+    char* bs_str = fBufferSize->text().toLatin1().data();
+    return (isStringInt(bs_str) ? atoi(bs_str) : 512);
 }
 
 //Real to Visual
 void CA_audioSettings::setVisualSettings()
 {
-    fBufSize->setText(QString::number(FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
+    fBufferSize->setText(QString::number(FLSettings::_Instance()->value("General/Audio/CoreAudio/BufferSize", 512).toInt()));
 }
 
 //Visual to Real
 void CA_audioSettings::storeVisualSettings()
 {
-    int value;
+    char* bs_str = fBufferSize->text().toLatin1().data();
+    int buffer_size = (isStringInt(bs_str) ? ((atoi(bs_str) == 0) ? 512 : atoi(bs_str)) : 512);
     
-    if (isStringInt(fBufSize->text().toStdString().c_str())) {
-        value = atoi(fBufSize->text().toStdString().c_str());
-        if (value == 0) value = 512;
-    } else {
-        value = 512;
-    }
-    
-    fBufSize->setText(QString::number(value));
-    FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", value);
+    fBufferSize->setText(QString::number(buffer_size));
+    FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", buffer_size);
 }
 
 //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
@@ -79,14 +74,14 @@ void CA_audioSettings::linkClicked(const QUrl& link)
     string myCmd = "open -a " + myLink;
     system(myCmd.c_str());
     
-    fsplRate->reload();
+    fSampleRate->reload();
 }
 
 //Operator== for CoreAudio Settings
 bool CA_audioSettings::isEqual(AudioSettings* as)
 {
-    CA_audioSettings* settings1 = dynamic_cast<CA_audioSettings*>(as);
-    return (settings1 != NULL && settings1->get_BufferSize() == get_BufferSize());
+    CA_audioSettings* settings = dynamic_cast<CA_audioSettings*>(as);
+    return (settings != NULL && settings->get_BufferSize() == get_BufferSize());
 }
 
 //Accessor to ArchitectureName

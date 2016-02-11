@@ -13,105 +13,81 @@
 
 #include "FLSettings.h"
 
-PA_audioSettings::PA_audioSettings(QGroupBox* parent) : AudioSettings(parent){
-    
-    fLayout = new QFormLayout;
-    
-    fBufSize = new QLineEdit;
-    fsplRate = new QLineEdit;
+PA_audioSettings::PA_audioSettings(QGroupBox* parent) : AudioSettings(parent)
+{
+    QFormLayout* layout = new QFormLayout;
+    fBufferSize = new QLineEdit;
+    fSampleRate = new QLineEdit;
     
  /* fInputDeviceBox = new QComboBox;
     fOutputDeviceBox = new QComboBox;
 
     fLayout->addRow(new QLabel(tr("Choose Input Device")), fInputDeviceBox);
 	fLayout->addRow(new QLabel(tr("Choose Ouput Device")), fOutputDeviceBox);*/
-    fLayout->addRow(new QLabel(tr("Audio Sample Rate")), fsplRate);
-    fLayout->addRow(new QLabel(tr("Audio Buffer Size")), fBufSize);
     
-    parent->setLayout(fLayout);
+    layout->addRow(new QLabel(tr("Audio Sample Rate")), fSampleRate);
+    layout->addRow(new QLabel(tr("Audio Buffer Size")), fBufferSize);
+    
+    parent->setLayout(layout);
 
     setVisualSettings();
 //	set_deviceList();
 }
 
-PA_audioSettings::~PA_audioSettings(){
+PA_audioSettings::~PA_audioSettings()
+{}
 
-//    delete fLayout;
-//    delete fBufSize;
-//    delete fsplRate;
+//Accessors to the Buffersize
+long PA_audioSettings::get_BufferSize()
+{
+    return fBufferSize->text().toLong();
 }
 
 //Accessors to the Buffersize
-long PA_audioSettings::get_BufferSize(){
-    
-    return fBufSize->text().toLong();
-}
-
-//Accessors to the Buffersize
-long PA_audioSettings::get_SampleRate(){
-    
-    return fsplRate->text().toLong();
+long PA_audioSettings::get_SampleRate()
+{
+    return fSampleRate->text().toLong();
 }
 
 //Real to Visual
-void PA_audioSettings::setVisualSettings(){
-    
+void PA_audioSettings::setVisualSettings()
+{
     FLSettings* settings = FLSettings::_Instance();
     
     stringstream sr, bs;
     bs << settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
     sr << settings->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     
-    fBufSize->setText(bs.str().c_str());
-    fsplRate->setText(sr.str().c_str());
+    fBufferSize->setText(bs.str().c_str());
+    fSampleRate->setText(sr.str().c_str());
 }
 
 //Visual to Real
-void PA_audioSettings::storeVisualSettings(){
-    
+void PA_audioSettings::storeVisualSettings()
+{
     FLSettings* settings = FLSettings::_Instance();
+    char* sr_str = fSampleRate->text().toLatin1().data();
+    char* bs_str = fBufferSize->text().toLatin1().data();
     
-    int value;
+    int sample_rate = (isStringInt(sr_str) ? ((atoi(sr_str) == 0) ? 44100 : atoi(sr_str)) : 44100);
+    settings->setValue("General/Audio/PortAudio/BufferSize", sample_rate);
     
-    if(isStringInt(fBufSize->text().toLatin1().data())){
-        
-        value = atoi(fBufSize->text().toLatin1().data());
-        
-        if(value == 0)
-            value = 1024;
-    }
-    else
-        value = 1024;
-    
-    settings->setValue("General/Audio/PortAudio/BufferSize", value);
-    
-    if(isStringInt(fsplRate->text().toLatin1().data())){
-        
-        value = atoi(fsplRate->text().toLatin1().data());
-        
-        if(value == 0)
-            value = 44100;
-    }
-    else
-        value = 44100;
-    
-    settings->setValue("General/Audio/PortAudio/SampleRate", value);
+    int buffer_size = (isStringInt(bs_str) ? ((atoi(bs_str) == 0) ? 1024 : atoi(bs_str)) : 1024);
+    settings->setValue("General/Audio/PortAudio/BufferSize", buffer_size);
 }
 
 //Operator== for CoreAudio Settings
-bool PA_audioSettings::isEqual(AudioSettings* as){
-    
-    PA_audioSettings* settings1 = dynamic_cast<PA_audioSettings*>(as);
-    
-    if(settings1 != NULL && settings1->get_BufferSize() == get_BufferSize() && settings1->get_SampleRate() == get_SampleRate())
-        return true;
-    else
-        return false;
-    
+bool PA_audioSettings::isEqual(AudioSettings* as)
+{
+    PA_audioSettings* settings = dynamic_cast<PA_audioSettings*>(as);
+    return (settings 
+            && settings->get_BufferSize() == get_BufferSize() 
+            && settings->get_SampleRate() == get_SampleRate());
 }
 
 //Accessor to ArchitectureName
-QString PA_audioSettings::get_ArchiName(){
+QString PA_audioSettings::get_ArchiName()
+{
     return "PortAudio";
 }
 

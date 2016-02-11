@@ -43,11 +43,11 @@ NJs_audioSettings::NJs_audioSettings(QGroupBox* parent) : AudioSettings(parent)
     layout->addRow(new QLabel(tr("MTU")), fMTULine);
     
     parent->setLayout(layout);
-    
     setVisualSettings();
 }
 
-NJs_audioSettings::~NJs_audioSettings(){}
+NJs_audioSettings::~NJs_audioSettings()
+{}
 
 //Real Params TO Visual params
 void NJs_audioSettings::setVisualSettings()
@@ -66,8 +66,8 @@ void NJs_audioSettings::storeVisualSettings()
 {
     FLSettings* settings = FLSettings::_Instance();
     
-    if (isStringInt(fCVLine->text().toStdString().c_str())) {
-        settings->setValue("General/Audio/NetJackSlave/CV", atoi(fCVLine->text().toStdString().c_str()));
+    if (isStringInt(fCVLine->text().toLatin1().data())) {
+        settings->setValue("General/Audio/NetJackSlave/CV", atoi(fCVLine->text().toLatin1().data()));
     } else {
         fCVLine->setText(QString::number(-1));
         settings->setValue("General/Audio/NetJackSlave/CV", -1);
@@ -75,22 +75,22 @@ void NJs_audioSettings::storeVisualSettings()
     
     settings->setValue("General/Audio/NetJackSlave/IP", fIPLine->text());
     
-    if (isStringInt(fPortLine->text().toStdString().c_str())) {
-        settings->setValue("General/Audio/NetJackSlave/Port", atoi(fPortLine->text().toStdString().c_str()));
+    if (isStringInt(fPortLine->text().toLatin1().data())) {
+        settings->setValue("General/Audio/NetJackSlave/Port", atoi(fPortLine->text().toLatin1().data()));
     } else {
         fPortLine->setText(QString::number(DEFAULT_PORT));
         settings->setValue("General/Audio/NetJackSlave/Port", DEFAULT_PORT);
     }
     
-    if (isStringInt(fMTULine->text().toStdString().c_str())) {
-        settings->setValue("General/Audio/NetJackSlave/MTU", atoi(fMTULine->text().toStdString().c_str()));
+    if (isStringInt(fMTULine->text().toLatin1().data())) {
+        settings->setValue("General/Audio/NetJackSlave/MTU", atoi(fMTULine->text().toLatin1().data()));
     } else{
         fMTULine->setText(QString::number(DEFAULT_MTU));
         settings->setValue("General/Audio/NetJackSlave/MTU", DEFAULT_MTU);
     }
     
-    if(isStringInt(fLatLine->text().toStdString().c_str())) {
-        settings->setValue("General/Audio/NetJackSlave/Latency", atoi(fLatLine->text().toStdString().c_str()));
+    if(isStringInt(fLatLine->text().toLatin1().data())) {
+        settings->setValue("General/Audio/NetJackSlave/Latency", atoi(fLatLine->text().toLatin1().data()));
     } else {
         fLatLine->setText(QString::number(DEFAULT_LATENCY));
         settings->setValue("General/Audio/NetJackSlave/Latency", DEFAULT_LATENCY);
@@ -112,7 +112,8 @@ bool NJs_audioSettings::isEqual(AudioSettings* as)
 //Accessors to the parameters
 int NJs_audioSettings::get_compressionValue()
 {
-    return (isStringInt(fCVLine->text().toStdString().c_str())) ? atoi(fCVLine->text().toStdString().c_str()) : -1;
+    char* str = fCVLine->text().toLatin1().data();
+    return (isStringInt(str) ? atoi(str) : -1);
 }
 
 QString NJs_audioSettings::get_IP()
@@ -122,29 +123,20 @@ QString NJs_audioSettings::get_IP()
 
 int NJs_audioSettings::get_Port()
 {
-    if (isStringInt(fPortLine->text().toStdString().c_str())) {
-        return atoi(fPortLine->text().toStdString().c_str());
-    } else {
-        return DEFAULT_PORT;
-    }
+    char* str = fPortLine->text().toLatin1().data();
+    return (isStringInt(str) ? atoi(str) : DEFAULT_PORT);
 }
 
 int NJs_audioSettings::get_mtu()
-{
-    if (isStringInt(fMTULine->text().toStdString().c_str())) {
-        return atoi(fMTULine->text().toStdString().c_str());
-    } else {
-        return DEFAULT_MTU;
-    }
+{   
+    char* str = fMTULine->text().toLatin1().data();
+    return (isStringInt(str) ? atoi(str) : DEFAULT_MTU);
 }
 
 int NJs_audioSettings::get_latency()
 {
-    if (isStringInt(fLatLine->text().toStdString().c_str())) {
-        return atoi(fLatLine->text().toStdString().c_str());
-    } else {
-        return DEFAULT_LATENCY;
-    }
+    char* str = fPortLine->text().toLatin1().data();
+    return (isStringInt(str) ? atoi(str) : DEFAULT_LATENCY);
 }
 
 QString NJs_audioSettings::get_ArchiName()
