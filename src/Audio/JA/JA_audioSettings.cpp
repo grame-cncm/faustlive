@@ -41,5 +41,5 @@ bool JA_audioSettings::get_AutoConnect()
 
 QString JA_audioSettings::get_ArchiName()
 {
-    return "Jack";
+    return "JACK";
 }
