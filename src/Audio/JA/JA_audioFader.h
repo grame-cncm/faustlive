@@ -29,7 +29,7 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
     
         list<pair<string, string> > fConnectionsIn;		// Connections list
         
-        virtual int	processAudio(jack_nframes_t nframes);
+        virtual void processAudio(jack_nframes_t nframes);
     
         float crossfade_calculation(int i, int j);
     

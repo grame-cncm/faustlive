@@ -181,7 +181,7 @@ void JA_audioFader::upDate_DSP()
 }
 
 // JACK callbacks
-int JA_audioFader::processAudio(jack_nframes_t nframes) 
+void JA_audioFader::processAudio(jack_nframes_t nframes) 
 {
     AVOIDDENORMALS;
     // Retrieve JACK inputs/output audio buffers
@@ -262,8 +262,6 @@ int JA_audioFader::processAudio(jack_nframes_t nframes)
         // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
         fDSP->compute(-1, nframes, fInChannel, fOutFinal);   
     }
-    
-    return 0;
 }
 
 // Access to the fade parameter

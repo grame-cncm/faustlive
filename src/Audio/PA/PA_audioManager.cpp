@@ -38,7 +38,7 @@ bool PA_audioManager::initAudio(QString& error, const char* /*name*/, bool /*mid
     return true;
 }
 
-bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool midi)
+bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool /*midi*/)
 {
 	if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {
         fInit = true;

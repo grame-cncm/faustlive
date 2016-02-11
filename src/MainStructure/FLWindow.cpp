@@ -741,12 +741,12 @@ void FLWindow::switchOsc(bool on)
     }
 }
 
-void FLWindow::switchMIDI(bool on)
+void FLWindow::switchMIDI(bool /*on*/)
 {
     switchPolyMIDI();
 }
 
-void FLWindow::switchPoly(bool on)
+void FLWindow::switchPoly(bool /*on*/)
 {
     switchPolyMIDI();
 }

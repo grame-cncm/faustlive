@@ -14,7 +14,6 @@
 #include "AudioSettings.h"
 #include "AudioManager.h"
 #include "AudioFactory.h"
-
 #include "FLSettings.h"
 
 #ifdef COREAUDIO
@@ -44,7 +43,7 @@
 #include <QtWidgets>
 #endif
 
-enum audioArchi{
+enum audioArchi {
    
 #ifdef COREAUDIO
     kCoreaudio, 
@@ -81,7 +80,6 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
 #ifdef JACK
     fAudioArchi->addItem("Jack");
 #endif
-
 #ifdef NETJACK
     fAudioArchi->addItem("NetJack");
 #endif
@@ -101,7 +99,6 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
     
     // Initialize temporary settings
     fTempAudioIndex = driverNameToIndex(FLSettings::_Instance()->value("General/Audio/DriverName", "").toString());
-    
     fTempBox = new QGroupBox();
     fTempSettings = fFactory->createAudioSettings(fTempBox);
 }
@@ -109,8 +106,9 @@ AudioCreator::AudioCreator(QGroupBox* parent) : QObject(NULL)
 //Returns the instance of the audioCreator
 AudioCreator* AudioCreator::_Instance(QGroupBox* box)
 {
-    if (!_instance)
+    if (!_instance) {
         _instance = new AudioCreator(box);
+    }
     return _instance;
 }
 
@@ -131,9 +129,10 @@ AudioCreator::~AudioCreator()
 int AudioCreator::driverNameToIndex(const QString& driverName)
 {
     // In case compilation options have changed, it is checked if it still exists
-    for (int i = 0; i<fAudioArchi->count(); i++) {
-        if (driverName == fAudioArchi->itemText(i))
+    for (int i = 0; i < fAudioArchi->count(); i++) {
+        if (driverName == fAudioArchi->itemText(i)) {
             return i;
+        }
     }
     return 0;
 }
@@ -180,7 +179,6 @@ AudioFactory* AudioCreator::createFactory(int index)
             return new JA_audioFactory();
             break;
 #endif
-            
 #ifdef NETJACK
         case kNetjackaudio:
             return new NJs_audioFactory();
@@ -227,7 +225,8 @@ bool AudioCreator::didSettingChanged()
             return true;
         } else {
             
-//    Not really the right thing to do with the actual system but JA settings don't influence audio updates so it's directly stored --> to avoid update for just going from connect to disconnect or the other way around...
+            // Not really the right thing to do with the actual system but JA settings don't influence audio updates 
+            // so it's directly stored --> to avoid update for just going from connect to disconnect or the other way around...
             visualSettingsToTempSettings();
             tempSettingsToSavedSettings();
             return false;

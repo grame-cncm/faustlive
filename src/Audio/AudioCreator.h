@@ -71,7 +71,8 @@ class AudioCreator : public QObject {
         //When the parameters are not saved
         void savedSettingsToVisualSettings();
     
-        //When the parameters are saved, there are 2 steps : 1- Save them temporarily 2- Test them in the application --> In case of success they are saved // In case of failure, previous parameters are restored
+        //When the parameters are saved, there are 2 steps : 1- Save them temporarily 2- Test them in the application 
+        //--> In case of success they are saved // In case of failure, previous parameters are restored
         void visualSettingsToTempSettings();
         void tempSettingsToSavedSettings();
         void restoreSavedSettings();

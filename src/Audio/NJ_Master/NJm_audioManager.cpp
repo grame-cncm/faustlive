@@ -42,7 +42,7 @@ bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, bool /*mi
     return true;
 }
 
-bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool midi)
+bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool /*midi*/)
 {
     if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {
         fInit = true;
