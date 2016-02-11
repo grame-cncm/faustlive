@@ -7,7 +7,7 @@
 //
 
 // JA_audioManager controls 1 JA_audioFader. It can switch from one DSP to another with a crossfade or it can act like a simple jackaudio-dsp
-// JA_audioManager also controls the jack connections of the audio. 
+// JA_audioManager also controls the JACK connections of the audio. 
 
 #include "JA_audioManager.h"
 #include "JA_audioFader.h"
@@ -18,7 +18,6 @@ void JA_audioManager::shutdown_message(const char * msg, void* arg)
 {
     Q_UNUSED(arg);
     Q_UNUSED(msg);
-    printf("JA_audioManager::SHUTDOWN\n");
 }
 
 JA_audioManager::JA_audioManager(shutdown_callback cb, void* arg): AudioManager(cb, arg)
@@ -33,11 +32,9 @@ JA_audioManager::~JA_audioManager()
 }
 
 //INIT/START/STOP on Current JackAudio
-bool JA_audioManager::initAudio(QString& error, const char* name)
+bool JA_audioManager::initAudio(QString& error, const char* name, bool midi)
 {
-    printf("NAME INIT = %s\n", name);
-    
-    if (fCurrentAudio->init(name, 0)) {
+    if (fCurrentAudio->init(name, 0, midi)) {
         return true;
     } else {
         error = "Impossible to init JackAudio Client";
@@ -47,7 +44,6 @@ bool JA_audioManager::initAudio(QString& error, const char* name)
 
 bool JA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name)
 {
-    printf("SET DSP = %s\n", port_name);
     fCurrentAudio->set_dsp(DSP, port_name);
     return true;
 }

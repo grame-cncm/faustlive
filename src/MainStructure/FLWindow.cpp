@@ -1270,8 +1270,12 @@ bool FLWindow::init_audioClient(QString& error)
 {
     int numberInputs = fSettings->value("InputNumber", 0).toInt();
     int numberOutputs = fSettings->value("OutputNumber", 0).toInt();
-    
-	if (fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)) {
+    bool midi = fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
+
+	if (fAudioManager->initAudio(error, 
+                                fWindowName.toStdString().c_str(), 
+                                fSettings->value("Name", "").toString().toStdString().c_str(), 
+                                numberInputs, numberOutputs, midi)) {
         update_AudioParams();
         return true;
     } else {

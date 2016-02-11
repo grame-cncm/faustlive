@@ -31,16 +31,16 @@ PA_audioManager::~PA_audioManager()
 }
 
 //INIT/START/STOP on Current PortAudio
-bool PA_audioManager::initAudio(QString& error, const char* /*name*/)
+bool PA_audioManager::initAudio(QString& error, const char* /*name*/, bool midi)
 {
     error = "";
     fInit = false;
     return true;
 }
 
-bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs)
+bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool midi)
 {
-	if (fCurrentAudio->init(port_name, numInputs, numOutputs/*, fSettings->get_inputDevice(), fSettings->get_ouputDevice()*/)) {
+	if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {
         fInit = true;
         return true;
     } else {

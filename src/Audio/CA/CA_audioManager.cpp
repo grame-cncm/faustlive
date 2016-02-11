@@ -26,7 +26,7 @@ CA_audioManager::~CA_audioManager()
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool CA_audioManager::initAudio(QString& error, const char* name)
+bool CA_audioManager::initAudio(QString& error, const char* name, bool /*midi*/)
 {
     error = "";
     fName = name;
@@ -34,10 +34,10 @@ bool CA_audioManager::initAudio(QString& error, const char* name)
     return true;
 }
 
-bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs)
+bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool midi)
 {
     if (numInputs == 0 && numOutputs == 0) {
-        return initAudio(error, port_name);
+        return initAudio(error, port_name, midi);
     }
     
     if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {        
@@ -83,13 +83,12 @@ void CA_audioManager::stop()
 //Init new audio, that will fade in current audio
 bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
 {
-    printf("CA_audioManager::init_FadeAudio\n");
     fFadeInAudio = new CA_audioFader(fBufferSize);
     
     if (fFadeInAudio->init(name, DSP)) {
         return true;
     } else {
-        error = "Impossible to init new Core Audio Client";
+        error = "Impossible to init new CoreAudio client";
         return false;
     }
 }
@@ -101,9 +100,9 @@ void CA_audioManager::start_Fade()
     fCurrentAudio->launch_fadeOut();
     
     if (!fFadeInAudio->start()) {
-        printf("CoreAudio did not Start\n");
+        printf("CoreAudio did not start\n");
     } else {
-        printf("CoreAudio totally Started\n");
+        printf("CoreAudio totally started\n");
     }
 }
 
@@ -116,7 +115,6 @@ void CA_audioManager::wait_EndFade()
     while (fCurrentAudio->get_FadeOut()) {
         QDateTime currentTime2(QDateTime::currentDateTime());
         if (currentTime.secsTo(currentTime2) > 3) {
-            printf("STOPPED PROGRAMATICALLY\n");
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();
         }
