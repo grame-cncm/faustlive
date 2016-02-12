@@ -272,7 +272,9 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         }
          
         // For in-buffer MIDI control
-        compiledDSP = new timed_dsp(compiledDSP);
+        if (midi) {
+            compiledDSP = new timed_dsp(compiledDSP);
+        }
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
