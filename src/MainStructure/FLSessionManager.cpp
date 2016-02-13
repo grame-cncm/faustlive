@@ -243,6 +243,18 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 remote_audio* audio = NULL;
 #endif
 
+static bool hasMIDISync(llvm_dsp* dsp)
+{
+    JSONUI jsonui;
+    dsp->buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
 dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QString& source, 
                                 FLWinSettings* settings, remoteDSPErrorCallback error_callback, 
                                 void* error_callback_arg, QString& errorMsg)
@@ -258,7 +270,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
-        llvm_dsp* dsp_instance = createDSPInstance(toCompile->fLLVMFactory);
+        llvm_dsp* dsp = createDSPInstance(toCompile->fLLVMFactory);
         
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
@@ -266,13 +278,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp_instance, midi);
+            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp, midi);
         } else {
-            compiledDSP = dsp_instance;
+            compiledDSP = dsp;
         }
          
         // For in-buffer MIDI control
-        if (midi) {
+        if (midi && hasMIDISync(dsp)) {
             compiledDSP = new timed_dsp(compiledDSP);
         }
     }
