@@ -274,11 +274,12 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
+        bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
         bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp, midi);
+            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp, midi, group);
         } else {
             compiledDSP = dsp;
         }

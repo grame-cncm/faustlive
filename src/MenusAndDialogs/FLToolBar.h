@@ -47,8 +47,9 @@ class FLToolBar : public QToolBar{
         
         QCheckBox*          fMIDICheckBox;      //MIDI interface
         
-        QCheckBox*          fPolyCheckBox;      //Polyphonic support
-        QLineEdit*          fPolyLine;          //Edit voices number
+        QCheckBox*          fPolyCheckBox;         //Polyphonic support
+        QCheckBox*          fPolyGroupCheckBox;    //Polyphonic group
+        QLineEdit*          fPolyLine;             //Edit voices number
   
         QCheckBox*          fOSCCheckBox;
         QLineEdit*          fPortInOscLine;     //Edit osc port
