@@ -217,8 +217,8 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         start_stop_watcher(true);
         return true;
     } else {
-        deleteInterfaces();
         sessionManager->deleteDSPandFactory(fCurrentDSP);
+        deleteInterfaces();
         fCurrentDSP = NULL;
         return false;
     }
@@ -398,12 +398,7 @@ bool FLWindow::update_Window(const QString& source)
             if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), new_dsp)) {
                 
                 fIsDefault = false;
-                deleteInterfaces();
-                
-                //Set the new interface & Recall the parameters of the window
-                allocateInterfaces(newName);
-                    
-                buildInterfaces(new_dsp);
+        
                 recall_Window();
                 
                 //Start crossfade and wait for its end
@@ -414,8 +409,14 @@ bool FLWindow::update_Window(const QString& source)
                 dsp* old_dsp = fCurrentDSP;
                 fCurrentDSP = new_dsp;
                 
-                //Delete old dsp
+                //Delete old dsp (and remove it from MIDI interface) 
                 FLSessionManager::_Instance()->deleteDSPandFactory(old_dsp);
+                deleteInterfaces();
+                
+                //Set the new interface & Recall the parameters of the window
+                allocateInterfaces(newName);
+                    
+                buildInterfaces(new_dsp);
                 
                 fSource = sourceToCompile;
                 fWavSource = wavsource;
@@ -752,7 +753,8 @@ void FLWindow::switchPoly(bool /*on*/)
 }
 
 // We may want poly with or without MIDI, so redo everything
-void FLWindow::switchPolyMIDI()
+
+bool FLWindow::resetAudioDSPInterfaces()
 {
     QString errorMsg;
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
@@ -760,7 +762,6 @@ void FLWindow::switchPolyMIDI()
   
     float saveW = 0.0;
     float saveH = 0.0;
-    
     float newW = 0.0;
     float newH = 0.0;
     
@@ -775,8 +776,8 @@ void FLWindow::switchPolyMIDI()
     start_stop_watcher(false);
     stop_Audio();
     
-    deleteInterfaces();
     sessionManager->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
   
     fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
     
@@ -801,11 +802,17 @@ void FLWindow::switchPolyMIDI()
         }
 
         show();
+        return true;
       
     } else {
-        deleteInterfaces();
         errorPrint(errorMsg);
+        return false;
     }
+}
+
+void FLWindow::switchPolyMIDI()
+{
+    resetAudioDSPInterfaces();
 } 
 
 void FLWindow::updateMIDIInterface()
@@ -1071,14 +1078,13 @@ void FLWindow::closeWindow()
         fAudioManager->stop();
     }
 
-    deleteInterfaces();
-
     if (fHttpdWindow) {
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
     }
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
 
 #ifdef REMOTE
     delete fStatusBar;
