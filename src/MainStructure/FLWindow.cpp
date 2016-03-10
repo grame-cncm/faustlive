@@ -919,7 +919,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     setWindowTitle(intermediate);
     
     if (!fIsDefault) {
-        QScrollArea *sa = new QScrollArea(this);
+        QScrollArea* sa = new QScrollArea(this);
         
         fInterface = new QTGUI(sa);
         sa->setWidgetResizable(true);

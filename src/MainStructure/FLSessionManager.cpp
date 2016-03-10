@@ -520,7 +520,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
     
-    const char** argv = new const char*[argc + 1];
+    const char** argv = new const char*[argc+1];
     
     // MACHINE
     /*
@@ -593,7 +593,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
 const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int& argc)
 {
     argc = 12; 
-    const char** argv = new const char*[argc];
+    const char** argv = new const char*[argc+1];
     
     argv[0] = "--NJ_ip";
     string ip = searchLocalIP().toStdString();
