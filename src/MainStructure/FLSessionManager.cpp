@@ -97,9 +97,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     }
     
     int argc;
-    const char** argv = getFactoryArgv(path, faustOptions, (machineName == "local processing") ? NULL : settings, argc);
+    const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
     string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
+    
+    printf("argc %d\n", argc);
     
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
         errorMsg = err.c_str();
@@ -136,7 +138,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         QString errMsg;
         if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(),
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
-			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errMsg);
+			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ") + errMsg);
         }
     }
     
@@ -181,7 +183,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
-        
+     
         std::vector<std::pair<std::string, std::string> > factories_list;
          
         bool factories = getRemoteDSPFactories(ip_server, port_server, &factories_list);
@@ -494,6 +496,11 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     int numberFixedParams = 2;
     int iteratorParams = 0;
     
+    /// POLYPHONY
+    if (settings) {
+        numberFixedParams += 4;
+    }
+    
     // MACHINE
     /*
     if (settings) {
@@ -552,11 +559,10 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     QString copy = faustOptions;
     
     for (int i = numberFixedParams; i < argc; i++) {
-        string parseResult(parse_compilationParams(copy));
-        char* intermediate = strdup(parseResult.c_str());
+        string parseResult = parse_compilationParams(copy);
         // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-        if (strcmp(intermediate, "-double") != 0) {
-            argv[iteratorParams++] = (const char*)intermediate;
+        if (parseResult != "-double") {
+            argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
         }
     }
      
@@ -564,6 +570,15 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
+    
+    // Polyphonic support
+    if (settings) {
+        argv[iteratorParams++] = "-poly";
+        argv[iteratorParams++] = (settings->value("Polyphony/Enabled", 
+            FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool()) ? "1": "0";
+        argv[iteratorParams++] = "-voices";
+        argv[iteratorParams++] = strdup(settings->value("Polyphony/Voice", "4").toString().toStdString().c_str());
+    }
     
     argv[argc] = 0; // NULL terminated argv
     return argv;
