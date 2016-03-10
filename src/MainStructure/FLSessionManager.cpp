@@ -498,7 +498,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     /// POLYPHONY
     if (settings) {
-        numberFixedParams += 4;
+        numberFixedParams += 6;
     }
     
     // MACHINE
@@ -576,8 +576,13 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         argv[iteratorParams++] = "-poly";
         argv[iteratorParams++] = (settings->value("Polyphony/Enabled", 
             FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool()) ? "1": "0";
+            
         argv[iteratorParams++] = "-voices";
         argv[iteratorParams++] = strdup(settings->value("Polyphony/Voice", "4").toString().toStdString().c_str());
+        
+        argv[iteratorParams++] = "-group";
+        argv[iteratorParams++] = (settings->value("Polyphony/GroupEnabled", 
+            FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0";
     }
     
     argv[argc] = 0; // NULL terminated argv
