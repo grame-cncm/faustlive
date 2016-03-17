@@ -19,9 +19,9 @@ gate	= button("gate");			// 0/1
 
 // relative amplitudes of the different partials
 
-amp(1)	= hslider("amp1 [midi:ctrl 1]", 1.0, 0, 3, 0.01);
-amp(2)	= hslider("amp2 [midi:ctrl 7]", 0.5, 0, 3, 0.01);
-amp(3)	= hslider("amp3 [midi:ctrl 7]", 0.25, 0, 3, 0.01);
+amp(1)	= hslider("amp1", 1.0, 0, 3, 0.01);
+amp(2)	= hslider("amp2", 0.5, 0, 3, 0.01);
+amp(3)	= hslider("amp3", 0.25, 0, 3, 0.01);
 
 // additive synth: 3 sine oscillators with adsr envelop
 
