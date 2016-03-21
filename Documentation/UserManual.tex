@@ -23,7 +23,7 @@
 
 \begin{document}
 
-\title{FaustLive - User Manual \\ v.2.0}
+\title{FaustLive - User Manual \\ v.2.44}
 
 \author{Grame, Centre National de Création Musicale\\
 {\small <research@grame.fr>} \\
@@ -111,8 +111,8 @@ You can duplicate the control interface of your application. The local and remot
 \subsubsection{HTTP Interface}
 	You can control your application on a browser through an HTTP interface. To enable this feature, you have two possibilities :
 	\begin{itemize}
-	\item In "Parameters", in the tab "HTTP Interface", check "Enable"
-	\item In "Preferences", in the tab "Network", check "Enable HTTP Interface automatically" (any new window will be enabled for HTTP control)
+	\item In "Parameters", in the "HTTP Interface" tab, check "Enable Interface"
+	\item In "Preferences", in the  "Network" tab, check "Enable HTTP Interface automatically" (any new window will be enabled for HTTP control)
 	\end{itemize}
 	
 The port it starts on is updated in the parameters. The default port is 5510.\\
@@ -123,15 +123,15 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 	You can control your application remotely with the OSC protocol. 
 	To enable this feature, you have two possibilities :
 	\begin{itemize}
-	\item In "Parameters", in the tab "OSC Interface", check "Enable"
-	\item In "Preferences", in the tab "Network", check "Enable OSC Interface automatically" (any new window will be enabled for OSC control)
+	\item In "Parameters", in the "OSC Interface" tab, check "Enable Interface"
+	\item In "Preferences", in the "Network" tab, check "Enable OSC Interface automatically" (any new window will be enabled for OSC control)
 	\end{itemize}
 	You can choose the port for incoming/outcoming and error messages. The destination IP for outcoming messages will be automatically set when the first message is received. 
 
 \subsubsection{MIDI Interface}
-	You can control your application with a MIDI controler. To enable this feature, you have the following possibility :
+	You can control your application with a MIDI controller. To enable this feature, you have the following possibility :
 	\begin{itemize}
-	\item In "Parameters", in the tab "MIDI Interface", check "Enable"
+	\item In "Parameters", in the "MIDI Interface" tab, check "Enable Interface"
 	\end{itemize}
 
 %\subsection{Remote Control}
@@ -144,6 +144,27 @@ The port it starts on is updated in the parameters. The default port is 5510.\\
 
 %\subsection{Remote Processing}
 %You can choose to send your code to another machine, presenting the remote server service. A discovery shows you the available machines. Once you have switched, your Faust processing will be done on the remote machine. The control interface and sound rendering stay on the local machine.
+
+\subsection{Polyphonic support}
+
+By convention Faust architecture files with polyphonic MIDI capabilities expect to find a \textit{freq}, a \textit{gain} and a \textit{gate} user interface parameter :
+{\small 
+\begin{verbatim} 
+
+midigate	= button ("gate");                             			// MIDI keyon-keyoff
+midifreq	= hslider("freq[unit:Hz]", 440, 20, 20000, 1); 	// MIDI keyon key
+midigain	= hslider("gain", 0.5, 0, 10, 0.01);	      	 	  // MIDI keyon velocity
+
+\end{verbatim} 
+}
+
+The polyphonic architecture will automatically allocates voice for the instrument and takes care of dynamic voice allocations and control MIDI messages decoding and mapping.  By convention all allocated voices are grouped in a global “tabgroup”, so that a user interface builder may display them separately. 
+
+Then this dsp object can be used as usual and connected with the wanted audio driver and possibly other UI control objects like OSC, HTTP interfaces, etc. Having this UI hierarchical view allows for instance complete OSC control of each single voice and its control parameters. 
+
+The number of voices for the polyphonic instrument can be chosen in "Parameters", in the "Polyphony support". Voices are globally controllable with a "All Voices" tab, and this tab can possibly be made the only visible UI. 
+
+The polyphonic instrument can then be controlled with MIDI messages by checking the  "Enable Interface" in the "MIDI Interface" tab.
 
 \subsection{Compilation Options}
 

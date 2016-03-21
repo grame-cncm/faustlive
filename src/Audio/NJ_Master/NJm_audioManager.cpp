@@ -9,9 +9,7 @@
 // NJm_audioManager controls 2 NJm_audioFader. It can switch from one to another with a crossfade or it can act like a simple netjack-dsp
 
 #include "NJm_audioManager.h"
-
 #include "NJm_audioFader.h"
-
 #include "FLSettings.h"
 
 NJm_audioManager::NJm_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg)
@@ -26,7 +24,6 @@ NJm_audioManager::NJm_audioManager(AudioShutdownCallback cb, void* arg): AudioMa
     
     fCurrentAudio = new NJm_audioFader(fCV, fIP.toStdString(), fPort, fMTU, fLatency);
     connect(fCurrentAudio, SIGNAL(errorPRINT(const char*)), this, SLOT(send_Error(const char*)));
-    printf("FCURRENTAUDIO = %p\n", fCurrentAudio);
     fInit = false; //Indicator of which init has been used
 }
 
@@ -36,13 +33,14 @@ NJm_audioManager::~NJm_audioManager()
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool NJm_audioManager::initAudio(QString& /*error*/, const char* /*name*/)
+bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, bool /*midi*/)
 {
+    error = "";
     fInit = false;
     return true;
 }
 
-bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs)
+bool NJm_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool /*midi*/)
 {
     if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {
         fInit = true;
@@ -109,7 +107,6 @@ void NJm_audioManager::wait_EndFade()
     QDateTime currentTime(QDateTime::currentDateTime());
     
     while (fCurrentAudio->get_FadeOut()) {
-        printf("STOPED PROGRAMATICALLY\n");
         fFadeInAudio->force_stopFade();
         fCurrentAudio->force_stopFade();
     }
@@ -124,7 +121,6 @@ void NJm_audioManager::wait_EndFade()
 //In case of Network failure, the application is notified
 void NJm_audioManager::send_Error(const char* msg)
 {
-    printf("NJm_audioManager::send_Error\n");
     emit errorSignal(msg);
 }
 

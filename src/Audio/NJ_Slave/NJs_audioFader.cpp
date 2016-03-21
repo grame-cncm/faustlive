@@ -40,8 +40,8 @@ int NJs_audioFader::restart_cb()
 void NJs_audioFader::process(int count,  float** inputs, float** outputs)
 {
      AVOIDDENORMALS;
-     fDsp->compute(count, inputs, outputs);
-     crossfade_Calcul(count, fDsp->getNumOutputs(), outputs);
+     fDSP->compute(count, inputs, outputs);
+     crossfade_Calcul(count, fDSP->getNumOutputs(), outputs);
 }
 
 bool NJs_audioFader::init(const char* name, dsp* DSP) 

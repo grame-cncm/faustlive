@@ -33,11 +33,11 @@ class PA_audioManager : public AudioManager {
         PA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~PA_audioManager();
     
-        virtual bool init(const char*, dsp* DSP);
-        virtual bool initAudio(QString&, const char*);
-        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
+        virtual bool initAudio(QString&, const char*, bool midi);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs, bool midi);
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
         
+        virtual bool init(const char*, dsp* DSP);
         virtual bool start();
         virtual void stop();
         

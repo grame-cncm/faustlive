@@ -47,6 +47,10 @@ class FLToolBar : public QToolBar{
         
         QCheckBox*          fMIDICheckBox;      //MIDI interface
         
+        QCheckBox*          fPolyCheckBox;         //Polyphonic support
+        QCheckBox*          fPolyGroupCheckBox;    //Polyphonic group
+        QLineEdit*          fPolyLine;             //Edit voices number
+  
         QCheckBox*          fOSCCheckBox;
         QLineEdit*          fPortInOscLine;     //Edit osc port
         QLineEdit*          fPortOutOscLine;    //Edit osc port
@@ -78,6 +82,7 @@ class FLToolBar : public QToolBar{
         bool                hasOscOptionsChanged();
         bool                wasHttpSwitched();
         bool                wasMIDISwitched();
+        bool                wasPolyphonySwitched();
         bool                wasRemoteControlSwitched();
         bool                hasRemoteOptionsChanged();
         bool                hasReleaseOptionsChanged();;
@@ -92,6 +97,7 @@ class FLToolBar : public QToolBar{
         void    switchHttp(bool on);
         void    switchOsc(bool on);
         void    switchMIDI(bool on);
+        void    switchPoly(bool on);
     
     public slots: 
     
@@ -111,6 +117,7 @@ class FLToolBar : public QToolBar{
         void    sizeReduction();
         void    switch_http(bool on);
         void    switch_midi(bool on);
+        void    switch_poly(bool on);
         void    switch_osc(bool on);
         void    switch_remotecontrol(bool on);    
         void    switch_release(bool on);

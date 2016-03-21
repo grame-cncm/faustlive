@@ -42,14 +42,14 @@ void NJm_audioFader::process(int count, float** audio_inputs, float** audio_outp
 {
     AVOIDDENORMALS;
     
-    float** inputs_tmp = (float**)alloca(fDsp->getNumInputs()*sizeof(float*));
-    float** outputs_tmp = (float**)alloca(fDsp->getNumOutputs()*sizeof(float*));
+    float** inputs_tmp = (float**)alloca(fDSP->getNumInputs()*sizeof(float*));
+    float** outputs_tmp = (float**)alloca(fDSP->getNumOutputs()*sizeof(float*));
     
-    for(int i = 0; i < fDsp->getNumInputs();i++) {
+    for(int i = 0; i < fDSP->getNumInputs();i++) {
         inputs_tmp[i] = audio_inputs[i];
     }
     
-    for(int i = 0; i < fDsp->getNumOutputs();i++) {
+    for(int i = 0; i < fDSP->getNumOutputs();i++) {
         outputs_tmp[i] = audio_outputs[i];
     }
     
@@ -57,18 +57,18 @@ void NJm_audioFader::process(int count, float** audio_inputs, float** audio_outp
     decode_midi_control(midi_inputs[0], fResult.buffer_size);
     
     // "count" may be less than buffer_size
-    fDsp->compute(count, inputs_tmp, outputs_tmp);
-    crossfade_Calcul(count, fDsp->getNumOutputs(), outputs_tmp);
+    fDSP->compute(count, inputs_tmp, outputs_tmp);
+    crossfade_Calcul(count, fDSP->getNumOutputs(), outputs_tmp);
     
     // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
     encode_midi_control(midi_outputs[0], fResult.buffer_size);
 }
 
-bool NJm_audioFader::init(const char* name, dsp* DSP) 
+bool NJm_audioFader::init(const char* name, dsp* dsp) 
 {
-    fDsp = DSP;
-    DSP->buildUserInterface(this);
-    return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 1, 1);
+    fDSP = dsp;
+    fDSP->buildUserInterface(this);
+    return init_aux(name, fDSP, fDSP->getNumInputs(), fDSP->getNumOutputs(), 1, 1);
 }
 
 bool NJm_audioFader::init(const char* name, int numInputs, int numOutputs) 
@@ -76,11 +76,11 @@ bool NJm_audioFader::init(const char* name, int numInputs, int numOutputs)
      return init_aux(name, numInputs, numOutputs, 1, 1);
 }
 
-bool NJm_audioFader::set_dsp(dsp* DSP)
+bool NJm_audioFader::set_dsp(dsp* dsp)
 {
-    fDsp = DSP;
-    DSP->buildUserInterface(this);
-    netjackaudio::set_dsp(DSP); // SL le 30/06/15
+    fDSP = dsp;
+    fDSP->buildUserInterface(this);
+    netjackaudio::set_dsp(fDSP); // SL le 30/06/15
     //set_dsp_aux(DSP);
     return true;
 }

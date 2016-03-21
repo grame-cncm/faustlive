@@ -94,7 +94,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 
     fInterface = NULL;
     fRCInterface = NULL;
-    fCurrent_DSP = NULL;
+    fCurrentDSP = NULL;
     
     fToolBar = NULL;
     
@@ -113,12 +113,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
 #ifdef REMOTE
     fStatusBar = NULL;
     set_StatusBar();
-#endif
-    set_MenuBar(appMenus);
-    
-#ifdef REMOTE
     connect(this, SIGNAL(remoteCnxLost(int)), this, SLOT(RemoteCallback(int)));
 #endif
+    set_MenuBar(appMenus);
 }
 
 FLWindow::~FLWindow()
@@ -156,8 +153,9 @@ void FLWindow::start_stop_watcher(bool on)
     
     FLSessionManager::_Instance()->writeDependencies(dependencies, getSHA());
     
-    if (fSettings->value("Path", "").toString() != "")
+    if (fSettings->value("Path", "").toString() != "") {
         dependencies.push_front(fSettings->value("Path", "").toString());
+    }
 
     if (on) {
         fCreationDate = fCreationDate.currentDateTime();
@@ -187,9 +185,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     FLMessageWindow::_Instance()->raise();
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
     QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
-
     FLMessageWindow::_Instance()->hide();
     
     if (!factorySetts.second) { // testing if the factory pointer is null (= the compilation failed)
@@ -200,9 +196,9 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         return false;
     }
 
-    fCurrent_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+    fCurrentDSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
     
-    if (!fCurrent_DSP) {
+    if (!fCurrentDSP) {
         return false;
     }
     
@@ -211,24 +207,21 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         print_initWindow(init);
     }
 
-    if (allocateInterfaces(fSettings->value("Name", "").toString())) {
-        buildInterfaces(fCurrent_DSP);
-        if (setDSP(errorMsg)) {
-            start_Audio();
-            frontShow();
-            runInterfaces();
-            start_stop_watcher(true);
-            return true;
-        } else {
-            deleteInterfaces();
-        }
-    } else {
-        errorMsg = "Interface could not be allocated";
-    }
+    allocateInterfaces(fSettings->value("Name", "").toString());
+    buildInterfaces(fCurrentDSP);
     
-    sessionManager->deleteDSPandFactory(fCurrent_DSP);
-    fCurrent_DSP = NULL;
-    return false;
+    if (setDSP(errorMsg)) {
+        start_Audio();
+        frontShow();
+        runInterfaces();
+        start_stop_watcher(true);
+        return true;
+    } else {
+        sessionManager->deleteDSPandFactory(fCurrentDSP);
+        deleteInterfaces();
+        fCurrentDSP = NULL;
+        return false;
+    }
 }
 
 //--Transforms Wav file into faust string
@@ -257,10 +250,11 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
 #endif
         
 #ifdef __linux__
-        if(QFileInfo("/usr/local/bin/sound2faust").exists())
+        if (QFileInfo("/usr/local/bin/sound2faust").exists()) {
             exeFile = "/usr/local/bin/sound2faust";
-        else
+        } else {
             exeFile = "./sound2faust";   
+        }
 #endif
         
 #ifdef __APPLE__
@@ -378,11 +372,7 @@ bool FLWindow::update_Window(const QString& source)
     
     saveWindow();
     hide();
-    
-    //creating the new DSP instance
-    dsp* charging_DSP = NULL;
-    //    if(newEffect->isLocal())
-    
+ 
     QString errorMsg("");
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QString sourceToCompile = source;
@@ -394,64 +384,44 @@ bool FLWindow::update_Window(const QString& source)
     }
 
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
-    bool isUpdateSucessfull = true;
-    
-    if (!factorySetts.second) {
-        isUpdateSucessfull = false;
-    }
+    bool isUpdateSucessfull = factorySetts.second;
     
     if (isUpdateSucessfull) {
         
-        charging_DSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+        //creating the new DSP instance
+        dsp* new_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
          
-        if (charging_DSP) {
+        if (new_dsp) {
             
             QString newName = fSettings->value("Name", "").toString();
             
-            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), charging_DSP)) {
+            if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), new_dsp)) {
                 
                 fIsDefault = false;
+        
+                recall_Window();
+                
+                //Start crossfade and wait for its end
+                fAudioManager->start_Fade();
+                fAudioManager->wait_EndFade();
+                
+                //Switch the current DSP as the dropped one
+                dsp* old_dsp = fCurrentDSP;
+                fCurrentDSP = new_dsp;
+                
+                //Delete old dsp (and remove it from MIDI interface) 
+                FLSessionManager::_Instance()->deleteDSPandFactory(old_dsp);
                 deleteInterfaces();
                 
                 //Set the new interface & Recall the parameters of the window
-                if (allocateInterfaces(newName)) {
+                allocateInterfaces(newName);
                     
-                    buildInterfaces(charging_DSP);
-                    recall_Window();
-                    
-                    //Start crossfade and wait for its end
-                    fAudioManager->start_Fade();
-                    fAudioManager->wait_EndFade();
-                    
-                    //SWITCH the current DSP as the dropped one
-                    dsp* VecInt = fCurrent_DSP;
-                    fCurrent_DSP = charging_DSP;
-                    charging_DSP = VecInt;
-                    
-                    FLSessionManager::_Instance()->deleteDSPandFactory(charging_DSP);
-                    
-                    fSource = sourceToCompile;
-                    fWavSource = wavsource;
-                    
-                    isUpdateSucessfull = true;
-                    
-                } else if (allocateInterfaces(savedName)) {
+                buildInterfaces(new_dsp);
                 
-                    buildInterfaces(fCurrent_DSP);
-                    recall_Window();
-                    errorMsg = "Impossible to allocate new interface";
-                    isUpdateSucessfull = false; 
-                    sessionManager->deleteDSPandFactory(charging_DSP);
-                    charging_DSP = NULL;
+                fSource = sourceToCompile;
+                fWavSource = wavsource;
                     
-                    if (fSettings) {
-                        fSettings->setValue("Path", savedPath);
-                        fSettings->setValue("Name", savedName);
-                        fSettings->setValue("SHA", savedSHA);
-                    }
-                }
-                
-                //Step 12 : Launch User Interface
+                //Launch User Interface
                 runInterfaces();
             }
         }
@@ -459,24 +429,25 @@ bool FLWindow::update_Window(const QString& source)
     
     start_stop_watcher(true);
     
-    if (!isUpdateSucessfull) {
-        errorPrint(errorMsg);
-    } else {
+    if (isUpdateSucessfull) {
         emit windowNameChanged();
+    } else {
+        errorPrint(errorMsg);
     }
 
     FLMessageWindow::_Instance()->hide();
-
+    
     if (fInterface) {
         newW = fInterface->minimumSizeHint().width();
         newH = fInterface->minimumSizeHint().height();
     }
-
+ 
 // 2 cases : 
 //    1- Updating with a new DSP --> adjusting Size to the new interface
 //    2- Self Updating --> keeping the window as it is (could have been opened or shred)
-    if (newH != saveH || newW != saveW)
+    if (newH != saveH || newW != saveW) {
         adjustSize();
+    }
 
     show();
     return isUpdateSucessfull;
@@ -503,7 +474,6 @@ void FLWindow::contextMenuEvent(QContextMenuEvent* ev)
 void FLWindow::set_MenuBar(QList<QMenu*> appMenus)
 {
     //----------------FILE
-    //    
     QMenuBar *myMenuBar = new QMenuBar(NULL);
     setMenuBar(myMenuBar);
     QList<QMenu*>::iterator it = appMenus.begin();
@@ -578,7 +548,7 @@ void FLWindow::edit()
     
     if (sourcePath == "") { 
         pathToOpen = FLSessionManager::_Instance()->askForSourceSaving(FLSessionManager::_Instance()->contentOfShaSource(getSHA()));
-        //    In case user has saved his file in a new location
+        // In case user has saved his file in a new location
         if (pathToOpen != "" && pathToOpen != ".dsp") {
             update_Window(pathToOpen);
         } else {
@@ -586,12 +556,10 @@ void FLWindow::edit()
         }
     }
     
-    FLSessionManager::_Instance()->updateFolderDate( fSettings->value("SHA", "").toString());
+    FLSessionManager::_Instance()->updateFolderDate(fSettings->value("SHA", "").toString());
     
     QUrl url = QUrl::fromLocalFile(pathToOpen);
-    bool b = QDesktopServices::openUrl(url);
-    
-    if (!b) {
+    if (!QDesktopServices::openUrl(url)) {
         errorPrint("Your DSP file could not be opened!\nMake sure you have a default application configured for DSP Files.");
     }
 }
@@ -630,7 +598,7 @@ void FLWindow::view_svg()
             errorPrint("Your SVG could not be opened!\nMake sure you have a default application configured for SVG Files.");
         }
     } else {
-        QString err ="Could not generate SVG diagram : " + errorMsg; 
+        QString err = "Could not generate SVG diagram : " + errorMsg; 
         errorPrint(err);
     }
 }
@@ -668,6 +636,7 @@ void FLWindow::set_ToolBar()
 	connect(fToolBar, SIGNAL(oscPortChanged()), this, SLOT(updateOSCInterface()));
 	connect(fToolBar, SIGNAL(switch_osc(bool)), this, SLOT(switchOsc(bool)));
     connect(fToolBar, SIGNAL(switch_midi(bool)), this, SLOT(switchMIDI(bool)));
+    connect(fToolBar, SIGNAL(switch_poly(bool)), this, SLOT(switchPoly(bool)));
 
 #ifdef REMOTE
     connect(fToolBar, SIGNAL(switch_release(bool)), this, SLOT(switchRelease(bool)));
@@ -703,8 +672,9 @@ void FLWindow::generateAuxFiles()
 {
 	QString errorMsg;
 
-    if (!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg))
-		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ")+ errorMsg);
+    if (!FLSessionManager::_Instance()->generateAuxFiles(getSHA(), getPath(), fSettings->value("AutomaticExport/Options", "").toString(), getSHA(), errorMsg)) {
+		FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ") + errorMsg);
+    }
 }
 
 //Reaction to the resizing the toolbar
@@ -713,7 +683,7 @@ void FLWindow::resizingSmall()
 //  fSettings->setValue("Osc/DestHost", fOscInterface->getDestAddress());
 //  setWindowsOptions();
     
-    setMinimumSize(QSize(0,0));
+    setMinimumSize(QSize(0, 0));
     adjustSize();
     addToolBar(Qt::TopToolBarArea, fToolBar);
 }
@@ -726,11 +696,11 @@ void FLWindow::resizingBig()
     //    winSize += fToolBar->minimumSize();
     //   
     //    
-//    QSize winMinSize = minimumSize();
-//    winMinSize += fToolBar->geometry().size();
+    //    QSize winMinSize = minimumSize();
+    //    winMinSize += fToolBar->geometry().size();
     
-    //    setGeometry(0,0,winSize.width(), winSize.height());
-//    setMinimumSize(winMinSize);
+    // setGeometry(0,0,winSize.width(), winSize.height());
+    // setMinimumSize(winMinSize);
     //
     adjustSize();
 }
@@ -750,7 +720,7 @@ void FLWindow::set_StatusBar()
 void FLWindow::redirectSwitch()
 {
 #ifdef REMOTE
-    if(!update_Window(fSource)){
+    if (!update_Window(fSource)) {
         fStatusBar->remoteFailed();
     }
 #endif
@@ -772,20 +742,78 @@ void FLWindow::switchOsc(bool on)
     }
 }
 
-void FLWindow::switchMIDI(bool on)
+void FLWindow::switchMIDI(bool /*on*/)
 {
-    // Needed for MidiUI
-    stop_Audio();
+    switchPolyMIDI();
+}
+
+void FLWindow::switchPoly(bool /*on*/)
+{
+    switchPolyMIDI();
+}
+
+// We may want poly with or without MIDI, so redo everything
+
+bool FLWindow::resetAudioDSPInterfaces()
+{
+    QString errorMsg;
+    FLSessionManager* sessionManager = FLSessionManager::_Instance();
+    QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
+  
+    float saveW = 0.0;
+    float saveH = 0.0;
+    float newW = 0.0;
+    float newH = 0.0;
     
-    if (on) {
-        updateMIDIInterface();
-    } else {
-        deleteMIDIInterface();
+    if (fInterface) {
+        saveW = fInterface->minimumSizeHint().width();
+        saveH = fInterface->minimumSizeHint().height();
     }
     
-    // Needed for MidiUI
-    start_Audio();
+    saveWindow();
+    hide();
+   
+    start_stop_watcher(false);
+    stop_Audio();
+    
+    sessionManager->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
+  
+    fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
+    
+    if (update_AudioArchitecture(errorMsg)) {
+         
+        allocateInterfaces(fSettings->value("Name", "").toString());
+        buildInterfaces(fCurrentDSP);
+   
+        start_Audio();
+        runInterfaces();
+        start_stop_watcher(true);
+        
+        FLMessageWindow::_Instance()->hide();
+
+        if (fInterface) {
+            newW = fInterface->minimumSizeHint().width();
+            newH = fInterface->minimumSizeHint().height();
+        }
+     
+        if (newH != saveH || newW != saveW) {
+            adjustSize();
+        }
+
+        show();
+        return true;
+      
+    } else {
+        errorPrint(errorMsg);
+        return false;
+    }
 }
+
+void FLWindow::switchPolyMIDI()
+{
+    resetAudioDSPInterfaces();
+} 
 
 void FLWindow::updateMIDIInterface()
 {
@@ -793,7 +821,7 @@ void FLWindow::updateMIDIInterface()
         saveWindow();
         deleteMIDIInterface();
         allocateMIDIInterface();
-        fCurrent_DSP->buildUserInterface(fMIDIInterface);
+        fCurrentDSP->buildUserInterface(fMIDIInterface);
         recall_Window();
         fMIDIInterface->run();
         FLInterfaceManager::_Instance()->registerGUI(fMIDIInterface);
@@ -876,7 +904,7 @@ void FLWindow::updateOSCInterface()
     saveWindow();
     deleteOscInterface();
     allocateOscInterface();
-    fCurrent_DSP->buildUserInterface(fOscInterface);
+    fCurrentDSP->buildUserInterface(fOscInterface);
     recall_Window();
     fOscInterface->run();
     FLInterfaceManager::_Instance()->registerGUI(fOscInterface);
@@ -891,13 +919,13 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     setWindowTitle(intermediate);
     
     if (!fIsDefault) {
-        QScrollArea *sa = new QScrollArea( this );
+        QScrollArea* sa = new QScrollArea(this);
         
         fInterface = new QTGUI(sa);
         sa->setWidgetResizable(true);
         sa->setWidget(fInterface);
-        sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
-        sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
+        sa->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         
         setCentralWidget(sa);
         fInterface->installEventFilter(this);
@@ -1050,14 +1078,13 @@ void FLWindow::closeWindow()
         fAudioManager->stop();
     }
 
-    deleteInterfaces();
-
     if (fHttpdWindow) {
         fHttpdWindow->deleteLater();
         fHttpdWindow = NULL;
     }
     
-    FLSessionManager::_Instance()->deleteDSPandFactory(fCurrent_DSP);
+    FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
+    deleteInterfaces();
 
 #ifdef REMOTE
     delete fStatusBar;
@@ -1076,14 +1103,7 @@ void FLWindow::dropEvent(QDropEvent* event)
 {
     //The widget was hidden from crossing of an object through the window
     this->centralWidget()->show();
-/*
-	int numberCharToErase = 0;
-#ifndef _WIN32
-	numberCharToErase = 8;
-#else
-	numberCharToErase = 7;
-#endif
-	*/
+
     if (event->mimeData()->hasUrls()) {
         
         QList<QString> sourceList;
@@ -1162,7 +1182,7 @@ void FLWindow::pressEvent()
     fileIcon.load(":/Images/FileIcon.png");
     reverseDrag->setPixmap(fileIcon);
     
-    if (QFileInfo(fSource).exists()){
+    if (QFileInfo(fSource).exists()) {
         QList<QUrl> listUrls;
         QUrl newURL(fSource);
         listUrls.push_back(newURL);
@@ -1192,7 +1212,7 @@ void FLWindow::stop_Audio()
 #ifdef REMOTE
     
     //    if (!fEffect->isLocal()) {
-    //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+    //        remote_dsp* currentDSP = (remote_dsp*)fCurrentDSP;
     //        currentDSP->stop();
     //    }
     
@@ -1214,7 +1234,7 @@ void FLWindow::start_Audio()
         
     #ifdef REMOTE
         //    if (!fEffect->isLocal()) {
-        //        remote_dsp* currentDSP = (remote_dsp*) fCurrent_DSP;
+        //        remote_dsp* currentDSP = (remote_dsp*)fCurrentDSP;
         //        currentDSP->start();
         //    }
     #endif
@@ -1256,11 +1276,12 @@ bool FLWindow::init_audioClient(QString& error)
 {
     int numberInputs = fSettings->value("InputNumber", 0).toInt();
     int numberOutputs = fSettings->value("OutputNumber", 0).toInt();
-    
-//  if(numberInputs == 0 && numberOutputs == 0)
-//      return fAudioManager->initAudio(error, fWindowName.toStdString().c_str());
-    
-	if (fAudioManager->initAudio(error, fWindowName.toStdString().c_str(), fSettings->value("Name", "").toString().toStdString().c_str(), numberInputs, numberOutputs)) {
+    bool midi = fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
+
+	if (fAudioManager->initAudio(error, 
+                                fWindowName.toStdString().c_str(), 
+                                fSettings->value("Name", "").toString().toStdString().c_str(), 
+                                numberInputs, numberOutputs, midi)) {
         update_AudioParams();
         return true;
     } else {
@@ -1276,7 +1297,7 @@ void FLWindow::update_AudioParams()
 
 bool FLWindow::setDSP(QString& error)
 {
-    bool success = fAudioManager->setDSP(error, fCurrent_DSP, fSettings->value("Name", "").toString().toStdString().c_str());
+    bool success = fAudioManager->setDSP(error, fCurrentDSP, fSettings->value("Name", "").toString().toStdString().c_str());
     update_AudioParams();
     return success;
 }
@@ -1373,7 +1394,7 @@ void FLWindow::allocateHttpInterface()
     
     argv[argc] = 0; // NULL terminated argv
     
-    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs(), 3, argv, false);
+    fHttpInterface = new httpdUI(getName().toStdString().c_str(), fCurrentDSP->getNumInputs(), fCurrentDSP->getNumOutputs(), 3, argv, false);
 }
 
 void FLWindow::deleteHttpInterface()
@@ -1390,7 +1411,7 @@ void FLWindow::updateHttpInterface()
     saveWindow();
     deleteHttpInterface();
     allocateHttpInterface();
-    fCurrent_DSP->buildUserInterface(fHttpInterface);
+    fCurrentDSP->buildUserInterface(fHttpInterface);
     recall_Window();
     fHttpInterface->run();
     FLServerHttp::_Instance()->declareHttpInterface(fHttpInterface->getTCPPort(), getName().toStdString());
@@ -1447,7 +1468,7 @@ void FLWindow::exportToPNG()
     QString errorMsg;
     
     if (!fInterface->toPNG(filename, errorMsg)) {
-        errorPrint(errorMsg.toStdString().c_str());
+        errorPrint(errorMsg);
     }
 }
 
@@ -1471,7 +1492,9 @@ void FLWindow::errorPrint(const QString& msg)
 
 #ifdef REMOTE
 //------------------REMOTE PROCESSING
-//---We have to separate into 2 functions because the action cannot be done in the audio thread that's why remoteDSPCallback has to send a signal, received in the graphical thread.
+// We have to separate into 2 functions because the action cannot be done in the audio thread 
+// that's why remoteDSPCallback has to send a signal, received in the graphical thread.
+
 int FLWindow::remoteDSPCallback(int error_code, void* arg)
 {
     FLWindow* errorWin = (FLWindow*) arg;
@@ -1542,11 +1565,11 @@ void FLWindow::RemoteCallback(int error_code)
 //        dspToStart->fAudio = new NJm_audioManager(NULL, NULL);
 //    connect(dspToStart->fAudio, SIGNAL(errorSignal(const char*)), dspToStart, SLOT(stopNJdspAudio(const char*)));
 //    
-//        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrent_DSP)) {
+//        if (dspToStart->fAudio->init(dspToStart->getName().toStdString().c_str(), dspToStart->fCurrentDSP)) {
 //            if (!dspToStart->fAudio->start())
 //                printf("Start slave audio failed\n");
 //            else{
-//                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrent_DSP->getNumInputs(), dspToStart->fCurrent_DSP->getNumOutputs());
+//                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fCurrentDSP->getNumInputs(), dspToStart->fCurrentDSP->getNumOutputs());
 //                success = true;
 //            }
 //        }
@@ -1587,8 +1610,8 @@ void FLWindow::RemoteCallback(int error_code)
 //}
 //
 //string FLWindow::json(){
-//    JSONUI json(fCurrent_DSP->getNumInputs(), fCurrent_DSP->getNumOutputs());
-//    fCurrent_DSP->buildUserInterface(&json);    
+//    JSONUI json(fCurrentDSP->getNumInputs(), fCurrentDSP->getNumOutputs());
+//    fCurrentDSP->buildUserInterface(&json);    
 //    string answer = json.JSON();
 //    
 //    return answer;

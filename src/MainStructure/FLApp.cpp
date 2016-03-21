@@ -1615,6 +1615,23 @@ void FLApp::audioPrefChanged(){
 }
 
 //Update Audio Architecture of all opened windows
+void FLApp::update_AudioArchitecture()
+{
+    QList<FLWindow*>::iterator updateFailPointer, it;
+    
+    display_CompilingProgress("Updating Audio Architecture...");
+    
+    //Update all audio clients
+    for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
+        (*it)->resetAudioDSPInterfaces();
+    }
+    
+    fAudioCreator->tempSettingsToSavedSettings();
+
+    StopProgressSlot();
+}
+
+/*
 void FLApp::update_AudioArchitecture(){
     
     QList<FLWindow*>::iterator updateFailPointer, it;
@@ -1707,6 +1724,7 @@ void FLApp::update_AudioArchitecture(){
     
     StopProgressSlot();
 }
+*/
 
 //--------------------------LONG WAITING PROCESSES------------------------------
 

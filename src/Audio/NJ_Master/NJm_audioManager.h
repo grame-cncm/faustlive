@@ -44,13 +44,13 @@ class NJm_audioManager : public AudioManager {
         NJm_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~NJm_audioManager();
     
+        virtual bool initAudio(QString& error, const char* name, bool midi);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs, bool midi);
+        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
+        
         virtual bool init(const char*, dsp* DSP);
         virtual bool start();
         virtual void stop();
-    
-        virtual bool initAudio(QString& error, const char* name);
-        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
-        virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
     
         virtual bool init_FadeAudio(QString& error, const char* name, dsp* DSP);
         virtual void start_Fade();

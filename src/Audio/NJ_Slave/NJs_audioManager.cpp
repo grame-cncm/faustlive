@@ -35,17 +35,17 @@ NJs_audioManager::~NJs_audioManager()
 }
 
 //INIT interface to correspond to JackAudio init interface
-bool NJs_audioManager::initAudio(QString& /*error*/, const char* /*name*/)
+bool NJs_audioManager::initAudio(QString& error, const char* /*name*/, bool /*midi*/)
 {
+    error = "";
     fInit = false;
     return true;
 }
 
-bool NJs_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs)
+bool NJs_audioManager::initAudio(QString& error, const char* /*name*/, const char* port_name, int numInputs, int numOutputs, bool midi)
 {
     if (numInputs == 0 && numOutputs == 0) {
-        QString err;
-        return initAudio(err, "");
+        return initAudio(error, port_name, midi);
     }
     
     if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {
@@ -113,7 +113,6 @@ void NJs_audioManager::wait_EndFade()
     QDateTime currentTime(QDateTime::currentDateTime());
     
     while(fCurrentAudio->get_FadeOut() == 1){
-        printf("STOPED PROGRAMATICALLY\n");
         fFadeInAudio->force_stopFade();
         fCurrentAudio->force_stopFade();
     }

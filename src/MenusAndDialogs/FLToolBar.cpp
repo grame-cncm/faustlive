@@ -8,7 +8,6 @@
 
 #include "FLToolBar.h"
 #include "FLSettings.h"
-
 #include "utilities.h"
 
 //--------------------------FLToolBar
@@ -133,6 +132,31 @@ void FLToolBar::init()
     
     midiBox->setLayout(midiLayout);
     fContainer->addItem(midiBox, "MIDI Interface");
+    
+    //------- Polyphonic support
+    QWidget* polyBox = new QWidget;
+    fPolyCheckBox = new QCheckBox();
+    fPolyGroupCheckBox = new QCheckBox();
+    
+    connect(fPolyCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+    connect(fPolyGroupCheckBox, SIGNAL(stateChanged(int)), this, SLOT(enableButton(int)));
+    
+    QFormLayout* polyLayout = new QFormLayout;
+    
+    fPolyLine = new QLineEdit(tr(""), polyBox);
+    fPolyLine->setStyleSheet("*{background-color:white;}");
+    fPolyLine->setMaxLength(4);
+    fPolyLine->setMaximumWidth(50);
+    connect(fPolyLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
+    connect(fPolyLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
+    
+    polyLayout->addRow(new QLabel(tr("Enable Polyphony")), fPolyCheckBox);
+    polyLayout->addRow(new QLabel(tr("Voice number")), fPolyLine);
+    polyLayout->addRow(new QLabel(tr("Group voices")), fPolyGroupCheckBox);
+    
+    polyBox->setLayout(polyLayout);
+    fContainer->addItem(polyBox, "Polyphony support");
+    
  
 #ifdef REMOTE
 //-------- Remote Control
@@ -313,6 +337,10 @@ FLToolBar::~FLToolBar()
     delete fHttpPort;
     
     delete fMIDICheckBox;
+    
+    delete fPolyCheckBox;
+    delete fPolyGroupCheckBox;
+    delete fPolyLine;
 
     delete fOSCCheckBox;
     delete fPortInOscLine;
@@ -352,6 +380,7 @@ bool FLToolBar::hasStateChanged()
         hasOscOptionsChanged() ||
         wasHttpSwitched() ||
         wasMIDISwitched() ||
+        wasPolyphonySwitched() ||
         wasRemoteControlSwitched() ||
         hasRemoteOptionsChanged() ||
         hasReleaseOptionsChanged());    
@@ -390,17 +419,21 @@ bool FLToolBar::hasOscOptionsChanged()
 {
     if (fOSCCheckBox->isChecked()) {
     
-        if (fPortInOscLine->text() != fSettings->value("Osc/InPort", "5510").toString())
+        if (fPortInOscLine->text() != fSettings->value("Osc/InPort", "5510").toString()) {
             return true;
+        }
         
-        if (fPortOutOscLine->text() != fSettings->value("Osc/OutPort", "5511").toString())
+        if (fPortOutOscLine->text() != fSettings->value("Osc/OutPort", "5511").toString()) {
             return true;
+        }
         
-        if (fDestHostLine->text() != fSettings->value("Osc/DestHost", "localhost").toString())
+        if (fDestHostLine->text() != fSettings->value("Osc/DestHost", "localhost").toString()) {
             return true;
+        }
         
-        if (fPortErrOscLine->text() != fSettings->value("Osc/ErrPort", "5512").toString())
+        if (fPortErrOscLine->text() != fSettings->value("Osc/ErrPort", "5512").toString()) {
             return true;
+        }
     }
 
     return false;
@@ -414,6 +447,16 @@ bool FLToolBar::wasHttpSwitched()
 bool FLToolBar::wasMIDISwitched()
 {
     return (fSettings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)) != fMIDICheckBox->isChecked());
+}
+
+bool FLToolBar::wasPolyphonySwitched()
+{
+    return ((fSettings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)) 
+            != fPolyCheckBox->isChecked())
+            ||
+            (fSettings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)) 
+            != fPolyGroupCheckBox->isChecked())
+            || (fPolyLine->text() != fSettings->value("Polyphony/Voice", "4").toString()));
 }
 
 bool FLToolBar::wasRemoteControlSwitched()
@@ -466,6 +509,10 @@ void FLToolBar::modifiedOptions()
     
     bool MIDIOpt = false;
     bool MIDISwitchVal = fMIDICheckBox->isChecked();
+    
+    bool polyOpt = false;
+    bool polySwitchVal = fPolyCheckBox->isChecked();
+    bool polyGroupSwitchVal = fPolyGroupCheckBox->isChecked();
 
 #ifdef REMOTE
 //    bool remoteControlOpt= false;
@@ -518,6 +565,13 @@ void FLToolBar::modifiedOptions()
         fSettings->setValue("MIDI/Enabled", fMIDICheckBox->isChecked());
         MIDIOpt = true;
     }
+    
+     if (wasPolyphonySwitched()) {
+        fSettings->setValue("Polyphony/Enabled", fPolyCheckBox->isChecked());
+        fSettings->setValue("Polyphony/GroupEnabled", fPolyGroupCheckBox->isChecked());
+        fSettings->setValue("Polyphony/Voice", fPolyLine->text());
+        polyOpt = true;
+    }
  
 #ifdef REMOTE
 //    if(wasRemoteControlSwitched()){
@@ -557,6 +611,10 @@ void FLToolBar::modifiedOptions()
         
     if (MIDIOpt)
         emit switch_midi(MIDISwitchVal);
+        
+    if (polyOpt)
+        emit switch_poly(polySwitchVal | polyGroupSwitchVal);
+        
 
 #ifdef REMOTE
 //	if(remoteControlOpt)
@@ -584,6 +642,12 @@ void FLToolBar::switchOsc(bool on)
 void FLToolBar::switchMIDI(bool on)
 {
 	fMIDICheckBox->setChecked(on);
+    modifiedOptions();
+}
+
+void FLToolBar::switchPoly(bool on)
+{
+    fPolyCheckBox->setChecked(on);
     modifiedOptions();
 }
 
@@ -615,6 +679,11 @@ void FLToolBar::syncVisualParams()
     
     //------ MIDI    
     fMIDICheckBox->setChecked(fSettings->value("MIDI/Enabled", generalSettings->value("General/Control/MIDIDefaultChecked", false)).toBool());
+    
+    //------ Polyphony    
+    fPolyCheckBox->setChecked(fSettings->value("Polyphony/Enabled", generalSettings->value("General/Control/PolyphonyDefaultChecked", false)).toBool());
+    fPolyGroupCheckBox->setChecked(fSettings->value("Polyphony/GroupEnabled", generalSettings->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool());
+    fPolyLine->setText(fSettings->value("Polyphony/Voice", "4").toString());
 
 #ifdef REMOTE
     //------ RemoteProcessing

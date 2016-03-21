@@ -39,7 +39,7 @@ class dsp;
 
 using namespace std;
 
-enum initType{
+enum initType {
     kNoInit,
     kInitBlue,
     kInitWhite
@@ -53,24 +53,24 @@ class FLWindow : public QMainWindow
         Q_OBJECT
     
         QDateTime       fLastMigration;
-    
         QString         fHome;        //Folder of currentSession
     
-//--- Handle toolbar
+    //--- Handle toolbar
         FLToolBar*      fToolBar;
         void            set_ToolBar();
+        
     //Set fToolBar with current windows options
         void            setWindowsOptions();
     
-//--- Handle status
+    //--- Handle status
         FLStatusBar*    fStatusBar;
         void            set_StatusBar();
 
-//--- Handle menus
+    //--- Handle menus
         QMenu*          fWindowMenu;
         void            set_MenuBar(QList<QMenu*> appMenus);
     
-//--- All the window settings
+    //--- All the window settings
         QString         fWindowName;     //WindowName = Common Base Name + - + index
         int             fWindowIndex;    //Unique index corresponding to this window
         FLWinSettings*  fSettings;
@@ -79,7 +79,7 @@ class FLWindow : public QMainWindow
         QString         fWavSource;
         QDateTime       fCreationDate;
         
-//--- Interfaces
+    //--- Interfaces
         QTGUI*          fInterface;         //User control interface
         FUI*            fRCInterface;       //Graphical parameters saving interface
 
@@ -96,17 +96,15 @@ class FLWindow : public QMainWindow
         void            deleteHttpInterface();
         
         void            allocateMIDIInterface();
-    
-//--- Audio driver
+      
+    //--- Audio driver
         AudioManager*   fAudioManager;
         bool            fAudioManagerStopped;
     
         bool            fClientOpen;     //If the client has not be inited, the audio can't be closed when the window is closed
-    
-//        string          fInstanceKey; /* Though to be used for remote interactions*/
-        
-//--- CURRENT DSP Instance
-        dsp*            fCurrent_DSP;
+         
+    //--- CURRENT DSP Instance
+        dsp*            fCurrentDSP;
     
     //Calculate a multiplication coefficient to place the httpdWindow on screen (avoiding overlapping of the windows)
         int             calculate_Coef();
@@ -114,11 +112,11 @@ class FLWindow : public QMainWindow
     //Diplays the default interface with Message : Drop a DSP
         void            print_initWindow(int typeInit);
     
-//--- Handle recents
+    //--- Handle recents
         QList<std::pair<QString, QString> > fRecentFiles;
         QStringList     fRecentSessions;
             
-//-- Transforms Wav file into faust string
+    //-- Transforms Wav file into faust string
         bool            ifWavToString(const QString& source, QString& newSource);
     
     signals :
@@ -155,9 +153,10 @@ class FLWindow : public QMainWindow
         virtual ~FLWindow();
     
     //To close a window the safe way
-        //At the end of application execution
+    //At the end of application execution
         void            closeWindow();
-        //During the execution
+        
+    //During the execution
         void            shutWindow();  
     
     //Called when the X button of a window is triggered
@@ -168,6 +167,8 @@ class FLWindow : public QMainWindow
         void            buildInterfaces(dsp* dsp);
         void            runInterfaces();
         void            deleteInterfaces();
+          
+        bool            resetAudioDSPInterfaces();
     
     //Returning false if it fails and fills the errorMsg buffer
     //@param : init = if the window created is a default window.
@@ -175,7 +176,8 @@ class FLWindow : public QMainWindow
     //@param : error = in case init fails, the error is filled
         bool            init_Window(int init, const QString& source, QString& errorMsg);
     
-    //If the audio Architecture is modified during execution, the windows have to be updated. If the change couldn't be done it returns false and the error buffer is filled
+    //If the audio Architecture is modified during execution, the windows have to be updated. 
+    //If the change couldn't be done it returns false and the error buffer is filled
         bool            update_AudioArchitecture(QString& error);
         void            stop_Audio();
         void            start_Audio();
@@ -189,6 +191,7 @@ class FLWindow : public QMainWindow
         bool            init_audioClient(QString& error);
         bool            setDSP(QString& error);
         void            update_AudioParams();
+        
     //Drag and drop operations
         virtual void    dropEvent(QDropEvent * event);
         virtual void    dragEnterEvent(QDragEnterEvent * event);
@@ -243,9 +246,14 @@ class FLWindow : public QMainWindow
         void            switchOsc(bool);
         void            disableOSCInterface();
         
+        void            switchPolyMIDI();
+        
     //Modification of the MIDI interface
         void            updateMIDIInterface();
         void            switchMIDI(bool);
+        
+    //Modification of the Polyphony support
+        void            switchPoly(bool);
    
         void            shut();
 

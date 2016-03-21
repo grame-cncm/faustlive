@@ -14,7 +14,6 @@
 // All of them are described visually by a QLineEdit
 
 #include "NJm_audioSettings.h"
-
 #include "utilities.h"
 #include "FLSettings.h"
 

@@ -17,19 +17,17 @@ FLInterfaceManager::~FLInterfaceManager(){}
 
 FLInterfaceManager* FLInterfaceManager::_Instance()
 {
-    if (_interfaceManagerInstance == NULL)
+    if (_interfaceManagerInstance == NULL) {
         FLInterfaceManager::_interfaceManagerInstance = new FLInterfaceManager;
+    }
     
     return FLInterfaceManager::_interfaceManagerInstance;
 }
 
 void FLInterfaceManager::updateAllGuis()
 {
-    if (fLocker.Lock()){
-        std::list<GUI*>::iterator g;
-        for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-            (*g)->updateAllZones();
-        }
+    if (fLocker.Lock()) {
+        GUI::updateAllGuis();
         fLocker.Unlock();
     }
 }

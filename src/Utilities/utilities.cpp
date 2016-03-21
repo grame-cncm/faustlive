@@ -388,7 +388,7 @@ int get_numberParameters(const QString& compilOptions)
     return argc;
 }
 
-//Hand Made Parser
+//Hand written Parser
 //Returns : the first option found, skipping the ' '
 //CompilOptions : the rest of the options are kept in
 string parse_compilationParams(QString& compilOptions)

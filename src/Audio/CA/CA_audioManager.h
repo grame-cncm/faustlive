@@ -29,15 +29,16 @@ class CA_audioManager : public AudioManager {
         CA_audioFader*      fCurrentAudio;
         CA_audioFader*      fFadeInAudio;
     
-    public :
+    public:
+    
         CA_audioManager(AudioShutdownCallback cb, void* arg);
         virtual ~CA_audioManager();
-    
-        virtual bool init(const char*, dsp* DSP);
-        virtual bool initAudio(QString& error, const char* name);
-        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs);
+       
+        virtual bool initAudio(QString& error, const char* name, bool midi);
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs, bool midi);
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name);
        
+        virtual bool init(const char*, dsp* DSP);
         virtual bool start();
         virtual void stop();
     

@@ -33,7 +33,7 @@ class NJm_audioFader : public QObject, public netjackaudio_midicontrol, public A
             
         virtual int set_sample_rate(jack_nframes_t nframes)
         {
-            fDsp->init(nframes);
+            fDSP->init(nframes);
             return 0;
         }
         

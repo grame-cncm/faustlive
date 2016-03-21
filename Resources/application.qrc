@@ -28,6 +28,7 @@
     <file>Examples/lowcut.dsp</file>
 	<file>Examples/noise.dsp</file>
 	<file>Examples/osc.dsp</file>
+    <file>Examples/organ.dsp</file>
 	<file>Examples/panpot.dsp</file>
 	<file>Examples/phaser_flanger.dsp</file>
 	<file>Examples/pitch_shifter.dsp</file>

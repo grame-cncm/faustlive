@@ -18,11 +18,12 @@ JA_audioSettings::JA_audioSettings(QGroupBox* parent) : AudioSettings(parent)
     setVisualSettings();
 }
 
-JA_audioSettings::~JA_audioSettings(){}
+JA_audioSettings::~JA_audioSettings()
+{}
 
 void JA_audioSettings::setVisualSettings()
 {
-    fAutoConnectBox->setChecked (FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool());
+    fAutoConnectBox->setChecked(FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool());
 }
 void JA_audioSettings::storeVisualSettings()
 {
@@ -41,5 +42,5 @@ bool JA_audioSettings::get_AutoConnect()
 
 QString JA_audioSettings::get_ArchiName()
 {
-    return "Jack";
+    return "JACK";
 }

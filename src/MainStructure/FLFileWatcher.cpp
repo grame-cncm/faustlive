@@ -26,8 +26,9 @@ FLFileWatcher::~FLFileWatcher(){}
 
 FLFileWatcher* FLFileWatcher::_Instance()
 {
-    if (FLFileWatcher::_fileWatcher == 0)
+    if (FLFileWatcher::_fileWatcher == 0) {
         FLFileWatcher::_fileWatcher = new FLFileWatcher();
+    }
     return FLFileWatcher::_fileWatcher;
 }
 
@@ -91,7 +92,7 @@ void FLFileWatcher::dirChanged(const QString& dirModified)
         
         for (QStringList::iterator it = filesWatched.begin(); it != filesWatched.end(); it++) {
 //        Find modified file
-            if (!QFileInfo(*it).exists()){
+            if (!QFileInfo(*it).exists()) {
                 oldName = *it;
                 
 //            If a file was deleted, it's not worth going name searching
@@ -100,7 +101,7 @@ void FLFileWatcher::dirChanged(const QString& dirModified)
                 
 //            Search in newList the one File that is not in the old list
                 for (QStringList::iterator it2 = newChildren.begin(); it2 != newChildren.end(); it2++) {
-                    if(oldChildren.indexOf(*it2) == -1){
+                    if (oldChildren.indexOf(*it2) == -1) {
                         newName = *it2;
                         break;
                     }
@@ -134,7 +135,7 @@ void FLFileWatcher::reset_Timer(const QString fileModified)
     }
     
     fSourceToChanged = fileModified;
-    fWinChanged =  fMap[fileModified];
+    fWinChanged = fMap[fileModified];
     
     //If the signal is triggered multiple times in 2 second, only 1 is taken into account
     if (fSynchroTimer->isActive()) {

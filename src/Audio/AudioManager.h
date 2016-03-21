@@ -32,10 +32,10 @@ class AudioManager : public QObject, public audio {
         AudioManager(AudioShutdownCallback cb = NULL, void* arg = NULL){Q_UNUSED(cb);Q_UNUSED(arg);}
         virtual ~AudioManager(){}
         
-        virtual bool initAudio(QString& error, const char* name) = 0;
+        virtual bool initAudio(QString& error, const char* name, bool midi) = 0;
         
-        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs)
-            {Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name);}
+        virtual bool initAudio(QString& error, const char* name, const char* port_name, int numInputs, int numOutputs, bool midi)
+            {Q_UNUSED(numInputs); Q_UNUSED(numOutputs); Q_UNUSED(port_name); return initAudio(error, name, midi);}
         
         virtual bool setDSP(QString& error, dsp* DSP, const char* port_name) = 0;
 
