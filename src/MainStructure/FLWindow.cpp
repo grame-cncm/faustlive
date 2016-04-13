@@ -838,11 +838,11 @@ void FLWindow::allocateMIDIInterface()
     if (manager) {
         fMIDIInterface = new MidiUI(manager->getAudioFader());
     } else {
-        fMIDIHandler = new midi_handler(fWindowName.toStdString());
+        fMIDIHandler = new rt_midi(fWindowName.toStdString());
         fMIDIInterface = new MidiUI(fMIDIHandler);
     }
 #else
-    fMIDIHandler = new midi_handler(fWindowName.toStdString());
+    fMIDIHandler = new rt_midi(fWindowName.toStdString());
     fMIDIInterface = new MidiUI(fMIDIHandler);
 #endif
 }
