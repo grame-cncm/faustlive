@@ -89,8 +89,9 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     
     fHttpdWindow = NULL;
     fHttpInterface = NULL;
-	fOscInterface = NULL;
+    fOscInterface = NULL;
     fMIDIInterface = NULL;
+    fMIDIHandler = NULL;
 
     fInterface = NULL;
     fRCInterface = NULL;
@@ -134,7 +135,7 @@ void FLWindow::frontShow()
     int h = fSettings->value("Size/h", 0).toInt();
     setGeometry(x, y, w, h);
     if (w == 0 && h == 0) adjustSize();
-    
+   
     show();
     raise();
     
@@ -837,10 +838,12 @@ void FLWindow::allocateMIDIInterface()
     if (manager) {
         fMIDIInterface = new MidiUI(manager->getAudioFader());
     } else {
-        fMIDIInterface = new MidiUI(fWindowName.toStdString());
+        fMIDIHandler = new midi_handler(fWindowName.toStdString());
+        fMIDIInterface = new MidiUI(fMIDIHandler);
     }
 #else
-    fMIDIInterface = new MidiUI(fWindowName.toStdString());
+    fMIDIHandler = new midi_handler(fWindowName.toStdString());
+    fMIDIInterface = new MidiUI(fMIDIHandler);
 #endif
 }
 
@@ -850,6 +853,8 @@ void FLWindow::deleteMIDIInterface()
         FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
         delete fMIDIInterface;
         fMIDIInterface = NULL;
+        delete fMIDIHandler;
+        fMIDIHandler = NULL;
     }
 }
 
