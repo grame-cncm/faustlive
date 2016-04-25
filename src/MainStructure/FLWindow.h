@@ -22,6 +22,8 @@
 #include <QtWidgets>
 #endif
 
+#include "faust/midi/rt-midi.h"
+
 class httpdUI;
 class QTGUI;
 class FLToolBar;
@@ -85,6 +87,7 @@ class FLWindow : public QMainWindow
 
         OSCUI*          fOscInterface;      //OSC interface 
         MidiUI*         fMIDIInterface;     //MIDI interface
+        midi_handler*   fMIDIHandler;       //RTMIDI midi-handler
         
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address
