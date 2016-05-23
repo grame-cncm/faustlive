@@ -8,7 +8,14 @@
 
 #include "FLHelpWindow.h"
 #include "utilities.h"
+
+#define LLVM_DSP_FACTORY
+#ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
+#else
+#include "faust/dsp/interpreter-dsp.h"
+#endif
+
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
@@ -163,34 +170,40 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     
     string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
 
-    llvm_dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
+#ifdef LLVM_DSP_FACTORY
+    dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
+#else
+    dsp_factory* temp = createInterpreterDSPFactoryFromFile(file, argc, argv, getError);
+#endif
+ 
+    if (temp != NULL) {
 
-	if (temp != NULL) {
+        MyMeta* meta = new MyMeta;
+        temp->metadata(meta);
 
-		MyMeta* meta = new MyMeta;
-    
-		metadataDSPFactory(temp, meta);
-    
-		for(size_t i=0; i<meta->datas.size(); i++){
-        
-			string libName, key, value;
-        
-			size_t pos = meta->datas[i].first.find("/");
-        
-			if(pos != string::npos){
-				libName = meta->datas[i].first.substr(0, pos);
-				key = meta->datas[i].first.substr(pos+1);
-			}
-			else
-				key = meta->datas[i].first;
-        
-			value = meta->datas[i].second;
-        
-			infoLibs[libName].push_back(make_pair(key, value));
-		}
-    
-		deleteDSPFactory(temp);
-	}
+        for (size_t i=0; i<meta->datas.size(); i++) {
+
+            string libName, key, value;
+            size_t pos = meta->datas[i].first.find("/");
+
+            if (pos != string::npos) {
+                libName = meta->datas[i].first.substr(0, pos);
+                key = meta->datas[i].first.substr(pos+1);
+            } else {
+                key = meta->datas[i].first;
+            }
+
+            value = meta->datas[i].second;
+            infoLibs[libName].push_back(make_pair(key, value));
+        }
+
+    #ifdef LLVM_DSP_FACTORY
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp));
+    #else
+        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp));
+    #endif
+
+    }
 }
 
 void FLHelpWindow::setLibText(){

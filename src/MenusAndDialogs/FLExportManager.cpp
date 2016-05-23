@@ -19,7 +19,13 @@
 #include "SimpleParser.h"
 
 #include "utilities.h"
+
+#define LLVM_DSP_FACTORY
+#ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
+#else
+#include "faust/dsp/interpreter-dsp.h"
+#endif
 
 #include "FLSettings.h"
 

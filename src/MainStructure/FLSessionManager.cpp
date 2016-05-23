@@ -1,3 +1,4 @@
+
 //
 //  FLSessionManager.cpp
 //
@@ -148,7 +149,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         //----Use IR Saving if possible
         if (QFileInfo(irFile.c_str()).exists()) {
-			toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+        #ifdef LLVM_DSP_FACTORY
+            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+        #else
+            toCompile->fLLVMFactory  = NULL;  // TODO
+        #endif
+            
         }
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
         
@@ -156,7 +162,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         if (!toCompile->fLLVMFactory) {
             
             // New allocation
+        #ifdef LLVM_DSP_FACTORY
             toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+        #else
+            toCompile->fLLVMFactory = createInterpreterDSPFactoryFromFile(fileToCompile, argc, argv, error);
+        #endif
             
             if (settings) {
                 settings->setValue("InputNumber", 0);
@@ -164,7 +174,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             }
             
             if (toCompile->fLLVMFactory) {
-                writeDSPFactoryToBitcodeFile(toCompile->fLLVMFactory, irFile);
+            #ifdef LLVM_DSP_FACTORY
+                writeDSPFactoryToBitcodeFile(dynamic_cast<llvm_dsp_factory*>(toCompile->fLLVMFactory), irFile);
+            #else
+               // TODO
+            #endif
                 //writeDSPFactoryToMachineFile(toCompile->fLLVMFactory, irFile); // in progress but still does not work reliably for all DSP...
                 writeDependencies(getDependencies(toCompile->fLLVMFactory), shaKey.c_str());
                 if (error != "") {
@@ -245,7 +259,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 remote_audio* audio = NULL;
 #endif
 
-static bool hasMIDISync(llvm_dsp* dsp)
+static bool hasMIDISync(dsp* dsp)
 {
     JSONUI jsonui;
     dsp->buildUserInterface(&jsonui);
@@ -272,7 +286,8 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
-        llvm_dsp* dsp = createDSPInstance(toCompile->fLLVMFactory);
+    
+        dsp* dsp = toCompile->fLLVMFactory->createDSPInstance();
         
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
@@ -281,7 +296,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(atoi(voices.c_str()), dsp, midi, group);
+            compiledDSP = new mydsp_poly(atoi(voices.c_str()), toCompile->fLLVMFactory, midi, group);
         } else {
             compiledDSP = dsp;
         }
@@ -376,9 +391,12 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     fDSPToFactory.remove(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
-        //deleteDSPInstance((llvm_dsp*)toDeleteDSP);
         delete toDeleteDSP;
-        deleteDSPFactory(factoryToDelete->fFactory->fLLVMFactory);
+    #ifdef LLVM_DSP_FACTORY
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+    #else
+        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+    #endif
         factoryToDelete->fFactory->fLLVMFactory = NULL;
     }
 #ifdef REMOTE
@@ -1054,15 +1072,19 @@ void FLSessionManager::createSnapshot(const QString& snapshotFolder)
 
 //----------------------- Handle Faust file dependencies ------------------
 
-QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDependency)
+QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependency)
 {
     QVector<QString> dependencies;
     std::vector<std::string> stdDependendies;
-    stdDependendies = getDSPFactoryLibraryList(factoryDependency);
-
+    
+#ifdef LLVM_DSP_FACTORY
+    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<llvm_dsp_factory*>(factoryDependency));
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }
+#else
+    // TODO
+#endif
 
     return dependencies;
 }
@@ -1070,9 +1092,9 @@ QVector<QString> FLSessionManager::getDependencies(llvm_dsp_factory* factoryDepe
 QVector<QString> FLSessionManager::readDependencies(const QString& shaValue)
 {
     QVector<QString> dependencies;
-    QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
+    QString shaPath = fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
     QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
-    QStringList groups  = settings->childKeys();
+    QStringList groups = settings->childKeys();
     
     for (int i = 0; i < groups.size(); i++) {
         QString dependency = settings->value(QString::number(i), "").toString();
@@ -1084,7 +1106,7 @@ QVector<QString> FLSessionManager::readDependencies(const QString& shaValue)
 
 void FLSessionManager::writeDependencies(QVector<QString> dependencies, const QString& shaValue)
 {
-    QString shaPath =  fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
+    QString shaPath = fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
     QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
     
     for (int i = 0; i < dependencies.size(); i++) {
