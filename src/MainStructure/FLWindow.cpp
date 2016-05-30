@@ -140,6 +140,10 @@ void FLWindow::frontShow()
     raise();
     
     setMinimumSize(QSize(0, 0));
+    
+    // Bug in QT 5.6 : needed in oder to always see the windows on the screen...
+    resize(QSize(300, 400));
+    
     setMaximumSize(QSize(QApplication::desktop()->geometry().size().width(), QApplication::desktop()->geometry().size().height()));
 }
 
