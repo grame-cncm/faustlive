@@ -208,9 +208,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
                 string sha_key = item.second;
                 printf("name = %s sha_key = %s\n", name.c_str(), sha_key.c_str());
                 remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(sha_key, ip_server, port_server);
-                if (factory) {
+                /*
+                if (factory && (factory->getDSPCode() != "")) {
                      printf("dsp_code %s\n", factory->getDSPCode().c_str());
                 }
+                */
             }
         }
         
@@ -296,7 +298,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(atoi(voices.c_str()), toCompile->fLLVMFactory, midi, group);
+            compiledDSP = new mydsp_poly(dsp, atoi(voices.c_str()), midi, group);
         } else {
             compiledDSP = dsp;
         }
@@ -309,17 +311,19 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 #ifdef REMOTE
 //----Create Remote DSP Instance
     else if (settings) {
+        
         //int sampleRate = settings->value("SampleRate", 44100).toInt();
         //int bufferSize = settings->value("BufferSize", 512).toInt();
-        int errorToCatch;
+        
+        int errorToCatch = ERROR_FACTORY_NOTFOUND;
         
         // -----------CALCULATE ARGUMENTS------------
         int argc;
         const char** argv = getRemoteInstanceArgv(settings, argc);
-        compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
-        //compiledDSP = createDSPInstance(toCompile->fLLVMFactory);
         
-        /*
+        //compiledDSP = createRemoteDSPInstance(toCompile->fRemoteFactory, argc, argv, error_callback, error_callback_arg, errorToCatch);
+        //compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
+        
         // Test 
         int argc1 = 0;
         const char* argv1[32];
@@ -344,8 +348,8 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         } else {
             printf("Error in createRemoteAudioInstance\n");
         }
-        */
-     
+    
+        /*
         if (!compiledDSP) {
             //----- If the factory is seen as already compiled but it disapeared, it has to be recompiled
             if (errorToCatch == ERROR_FACTORY_NOTFOUND) {
@@ -361,6 +365,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if (!compiledDSP) {
             errorMsg = getErrorFromCode(errorToCatch);
         }
+        */
     }
 #else
 	Q_UNUSED(source);
@@ -520,11 +525,11 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     }
     
     // MACHINE
-    /*
+    
     if (settings) {
         numberFixedParams += 2;
     }
-    */
+    
     
     if (sourcePath != "") {
         numberFixedParams += 2;
@@ -541,13 +546,13 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     const char** argv = new const char*[argc+1];
     
     // MACHINE
-    /*
+    
     if (settings) {
         argv[iteratorParams++] = "-lm";
-        argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
-        printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
+        //argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
+        argv[iteratorParams++] = "";
+        //printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
     }
-    */
     
     /*
     if (settings) {

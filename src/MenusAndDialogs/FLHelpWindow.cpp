@@ -8,6 +8,7 @@
 
 #include "FLHelpWindow.h"
 #include "utilities.h"
+#include "FLErrorWindow.h"
 
 #define LLVM_DSP_FACTORY
 #ifdef LLVM_DSP_FACTORY
@@ -166,22 +167,26 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 	argv[3] = "llvm_math.ll";
 #endif
     argv[argc] = 0; // NULL terminated argv
-    string getError;
-    
+    string error;
     string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
 
 #ifdef LLVM_DSP_FACTORY
-    dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
+    dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
 #else
-    dsp_factory* temp = createInterpreterDSPFactoryFromFile(file, argc, argv, getError);
+    dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
 #endif
+    if (!temp_factory) {
+        FLErrorWindow::_Instance()->print_Error(error.c_str());
+        return;
+    }
+    dsp* temp_dsp = temp_factory->createDSPInstance();
  
-    if (temp != NULL) {
+    if (temp_dsp) {
 
         MyMeta* meta = new MyMeta;
-        temp->metadata(meta);
+        temp_dsp->metadata(meta);
 
-        for (size_t i=0; i<meta->datas.size(); i++) {
+        for (size_t i = 0; i < meta->datas.size(); i++) {
 
             string libName, key, value;
             size_t pos = meta->datas[i].first.find("/");
@@ -197,10 +202,12 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
             infoLibs[libName].push_back(make_pair(key, value));
         }
 
+        delete temp_dsp;
+        
     #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp));
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp_factory));
     #else
-        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp));
+        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp_factory));
     #endif
 
     }
