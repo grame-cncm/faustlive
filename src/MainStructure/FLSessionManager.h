@@ -41,7 +41,12 @@
 typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
+#define LLVM_DSP_FACTORY
+#ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
+#else
+#include "faust/dsp/interpreter-dsp.h"
+#endif
 
 class FLWinSettings;
 
@@ -52,7 +57,8 @@ enum {
 };
 
 union factory {
-    llvm_dsp_factory* fLLVMFactory;
+    dsp_factory* fLLVMFactory;
+    
 #ifdef REMOTE
     remote_dsp_factory* fRemoteFactory;
 #endif
@@ -117,7 +123,7 @@ class FLSessionManager : public QObject
     
         void cleanSHAFolder();
         
-        QVector<QString> getDependencies(llvm_dsp_factory* factoryDependency);
+        QVector<QString> getDependencies(dsp_factory* factoryDependency);
         
     private slots:
     

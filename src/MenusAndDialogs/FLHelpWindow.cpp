@@ -8,7 +8,15 @@
 
 #include "FLHelpWindow.h"
 #include "utilities.h"
+#include "FLErrorWindow.h"
+
+#define LLVM_DSP_FACTORY
+#ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
+#else
+#include "faust/dsp/interpreter-dsp.h"
+#endif
+
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
 FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
@@ -159,38 +167,50 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 	argv[3] = "llvm_math.ll";
 #endif
     argv[argc] = 0; // NULL terminated argv
-    string getError;
-    
+    string error;
     string file = fLibsFolder.toStdString() + "/TestLibs.dsp";
 
-    llvm_dsp_factory* temp = createDSPFactoryFromFile(file, argc, argv, "", getError, 3);
+#ifdef LLVM_DSP_FACTORY
+    dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
+#else
+    dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
+#endif
+    if (!temp_factory) {
+        FLErrorWindow::_Instance()->print_Error(error.c_str());
+        return;
+    }
+    dsp* temp_dsp = temp_factory->createDSPInstance();
+ 
+    if (temp_dsp) {
 
-	if (temp != NULL) {
+        MyMeta* meta = new MyMeta;
+        temp_dsp->metadata(meta);
 
-		MyMeta* meta = new MyMeta;
-    
-		metadataDSPFactory(temp, meta);
-    
-		for(size_t i=0; i<meta->datas.size(); i++){
+        for (size_t i = 0; i < meta->datas.size(); i++) {
+
+            string libName, key, value;
+            size_t pos = meta->datas[i].first.find("/");
+
+            if (pos != string::npos) {
+                libName = meta->datas[i].first.substr(0, pos);
+                key = meta->datas[i].first.substr(pos+1);
+            } else {
+                key = meta->datas[i].first;
+            }
+
+            value = meta->datas[i].second;
+            infoLibs[libName].push_back(make_pair(key, value));
+        }
+
+        delete temp_dsp;
         
-			string libName, key, value;
-        
-			size_t pos = meta->datas[i].first.find("/");
-        
-			if(pos != string::npos){
-				libName = meta->datas[i].first.substr(0, pos);
-				key = meta->datas[i].first.substr(pos+1);
-			}
-			else
-				key = meta->datas[i].first;
-        
-			value = meta->datas[i].second;
-        
-			infoLibs[libName].push_back(make_pair(key, value));
-		}
-    
-		deleteDSPFactory(temp);
-	}
+    #ifdef LLVM_DSP_FACTORY
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp_factory));
+    #else
+        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp_factory));
+    #endif
+
+    }
 }
 
 void FLHelpWindow::setLibText(){
