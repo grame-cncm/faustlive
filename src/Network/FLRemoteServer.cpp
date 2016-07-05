@@ -47,7 +47,7 @@ string getJson(connection_info_struct* con_info)
     con_info->fNameApp = metadata.name;
 
     //This instance is used only to build json interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
+    llvm_dsp* dsp = con_info->fLLVMFactory->createDSPInstance();
     
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
     dsp->buildUserInterface(&json);    
