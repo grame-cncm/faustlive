@@ -6,8 +6,13 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument uses banded waveguide. For more information, see Essl, G. and Cook, P. Banded Waveguides: Towards Physical Modelling of Bar Percussion Instruments, Proceedings of the 1999 International Computer Music Conference.";
 
-import("music.lib");
+import("math.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("noise.lib");
+import("delay.lib");
+import("miscoscillator.lib");
 
 //==================== GUI SPECIFICATION ================
 

@@ -13,7 +13,8 @@ declare license "STK-4.3";
 //  click and doesn't transpose when the delay time is changed
 //-------------------------------------------------------------
 
-import("music.lib");
+import("math.lib");
+import("delay.lib");
 
 process = par(i, 2, voice)
 	with 

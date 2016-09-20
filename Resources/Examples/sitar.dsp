@@ -6,8 +6,13 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument implements a sitar plucked string physical model based on the Karplus-Strong algorithm using a randomly modulated delay line.";
 
-import("music.lib");
+import("math.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("noise.lib");
+import("delay.lib");
+import("miscoscillator.lib");
 
 //==================== GUI SPECIFICATION ================
 

@@ -7,8 +7,12 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This object implements a helmholtz resonator (biquad filter) with a polynomial jet excitation (a la Cook).";
 
 import("math.lib");
-import("music.lib");
+import("signal.lib");
+import("filter.lib");
+import("envelope.lib");
 import("instrument.lib");
+import("miscoscillator.lib");
+import("noise.lib");
 
 //==================== GUI SPECIFICATION ================
 

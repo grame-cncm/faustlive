@@ -7,9 +7,9 @@
     <file>Images/OpenWin.png</file>
     <file>Images/Presentation_Image.png</file>
     <file>Images/RecallMenu.png</file>
-<file>Images/FaustLiveIcon.png</file>
-<file>Images/FaustLiveIcon.ico</file>
-<file>Images/FaustLiveIcon.icns</file>
+	<file>Images/FaustLiveIcon.png</file>
+	<file>Images/FaustLiveIcon.ico</file>
+	<file>Images/FaustLiveIcon.icns</file>
 	<file>Images/Preferences.png</file>
 	<file>Images/DropYourFaustLife_Blue.png</file>
 	<file>Images/DropYourFaustLife_White.png</file>
@@ -35,7 +35,7 @@
 	<file>Examples/quadecho.dsp</file>
 	<file>Examples/smoothdelay.dsp</file>
 	<file>Examples/stereoecho.dsp</file>
-<file>Examples/wahwah.dsp</file>
+	<file>Examples/wahwah.dsp</file>
 	<file>Examples/zita_rev1.dsp</file>
 	<file>Examples/tibetanBowl.dsp</file>
 	<file>Examples/sitar.dsp</file>
@@ -44,25 +44,44 @@
 	<file>Examples/flute.dsp</file>
 	<file>Examples/clarinet.dsp</file>
 	<file>Examples/blowBottle.dsp</file>
+	<file>Libs/analyzer.lib</file>
+	<file>Libs/basic.lib</file>
+	<file>Libs/compressor.lib</file>
+	<file>Libs/delay.lib</file>
+	<file>Libs/demo.lib</file>
+	<file>Libs/envelope.lib</file>
+	<file>Libs/filter.lib</file>
+	<file>Libs/hoa.lib</file>
+	<file>Libs/instrument.lib</file>
+	<file>Libs/math.lib</file>
+	<file>Libs/music.lib</file>
+	<file>Libs/maxmsp.lib</file>
 	<file>Libs/effect.lib</file>
-<file>Libs/filter.lib</file>
-<file>Libs/hoa.lib</file>
-<file>Libs/llvm_math.ll</file>
-<file>Libs/math.lib</file>
-<file>Libs/maxmsp.lib</file>
-<file>Libs/music.lib</file>
-<file>Libs/oscillator.lib</file>
-<file>Libs/reduce.lib</file>
-<file>Libs/instrument.lib</file>
-<file>Libs/tonestack.lib</file>
-<file>Libs/TestLibs.dsp</file>
-<file>Html/ServerAvailableInterfacesHead.html</file>
-<file>Html/ServerAvailableInterfacesTail.html</file>
-<file>Html/ServerHead.html</file>
-<file>Html/ServerTail.html</file>
-<file>buildVersion.txt</file>
-<file>distVersion.txt</file>
-<file>../Documentation/UserManual.pdf</file>
-<file>../Documentation/faust-quick-reference.pdf</file>
+	<file>Libs/misceffect.lib</file>
+	<file>Libs/miscoscillator.lib</file>
+	<file>Libs/oscillator.lib</file>
+	<file>Libs/noise.lib</file>
+	<file>Libs/phafla.lib</file>
+	<file>Libs/pm.lib</file>
+	<file>Libs/reduce.lib</file>
+	<file>Libs/reverb.lib</file>
+	<file>Libs/route.lib</file>
+	<file>Libs/signal.lib</file>
+	<file>Libs/spat.lib</file>
+	<file>Libs/stdfaust.lib</file>
+	<file>Libs/synth.lib</file>
+	<file>Libs/tonestack.lib</file>
+	<file>Libs/tube.lib</file>
+	<file>Libs/vaeffect.lib</file>
+	<file>Libs/llvm_math.ll</file>
+	<file>Libs/TestLibs.dsp</file>
+	<file>Html/ServerAvailableInterfacesHead.html</file>
+	<file>Html/ServerAvailableInterfacesTail.html</file>
+	<file>Html/ServerHead.html</file>
+	<file>Html/ServerTail.html</file>
+	<file>buildVersion.txt</file>
+	<file>distVersion.txt</file>
+	<file>../Documentation/UserManual.pdf</file>
+	<file>../Documentation/faust-quick-reference.pdf</file>
 </qresource>
 </RCC>

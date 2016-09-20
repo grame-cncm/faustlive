@@ -6,8 +6,15 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument uses banded waveguide. For more information, see Essl, G. and Cook, P. Banded Waveguides: Towards Physical Modelling of Bar Percussion Instruments, Proceedings of the 1999 International Computer Music Conference.";
 
-import("music.lib");
+//import("music.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("filter.lib");
+import("noise.lib");
+import("miscoscillator.lib");
+import("delay.lib");
+import("math.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -63,9 +70,10 @@ modes(3,4) = 9.38;
 basegains(3,4) = pow(0.999,5);
 excitation(3,4) = 1*gain*gate/(nMode(3) - 1);
 
-modes(3,5) = 0 : float;
-basegains(3,5) = 0 : float;
-excitation(3,5) = 0 : float;
+// coefficient added (blindly) by YO to avoid division by 0
+modes(3,5) = 12.01 : float;
+basegains(3,5) = pow(0.999,6);
+excitation(3,5) = 1*gain*gate/(nMode(3) - 1);
 
 //==================== SIGNAL PROCESSING ================
 

@@ -7,8 +7,14 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "A simple clarinet physical model, as discussed by Smith (1986), McIntyre, Schumacher, Woodhouse (1983), and others.";
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Woodwinds.html";
 
-import("music.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("filter.lib");
+import("noise.lib");
+import("miscoscillator.lib");
+import("delay.lib");
+import("math.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -58,7 +64,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in envelop.lib)
 envelopeMod = asr(nonLinAttack,100,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 

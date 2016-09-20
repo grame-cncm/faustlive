@@ -1,8 +1,15 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+// WARNING: Deprecated Library!!
+// Read the README file in /libraries for more information
+//////////////////////////////////////////////////////////////////////////////////////////
+
 declare name "Faust Oscillator Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.11";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+declare deprecated "This library is deprecated and is not maintained anymore. It might
+be removed in future released."; 
 
 ml = library("music.lib");  // SR, db2linear, frac, PI, noise, ...
 fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
@@ -26,7 +33,7 @@ fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
 // Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1:
-lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
+lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) < duty);
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
 // Positive LF square wave in [0,1]:

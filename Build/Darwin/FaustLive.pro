@@ -26,13 +26,14 @@ MOC_DIR += ../../src/objectsFolder
 RCC_DIR += ../../src/Utilities
 
 QMAKE_EXTRA_TARGETS += all
+#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 
 CONFIG -= x86_64
 CONFIG += exceptions rtti
 
 equals(platform, target_10_9){
 ## This needs to be set correctly for OS X 10.9 and later.
-#QMAKE_MAC_SDK = macosx10.11
+##QMAKE_MAC_SDK = macosx10.11 ## comment out this line with xcode 7
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
 
