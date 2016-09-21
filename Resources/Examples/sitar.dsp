@@ -6,13 +6,7 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument implements a sitar plucked string physical model based on the Karplus-Strong algorithm using a randomly modulated delay line.";
 
-import("math.lib");
 import("instrument.lib");
-import("envelope.lib");
-import("signal.lib");
-import("noise.lib");
-import("delay.lib");
-import("miscoscillator.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -27,15 +21,15 @@ resonance = hslider("v:Physical_Parameters/Resonance
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
-stereo = stereoizer(SR/freq);
+stereo = stereoizer(ma.SR/freq);
 
 //excitation envelope (adsr)
-envelope = adsr(0.001,0.04,0,0.5,gate);
+envelope = en.adsr(0.001,0.04,100,0.5,gate);
 
 //the delay length is randomly modulated
-targetDelay = SR/freq;
-delayLength = targetDelay*((1+(0.5*noise)) : smooth(0.9992));
-delayLine = delay(4096,delayLength);
+targetDelay = ma.SR/freq;
+delayLength = targetDelay*((1+(0.5*no.noise)) : si.smooth(0.9992));
+delayLine = de.delay(4096,delayLength);
 
 //the loop gain control the resonance duration
 loopGain = 0.895 + resonance + (freq*0.0000005);
@@ -49,5 +43,5 @@ filter = oneZero1(b0,b1)
 		b1 = -zero*b0;
 	};
 
-process = (*(loopGain) : filter + (envelope*noise*amGain))~delayLine : *(8) : 
+process = (*(loopGain) : filter + (envelope*no.noise*amGain))~delayLine : *(8) : 
 stereo : instrReverb;

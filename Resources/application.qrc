@@ -17,33 +17,73 @@
 	<file>Images/plus.png</file>
 	<file>Images/minus.png</file>
 	<file>Images/fleche.png</file>
-    <file>Examples/cubic_distortion.dsp</file>
-    <file>Examples/dbmeter.dsp</file>
-    <file>Examples/echo.dsp</file>
-    <file>Examples/envelop.dsp</file>
-    <file>Examples/freeverb.dsp</file>
-    <file>Examples/harpe.dsp</file>
-	<file>Examples/harpeautomation.dsp</file>    
-	<file>Examples/karplus.dsp</file>
-    <file>Examples/lowcut.dsp</file>
-	<file>Examples/noise.dsp</file>
-	<file>Examples/osc.dsp</file>
+
+	<file>Examples/harpeautomation.dsp</file>
     <file>Examples/organ.dsp</file>
-	<file>Examples/panpot.dsp</file>
-	<file>Examples/phaser_flanger.dsp</file>
-	<file>Examples/pitch_shifter.dsp</file>
+	<file>Examples/dbmeter.dsp</file>
+	<file>Examples/spectralLevel.dsp</file>
+	<file>Examples/vumeter.dsp</file>
+	<file>Examples/echo.dsp</file>
 	<file>Examples/quadecho.dsp</file>
 	<file>Examples/smoothdelay.dsp</file>
 	<file>Examples/stereoecho.dsp</file>
-	<file>Examples/wahwah.dsp</file>
-	<file>Examples/zita_rev1.dsp</file>
-	<file>Examples/tibetanBowl.dsp</file>
-	<file>Examples/sitar.dsp</file>
-	<file>Examples/saxophony.dsp</file>
-	<file>Examples/glassHarmonica.dsp</file>
-	<file>Examples/flute.dsp</file>
-	<file>Examples/clarinet.dsp</file>
+	<file>Examples/tapiir.dsp</file>
+	<file>Examples/compressor.dsp</file>
+	<file>Examples/distortion.dsp</file>
+	<file>Examples/gate_compressor.dsp</file>
+	<file>Examples/noiseGate.dsp</file>
+	<file>Examples/volume.dsp</file>
+	<file>Examples/APF.dsp</file>
+	<file>Examples/BPF.dsp</file>
+	<file>Examples/cryBaby.dsp</file>
+	<file>Examples/filterBank.dsp</file>
+	<file>Examples/highShelf.dsp</file>
+	<file>Examples/HPF.dsp</file>
+	<file>Examples/lfboost.dsp</file>
+	<file>Examples/lowboost.dsp</file>
+	<file>Examples/lowcut.dsp</file>
+	<file>Examples/lowShelf.dsp</file>
+	<file>Examples/LPF.dsp</file>
+	<file>Examples/moogVCF.dsp</file>
+	<file>Examples/notch.dsp</file>
+	<file>Examples/parametricEqualizer.dsp</file>
+	<file>Examples/peakingEQ.dsp</file>
+	<file>Examples/peakNotch.dsp</file>
+	<file>Examples/spectralTilt.dsp</file>
+	<file>Examples/filterOsc.dsp</file>
+	<file>Examples/noise.dsp</file>
+	<file>Examples/osc.dsp</file>
+	<file>Examples/capture.dsp</file>
+	<file>Examples/matrix.dsp</file>
+	<file>Examples/midiTester.dsp</file>
+	<file>Examples/mixer.dsp</file>
+	<file>Examples/switcher.dsp</file>
+	<file>Examples/UITester.dsp</file>
+	<file>Examples/crazyGuiro.dsp</file>
+	<file>Examples/fm.dsp</file>
+	<file>Examples/frog.dsp</file>
+	<file>Examples/trumpet.dsp</file>
+	<file>Examples/turenas.dsp</file>
+	<file>Examples/phaser.dsp</file>
+	<file>Examples/harpe.dsp</file>
+	<file>Examples/karplus.dsp</file>
+	<file>Examples/karplus32.dsp</file>
 	<file>Examples/blowBottle.dsp</file>
+	<file>Examples/clarinet.dsp</file>
+	<file>Examples/flute.dsp</file>
+	<file>Examples/saxophony.dsp</file>
+	<file>Examples/sitar.dsp</file>
+	<file>Examples/tibetanBowl.dsp</file>
+	<file>Examples/harmonicExciter.dsp</file>
+	<file>Examples/fdnrev.dsp</file>
+	<file>Examples/freeverb.dsp</file>
+	<file>Examples/reverbDesigner.dsp</file>
+	<file>Examples/reverbTester.dsp</file>
+	<file>Examples/zitaRev.dsp</file>
+	<file>Examples/zitaRevFDN.dsp</file>
+	<file>Examples/panpot.dsp</file>
+	<file>Examples/spat.dsp</file>
+
 	<file>Libs/analyzer.lib</file>
 	<file>Libs/basic.lib</file>
 	<file>Libs/compressor.lib</file>

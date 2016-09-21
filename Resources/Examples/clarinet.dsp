@@ -8,13 +8,6 @@ declare description "A simple clarinet physical model, as discussed by Smith (19
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Woodwinds.html";
 
 import("instrument.lib");
-import("envelope.lib");
-import("signal.lib");
-import("filter.lib");
-import("noise.lib");
-import("miscoscillator.lib");
-import("delay.lib");
-import("math.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -64,13 +57,13 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in envelop.lib)
-envelopeMod = asr(nonLinAttack,100,envelopeRelease,gate);
+//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),envelopeMod,freq,
-     typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
+     typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
@@ -82,24 +75,24 @@ reedTableSlope = -0.44 + (0.26*reedStiffness);
 reedTable = reed(reedTableOffset,reedTableSlope);
 
 //delay line with a length adapted in function of the order of nonlinear filter
-delayLength = SR/freq*0.5 - 1.5 - (nlfOrder*nonLinearity)*(typeModulation < 2);
-delayLine = fdelay(4096,delayLength);
+delayLength = ma.SR/freq*0.5 - 1.5 - (nlfOrder*nonLinearity)*(typeModulation < 2);
+delayLine = de.fdelay(4096,delayLength);
 
 //one zero filter used as a allpass: pole is set to -1
 filter = oneZero0(0.5,0.5);
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
-stereo = stereoizer(SR/freq);
+stereo = stereoizer(ma.SR/freq);
 
 //----------------------- Algorithm implementation ----------------------------
 
 //Breath pressure + vibrato + breath noise + envelope (Attack / Decay / Sustain / Release)
-envelope = adsr(envelopeAttack,envelopeDecay,100,envelopeRelease,gate)*pressure*0.9;
+envelope = en.adsr(envelopeAttack,envelopeDecay,100,envelopeRelease,gate)*pressure*0.9;
 
-vibrato = osc(vibratoFreq)*vibratoGain*
+vibrato = os.osc(vibratoFreq)*vibratoGain*
 	envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,100,vibratoRelease,gate);
-breath = envelope + envelope*noise*noiseGain;
+breath = envelope + envelope*no.noise*noiseGain;
 breathPressure = breath + breath*vibrato;
 
 process =

@@ -1,11 +1,11 @@
-declare name "Saxophony";
-declare description "Nonlinear WaveGuide Saxophone";
+declare name "FluteSTK";
+declare description "Nonlinear WaveGuide Flute from STK";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
-declare description "This class implements a hybrid digital waveguide instrument that can generate a variety of wind-like sounds.  It has also been referred to as the blowed string model. The waveguide section is essentially that of a string, with one rigid and one lossy termination.  The non-linear function is a reed table. The string can be blown at any point between the terminations, though just as with strings, it is impossible to excite the system at either end. If the excitation is placed at the string mid-point, the sound is that of a clarinet.  At points closer to the bridge, the sound is closer to that of a saxophone.  See Scavone (2002) for more details.";
-declare reference "https://ccrma.stanford.edu/~jos/pasp/Woodwinds.html";  
+declare description "A simple flute physical model, as discussed by Karjalainen, Smith, Waryznyk, etc.  The jet model uses a polynomial, a la Cook.";
+declare reference "https://ccrma.stanford.edu/~jos/pasp/Flutes_Recorders_Pipe_Organs.html"; 
 
 import("instrument.lib");
 
@@ -15,13 +15,12 @@ freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",44
 gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
 gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
-pressure = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Pressure
-[2][tooltip:Breath pressure (a value between 0 and 1)]",1,0,1,0.01);
-reedStiffness = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Reed_Stiffness
-[2][tooltip:A value between 0 and 1]",0.3,0,1,0.01);
-blowPosition = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Blow_Position
+embouchureAjust = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Embouchure_Ajust
 [2][tooltip:A value between 0 and 1]",0.5,0,1,0.01);
-noiseGain = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Noise_Gain",0.05,0,1,0.01);
+noiseGain = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Noise_Gain
+[2][tooltip:A value between 0 and 1]",0.03,0,1,0.01);
+pressure = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Pressure
+[2][tooltip:Breath pressure (value between 0 and 1)]",1,0,1,0.01);
 
 typeModulation = nentry("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Modulation_Type 
 [3][tooltip: 0=theta is modulated by the incoming signal; 1=theta is modulated by the averaged incoming signal;
@@ -37,18 +36,20 @@ nonLinAttack = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameter
 vibratoFreq = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Freq 
 [4][unit:Hz]",6,1,15,0.1);
 vibratoGain = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Gain
-[4][tooltip:A value between 0 and 1]",0.1,0,1,0.01);
+[4][tooltip:A value between 0 and 1]",0.05,0,1,0.01);
 vibratoBegin = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Begin
 [4][unit:s][tooltip:Vibrato silence duration before attack]",0.05,0,2,0.01);
 vibratoAttack = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Attack 
-[4][unit:s][tooltip:Vibrato attack duration]",0.3,0,2,0.01);
+[4][unit:s][tooltip:Vibrato attack duration]",0.5,0,2,0.01);
 vibratoRelease = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Release 
 [4][unit:s][tooltip:Vibrato release duration]",0.1,0,2,0.01);
 
 envelopeAttack = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelope_Attack 
-[5][unit:s][tooltip:Envelope attack duration]",0.05,0,2,0.01);
+[5][unit:s][tooltip:Envelope attack duration]",0.03,0,2,0.01);
+envelopeDecay = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelope_Decay 
+[5][unit:s][tooltip:Envelope decay duration]",0.01,0,2,0.01);
 envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelope_Release 
-[5][unit:s][tooltip:Envelope release duration]",0.01,0,2,0.01);
+[5][unit:s][tooltip:Envelope release duration]",0.3,0,2,0.01);
 
 //==================== SIGNAL PROCESSING ================
 
@@ -59,7 +60,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = asr(nonLinAttack,100,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
@@ -68,46 +69,52 @@ NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
+jetReflexion = 0.5;
+//jetRatio = 0.08 + (0.48*embouchureAjust); //original stk function
+jetRatio = 1+(0.5-embouchureAjust); //corrected function
+endReflexion = 0.5;
+
+//Delay lines lengths in number of samples
+//jetDelayLength = (SR/freq-2)*jetRatio; //original stk function for jet delay length
+jetDelayLength = (ma.SR/(freq*2)-2)*jetRatio; //corrected function for jet delay length
+boreDelayLength = ma.SR/(freq*2)-2; //original function for bore delay length
+//boreDelayLength = SR/(freq)-2; //corrected function for bore delay length
+filterPole = 0.7 - (0.1*22050/ma.SR);
+
+//One Pole Filter (declared in instrument.lib)
+onePoleFilter = _*gain : onePole(b0,a1)
+	with{
+		gain = -1;
+		pole = 0.7 - (0.1*22050/ma.SR);
+		b0 = 1 - pole;
+		a1 = -pole;
+	};
+
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
-//reed table parameters
-reedTableOffset = 0.7;
-reedTableSlope = 0.1 + (0.4*reedStiffness);
+//----------------------- Algorithm implementation ----------------------------
 
-//the reed function is declared in instrument.lib
-reedTable = reed(reedTableOffset,reedTableSlope);
+//the vibrato amplitude is controled by an envelope generator (declared in instrument.lib)
+vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
 
-//Delay lines length in number of samples
-fdel1 = (1-blowPosition) * (ma.SR/freq - 3);
-fdel2 = (ma.SR/freq - 3)*blowPosition +1 ;
+//Breath pressure is controlled by an Attack / Decay / Sustain / Release envelope
+envelopeBreath = pressure*en.adsr(pressure*envelopeAttack,envelopeDecay,80,envelopeRelease,gate);
+breathPressure = envelopeBreath + envelopeBreath*(noiseGain*no.noise + vibrato) + 10.0^(-15.0);
 
-//Delay lines
-delay1 = de.fdelay(4096,fdel1);
-delay2 = de.fdelay(4096,fdel2);
+//delay lines
+jetDelay = de.fdelay(4096,jetDelayLength);
+boreDelay = de.fdelay(4096,boreDelayLength);
 
-//Breath pressure is controlled by an attack / sustain / release envelope (asr is declared in instrument.lib)
-envelope = (0.55+pressure*0.3)*en.asr(pressure*envelopeAttack,100,pressure*envelopeRelease,gate);
-breath = envelope + envelope*noiseGain*no.noise;
-
-//envVibrato is decalred in instrument.lib
-vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
-breathPressure = breath + breath*vibratoGain*os.osc(vibratoFreq);
-
-//Body filter is a one zero filter (declared in instrument.lib)
-bodyFilter = *(gain) : oneZero1(b0,b1)
-	with{
-		gain = -0.95;
-		b0 = 0.5;
-		b1 = 0.5;	
-	};
-
-instrumentBody(delay1FeedBack,breathP) = delay1FeedBack <: -(delay2) <: 
-	((breathP - _ <: breathP - _*reedTable) - delay1FeedBack),_;
+//reflexion filter is a one pole and a dcblocker
+reflexionFilters = onePoleFilter : fi.dcblocker;
 
 process =
-	(bodyFilter,breathPressure : instrumentBody) ~ 
-	(delay1 : NLFM) : !,
-	//Scaling Output and stereo
-	*(gain) : stereo : instrReverb;
+	(reflexionFilters <: 
+	//Differential Pressure
+	((breathPressure - _*jetReflexion) : 
+	jetDelay : jetTable) + (_*endReflexion)) ~ (boreDelay : NLFM) : 
+	//output scaling and stereo signal
+	*(0.3*gain) : stereo : instrReverb; 
+

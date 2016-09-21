@@ -13,16 +13,15 @@ declare license "STK-4.3";
 //  click and doesn't transpose when the delay time is changed
 //-------------------------------------------------------------
 
-import("math.lib");
-import("delay.lib");
+import("stdfaust.lib");
 
 process = par(i, 2, voice)
 	with 
 	{ 
-		voice 	= (+ : sdelay(N, interp, dtime)) ~ *(fback);
+		voice 	= (+ : de.sdelay(N, interp, dtime)) ~ *(fback);
 		N 		= int(2^19); 
-		interp 	= hslider("interpolation[unit:ms][style:knob]",10,1,100,0.1)*SR/1000.0; 
-		dtime	= hslider("delay[unit:ms][style:knob]", 0, 0, 5000, 0.1)*SR/1000.0;
+		interp 	= hslider("interpolation[unit:ms][style:knob]",10,1,100,0.1)*ma.SR/1000.0; 
+		dtime	= hslider("delay[unit:ms][style:knob]", 0, 0, 5000, 0.1)*ma.SR/1000.0;
 		fback 	= hslider("feedback[style:knob]",0,0,100,0.1)/100.0; 
 	};
 

@@ -1,15 +1,15 @@
-// WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
-// for more accurate examples of echo functions
-
-declare name 		"echo";
+declare name 		"volume";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2006";
+
 //-----------------------------------------------
-// 				A Simple Echo
+// 			Volume control in dB
 //-----------------------------------------------
 
 import("stdfaust.lib");
 
-process = vgroup("echo-simple", ef.echo1s);
+gain		= vslider("[1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo;
+
+process		= *(gain);
