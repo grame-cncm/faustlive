@@ -1,15 +1,14 @@
-// WARNING: This a "legacy example based on a deprecated library". Check noise.lib
-// for more accurate examples of noise functions
-
 declare name 		"Noise";
 declare version 	"1.1";
 declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2009";
 
+
 //-----------------------------------------------------------------
 // Noise generator and demo file for the Faust math documentation
 //-----------------------------------------------------------------
+
 
 <mdoc>
 \section{Presentation of the "noise.dsp" Faust program}
@@ -39,7 +38,7 @@ This process is illustrated on figure 1.
 <diagram>process</diagram>
 </mdoc>
 
-process = noise * vslider("Volume[style:knob][acc: 0 0 -10 0 10]", 0.5, 0, 1, 0.1);
+process = noise * vslider("Volume[style:knob]", 0.2, 0, 1, 0.1);
 
 <mdoc>
 \section{Notice of this documentation}

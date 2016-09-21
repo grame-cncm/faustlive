@@ -1,4 +1,4 @@
-declare name "saxophony";
+declare name "Saxophone";
 declare description "Nonlinear WaveGuide Saxophone";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -7,7 +7,13 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This class implements a hybrid digital waveguide instrument that can generate a variety of wind-like sounds.  It has also been referred to as the blowed string model. The waveguide section is essentially that of a string, with one rigid and one lossy termination.  The non-linear function is a reed table. The string can be blown at any point between the terminations, though just as with strings, it is impossible to excite the system at either end. If the excitation is placed at the string mid-point, the sound is that of a clarinet.  At points closer to the bridge, the sound is closer to that of a saxophone.  See Scavone (2002) for more details.";
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Woodwinds.html";  
 
+import("math.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("noise.lib");
+import("delay.lib");
+import("miscoscillator.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -59,18 +65,18 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = asr(nonLinAttack,100,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
-     typeModulation,(frequencyMod : si.smoo),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),envelopeMod,freq,
+     typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
-stereo = stereoizer(ma.SR/freq);
+stereo = stereoizer(SR/freq);
 
 //reed table parameters
 reedTableOffset = 0.7;
@@ -80,20 +86,20 @@ reedTableSlope = 0.1 + (0.4*reedStiffness);
 reedTable = reed(reedTableOffset,reedTableSlope);
 
 //Delay lines length in number of samples
-fdel1 = (1-blowPosition) * (ma.SR/freq - 3);
-fdel2 = (ma.SR/freq - 3)*blowPosition +1 ;
+fdel1 = (1-blowPosition) * (SR/freq - 3);
+fdel2 = (SR/freq - 3)*blowPosition +1 ;
 
 //Delay lines
-delay1 = de.fdelay(4096,fdel1);
-delay2 = de.fdelay(4096,fdel2);
+delay1 = fdelay(4096,fdel1);
+delay2 = fdelay(4096,fdel2);
 
 //Breath pressure is controlled by an attack / sustain / release envelope (asr is declared in instrument.lib)
-envelope = (0.55+pressure*0.3)*en.asr(pressure*envelopeAttack,100,pressure*envelopeRelease,gate);
-breath = envelope + envelope*noiseGain*no.noise;
+envelope = (0.55+pressure*0.3)*asr(pressure*envelopeAttack,100,pressure*envelopeRelease,gate);
+breath = envelope + envelope*noiseGain*noise;
 
 //envVibrato is decalred in instrument.lib
 vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
-breathPressure = breath + breath*vibratoGain*os.osc(vibratoFreq);
+breathPressure = breath + breath*vibratoGain*osc(vibratoFreq);
 
 //Body filter is a one zero filter (declared in instrument.lib)
 bodyFilter = *(gain) : oneZero1(b0,b1)

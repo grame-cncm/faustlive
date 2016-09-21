@@ -1,12 +1,20 @@
-declare name "tibetanBowl";
-declare description "Banded Waveguide Modeld Tibetan Bowl";
+declare name "Glass Harmonica";
+declare description "Nonlinear Banded Waveguide Modeled Glass Harmonica";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument uses banded waveguide. For more information, see Essl, G. and Cook, P. Banded Waveguides: Towards Physical Modelling of Bar Percussion Instruments, Proceedings of the 1999 International Computer Music Conference.";
 
+//import("music.lib");
 import("instrument.lib");
+import("envelope.lib");
+import("signal.lib");
+import("filter.lib");
+import("noise.lib");
+import("miscoscillator.lib");
+import("delay.lib");
+import("math.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -38,57 +46,34 @@ nonLinAttack = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameter
 
 //==================== MODAL PARAMETERS ================
 
-preset = 0;
+preset = 3;
 
-nMode(0) = 12;
+nMode(3) = 6;
 
-modes(0,0) = 0.996108344;
-basegains(0,0) = 0.999925960128219;
-excitation(0,0) = 11.900357 / 10;
-    
-modes(0,1) = 1.0038916562;
-basegains(0,1) = 0.999925960128219;
-excitation(0,1) = 11.900357 / 10;
+modes(3,0) = 1.0;
+basegains(3,0) = pow(0.999,1);
+excitation(3,0) = 1*gain*gate/(nMode(3) - 1);
 
-modes(0,2) = 2.979178;
-basegains(0,2) = 0.999982774366897;
-excitation(0,2) = 10.914886 / 10;
+modes(3,1) = 2.32;
+basegains(3,1) = pow(0.999,2);
+excitation(3,1) = 1*gain*gate/(nMode(3) - 1);
 
-modes(0,3) = 2.99329767;
-basegains(0,3) = 0.999982774366897;
-excitation(0,3) = 10.914886 / 10;
-    
-modes(0,4) = 5.704452;
-basegains(0,4) = 1.0;
-excitation(0,4) = 42.995041 / 10;
-    
-modes(0,5) = 5.704452;
-basegains(0,5) = 1.0;
-excitation(0,5) = 42.995041 / 10;
-    
-modes(0,6) = 8.9982;
-basegains(0,6) = 1.0;
-excitation(0,6) = 40.063034 / 10;
-    
-modes(0,7) = 9.01549726;
-basegains(0,7) = 1.0;
-excitation(0,7) = 40.063034 / 10;
-    
-modes(0,8) = 12.83303;
-basegains(0,8) = 0.999965497558225;
-excitation(0,8) = 7.063034 / 10;
-   
-modes(0,9) = 12.807382;
-basegains(0,9) = 0.999965497558225;
-excitation(0,9) = 7.063034 / 10;
-    
-modes(0,10) = 17.2808219;
-basegains(0,10) = 0.9999999999999999999965497558225;
-excitation(0,10) = 57.063034 / 10;
-    
-modes(0,11) = 21.97602739726;
-basegains(0,11) = 0.999999999999999965497558225;
-excitation(0,11) = 57.063034 / 10;
+modes(3,2) = 4.25;
+basegains(3,2) = pow(0.999,3);
+excitation(3,2) = 1*gain*gate/(nMode(3) - 1);
+
+modes(3,3) = 6.63;
+basegains(3,3) = pow(0.999,4);
+excitation(3,3) = 1*gain*gate/(nMode(3) - 1);
+
+modes(3,4) = 9.38;
+basegains(3,4) = pow(0.999,5);
+excitation(3,4) = 1*gain*gate/(nMode(3) - 1);
+
+// coefficient added (blindly) by YO to avoid division by 0
+modes(3,5) = 12.01 : float;
+basegains(3,5) = pow(0.999,6);
+excitation(3,5) = 1*gain*gate/(nMode(3) - 1);
 
 //==================== SIGNAL PROCESSING ================
 
@@ -100,8 +85,8 @@ nlfOrder = 6;
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
-typeModulation,(frequencyMod : si.smoo),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),1,freq,
+typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
@@ -112,16 +97,16 @@ nModes = nMode(preset);
 tableOffset = 0;
 tableSlope = 10 - (9*bowPressure);
 
-delayLengthBase = ma.SR/freq;
+delayLengthBase = SR/freq;
 
 //delay lengths in number of samples
 delayLength(x) = delayLengthBase/modes(preset,x);
 
 //delay lines
-delayLine(x) = de.delay(4096,delayLength(x));
+delayLine(x) = delay(4096,delayLength(x));
 
 //Filter bank: bandpass filters (declared in instrument.lib)
-radius = 1 - ma.PI*32/ma.SR;
+radius = 1 - PI*32/SR;
 bandPassFilter(x) = bandPass(freq*modes(preset,x),radius);
 
 //Delay lines feedback for bow table lookup control
@@ -131,7 +116,7 @@ velocityInput = velocityInputApp + _*baseGainApp,par(i,(nModes-1),(_*baseGainApp
 
 //Bow velocity is controled by an ADSR envelope
 maxVelocity = 0.03 + 0.1*gain;
-bowVelocity = maxVelocity*en.adsr(0.02,0.005,100,0.01,gate);
+bowVelocity = maxVelocity*adsr(0.02,0.005,90,0.01,gate);
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
@@ -151,4 +136,4 @@ process =
 		//nModes resonances with nModes feedbacks for bow table look-up 
 		par(i,nModes,(resonance(i)~_)))~par(i,nModes,_) :> + : 
 		//Signal Scaling and stereo
-		NLFM : stereo : instrReverb;
+		*(4) : NLFM : stereo : instrReverb;

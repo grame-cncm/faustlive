@@ -1,4 +1,4 @@
-declare name "flute";
+declare name "Flute";
 declare description "Nonlinear WaveGuide Flute";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
@@ -6,6 +6,13 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "A simple flute based on Smith algorythm: https://ccrma.stanford.edu/~jos/pasp/Flutes_Recorders_Pipe_Organs.html"; 
 
+import("math.lib");
+import("signal.lib");
+import("envelope.lib");
+import("filter.lib");
+import("noise.lib");
+import("miscoscillator.lib");
+import("delay.lib");
 import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
@@ -15,7 +22,7 @@ gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]
 gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]") : int;
 
 pressure = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Pressure 
-[2][tooltip:Breath pressure (value bewteen 0 and 1)]",0.9,0,1.5,0.01) : si.smoo;
+[2][tooltip:Breath pressure (value bewteen 0 and 1)]",0.9,0,1.5,0.01) : smooth(0.999);
 breathAmp = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Noise Gain 
 [2][tooltip:Breath noise gain (value between 0 and 1)]",0.1,0,1,0.01)/10;
 
@@ -64,12 +71,12 @@ env2Release = hslider("h:Envelopes_and_Vibrato/v:Global_Envelope_Parameters/Glob
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
-envelopeMod = en.asr(nonLinAttack,100,0.1,gate);
+envelopeMod = asr(nonLinAttack,100,0.1,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
-     typeModulation,(frequencyMod : si.smoo),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),envelopeMod,freq,
+     typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
@@ -78,35 +85,35 @@ feedBack1 = 0.4;
 feedBack2 = 0.4;
 
 //Delay Lines
-embouchureDelayLength = (ma.SR/freq)/2-2;
-boreDelayLength = ma.SR/freq-2;
-embouchureDelay = de.fdelay(4096,embouchureDelayLength);
-boreDelay = de.fdelay(4096,boreDelayLength);
+embouchureDelayLength = (SR/freq)/2-2;
+boreDelayLength = SR/freq-2;
+embouchureDelay = fdelay(4096,embouchureDelayLength);
+boreDelay = fdelay(4096,boreDelayLength);
 
 //Polinomial
 poly = _ <: _ - _*_*_;
 
 //jet filter is a lowwpass filter (declared in filter.lib)
-reflexionFilter = fi.lowpass(1,2000);
+reflexionFilter = lowpass(1,2000);
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
-stereo = stereoizer(ma.SR/freq);
+stereo = stereoizer(SR/freq);
 
 //----------------------- Algorithm implementation ----------------------------
 
 //Pressure envelope
-env1 = en.adsr(env1Attack,env1Decay,90,env1Release,(gate | pressureEnvelope))*pressure*1.1; 
+env1 = adsr(env1Attack,env1Decay,90,env1Release,(gate | pressureEnvelope))*pressure*1.1; 
 
 //Global envelope
-env2 = en.asr(env2Attack,100,env2Release,gate)*0.5;
+env2 = asr(env2Attack,100,env2Release,gate)*0.5;
 
 //Vibrato Envelope
 vibratoEnvelope = envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*vibratoGain; 
 
-vibrato = os.osc(vibratoFreq)*vibratoEnvelope;
+vibrato = osc(vibratoFreq)*vibratoEnvelope;
 
-breath = no.noise*env1;
+breath = noise*env1;
 
 flow = env1 + breath*breathAmp + vibrato;
 

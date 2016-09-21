@@ -24,13 +24,12 @@
 	<file>Examples/spectralLevel.dsp</file>
 	<file>Examples/vumeter.dsp</file>
 	<file>Examples/echo.dsp</file>
-	<file>Examples/quadecho.dsp</file>
-	<file>Examples/smoothdelay.dsp</file>
-	<file>Examples/stereoecho.dsp</file>
+	<file>Examples/quadEcho.dsp</file>
+	<file>Examples/smoothDelay.dsp</file>
 	<file>Examples/tapiir.dsp</file>
 	<file>Examples/compressor.dsp</file>
 	<file>Examples/distortion.dsp</file>
-	<file>Examples/gate_compressor.dsp</file>
+	<file>Examples/gateCompressor.dsp</file>
 	<file>Examples/noiseGate.dsp</file>
 	<file>Examples/volume.dsp</file>
 	<file>Examples/APF.dsp</file>
@@ -39,9 +38,9 @@
 	<file>Examples/filterBank.dsp</file>
 	<file>Examples/highShelf.dsp</file>
 	<file>Examples/HPF.dsp</file>
-	<file>Examples/lfboost.dsp</file>
-	<file>Examples/lowboost.dsp</file>
-	<file>Examples/lowcut.dsp</file>
+	<file>Examples/lfBoost.dsp</file>
+	<file>Examples/lowBoost.dsp</file>
+	<file>Examples/lowCut.dsp</file>
 	<file>Examples/lowShelf.dsp</file>
 	<file>Examples/LPF.dsp</file>
 	<file>Examples/moogVCF.dsp</file>
@@ -75,7 +74,7 @@
 	<file>Examples/sitar.dsp</file>
 	<file>Examples/tibetanBowl.dsp</file>
 	<file>Examples/harmonicExciter.dsp</file>
-	<file>Examples/fdnrev.dsp</file>
+	<file>Examples/fdnRev.dsp</file>
 	<file>Examples/freeverb.dsp</file>
 	<file>Examples/reverbDesigner.dsp</file>
 	<file>Examples/reverbTester.dsp</file>

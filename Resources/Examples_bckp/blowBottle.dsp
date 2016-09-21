@@ -1,4 +1,4 @@
-declare name "blowBottle";
+declare name "BlowBottle";
 declare description "Blown Bottle Instrument";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
@@ -6,7 +6,13 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This object implements a helmholtz resonator (biquad filter) with a polynomial jet excitation (a la Cook).";
 
+import("math.lib");
+import("signal.lib");
+import("filter.lib");
+import("envelope.lib");
 import("instrument.lib");
+import("miscoscillator.lib");
+import("noise.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -58,12 +64,12 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = asr(nonLinAttack,100,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
-typeModulation,(frequencyMod : si.smoo),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),envelopeMod,freq,
+typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
@@ -72,30 +78,30 @@ bottleRadius = 0.999;
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
-stereo = stereoizer(ma.SR/freq);
+stereo = stereoizer(SR/freq);
 
 bandPassFilter = bandPass(freq,bottleRadius);
 
 //----------------------- Algorithm implementation ----------------------------
 
 //global envelope is of type attack - decay - sustain - release
-envelopeG =  gain*en.adsr(gain*envelopeAttack,envelopeDecay,100,envelopeRelease,gate);
+envelopeG =  gain*adsr(gain*envelopeAttack,envelopeDecay,80,envelopeRelease,gate);
 
 //pressure envelope is also ADSR
-envelope = pressure*en.adsr(gain*0.02,0.01,100,gain*0.2,gate);
+envelope = pressure*adsr(gain*0.02,0.01,80,gain*0.2,gate);
 
 //vibrato
-vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
+vibrato = osc(vibratoFreq)*vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
 
 //breat pressure
 breathPressure = envelope + vibrato;
 
 //breath noise
-randPressure = noiseGain*no.noise*breathPressure ;
+randPressure = noiseGain*noise*breathPressure ;
 
 process = 
 	//differential pressure
 	(-(breathPressure) <: 
 	((+(1))*randPressure : +(breathPressure)) - *(jetTable),_ : bandPassFilter,_)~NLFM : !,_ : 
 	//signal scaling
-	fi.dcblocker*envelopeG*0.5 : stereo : instrReverb;
+	dcblocker*envelopeG*0.5 : stereo : instrReverb;
