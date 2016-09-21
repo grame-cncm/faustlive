@@ -18,7 +18,7 @@
 	<file>Images/minus.png</file>
 	<file>Images/fleche.png</file>
 
-	<file>Examples/harpeautomation.dsp</file>
+	<file>Examples/harpeAutomation.dsp</file>
     <file>Examples/organ.dsp</file>
 	<file>Examples/dbmeter.dsp</file>
 	<file>Examples/spectralLevel.dsp</file>
