@@ -92,7 +92,7 @@ dist:
 	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
 	macdeployqt FaustLive.app
 	./distribution
-	./distversion
+	#./distversion
 
 ####### Install
 
