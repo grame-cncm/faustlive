@@ -152,7 +152,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         #ifdef LLVM_DSP_FACTORY
             toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
         #else
-            toCompile->fLLVMFactory  = NULL;  // TODO
+            toCompile->fLLVMFactory = NULL;  // TODO
         #endif
             
         }
