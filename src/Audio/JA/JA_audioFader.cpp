@@ -10,6 +10,7 @@
 // Moreover, the two dsp will be switched with a crossfade between them. 
 
 #include "JA_audioFader.h"
+#include "FLSettings.h"
 
 //Calculation of sample[i,j] mixing 2 dsp (one fading in/one fading out)
 float JA_audioFader::crossfade_calculation(int i, int j)
@@ -46,6 +47,12 @@ float JA_audioFader::crossfade_calculation(int i, int j)
 
 JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio_midi(icon_data, icon_size)
 {
+    if (FLSettings::_Instance()->value("General/Audio/Jack/AutoStart", true).toBool()) {
+        unsetenv("JACK_NO_START_SERVER");
+    } else {
+        char* val_on = "1";
+        setenv("JACK_NO_START_SERVER", val_on, 1);
+    }
     reset_Values();
 }
 

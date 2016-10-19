@@ -17,8 +17,10 @@ class JA_audioSettings : public AudioSettings {
 
     private:
 
-        QCheckBox*      fAutoConnectBox;
-         bool           get_AutoConnect();
+        QCheckBox*     fAutoConnectBox;
+        QCheckBox*     fAutoStartBox;
+        bool           get_AutoConnect();
+        bool           get_AutoStart();
     
     public:
     
