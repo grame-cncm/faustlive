@@ -1,3 +1,6 @@
+// WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
+// for more accurate examples of echo functions
+
 declare name 		"echo";
 declare version 	"1.0";
 declare author 		"Grame";
@@ -7,6 +10,6 @@ declare copyright 	"(c)GRAME 2006";
 // 				A Simple Echo
 //-----------------------------------------------
 
-import("music.lib");
+import("stdfaust.lib");
 
-process = vgroup("echosimple", echo1s);
+process = vgroup("echo-simple", ef.echo1s);

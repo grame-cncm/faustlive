@@ -1,0 +1,25 @@
+//################################ stdfaust.lib ##########################################
+// The purpose of this library is to give access to all the Faust standard libraries
+// through a series of environment. 
+//########################################################################################
+
+an = library("analyzer.lib");
+ba = library("basic.lib");
+co = library("compressor.lib");
+de = library("delay.lib");
+dm = library("demo.lib");
+en = library("envelope.lib");
+fi = library("filter.lib");
+ho = library("hoa.lib");
+ma = library("math.lib");
+ef = library("misceffect.lib");
+os = library("miscoscillator.lib");
+no = library("noise.lib");
+pf = library("phafla.lib");
+pm = library("pm.lib");
+re = library("reverb.lib");
+ro = library("route.lib");
+sp = library("spat.lib");
+si = library("signal.lib");
+sy = library("synth.lib");
+ve = library("vaeffect.lib");

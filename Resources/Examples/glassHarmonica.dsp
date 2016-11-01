@@ -1,4 +1,4 @@
-declare name "Glass Harmonica";
+declare name "glassHarmonica";
 declare description "Nonlinear Banded Waveguide Modeled Glass Harmonica";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -6,7 +6,6 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument uses banded waveguide. For more information, see Essl, G. and Cook, P. Banded Waveguides: Towards Physical Modelling of Bar Percussion Instruments, Proceedings of the 1999 International Computer Music Conference.";
 
-import("music.lib");
 import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
@@ -63,7 +62,7 @@ modes(3,4) = 9.38;
 basegains(3,4) = pow(0.999,5);
 excitation(3,4) = 1*gain*gate/(nMode(3) - 1);
 
-modes(3,5) = 0 : float;
+modes(3,5) = 9 : float;
 basegains(3,5) = 0 : float;
 excitation(3,5) = 0 : float;
 
@@ -77,8 +76,8 @@ nlfOrder = 6;
 
 //nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : smooth(0.999)),1,freq,
-typeModulation,(frequencyMod : smooth(0.999)),nlfOrder);
+NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
+typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
@@ -89,16 +88,16 @@ nModes = nMode(preset);
 tableOffset = 0;
 tableSlope = 10 - (9*bowPressure);
 
-delayLengthBase = SR/freq;
+delayLengthBase = ma.SR/freq;
 
 //delay lengths in number of samples
 delayLength(x) = delayLengthBase/modes(preset,x);
 
 //delay lines
-delayLine(x) = delay(4096,delayLength(x));
+delayLine(x) = de.delay(4096,delayLength(x));
 
 //Filter bank: bandpass filters (declared in instrument.lib)
-radius = 1 - PI*32/SR;
+radius = 1 - ma.PI*32/ma.SR;
 bandPassFilter(x) = bandPass(freq*modes(preset,x),radius);
 
 //Delay lines feedback for bow table lookup control
@@ -108,7 +107,7 @@ velocityInput = velocityInputApp + _*baseGainApp,par(i,(nModes-1),(_*baseGainApp
 
 //Bow velocity is controled by an ADSR envelope
 maxVelocity = 0.03 + 0.1*gain;
-bowVelocity = maxVelocity*adsr(0.02,0.005,90,0.01,gate);
+bowVelocity = maxVelocity*en.adsr(0.02,0.005,100,0.01,gate);
 
 //stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
