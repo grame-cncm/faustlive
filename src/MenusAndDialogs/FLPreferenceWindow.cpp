@@ -121,9 +121,14 @@ void FLPreferenceWindow::init()
     networkLayout->addRow(new QLabel(tr("Enable OSC Interface Automatically")), fOscAuto);
     
     fMIDIAuto = new QCheckBox;
-
+    
     networkLayout->addRow(new QLabel(tr("")));
     networkLayout->addRow(new QLabel(tr("Enable MIDI Interface Automatically")), fMIDIAuto);
+    
+    fPolyAuto = new QCheckBox;
+    
+    networkLayout->addRow(new QLabel(tr("")));
+    networkLayout->addRow(new QLabel(tr("Enable Polyphonic Mode Automatically")), fPolyAuto);
   
     networkTab->setLayout(networkLayout);
     
@@ -257,6 +262,7 @@ void FLPreferenceWindow::save()
     settings->setValue("General/Network/HttpDefaultChecked", fHttpAuto->isChecked());
     settings->setValue("General/Network/OscDefaultChecked", fOscAuto->isChecked());
     settings->setValue("General/Control/MIDIDefaultChecked", fMIDIAuto->isChecked());
+    settings->setValue("General/Control/PolyphonyDefaultChecked", fPolyAuto->isChecked());
     hide();
 }
 
@@ -274,6 +280,7 @@ void FLPreferenceWindow::resetVisualObjects()
     fHttpAuto->setChecked(FLSettings::_Instance()->value("General/Network/HttpDefaultChecked", false).toBool());
     fOscAuto->setChecked(FLSettings::_Instance()->value("General/Network/OscDefaultChecked", false).toBool());
     fMIDIAuto->setChecked(FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false).toBool());
+    fPolyAuto->setChecked(FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false).toBool());
 }
 
 //Response to cancel button triggered in preferences
