@@ -1,10 +1,10 @@
-//#################################### signal.lib ########################################
+//#################################### signals.lib ########################################
 // A library of basic elements to handle signals in Faust.
 //
 // It should be used using the `si` environment:
 //
 // ```
-// si = library("signal.lib");
+// si = library("signals.lib");
 // process = si.functionCall;
 // ```
 //
@@ -49,8 +49,8 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-ro = library("route.lib");
+ba = library("basics.lib");
+ro = library("routes.lib");
 
 declare name "Faust Signal Routing Library";
 declare version "0.0";
@@ -59,7 +59,8 @@ declare version "0.0";
 //========================================================================================
 
 //--------------------------------`bus`-------------------------------------
-// n parallel cables
+// n parallel cables.
+// `bus` is a standard Faust function.
 //
 // #### Usage
 //
@@ -78,6 +79,7 @@ bus(n) = par(i, n, _);
 
 //--------------`block`--------------
 // Block - terminate n signals.
+// `block` is a standard Faust function.
 //
 // #### Usage
 //
@@ -110,6 +112,7 @@ interpolate(i) = *(1.0-i),*(i) : +;
 
 //-------------------`smooth`-----------------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass.
+// `smooth` is a standard Faust function.
 //
 // #### Usage: 
 //
@@ -143,6 +146,7 @@ smooth(s) = *(1.0 - s) : + ~ *(s);
 //------------------------`smoo`---------------------------------------
 // Smoothing function based on `smooth` ideal to smooth UI signals 
 // (sliders, etc.) down. 
+// `smoo` is a standard Faust function.
 //
 // #### Usage
 //

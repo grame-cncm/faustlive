@@ -1,10 +1,10 @@
-//#################################### spat.lib ##########################################
+//#################################### spats.lib ##########################################
 // This library contains a collection of tools for sound spatialization.
 //
 // It should be used using the `sp` environment:
 //
 // ```
-// sp = library("spat.lib");
+// sp = library("spats.lib");
 // process = sp.functionCall;
 // ```
 //
@@ -50,14 +50,15 @@
  ************************************************************************
  ************************************************************************/
 
-si = library("signal.lib");
+si = library("signals.lib");
 
 declare name "Faust Spatialization Library";
 declare version "0.0";
 
 
 //-----------------------`panner`------------------------
-// A simple linear gain panner.
+// A simple linear stereo panner.
+// `panner` is a standard Faust function.
 //
 // #### Usage
 //
@@ -75,7 +76,8 @@ panner(g) = _ <: *(1-g), *(g);
 
 
 //-----------------------`spat`------------------------
-// GMEM SPAT: n-outputs spatializer
+// GMEM SPAT: n-outputs spatializer.
+// `spat` is a standard Faust function. 
 //
 // #### Usage
 //
