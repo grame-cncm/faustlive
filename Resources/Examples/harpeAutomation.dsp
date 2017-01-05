@@ -7,7 +7,7 @@
 declare name  	"Kisana";
 declare author  "Yann Orlarey";
 
-import("music.lib"); 
+import("stdfaust.lib");
 
 KEY = 60;	// basic midi key
 NCY = 15; 	// note cycle length
@@ -21,7 +21,7 @@ BPS = 360;	// general tempo (beat per sec)
 
 process = harpe(C,11,38) :> *(l),*(l)
 	with {
-		l = hslider("master",-20, -60, 0, 0.01) : db2linear;
+		l = hslider("master",-20, -60, 0, 0.01) : ba.db2linear;
 		C = hslider("timbre",0, 0, 1, 0.01);
 	};
  
@@ -39,7 +39,7 @@ harpe(C,N,b) = 	hand <: par(i, N, position(i+1)
 				 	:> _,_
 	with {
 		att  = 4; 
-		hand = vgroup("loop%b", hslider("[1]note", 4, 0, N, 1) : int : automat(360, 5, 0.0));
+		hand = vgroup("loop%b", hslider("[1]note", 4, 0, N, 1) : int : ba.automat(360, 5, 0.0));
 		lvl  = 1;
 		pan(p) = _ <: *(sqrt(1-p)), *(sqrt(p));
 		position(a,x) = abs(x - a) < 0.5;
