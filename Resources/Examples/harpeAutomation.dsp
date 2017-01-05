@@ -9,15 +9,10 @@ declare author  "Yann Orlarey";
 
 import("music.lib"); 
 
-
-
 KEY = 60;	// basic midi key
 NCY = 15; 	// note cycle length
 CCY = 15;	// control cycle length
 BPS = 360;	// general tempo (beat per sec)
-
-   
-
 
 //-------------------------------kisana----------------------------------
 // USAGE:  kisana : _,_;
@@ -30,8 +25,6 @@ process = harpe(C,11,38) :> *(l),*(l)
 		C = hslider("timbre",0, 0, 1, 0.01);
 	};
  
-
-
 //----------------------------------Harpe--------------------------------
 // USAGE:  harpe(C,10,60) : _,_;
 //		C is the filter coefficient 0..1
@@ -50,10 +43,9 @@ harpe(C,N,b) = 	hand <: par(i, N, position(i+1)
 		lvl  = 1;
 		pan(p) = _ <: *(sqrt(1-p)), *(sqrt(p));
 		position(a,x) = abs(x - a) < 0.5;
-		db2linear(x)	= pow(10, x/20.0);
+		db2linear(x)  = pow(10, x/20.0);
 
 	};
-
 
 //----------------------------------Penta-------------------------------
 // Pentatonic scale with degree to midi and degree to Hz conversion
@@ -75,7 +67,6 @@ Penta(key) = environment {
 	degree2Hz(d) = A4Hz*semiton(degree2midi(d)-69) with { semiton(n) = 2.0^(n/12.0); };
 
 };   
-
 
 //----------------------------------String-------------------------------
 // A karplus-strong string.
