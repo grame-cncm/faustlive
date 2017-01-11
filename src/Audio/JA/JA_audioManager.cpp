@@ -84,7 +84,7 @@ void JA_audioManager::wait_EndFade()
     fCurrentAudio->upDate_DSP();
 }
 
-//Recall Connections from saving file
+//Recall Connections from saved file
 void JA_audioManager::connect_Audio(string homeDir)
 {
     if (FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()) {
@@ -102,7 +102,11 @@ void JA_audioManager::connect_Audio(string homeDir)
 //Save connections in file
 void JA_audioManager::save_Connections(string homeDir)
 {
-    FJUI::saveConnections(homeDir.c_str(), fCurrentAudio->get_audio_connections());
+    bool saved;
+    list<pair<string, string> > connections = fCurrentAudio->get_audio_connections(saved);
+    if (saved) {
+        FJUI::saveConnections(homeDir.c_str(), connections);
+    }
 }
 
 int JA_audioManager::get_buffer_size()

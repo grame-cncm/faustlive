@@ -140,7 +140,7 @@ int AudioCreator::driverNameToIndex(const QString& driverName)
 //Dynamic change when the audio index (= audio architecture) changes
 void AudioCreator::indexChanged(int index)
 {
-    printf("AudioCreator::indexChanged\n");
+    printf("AudioCreator::indexChanged %d\n", index);
     
     delete fFactory;
     delete fCurrentSettings;
