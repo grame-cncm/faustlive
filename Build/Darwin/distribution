@@ -14,7 +14,7 @@ cp Distributions/Whats_New.pdf $nameDist
 cp Distributions/DefaultDSP.dsp $nameDist/FilesToConfigure
 cp Distributions/DefaultDSP.lib $nameDist/FilesToConfigure
 cp Distributions/process.svg 	$nameDist/FilesToConfigure
-cp Distributions/JackOSX.0.90.zip 	$nameDist/Jack
+cp Distributions/JackOSX.*.pkg	$nameDist/Jack
 
 cp ../../Documentation/faust-quick-reference.pdf $nameDist/Documentation
 cp ../../Documentation/UserManual.pdf $nameDist/Documentation/UserManual-$bN.pdf
