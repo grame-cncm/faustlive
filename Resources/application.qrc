@@ -54,7 +54,6 @@
     <file>Examples/LPF.dsp</file>
     <file>Examples/matrix.dsp</file>
     <file>Examples/midiTester.dsp</file>
-    <file>Examples/mixer.dsp</file>
     <file>Examples/moogVCF.dsp</file>
     <file>Examples/noise.dsp</file>
     <file>Examples/noiseGate.dsp</file>
