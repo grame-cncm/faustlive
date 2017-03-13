@@ -30,7 +30,6 @@
     <file>Examples/distortion.dsp</file>
     <file>Examples/echo.dsp</file>
     <file>Examples/fdnRev.dsp</file>
-    <file>Examples/fdnRev.dsp</file>
     <file>Examples/filterBank.dsp</file>
     <file>Examples/filterOsc.dsp</file>
     <file>Examples/flute.dsp</file>
