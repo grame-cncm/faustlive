@@ -99,7 +99,10 @@ class FLWindow : public QMainWindow
         void            deleteHttpInterface();
         
         void            allocateMIDIInterface();
-      
+    
+        void            addInMIDIHandler(dsp* dsp);
+        void            removeFromMIDIHandler(dsp* dsp);
+    
     //--- Audio driver
         AudioManager*   fAudioManager;
         bool            fAudioManagerStopped;

@@ -56,6 +56,7 @@
 #endif
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -202,7 +203,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     }
 
     fCurrentDSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
-    
     if (!fCurrentDSP) {
         return false;
     }
@@ -211,8 +211,12 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         fIsDefault = true;
         print_initWindow(init);
     }
-
+    
     allocateInterfaces(fSettings->value("Name", "").toString());
+    
+    // Polyphonic DSP is controlled by MIDI
+    addInMIDIHandler(fCurrentDSP);
+    
     buildInterfaces(fCurrentDSP);
     
     if (setDSP(errorMsg)) {
@@ -222,6 +226,7 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         start_stop_watcher(true);
         return true;
     } else {
+        removeFromMIDIHandler(fCurrentDSP);
         sessionManager->deleteDSPandFactory(fCurrentDSP);
         deleteInterfaces();
         fCurrentDSP = NULL;
@@ -414,13 +419,17 @@ bool FLWindow::update_Window(const QString& source)
                 dsp* old_dsp = fCurrentDSP;
                 fCurrentDSP = new_dsp;
                 
-                //Delete old dsp (and remove it from MIDI interface) 
+                //Delete old dsp (and remove it from MIDI interface)
+                removeFromMIDIHandler(old_dsp);
                 FLSessionManager::_Instance()->deleteDSPandFactory(old_dsp);
                 deleteInterfaces();
                 
                 //Set the new interface & Recall the parameters of the window
                 allocateInterfaces(newName);
-                    
+                
+                // Polyphonic DSP is controlled by MIDI
+                addInMIDIHandler(new_dsp);
+                
                 buildInterfaces(new_dsp);
                 
                 fSource = sourceToCompile;
@@ -781,14 +790,19 @@ bool FLWindow::resetAudioDSPInterfaces()
     start_stop_watcher(false);
     stop_Audio();
     
+    removeFromMIDIHandler(fCurrentDSP);
     sessionManager->deleteDSPandFactory(fCurrentDSP);
     deleteInterfaces();
   
     fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
     
     if (update_AudioArchitecture(errorMsg)) {
-         
+        
         allocateInterfaces(fSettings->value("Name", "").toString());
+        
+        // Polyphonic DSP is controlled by MIDI
+        addInMIDIHandler(fCurrentDSP);
+        
         buildInterfaces(fCurrentDSP);
    
         start_Audio();
@@ -840,15 +854,14 @@ void FLWindow::allocateMIDIInterface()
     JA_audioManager* manager = dynamic_cast<JA_audioManager*>(fAudioManager);
     // Special case for JACK audio manager
     if (manager) {
-        fMIDIInterface = new MidiUI(manager->getAudioFader());
+        fMIDIHandler = manager->getAudioFader();
     } else {
         fMIDIHandler = new rt_midi(fWindowName.toStdString());
-        fMIDIInterface = new MidiUI(fMIDIHandler);
     }
 #else
     fMIDIHandler = new rt_midi(fWindowName.toStdString());
-    fMIDIInterface = new MidiUI(fMIDIHandler);
 #endif
+    fMIDIInterface = new MidiUI(fMIDIHandler);
 }
 
 void FLWindow::deleteMIDIInterface()
@@ -857,7 +870,10 @@ void FLWindow::deleteMIDIInterface()
         FLInterfaceManager::_Instance()->unregisterGUI(fMIDIInterface);
         delete fMIDIInterface;
         fMIDIInterface = NULL;
-        delete fMIDIHandler;
+        // rt_midi handler has to be deallocated, JA_audioFader one is kept and deallocated JA_audioManager
+        if (dynamic_cast<rt_midi*>(fMIDIHandler)) {
+            delete fMIDIHandler;
+        }
         fMIDIHandler = NULL;
     }
 }
@@ -955,6 +971,22 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     }
 
     return true;
+}
+
+void FLWindow::addInMIDIHandler(dsp* dsp)
+{
+    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(dsp);
+    if (poly && fMIDIHandler) {
+        fMIDIHandler->addMidiIn(poly);
+    }
+}
+
+void FLWindow::removeFromMIDIHandler(dsp* dsp)
+{
+    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(dsp);
+    if (poly && fMIDIHandler) {
+        fMIDIHandler->removeMidiIn(poly);
+    }
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
@@ -1092,6 +1124,7 @@ void FLWindow::closeWindow()
         fHttpdWindow = NULL;
     }
     
+    removeFromMIDIHandler(fCurrentDSP);
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
     deleteInterfaces();
 
