@@ -3,7 +3,7 @@ declare name "organ -- a simple additive synth";
 declare author "Albert Graef";
 declare version "1.0";
 
-import("music.lib");
+import("stdfaust.lib");
 
 // control variables
 
@@ -17,16 +17,8 @@ freq	= nentry("freq", 440, 20, 20000, 1);	// Hz
 gain	= nentry("gain", 0.3, 0, 10, 0.01);	// %
 gate	= button("gate");			// 0/1
 
-// relative amplitudes of the different partials
-
-amp(1)	= hslider("amp1", 1.0, 0, 3, 0.01);
-amp(2)	= hslider("amp2", 0.5, 0, 3, 0.01);
-amp(3)	= hslider("amp3", 0.25, 0, 3, 0.01);
-
 // additive synth: 3 sine oscillators with adsr envelop
 
-partial(i) = amp(i+1)*osc((i+1)*freq);
-
-process	= sum(i, 3, partial(i))
-  * (gate : vgroup("1-adsr", adsr(attack, decay, sustain, release)))
-  * gain : vgroup("2-master", *(vol) : panner(pan));
+process = (os.osc(freq)+0.5*os.osc(2*freq)+0.25*os.osc(3*freq))
+  * (gate : vgroup("1-adsr", en.adsr(attack, decay, sustain, release)))
+  * gain : vgroup("2-master", *(vol) : sp.panner(pan));

@@ -273,9 +273,9 @@ void JA_audioFader::processAudio(jack_nframes_t nframes)
 }
 
 // Access to the fade parameter
-list<pair<string, string> > JA_audioFader::get_audio_connections()
+list<pair<string, string> > JA_audioFader::get_audio_connections(bool& saved)
 {
-    save_connections();
+    saved = save_connections();
     return fConnections;
 }  
 

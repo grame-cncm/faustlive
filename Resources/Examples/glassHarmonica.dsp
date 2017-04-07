@@ -6,7 +6,7 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument uses banded waveguide. For more information, see Essl, G. and Cook, P. Banded Waveguides: Towards Physical Modelling of Bar Percussion Instruments, Proceedings of the 1999 International Computer Music Conference.";
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -69,12 +69,12 @@ excitation(3,5) = 0 : float;
 //==================== SIGNAL PROCESSING ================
 
 //----------------------- Nonlinear filter ----------------------------
-//nonlinearities are created by the nonlinear passive allpass ladder filter declared in filter.lib
+//nonlinearities are created by the nonlinear passive allpass ladder filter declared in miscfilter.lib
 
 //nonlinear filter order
 nlfOrder = 6; 
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
+//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
 typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -128,3 +128,4 @@ process =
 		par(i,nModes,(resonance(i)~_)))~par(i,nModes,_) :> + : 
 		//Signal Scaling and stereo
 		*(4) : NLFM : stereo : instrReverb;
+

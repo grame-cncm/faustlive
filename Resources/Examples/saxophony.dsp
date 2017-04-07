@@ -7,7 +7,7 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This class implements a hybrid digital waveguide instrument that can generate a variety of wind-like sounds.  It has also been referred to as the blowed string model. The waveguide section is essentially that of a string, with one rigid and one lossy termination.  The non-linear function is a reed table. The string can be blown at any point between the terminations, though just as with strings, it is impossible to excite the system at either end. If the excitation is placed at the string mid-point, the sound is that of a clarinet.  At points closer to the bridge, the sound is closer to that of a saxophone.  See Scavone (2002) for more details.";
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Woodwinds.html";  
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 
@@ -53,7 +53,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //==================== SIGNAL PROCESSING ================
 
 //----------------------- Nonlinear filter ----------------------------
-//nonlinearities are created by the nonlinear passive allpass ladder filter declared in filter.lib
+//nonlinearities are created by the nonlinear passive allpass ladder filter declared in miscfilter.lib
 
 //nonlinear filter order
 nlfOrder = 6; 
@@ -61,7 +61,7 @@ nlfOrder = 6;
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
+//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -111,3 +111,4 @@ process =
 	(delay1 : NLFM) : !,
 	//Scaling Output and stereo
 	*(gain) : stereo : instrReverb;
+

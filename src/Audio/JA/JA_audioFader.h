@@ -48,7 +48,7 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
         
         int reconnect(list<pair<string, string> > Connections);
         
-        list<pair<string, string> > get_audio_connections();
+        list<pair<string, string> > get_audio_connections(bool& saved);
     
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();

@@ -516,7 +516,7 @@ QString FLSessionManager::ifUrlToString(const QString& source)
 const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const QString& faustOptions, QSettings* settings, int& argc)
 {
     //--------Compilation Options 
-    int numberFixedParams = 2;
+    int numberFixedParams = 4;
     int iteratorParams = 0;
     
     /// POLYPHONY
@@ -529,7 +529,6 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     if (settings) {
         numberFixedParams += 2;
     }
-    
     
     if (sourcePath != "") {
         numberFixedParams += 2;
@@ -570,7 +569,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
-   }
+    }
     
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
@@ -593,6 +592,10 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
+    
+    argv[iteratorParams++] = "-I";
+    string examplesFolder = fSessionFolder.toStdString() + "/Examples";
+    argv[iteratorParams++] = strdup(examplesFolder.c_str());
     
     // Polyphonic support
     if (settings) {
@@ -701,7 +704,7 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
 {
     updateFolderDate(shaKey);
     int iteratorParams = 0;
-    int argc = 5;
+    int argc = 7;
     
     if (sourcePath != "") {
         argc += 2;
@@ -725,6 +728,10 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
+    
+    argv[iteratorParams++] = "-I";
+    string examplesFolder = fSessionFolder.toStdString() + "/Examples";
+    argv[iteratorParams++] = strdup(examplesFolder.c_str());
 
 #ifdef _WIN32
     //LLVM_MATH is added to resolve mathematical float functions, like powf

@@ -73,7 +73,7 @@ INCLUDEPATH += ../../src/MainStructure
 INCLUDEPATH += ../../src/Network
 INCLUDEPATH += ../../src/Utilities
 
-LIBS+=-L$$FAUSTDIR/lib/faust -L/usr/local/lib
+LIBS+=-L/usr/local/lib
 equals(static, 1){
 LIBS+=$$FAUSTDIR/lib/libfaust.a
 } else {
