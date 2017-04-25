@@ -582,12 +582,16 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     for (int i = numberFixedParams; i < argc; i++) {
         string parseResult = parse_compilationParams(copy);
-        // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-        if (parseResult != "-double") {
+        // OPTION DOUBLE HAS TO BE SKIPED
+        if (parseResult == "-double") {
+            FLErrorWindow::_Instance()->print_Error("-double option is not supported !");
+            // One less option
+            argc--;
+        } else {
             argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
         }
     }
-     
+    
     //The library path is where libraries like the scheduler architecture file are = currentSession
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";
