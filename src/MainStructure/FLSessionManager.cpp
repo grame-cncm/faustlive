@@ -82,7 +82,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     //-----Extracting compilation Options from general options Or window options
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
-    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt();
+    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", -1).toInt();
     
     QString faustOptions = defaultOptions;
     int optLevel = defaultOptLevel;
@@ -113,8 +113,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     string optvalue = QString::number(optLevel).toStdString();
     
-//    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();    
-//    string shaKey = FL_generate_sha1(fullShaString);
+//  string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
+//  string shaKey = FL_generate_sha1(fullShaString);
     
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
     string irFile = factoryFolder.toStdString() + "/" + shaKey;

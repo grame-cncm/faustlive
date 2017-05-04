@@ -222,7 +222,7 @@ void FLPreferenceWindow::save()
 	if (isStringInt(fOptVal->text().toLatin1().data())) {
         settings->setValue("General/Compilation/OptValue", atoi(fOptVal->text().toLatin1().data()));
     } else {
-        settings->setValue("General/Compilation/OptValue", 3);
+        settings->setValue("General/Compilation/OptValue", -1);
     }
     
     if (settings->value("General/Network/FaustWebUrl", "http://faustservices.grame.fr").toString() != fServerLine->text()){
@@ -269,7 +269,7 @@ void FLPreferenceWindow::save()
 void FLPreferenceWindow::resetVisualObjects()
 {
     fCompilModes->setText(FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString());
-    fOptVal->setText(QString::number(FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt()));
+    fOptVal->setText(QString::number(FLSettings::_Instance()->value("General/Compilation/OptValue", -1).toInt()));
     fServerLine->setText(FLSettings::_Instance()->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString());
     
 #ifdef REMOTE
