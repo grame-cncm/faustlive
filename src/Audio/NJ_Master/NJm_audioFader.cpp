@@ -54,33 +54,33 @@ void NJm_audioFader::process(int count, float** audio_inputs, float** audio_outp
     }
     
     // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-    decode_midi_control(midi_inputs[0], fResult.buffer_size);
+    decodeMidiControl(midi_inputs[0], fResult.buffer_size);
     
     // "count" may be less than buffer_size
     fDSP->compute(count, inputs_tmp, outputs_tmp);
     crossfade_Calcul(count, fDSP->getNumOutputs(), outputs_tmp);
     
     // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-    encode_midi_control(midi_outputs[0], fResult.buffer_size);
+    encodeMidiControl(midi_outputs[0], fResult.buffer_size);
 }
 
 bool NJm_audioFader::init(const char* name, dsp* dsp) 
 {
     fDSP = dsp;
     fDSP->buildUserInterface(this);
-    return init_aux(name, fDSP, fDSP->getNumInputs(), fDSP->getNumOutputs(), 1, 1);
+    return initAux(name, fDSP, fDSP->getNumInputs(), fDSP->getNumOutputs(), 1, 1);
 }
 
 bool NJm_audioFader::init(const char* name, int numInputs, int numOutputs) 
 {
-     return init_aux(name, numInputs, numOutputs, 1, 1);
+     return initAux(name, numInputs, numOutputs, 1, 1);
 }
 
 bool NJm_audioFader::set_dsp(dsp* dsp)
 {
     fDSP = dsp;
     fDSP->buildUserInterface(this);
-    netjackaudio::set_dsp(fDSP); // SL le 30/06/15
+    netjackaudio::setDsp(fDSP); // SL le 30/06/15
     //set_dsp_aux(DSP);
     return true;
 }

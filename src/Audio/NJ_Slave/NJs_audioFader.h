@@ -31,7 +31,7 @@ class NJs_audioFader : public QObject, public netjackaudio, public AudioFader_In
             
         virtual int restart_cb();
             
-        virtual int set_sample_rate(jack_nframes_t nframes)
+        virtual int setSampleRate(jack_nframes_t nframes)
         {
             printf("New sample rate = %u\n", nframes);
             fDSP->init(nframes);

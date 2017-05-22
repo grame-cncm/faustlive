@@ -125,7 +125,7 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName)
     }
     
     fDSPIn->init(jack_get_sample_rate(fClient));
-    save_connections();
+    saveConnections();
     fConnectionsIn = fConnections;
 }
 
@@ -275,7 +275,7 @@ void JA_audioFader::processAudio(jack_nframes_t nframes)
 // Access to the fade parameter
 list<pair<string, string> > JA_audioFader::get_audio_connections(bool& saved)
 {
-    saved = save_connections();
+    saved = saveConnections();
     return fConnections;
 }  
 

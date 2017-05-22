@@ -130,14 +130,14 @@ void NJs_audioManager::send_Error(const char* msg)
     emit errorSignal(msg);
 }
 
-int NJs_audioManager::get_buffer_size()
+int NJs_audioManager::getBufferSize()
 {
-    return fCurrentAudio->get_buffer_size();
+    return fCurrentAudio->getBufferSize();
 }
 
-int NJs_audioManager::get_sample_rate()
+int NJs_audioManager::getSampleRate()
 {
-    return fCurrentAudio->get_sample_rate();
+    return fCurrentAudio->getSampleRate();
 }
 
 

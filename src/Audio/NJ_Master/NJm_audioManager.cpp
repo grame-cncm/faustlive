@@ -124,18 +124,18 @@ void NJm_audioManager::send_Error(const char* msg)
     emit errorSignal(msg);
 }
 
-int NJm_audioManager::get_buffer_size()
+int NJm_audioManager::getBufferSize()
 {
-    return fCurrentAudio->get_buffer_size();
+    return fCurrentAudio->getBufferSize();
 }
 
-int NJm_audioManager::get_sample_rate()
+int NJm_audioManager::getSampleRate()
 {
-    return fCurrentAudio->get_sample_rate();
+    return fCurrentAudio->getSampleRate();
 }
 
-bool NJm_audioManager::is_connexion_active()
+bool NJm_audioManager::isConnexionActive()
 {
-    return fCurrentAudio->is_connexion_active();
+    return fCurrentAudio->isConnexionActive();
 }
 

@@ -45,7 +45,10 @@ class AudioManager : public QObject, public audio {
         
         virtual void connect_Audio(std::string homeFolder){Q_UNUSED(homeFolder);}
         virtual void save_Connections(std::string homeFolder){Q_UNUSED(homeFolder);}
-           
+    
+        virtual int getNumInputs() { return -1; }
+        virtual int getNumOutputs() { return -1; }
+    
     signals: 
         
         void errorSignal(const char*);

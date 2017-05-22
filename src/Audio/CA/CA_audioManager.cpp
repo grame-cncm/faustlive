@@ -41,7 +41,7 @@ bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char
     }
     
     if (fCurrentAudio->init(port_name, numInputs, numOutputs)) {        
-        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
+        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", getBufferSize());
         fInit = true;
         return true;
     } else {
@@ -53,10 +53,10 @@ bool CA_audioManager::initAudio(QString& error, const char* /*name*/, const char
 bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/)
 {
     if (fInit) {
-        fCurrentAudio->set_dsp(DSP);
+        fCurrentAudio->setDsp(DSP);
         return true;
     } else if (init(fName, DSP)) {
-        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", get_buffer_size());
+        FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", getBufferSize());
         return true;
     } else {
         error = "Impossible to init CoreAudio Client";
@@ -127,14 +127,14 @@ void CA_audioManager::wait_EndFade()
     delete fFadeInAudio;
 }
 
-int CA_audioManager::get_buffer_size()
+int CA_audioManager::getBufferSize()
 {
-    return fCurrentAudio->get_buffer_size();
+    return fCurrentAudio->getBufferSize();
 }
 
-int CA_audioManager::get_sample_rate()
+int CA_audioManager::getSampleRate()
 {
-    return fCurrentAudio->get_sample_rate();
+    return fCurrentAudio->getSampleRate();
 }
 
 
