@@ -52,7 +52,7 @@ bool PA_audioManager::initAudio(QString& error, const char* /*name*/, const char
 bool PA_audioManager::setDSP(QString& error, dsp* DSP, const char* port_name)
 {
     if (fInit) {
-        fCurrentAudio->set_dsp(DSP);
+        fCurrentAudio->setDsp(DSP);
         return true;
     } else if (init(port_name, DSP)) {
         return true;
@@ -112,16 +112,14 @@ void PA_audioManager::wait_EndFade()
     delete fFadeInAudio;
 }
 
-int PA_audioManager::get_buffer_size()
+int PA_audioManager::getBufferSize()
 {
-    // TODO
-    return fCurrentAudio->get_buffer_size();
+    return fCurrentAudio->getBufferSize();
 }
 
-int PA_audioManager::get_sample_rate()
+int PA_audioManager::getSampleRate()
 {
-    // TODO
-    return fCurrentAudio->get_sample_rate();
+    return fCurrentAudio->getSampleRate();
 }
 
 
