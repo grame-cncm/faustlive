@@ -8,7 +8,7 @@
 
 #include "FLPresentationWindow.h"
 #include "utilities.h"
-
+#include "faust/dsp/llvm-dsp.h"
 
 FLPresentationWindow* FLPresentationWindow::_presWindow = NULL;
 
@@ -71,7 +71,8 @@ void FLPresentationWindow::init(){
     layout->addWidget(image);
     iconeBox->setLayout(layout);
     
-    QLabel* text = new QLabel("<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler");  
+    string welcome = "<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler version " + string(getCLibFaustVersion());
+    QLabel* text = new QLabel(welcome.c_str());
     text->setAlignment(Qt::AlignCenter);
     
     QLabel* subTitle = new QLabel("");
