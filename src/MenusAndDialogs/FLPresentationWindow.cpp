@@ -14,41 +14,42 @@ FLPresentationWindow* FLPresentationWindow::_presWindow = NULL;
 
 //-----------------------PRESENTATION WINDOW IMPLEMENTATION
 
-FLPresentationWindow::FLPresentationWindow(){
+FLPresentationWindow::FLPresentationWindow()
+{
     fExampleToOpen = "";
     init();
 }
 
 FLPresentationWindow::~FLPresentationWindow(){}
 
-FLPresentationWindow* FLPresentationWindow::_Instance(){
-    if(_presWindow == NULL)
+FLPresentationWindow* FLPresentationWindow::_Instance()
+{
+    if (_presWindow == NULL) {
         _presWindow = new FLPresentationWindow;
+    }
     
     return _presWindow;
 }
 
-void FLPresentationWindow::init(){
-    
+void FLPresentationWindow::init()
+{
     QDir ImagesDir(":/");
-    
     ImagesDir.cd("Images");
-    
     QFileInfoList child = ImagesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
     
-    QGroupBox*      iconeBox = new QGroupBox;
-    QGroupBox*      buttonBox = new QGroupBox;
-    QGroupBox*      gridBox = new QGroupBox;
-    QGroupBox*      textBox = new QGroupBox;
-    QGroupBox*      openExamples = new QGroupBox;
+    QGroupBox* iconeBox = new QGroupBox;
+    QGroupBox* buttonBox = new QGroupBox;
+    QGroupBox* gridBox = new QGroupBox;
+    QGroupBox* textBox = new QGroupBox;
+    QGroupBox* openExamples = new QGroupBox;
     
-    QPushButton*    new_Window;
-    QPushButton*    open_Window;
-    QPushButton*    open_Session;
-    QPushButton*    preferences;
-    QPushButton*    help;
+    QPushButton* new_Window;
+    QPushButton* open_Window;
+    QPushButton* open_Session;
+    QPushButton* preferences;
+    QPushButton* help;
     
-    QPushButton*    ok;
+    QPushButton* ok;
     
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(iconeBox);
@@ -59,9 +60,9 @@ void FLPresentationWindow::init(){
     
     //------------------------ICON
     
-    QHBoxLayout *layout = new QHBoxLayout;
+    QHBoxLayout* layout = new QHBoxLayout;
     
-    QLabel *image = new QLabel();
+    QLabel* image = new QLabel();
     //Path of the executable + the presentation Image
     QPixmap presImg(ImagesDir.absoluteFilePath("Presentation_Image.png"));
     presImg.scaledToWidth(100, Qt::SmoothTransformation);
@@ -82,7 +83,6 @@ void FLPresentationWindow::init(){
     
     QHBoxLayout* layout3 = new QHBoxLayout;
     QGridLayout* layout2 = new QGridLayout;
-    
     
     //------------------------GRID BUTTONS
     
@@ -144,7 +144,6 @@ void FLPresentationWindow::init(){
     layout2->addWidget(preferences, 3, 1);
     connect(preferences, SIGNAL(clicked()), this, SLOT(pref()));
     
-    
     QLabel *help_Image = new QLabel(gridBox);
     QPixmap helpPix(ImagesDir.absoluteFilePath("HelpMenu.png"));
     helpPix = helpPix.scaledToWidth(60, Qt::SmoothTransformation);
@@ -159,29 +158,24 @@ void FLPresentationWindow::init(){
     help->setFlat(true);
     help->setDefault(false);
     
-    
     //-------------------------OPEN EXAMPLES
     
-    
     QVBoxLayout *layout5 = new QVBoxLayout;
-    
     QListWidget *vue = new QListWidget(openExamples);
-    
     QDir examplesDir(":/");
     
-    if(examplesDir.cd("Examples")){
+    if (examplesDir.cd("Examples")) {
         
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
-        
         fExampleToOpen = (children.begin())->baseName();
-        
         QFileInfoList::iterator it;
         
-        for(it = children.begin(); it != children.end(); it++)
+        for (it = children.begin(); it != children.end(); it++) {
             vue->addItem(QString(it->baseName()));
+        }
         
-        connect(vue, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(itemDblClick(QListWidgetItem *)));
-        connect(vue, SIGNAL(itemClicked( QListWidgetItem *)), this, SLOT(itemClick(QListWidgetItem *)));
+        connect(vue, SIGNAL(itemDoubleClicked( QListWidgetItem *)), this, SLOT(itemDblClick(QListWidgetItem*)));
+        connect(vue, SIGNAL(itemClicked( QListWidgetItem *)), this, SLOT(itemClick(QListWidgetItem*)));
     }
     
     layout5->addWidget(new QLabel(tr("<h2>Try Out an Example</h2>")));
@@ -201,8 +195,7 @@ void FLPresentationWindow::init(){
     
     gridBox->setLayout(layout3);
     
-    QHBoxLayout *layout4 = new QHBoxLayout;
-    
+    QHBoxLayout* layout4 = new QHBoxLayout;
     QPushButton* cancel = new QPushButton("Cancel");
     
     connect(cancel, SIGNAL(clicked()), this, SLOT(hideWindow()));
@@ -210,14 +203,13 @@ void FLPresentationWindow::init(){
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
     QString grame = "<p>Version ";
-    grame   += readFile(":/distVersion.txt");
-    grame   += " by GRAME, Centre de Creation Musicale";
+    grame += readFile(":/distVersion.txt");
+    grame += " by GRAME, Centre de Creation Musicale";
     QLabel* more = new QLabel(grame);  
-    more->setAlignment(Qt::AlignRight);
+    more->setAlignment(Qt::AlignCenter);
     
     layout4->addWidget(more);
     textBox->setLayout(layout4);
-    
     
     new_Window->setStyleSheet("QPushButton:flat{"
                               "background-color: lightGray;"
@@ -271,50 +263,59 @@ void FLPresentationWindow::init(){
 }
 
 //Store the item clicked to open it when the open button is pressed
-void FLPresentationWindow::itemClick(QListWidgetItem *item){
+void FLPresentationWindow::itemClick(QListWidgetItem *item)
+{
     fExampleToOpen = item->text();
 }
 
-void FLPresentationWindow::itemChosen(){
+void FLPresentationWindow::itemChosen()
+{
     hide();
     emit openExample(fExampleToOpen);
 }
 
 //Opens directly a double clicked item
-void FLPresentationWindow::itemDblClick(QListWidgetItem* item){
+void FLPresentationWindow::itemDblClick(QListWidgetItem* item)
+{
     fExampleToOpen = item->text();
     itemChosen();
 }
 
-void FLPresentationWindow::newWindow(){
+void FLPresentationWindow::newWindow()
+{
     emit newWin();
 	hide();
 }
 
-void FLPresentationWindow::openWindow(){
-
+void FLPresentationWindow::openWindow()
+{
     emit openWin();
 	hide();
 }
 
-void FLPresentationWindow::session(){
+void FLPresentationWindow::session()
+{
     emit openSession();
 	hide();
 }
 
-void FLPresentationWindow::pref(){
+void FLPresentationWindow::pref()
+{
     emit openPref();
 }
 
-void FLPresentationWindow::help(){
+void FLPresentationWindow::help()
+{
     emit openHelp();
 }
 
-void FLPresentationWindow::hideWindow(){
+void FLPresentationWindow::hideWindow()
+{
     emit close();
 }
 
-void FLPresentationWindow::closeEvent(QCloseEvent* /*event*/){
+void FLPresentationWindow::closeEvent(QCloseEvent* /*event*/)
+{
     hide();
 }
 
