@@ -93,6 +93,7 @@
     <file>Libs/compressors.lib</file>
     <file>Libs/delays.lib</file>
     <file>Libs/demos.lib</file>
+    <file>Libs/dx7.lib</file>
     <file>Libs/envelopes.lib</file>
     <file>Libs/filters.lib</file>
     <file>Libs/hoa.lib</file>
