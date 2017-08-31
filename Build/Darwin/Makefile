@@ -104,7 +104,7 @@ APPDIR = /Applications
 
 install: 
 	cp $(FAUSTDIR)/bin/sound2faust FaustLive.app/Contents/MacOS
-	rm -rf $(DESTDIR)$(APPDIR)FaustLive.app
+	rm -rf $(DESTDIR)$(APPDIR)/FaustLive.app
 	cp -R FaustLive.app $(DESTDIR)$(APPDIR)
 
 uninstall: 
