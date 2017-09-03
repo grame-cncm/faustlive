@@ -11,7 +11,9 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 #include "FLErrorWindow.h"
+
 #include "faust/dsp/timed-dsp.h"
+#include "faust/dsp/libfaust.h"
 
 #include <assert.h>
 
