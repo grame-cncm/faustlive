@@ -34,7 +34,7 @@ JA_audioManager::~JA_audioManager()
 //INIT/START/STOP on Current JackAudio
 bool JA_audioManager::initAudio(QString& error, const char* name, bool midi)
 {
-    if (fCurrentAudio->init(name, 0, midi)) {
+    if (fCurrentAudio->init(name, 0)) {
         return true;
     } else {
         error = "Impossible to init JackAudio Client";
