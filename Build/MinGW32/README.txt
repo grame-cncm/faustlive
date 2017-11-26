@@ -21,7 +21,6 @@ Available in package manager :
 - libmicrohttpd
 - libjack
 - libjacknet
-- libcrypto
 
 Available on sourceforge.net:
 - libfaust (from branch faust2)

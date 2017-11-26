@@ -70,7 +70,6 @@ equals(static, 1){
 	#LIBS+=/usr/local/lib/libqrencode.a
 	#LIBS+=/usr/local/lib/libmicrohttpd.a
 	#LIBS+=-lgnutls
-	#LIBS+=/usr/lib/x86_64-linux-gnu/libcrypto.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgnutls.a
 	#LIBS+=/lib/x86_64-linux-gnu/libgcrypt.a
 	#LIBS+=/usr/lib/x86_64-linux-gnu/libgpg-error.a
