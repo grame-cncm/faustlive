@@ -116,8 +116,8 @@
     <file>Libs/tubes.lib</file>
     <file>Libs/vaeffects.lib</file>
 
-    <file>Libs/llvm_math.ll</file>
-    <file>Libs/TestLibs.dsp</file>
+    <file>LLVM/llvm_math.ll</file>
+    
     <file>Html/ServerAvailableInterfacesHead.html</file>
     <file>Html/ServerAvailableInterfacesTail.html</file>
     <file>Html/ServerHead.html</file>
