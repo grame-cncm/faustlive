@@ -46,17 +46,17 @@ void NJs_audioFader::process(int count,  float** inputs, float** outputs)
 
 bool NJs_audioFader::init(const char* name, dsp* DSP) 
 {
-    return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
+    return initAux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
 }
 
 bool NJs_audioFader::init(const char* name, int numInputs, int numOutputs) 
 {
-    return init_aux(name, numInputs, numOutputs, 0, 0);
+    return initAux(name, numInputs, numOutputs, 0, 0);
 }
 
 bool NJs_audioFader::set_dsp(dsp* DSP)
 {
-     netjackaudio::set_dsp(DSP); // SL le 30/06/15
+     netjackaudio::setDsp(DSP); // SL le 30/06/15
     //set_dsp_aux(DSP);
     return true;
 }

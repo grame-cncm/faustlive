@@ -45,8 +45,8 @@ class PA_audioManager : public AudioManager {
         virtual void start_Fade();
         virtual void wait_EndFade();
 
-        virtual int get_buffer_size();
-        virtual int get_sample_rate();
+        virtual int getBufferSize();
+        virtual int getSampleRate();
 };
 
 #endif

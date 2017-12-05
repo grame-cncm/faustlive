@@ -11,7 +11,9 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 #include "FLErrorWindow.h"
+
 #include "faust/dsp/timed-dsp.h"
+#include "faust/dsp/libfaust.h"
 
 #include <assert.h>
 
@@ -82,7 +84,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     //-----Extracting compilation Options from general options Or window options
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
-    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", 3).toInt();
+    int defaultOptLevel = FLSettings::_Instance()->value("General/Compilation/OptValue", -1).toInt();
     
     QString faustOptions = defaultOptions;
     int optLevel = defaultOptLevel;
@@ -113,8 +115,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     string optvalue = QString::number(optLevel).toStdString();
     
-//    string fullShaString = organizedOptions + optvalue + faustContent.toStdString();    
-//    string shaKey = FL_generate_sha1(fullShaString);
+//  string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
+//  string shaKey = FL_generate_sha1(fullShaString);
     
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
     string irFile = factoryFolder.toStdString() + "/" + shaKey;
@@ -582,12 +584,16 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     for (int i = numberFixedParams; i < argc; i++) {
         string parseResult = parse_compilationParams(copy);
-        // OPTION DOUBLE HAS TO BE SKIPED, it causes segmentation fault
-        if (parseResult != "-double") {
+        // OPTION DOUBLE HAS TO BE SKIPED
+        if (parseResult == "-double") {
+            FLErrorWindow::_Instance()->print_Error("-double option is not supported !");
+            // One less option
+            argc--;
+        } else {
             argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
         }
     }
-     
+    
     //The library path is where libraries like the scheduler architecture file are = currentSession
     argv[iteratorParams++] = "-I";
     string libsFolder = fSessionFolder.toStdString() + "/Libs";

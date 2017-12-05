@@ -85,7 +85,7 @@ void FLToolBar::init()
     connect(fPortOutOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fDestHostLine = new QLineEdit(tr(""), oscBox);
-//    fDestHostLine->setInputMask("000.000.000.000");
+ // fDestHostLine->setInputMask("000.000.000.000");
     fDestHostLine->setStyleSheet("*{background-color:white;}");
     connect(fDestHostLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fDestHostLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
@@ -173,7 +173,6 @@ void FLToolBar::init()
 //    
 //    remoteControlBox->setLayout(remoteControlLayout);
 //    fContainer->addItem(remoteControlBox, "Remote Control");
-//    
 //    
 
     //-------- Remote Processing
@@ -393,8 +392,9 @@ bool FLToolBar::hasCompilationOptionsChanged()
     
     bool ok;
     int value = val.toInt(&ok);
-	if (!ok)
-        value = 3;
+    if (!ok) {
+        value = -1; // Maximum optimization level
+    }
     
     return (fOptionLine->text() != (fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString()) 
             || value != fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt());
@@ -657,7 +657,7 @@ void FLToolBar::syncVisualParams()
     
     //---- Compilation
     fOptionLine->setText(fSettings->value("Compilation/FaustOptions", generalSettings->value("General/Compilation/FaustOptions", "").toString()).toString());
-    fOptValLine->setText(QString::number(fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", 3).toInt()).toInt()));
+    fOptValLine->setText(QString::number(fSettings->value("Compilation/OptValue", generalSettings->value("General/Compilation/OptValue", -1).toInt()).toInt()));
     
     //---- Automatic Export
     fAutomaticExportLine->setText(fSettings->value("AutomaticExport/Options", "").toString());
@@ -693,7 +693,6 @@ void FLToolBar::syncVisualParams()
     
 //----- Release
 //    bool checked = fSettings->value("Release/Enabled", false).toBool();
-//    
 //    fPublishBox->setChecked(checked);
 #endif
     fSaveButton->setEnabled(false);

@@ -1333,8 +1333,8 @@ bool FLWindow::init_audioClient(QString& error)
 
 void FLWindow::update_AudioParams()
 {
-    fSettings->setValue("SampleRate", fAudioManager->get_sample_rate());
-    fSettings->setValue("BufferSize", fAudioManager->get_buffer_size());
+    fSettings->setValue("SampleRate", fAudioManager->getSampleRate());
+    fSettings->setValue("BufferSize", fAudioManager->getBufferSize());
 }
 
 bool FLWindow::setDSP(QString& error)

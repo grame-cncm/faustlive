@@ -86,7 +86,7 @@ class CA_audioFader : public audio, public AudioFader_Interface
                 printf("Cannot open CoreAudio device\n");
                 return false;
             } else {
-                fCrossFadeDevice.set_dsp(DSP);
+                fCrossFadeDevice.setDsp(DSP);
                 // If -1 was given, fSampleRate will be changed by OpenDefault
                 DSP->init(fSampleRate);
                 return true;
@@ -103,9 +103,9 @@ class CA_audioFader : public audio, public AudioFader_Interface
             }
         }
         
-        void set_dsp(dsp* DSP)
+        void setDsp(dsp* DSP)
         {
-            fCrossFadeDevice.set_dsp(DSP);
+            fCrossFadeDevice.setDsp(DSP);
             DSP->init(fSampleRate);
         }
         
@@ -139,9 +139,12 @@ class CA_audioFader : public audio, public AudioFader_Interface
             return fCrossFadeDevice.get_doWeFadeOut();
         }
         
-        virtual int get_buffer_size() { return fCrossFadeDevice.GetBufferSize(); }
-        virtual int get_sample_rate() { return fCrossFadeDevice.GetSampleRate(); }
-        
+        virtual int getBufferSize() { return fCrossFadeDevice.GetBufferSize(); }
+        virtual int getSampleRate() { return fCrossFadeDevice.GetSampleRate(); }
+    
+        virtual int getNumInputs() { return -1; }
+        virtual int getNumOutputs() { return -1; }
+    
         void force_stopFade()
         {
             fCrossFadeDevice.reset_Values();

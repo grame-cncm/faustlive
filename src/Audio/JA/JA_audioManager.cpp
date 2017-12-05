@@ -34,7 +34,7 @@ JA_audioManager::~JA_audioManager()
 //INIT/START/STOP on Current JackAudio
 bool JA_audioManager::initAudio(QString& error, const char* name, bool midi)
 {
-    if (fCurrentAudio->init(name, 0, midi)) {
+    if (fCurrentAudio->init(name, 0)) {
         return true;
     } else {
         error = "Impossible to init JackAudio Client";
@@ -92,7 +92,7 @@ void JA_audioManager::connect_Audio(string homeDir)
             list<pair<string, string> > connection = FJUI::recallConnections(homeDir.c_str());
             fCurrentAudio->reconnect(connection);
         } else {
-            fCurrentAudio->default_connections();  
+            fCurrentAudio->defaultConnections();
         }
     } else {
         printf("Do not connect\n");
@@ -109,12 +109,12 @@ void JA_audioManager::save_Connections(string homeDir)
     }
 }
 
-int JA_audioManager::get_buffer_size()
+int JA_audioManager::getBufferSize()
 {
-    return fCurrentAudio->get_buffer_size();
+    return fCurrentAudio->getBufferSize();
 }
 
-int JA_audioManager::get_sample_rate()
+int JA_audioManager::getSampleRate()
 {
-    return fCurrentAudio->get_sample_rate();
+    return fCurrentAudio->getSampleRate();
 }
