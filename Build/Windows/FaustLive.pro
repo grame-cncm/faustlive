@@ -37,6 +37,11 @@ RESOURCES += ../../Resources/windows.qrc
 
 RC_FILE = FaustLive.rc
 
+# Use user environment flags
+QMAKE_CXXFLAGS += $$(CXXFLAGS)
+QMAKE_CFLAGS += $$(CFLAGS)
+QMAKE_LFLAGS += $$(LDFLAGS)
+
 ## VISUAL STUDIO PROJECT
 TEMPLATE = vcapp
 INCLUDEPATH += C:\Qt\Qt5.2.0\msvc\include
