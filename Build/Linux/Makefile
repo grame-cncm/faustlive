@@ -2,7 +2,7 @@
 qm := $(shell which qmake)
 ##qm := $(if $(qm4),$(qm4),qmake)
 
-SPEC := ""
+SPEC := 
 PREFIX := /usr
 DESTDIR := 
 QM-DEFS := "JVAR=1"
