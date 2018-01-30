@@ -31,7 +31,6 @@
 #include "FLSettings.h"
 #include "FLWinSettings.h"
 #include "FLPreferenceWindow.h"
-
 #include "FJUI.h"
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
@@ -162,8 +161,8 @@ FLApp::~FLApp(){
 #endif
 }
 
-void FLApp::create_Session_Hierarchy(){
-    
+void FLApp::create_Session_Hierarchy()
+{
 	QString separationChar;
     
     // Initialization of current Session Path. NOTE: This path must not
@@ -174,15 +173,16 @@ void FLApp::create_Session_Hierarchy(){
        which the Faust session directory will be created. */
     const char *sessiondir = getenv("FAUSTLIVE_SESSIONDIR");
     if (sessiondir) {
-      fSessionFolder = sessiondir;
-      if(!QFileInfo(fSessionFolder).exists()){
-        QDir direct(fSessionFolder);
-        direct.mkdir(fSessionFolder);
-      }
+        fSessionFolder = sessiondir;
+        if (!QFileInfo(fSessionFolder).exists()) {
+            QDir direct(fSessionFolder);
+            direct.mkdir(fSessionFolder);
+        }
     } else {
-      char path[512];
-      if(!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))
-        fSessionFolder = path;
+        char path[512];
+        if (!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)) {
+            fSessionFolder = path;
+        }
     }
     fSessionFolder += "\\FaustLive-CurrentSession-";
     separationChar = "\\";
@@ -193,7 +193,7 @@ void FLApp::create_Session_Hierarchy(){
 #endif
     
     fSessionFolder += APP_VERSION;
-    if(!QFileInfo(fSessionFolder).exists()){
+    if (!QFileInfo(fSessionFolder).exists()) {
         QDir direct(fSessionFolder);
         direct.mkdir(fSessionFolder);
     } 
@@ -201,26 +201,23 @@ void FLApp::create_Session_Hierarchy(){
 /* ---- Resources that are contained in the QT binary (examples, documentation, libs, html files, etc)
         need to be copied in the current session to really be manipulated */
     
-    //   Copy QT resources that where loaded at compilation with application.qrc
+    // Copy QT resources that where loaded at compilation with application.qrc
     fExamplesFolder = fSessionFolder + separationChar  + "Examples";
-    if(!QFileInfo(fExamplesFolder).exists()){
+    if (!QFileInfo(fExamplesFolder).exists()) {
         QDir direct(fExamplesFolder);
         direct.mkdir(fExamplesFolder);
     }  
     
     QDir exDir(":/");
     
-    if(exDir.cd("Examples")){
+    if (exDir.cd("Examples")) {
         
         QFileInfoList children = exDir.entryInfoList(QDir::Files);
-        
         QFileInfoList::iterator it;
         
-        for(it = children.begin(); it != children.end(); it++){
-            
-			QString pathInSession = fExamplesFolder + separationChar + it->baseName() + "." + it->completeSuffix();
-            
-            if(!QFileInfo(pathInSession).exists()){
+        for (it = children.begin(); it != children.end(); it++) {
+     		QString pathInSession = fExamplesFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+            if (!QFileInfo(pathInSession).exists()) {
                 
                 QFile file(it->absoluteFilePath());
                 file.copy(pathInSession);
@@ -229,29 +226,26 @@ void FLApp::create_Session_Hierarchy(){
                 newFile.setPermissions(QFile::ReadOwner);
             }
         }
-        
     }
     
     fLibsFolder = fSessionFolder + separationChar  + "Libs";
-    if(!QFileInfo(fLibsFolder).exists()){
+    if (!QFileInfo(fLibsFolder).exists()){
         QDir direct(fLibsFolder);
         direct.mkdir(fLibsFolder);
     }  
 
     QDir libsDir(":/");
     
-    if(libsDir.cd("Libs")){
+    if (libsDir.cd("Libs")) {
         
         QFileInfoList children = libsDir.entryInfoList(QDir::Files);
-        
         QFileInfoList::iterator it;
         
         for(it = children.begin(); it != children.end(); it++){
             
 			QString pathInSession = fLibsFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
-            if(!QFileInfo(pathInSession).exists()){
-                
+            if (!QFileInfo(pathInSession).exists()) {
                 QFile file(it->absoluteFilePath());
                 file.copy(pathInSession);
             }
@@ -266,17 +260,16 @@ void FLApp::create_Session_Hierarchy(){
     
     QDir htmlDir(":/");
     
-    if(htmlDir.cd("Html")){
+    if (htmlDir.cd("Html")) {
         QFileInfoList children = htmlDir.entryInfoList(QDir::Files);
         
         QFileInfoList::iterator it;
         
-        for(it = children.begin(); it != children.end(); it++){
+        for (it = children.begin(); it != children.end(); it++) {
             
 			QString pathInSession = fHtmlFolder + separationChar + it->baseName() + "." + it->completeSuffix();
             
-            if(!QFileInfo(pathInSession).exists()){
-                
+            if (!QFileInfo(pathInSession).exists()) {
                 QFile file(it->absoluteFilePath());
                 file.copy(pathInSession);
             }
@@ -291,17 +284,14 @@ void FLApp::create_Session_Hierarchy(){
     
     QDir docDir(":/");
     
-    if(docDir.cd("Documentation")){
+    if (docDir.cd("Documentation")) {
         QFileInfoList children = docDir.entryInfoList(QDir::Files);
         
         QFileInfoList::iterator it;
         
-        for(it = children.begin(); it != children.end(); it++){
-            
-			QString pathInSession = fDocFolder + separationChar + it->baseName() + "." + it->completeSuffix();
-            
-            if(!QFileInfo(pathInSession).exists()){
-                
+        for (it = children.begin(); it != children.end(); it++) {
+            QString pathInSession = fDocFolder + separationChar + it->baseName() + "." + it->completeSuffix();
+            if (!QFileInfo(pathInSession).exists()) {
                 QFile file(it->absoluteFilePath());
                 file.copy(pathInSession);
             }
@@ -323,18 +313,17 @@ void FLApp::create_Session_Hierarchy(){
         windowsDir.mkdir(pathWindows);
     
     QString sched(":/usr/local/lib/faust/scheduler.ll");
-    if(QFileInfo(sched).exists()){
+    if (QFileInfo(sched).exists()) {
         QString newScheduler = fLibsFolder + "/scheduler.ll";
-        
         QFile f(sched);
         f.copy(newScheduler);
     }
 }
 
 //-------- Build FaustLive Menu
-QMenu* FLApp::create_FileMenu(){
-
-    QMenu* fileMenu = new QMenu(tr("File"), 0);
+QMenu* FLApp::create_FileMenu()
+{
+   QMenu* fileMenu = new QMenu(tr("File"), 0);
     
     QAction* newAction = new QAction(tr("&New Default Window"), NULL);
     newAction->setShortcut(tr("Ctrl+N"));
@@ -347,14 +336,14 @@ QMenu* FLApp::create_FileMenu(){
     connect(openAction, SIGNAL(triggered()), this, SLOT(open_New_Window()));
     
     QAction* openRemoteAction = new QAction(tr("&Open remote DSP..."),NULL);
-//    openAction->setShortcut(tr("Ctrl+O"));
+    // openAction->setShortcut(tr("Ctrl+O"));
     openRemoteAction->setToolTip(tr("Open a DSP file"));
     connect(openRemoteAction, SIGNAL(triggered()), this, SLOT(open_Remote_Window())); 
     
     //SESSION
     
     QAction* componentAction = new QAction(tr("New Component Creator"), fileMenu);
-    //    componentAction->setShortcut(tr("Ctrl"));
+    // componentAction->setShortcut(tr("Ctrl"));
     componentAction->setToolTip(tr("Open a new window to create a 2 dsp component"));
     connect(componentAction, SIGNAL(triggered()), this, SLOT(create_Component_Window()));
     
@@ -374,7 +363,6 @@ QMenu* FLApp::create_FileMenu(){
     connect(importSnapshotAction, SIGNAL(triggered()), this, SLOT(importSnapshotFromMenu()));
     
     //SHUT
-    
     QAction* shutAllAction = new QAction(tr("&Close All Windows"),NULL);
     shutAllAction->setShortcut(tr("Ctrl+Alt+W"));
     shutAllAction->setToolTip(tr("Close all the Windows"));
@@ -413,27 +401,23 @@ QMenu* FLApp::create_FileMenu(){
     return fileMenu;
 }
 
-QMenu* FLApp::create_ExampleMenu(){
-    
+QMenu* FLApp::create_ExampleMenu()
+{
     QMenu* menuOpen_Example = new QMenu(tr("&Open Example"), NULL);
-    
     QDir examplesDir(":/");
     
-    if(examplesDir.cd("Examples")){
+    if (examplesDir.cd("Examples")) {
         
         QFileInfoList children = examplesDir.entryInfoList(QDir::Files | QDir::Drives | QDir::NoDotAndDotDot);
-        
         QFileInfoList::iterator it;
         int i = 0; 
         
         QAction** openExamples = new QAction* [children.size()];
         
-        for(it = children.begin(); it != children.end(); it++){
-            
+        for (it = children.begin(); it != children.end(); it++) {
             openExamples[i] = new QAction(it->baseName(), NULL);
             openExamples[i]->setData(QVariant(it->absoluteFilePath()));
             connect(openExamples[i], SIGNAL(triggered()), this, SLOT(open_Example_From_FileMenu()));
-            
             menuOpen_Example->addAction(openExamples[i]);
             i++;
         }
@@ -442,22 +426,23 @@ QMenu* FLApp::create_ExampleMenu(){
     return menuOpen_Example;
 }
 
-QMenu* FLApp::create_RecentFileMenu(){
-    
+QMenu* FLApp::create_RecentFileMenu()
+{
     QMenu* openRecentAction = new QMenu(tr("&Open Recent File"), NULL);
     
-    for(int i=0; i<kMAXRECENT; i++)
+    for (int i = 0; i < kMAXRECENT; i++) {
         openRecentAction->addAction(fRecentFileAction[i]);
+    }
     
     return openRecentAction;
 }
 
 //@param recallOrImport : true = Recall ||| false = Import
-QMenu* FLApp::create_LoadSessionMenu(bool recallOrImport){
-    
+QMenu* FLApp::create_LoadSessionMenu(bool recallOrImport)
+{
     QString menuName("");
     
-    if(recallOrImport)
+    if (recallOrImport)
         menuName = "Recall Recent Snapshot";
     else
         menuName = "Import Recent Snapshot";
@@ -475,15 +460,14 @@ QMenu* FLApp::create_LoadSessionMenu(bool recallOrImport){
     return loadRecentMenu;
 }
 
-QMenu* FLApp::create_NavigateMenu(){
-    
+QMenu* FLApp::create_NavigateMenu()
+{
     QMenu* navigateMenu = new QMenu(tr("Navigate"), 0);
-
     return navigateMenu;
 }
 
-QMenu* FLApp::create_HelpMenu(){
-    
+QMenu* FLApp::create_HelpMenu()
+{
     QMenu* helpMenu = new QMenu(tr("Help"), 0);
 
     QAction* versionAction = new QAction(tr("&Version"), this);
@@ -534,10 +518,9 @@ QMenu* FLApp::create_HelpMenu(){
     return helpMenu;
 }
 
-void FLApp::setup_Menu(){
-    
+void FLApp::setup_Menu()
+{
     //---------------------Presentation MENU
-    
     connect(FLPreferenceWindow::_Instance(), SIGNAL(newStyle(const QString&)), this, SLOT(styleClicked(const QString&)));
     connect(FLPreferenceWindow::_Instance(), SIGNAL(dropPortChange()), this, SLOT(changeDropPort()));
 
@@ -547,145 +530,142 @@ void FLApp::setup_Menu(){
     fAudioCreator = AudioCreator::_Instance(NULL);
     
     //--------------------HELP Menu
-    FLHelpWindow::createInstance(fLibsFolder);
+#ifdef _WIN32
+    QString separationChar = "\\";
+#else
+    QString separationChar = "/";
+#endif
     
-    
+    fLibsFolder = fSessionFolder + separationChar  + "Libs";
+    QString testDSPPath = fSessionFolder + separationChar + "Examples" + separationChar + "TestLibs.dsp";
+    FLHelpWindow::createInstance(fLibsFolder, testDSPPath);
     QMenu* fileMenu = create_FileMenu();
     
-    //----------------MenuBar setups --- 
-    
+    //----------------MenuBar setups ---
     fMenuBar->addMenu(fileMenu);
-    
     fMenuBar->addSeparator();
-    
     fNavigateMenu = create_NavigateMenu();
     fMenuBar->addMenu(fNavigateMenu);
     fMenuBar->addSeparator();
-    
     QMenu* helpMenu = create_HelpMenu();
-    
     fMenuBar->addMenu(helpMenu);
 }
 
 //--Update all guis
-void FLApp::updateGuis(){
+void FLApp::updateGuis()
+{
     FLInterfaceManager::_Instance()->updateAllGuis();
 }
 
 //--Starts the presentation menu if no windows are opened (session restoration or drop on icon that opens the application)
-void FLApp::init_Timer_Action(){
+void FLApp::init_Timer_Action()
+{
     fInitTimer->stop();
-    
-    if(FLW_List.size()==0){
-        if(!recall_CurrentSession())
+    if (FLW_List.size() == 0){
+        if (!recall_CurrentSession()) {
             show_presentation_Action();
+        }
     }
 }
 
 //--Print errors in errorWindow
-void FLApp::errorPrinting(const QString& msg){
+void FLApp::errorPrinting(const QString& msg)
+{
     FLErrorWindow::_Instance()->print_Error(msg);
 }
 
 //--------- OPERATIONS ON WINDOWS INDEXES
 
-QList<int> FLApp::get_currentIndexes(){
-    
+QList<int> FLApp::get_currentIndexes()
+{
     QList<int> currentIndexes;
     
-    for( QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++){
+    for (QList<FLWindow*>::iterator it = FLW_List.begin(); it != FLW_List.end(); it++) {
         currentIndexes.push_back((*it)->get_indexWindow());
     }
     return currentIndexes;
 }
 
-int FLApp::find_smallest_index(QList<int> currentIndexes){
-    
+int FLApp::find_smallest_index(QList<int> currentIndexes)
+{
     QList<int>::iterator it;
     bool found = true;
     int i = 0;
     
-    while(found && currentIndexes.size() != 0){
+    while(found && currentIndexes.size() != 0) {
         i++;
         for (it = currentIndexes.begin(); it != currentIndexes.end(); it++){
-            if(*it == i){
+            if (*it == i) {
                 found = true;
                 break;
-            }
-            else
+            } else {
                 found = false;
+            }
         }        
     }
     
-    if(i == 0)
+    if (i == 0) {
         i = 1;
+    }
     return i;
 }
 
 //Calculates the position of a new window to avoid overlapping
-void FLApp::calculate_position(int index, int* x, int* y){
-    
+void FLApp::calculate_position(int index, int* x, int* y)
+{
     int multiplCoef = index;
-    while(multiplCoef > 20){
+    while(multiplCoef > 20) {
         multiplCoef-=20;
     }
-    
     *x = fScreenWidth/3 + multiplCoef*10;
     *y = fScreenHeight/3 + multiplCoef*10;
 }
 
 //---------GET WINDOW FROM ONE OF IT'S PARAMETER 
 
-FLWindow* FLApp::getActiveWin(){
-    
+FLWindow* FLApp::getActiveWin()
+{
     QList<FLWindow*>::iterator it;
-    
     for (it = FLW_List.begin(); it != FLW_List.end(); it++) {
-        
-        if((*it)->isActiveWindow())
+        if ((*it)->isActiveWindow()) {
             return *it;
+        }
     }
-    
     return NULL;
 }
 
 //--------------------------------FILE-----------------------------
 
-QString FLApp::createWindowFolder(const QString& sessionFolder, int index){
-    
+QString FLApp::createWindowFolder(const QString& sessionFolder, int index)
+{
     QString path = sessionFolder + "/Windows/" + fWindowBaseName + QString::number(index);
-    
     QDir dir(path);
-    if(!dir.exists())
+    if (!dir.exists()) {
         dir.mkdir(path);
-    
+    }
     return path;
 }
 
-QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges){
-    
+QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges)
+{
     QString newPath = sessionNewFolder + "/Windows/" + fWindowBaseName + QString::number(newIndex);
     QString oldPath = sessionFolder + "/Windows/" + fWindowBaseName + QString::number(index);
-    
     cpDir(oldPath, newPath);
-    
     QString jcPath = newPath + "/Connections.jc";
-    
     map<string, string> indexStringChanges;
     
-    for(map<int, int>::iterator it = indexChanges.begin(); it!= indexChanges.end(); it++){
+    for(map<int, int>::iterator it = indexChanges.begin(); it!= indexChanges.end(); it++) {
         string oldN = fWindowBaseName.toStdString() + QString::number(it->first).toStdString();
         string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
     
     FJUI::update(jcPath.toStdString().c_str(), indexStringChanges);
-    
     return newPath;
 }
 
-void FLApp::connectWindowSignals(FLWindow* win){
-    
+void FLApp::connectWindowSignals(FLWindow* win)
+{
     connect(win, SIGNAL(drop(QList<QString>)), this, SLOT(drop_Action(QList<QString>)));
     connect(win, SIGNAL(closeWin()), this, SLOT(close_Window_Action()));
     connect(win, SIGNAL(shut_AllWindows()), this, SLOT(shut_AllWindows_FromWindow()));
@@ -697,62 +677,49 @@ void FLApp::connectWindowSignals(FLWindow* win){
 //---------------NEW WINDOW
 
 //--General creation function
-FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error){
-    
-    if(FLW_List.size() >= numberWindows){
+FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error)
+{
+    if (FLW_List.size() >= numberWindows) {
         error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
         return NULL;
     }
     
     int init = kNoInit;
-    
     QString source(mySource);
     
     //In case the source is empty, the effect is chosen by default 
-    if(source.compare("") == 0){
-        
+    if (source.compare("") == 0) {
         source = "process = !,!:0,0;";
-        
-        if(QString::compare(FLSettings::_Instance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::_Instance()->value("General/Style", "Grey").toString(), "Grey") == 0)
+        if (QString::compare(FLSettings::_Instance()->value("General/Style", "Blue").toString(), "Blue") == 0 || QString::compare(FLSettings::_Instance()->value("General/Style", "Grey").toString(), "Grey") == 0) {
             init = kInitWhite;
-        else
+        } else {
             init = kInitBlue;
+        }
     }
     
 // Menus have to be created to be passed to the window
     QList<QMenu*> appMenus;
     appMenus.push_back(create_FileMenu());
-    
     QMenu* navigateMenu = create_NavigateMenu();
     appMenus.push_back(navigateMenu);
-    
     appMenus.push_back(create_HelpMenu());
-    
     FLWindow* win = new FLWindow(fWindowBaseName, index, fSessionFolder, windowSettings,appMenus);
     
 // Initialization of the window
 // Some of its signals have to be connected to the application slots
-    if(win->init_Window(init, source, error)){
-    
+    if (win->init_Window(init, source, error)) {
         FLW_List.push_back(win);
-        
         connectWindowSignals(win);
-        
         fNavigateMenus[win] = navigateMenu;
-        
         QString name = win->get_nameWindow();
         name+=" : ";
         name+= win->getName();
-        
         QAction* navigate = new QAction( name, NULL);
         connect(navigate, SIGNAL(triggered()), this, SLOT(frontShow()));
-        
         fFrontWindow[navigate] = win;
         updateNavigateMenus();
-        
         return win;
-    }
-    else{        
+    } else {
         delete win;
         delete windowSettings;
         return NULL;
@@ -760,15 +727,14 @@ FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings*
 }
 
 //--Creation accessed from Menu
-void FLApp::create_New_Window(const QString& source){
-    
+void FLApp::create_New_Window(const QString& source)
+{
     QString error("");
     //Choice of new Window's index
     int val = find_smallest_index(get_currentIndexes());
     
     int x, y;
     calculate_position(val, &x, &y);
-    
     QString windowPath = createWindowFolder(fSessionFolder, val);
     
     QString settingPath = windowPath + "/Settings.ini";
@@ -777,28 +743,29 @@ void FLApp::create_New_Window(const QString& source){
     windowSettings->setValue("Position/y", y);
     
     FLWindow* win = createWindow(val, source, windowSettings, error);
-    
-    if(!win)
+    if (!win) {
         errorPrinting(error);
+    }
 }
 
 //--Creation of Default Window from Menu
-void FLApp::create_Empty_Window(){ 
+void FLApp::create_Empty_Window()
+{
     create_New_Window("");
 }
 
 //--------------NEW COMPONENT
 
-void FLApp::create_Component_Window(){
-    
+void FLApp::create_Component_Window()
+{
     FLComponentWindow* componentWindow = new FLComponentWindow();
-    
     connect(componentWindow, SIGNAL(newComponent(const QString&)), this, SLOT(create_New_Window(const QString&)));
     connect(componentWindow, SIGNAL(deleteIt()), this, SLOT(deleteComponent()));
     componentWindow->show();
 }
 
-void FLApp::deleteComponent(){
+void FLApp::deleteComponent()
+{
     FLComponentWindow* senderWindow = qobject_cast<FLComponentWindow*>(sender());
     senderWindow->hide();
     senderWindow->deleteLater();
@@ -807,16 +774,16 @@ void FLApp::deleteComponent(){
 //--------------OPEN
 
 //--In the case of a DSP dropped on the Application's icon, this event is called
-bool FLApp::event(QEvent *ev){
-    
+bool FLApp::event(QEvent *ev)
+{
     if (ev->type() == QEvent::FileOpen) {
-        
         QString fileName = static_cast<QFileOpenEvent *>(ev)->file();
-        
-        if(fileName.indexOf(".tar") != -1)
+        if (fileName.indexOf(".tar") != -1) {
             recall_Snapshot(fileName, true);
-        if(fileName.indexOf(".dsp") != -1)
+        }
+        if (fileName.indexOf(".dsp") != -1) {
             create_New_Window(fileName);
+        }
         return true;
     } 
     
@@ -824,29 +791,24 @@ bool FLApp::event(QEvent *ev){
 }
 
 //--Open a dsp from disk
-void FLApp::open_New_Window(){ 
-    
-    //    In case we are opening a new Window from the presentation Menu --> the application must not close : turning fRecalling to true is the trick
+void FLApp::open_New_Window()
+{
+    // In case we are opening a new Window from the presentation Menu --> the application must not close : turning fRecalling to true is the trick
     fRecalling = true;
-    
     FLWindow* win = getActiveWin();
-    
     QStringList fileNames = QFileDialog::getOpenFileNames(NULL, tr("Open one or several DSPs"), fLastOpened, tr("Files (*.dsp)"));
-    
     QStringList::iterator it;
     
-    for(it = fileNames.begin(); it != fileNames.end(); it++){
+    for (it = fileNames.begin(); it != fileNames.end(); it++) {
           
-        if((*it) != ""){
-			
-            QString inter(*it);
-            
+        if ((*it) != "") {
+		    QString inter(*it);
 			fLastOpened = QFileInfo(inter).absolutePath();
-            
-            if(win != NULL && win->is_Default())
+            if (win != NULL && win->is_Default()) {
                 win->update_Window(inter);
-            else
+            } else {
                 create_New_Window(inter);
+            }
         }
     }
     
@@ -855,107 +817,89 @@ void FLApp::open_New_Window(){
 
 //--------------OPEN EXAMPLE
 
-void FLApp::open_Example_From_FileMenu(){
-    
+void FLApp::open_Example_From_FileMenu()
+{
     QAction* action = qobject_cast<QAction*>(sender());
     QString toto(action->data().toString());
-    
     open_Example_Action(toto);
 }
 
-void FLApp::open_Example_Action(QString pathInQResource){
-    
+void FLApp::open_Example_Action(QString pathInQResource)
+{
     QFileInfo toOpen(pathInQResource);
     openExampleAction(toOpen.baseName());
 }
 
-void FLApp::openExampleAction(const QString& exampleName){
-    
+void FLApp::openExampleAction(const QString& exampleName)
+{
     QString pathInSession = fExamplesFolder + "/" + exampleName + ".dsp";
-    
     QString codeToCompile = pathToContent(pathInSession);
-    
     FLWindow* win = getActiveWin();
     
-    if(win != NULL && win->is_Default())
+    if (win != NULL && win->is_Default()) {
         win->update_Window(codeToCompile);
-    else
-        create_New_Window(codeToCompile);    
+    } else {
+        create_New_Window(codeToCompile);
+    }
 }
 
 //-------------RECENT FILES MANAGEMENT
 
-void FLApp::save_Recent(QList<QString>& recents, const QString& pathToSettings){
-    
+void FLApp::save_Recent(QList<QString>& recents, const QString& pathToSettings)
+{
     int index = 1;
-    
     for (QList<QString>::iterator it=recents.begin(); it!=recents.end(); it++) {
         
-        if(index<kMAXRECENT+1){
-            
+        if (index<kMAXRECENT+1) {
             QString settingPath = pathToSettings + QString::number(index);
-            
             FLSettings::_Instance()->setValue(settingPath, *it);
-            
             index++;
-        }
-        else
+        } else
             break;
     }
 }
 
-void FLApp::recall_Recent(QList<QString>& recents, const QString& pathToSettings){
-    
-    for(int i=1; i<=kMAXRECENT; i++){
-        
+void FLApp::recall_Recent(QList<QString>& recents, const QString& pathToSettings)
+{
+    for (int i = 1; i <= kMAXRECENT; i++) {
         QString settingPath = pathToSettings + QString::number(i);
-        
         QString path = FLSettings::_Instance()->value(settingPath, "").toString();
         recents.push_back(path);
     }
-    
 }
 
 //--Save/Recall from file 
-void FLApp::save_Recent_Files(){
-    
+void FLApp::save_Recent_Files()
+{
     QString settingPath = "General/RecentFiles/";
-    
     save_Recent(fRecentFiles, settingPath);
 }
 
-void FLApp::recall_Recent_Files(){
-    
+void FLApp::recall_Recent_Files()
+{
     QString settingPath = "General/RecentFiles/";
     recall_Recent(fRecentFiles, settingPath);
-    
     update_Recent_File();
 }
 
 //--Add new recent file
-void FLApp::set_Current_File(const QString& path){
-    
+void FLApp::set_Current_File(const QString& path)
+{
     fRecentFiles.removeOne(path);
     fRecentFiles.push_front(path);
-    
     update_Recent_File();
-    
 }
 
 //--Visual Update
-void FLApp::update_Recent_File(){
-    
+void FLApp::update_Recent_File()
+{
     int index = 0;
-    
-    for(QList<QString>::iterator it=fRecentFiles.begin(); it!=fRecentFiles.end(); it++){
+    for (QList<QString>::iterator it = fRecentFiles.begin(); it != fRecentFiles.end(); it++) {
         
-        if(index<kMAXRECENT){
-            
+        if (index<kMAXRECENT) {
             QString path = *it;
-            
-            if(path != ""){
+            if (path != "") {
                 QString text = tr("&%1 %2").arg(index+1).arg(QFileInfo(path).baseName());
-                
                 fRecentFileAction[index]->setText(text);
                 fRecentFileAction[index]->setData(path);
                 fRecentFileAction[index]->setVisible(true);
@@ -967,19 +911,18 @@ void FLApp::update_Recent_File(){
     }
 }
 
-void FLApp::open_Recent_File(){
+void FLApp::open_Recent_File()
+{
     QAction* action = qobject_cast<QAction*>(sender());
     QString toto(action->data().toString());
-    
     open_Recent_File(toto);
 }
 
 //--Open a recent file
-void FLApp::open_Recent_File(const QString& toto){
-    
+void FLApp::open_Recent_File(const QString& toto)
+{
     FLWindow* win = getActiveWin();
-    
-    if(win != NULL && win->is_Default())
+    if( win != NULL && win->is_Default())
         win->update_Window(toto);
     else
         create_New_Window(toto);
@@ -1008,36 +951,33 @@ void FLApp::open_Remote_Window(){
 //--------------RECENTLY OPENED
 
 //--Save/Recall from file
-void FLApp::save_Recent_Sessions(){
-   
+void FLApp::save_Recent_Sessions()
+{
     QString settingPath = "General/RecentSessions/";
-        
     save_Recent(fRecentSessions, settingPath);
 }
 
-void FLApp::recall_Recent_Sessions(){
-    
+void FLApp::recall_Recent_Sessions()
+{
     QString settingPath = "General/RecentSessions/";
     recall_Recent(fRecentSessions, settingPath);
-    
     update_Recent_Session();
 }
 
 //Add new recent session
-void FLApp::set_Current_Session(const QString& path){
-    
+void FLApp::set_Current_Session(const QString& path)
+{
     fRecentSessions.removeOne(path);
     fRecentSessions.push_front(path);
-    
     update_Recent_Session();
 }
 
 //Visual Update
-void FLApp::update_Recent_Session(){
-    
+void FLApp::update_Recent_Session()
+{
     int index = 0;
     
-    for(QList<QString>::iterator it=fRecentSessions.begin(); it!=fRecentSessions.end(); it++){
+    for (QList<QString>::iterator it = fRecentSessions.begin(); it != fRecentSessions.end(); it++){
         
         printf("Index = %i || Size = %i || Session = %s\n", index, fRecentSessions.size(), it->toStdString().c_str());
         
@@ -1787,15 +1727,15 @@ void FLApp::launch_Server(){
 }
 
 //Stop FaustLive Server
-void FLApp::stop_Server(){
+void FLApp::stop_Server()
+{
     FLServerHttp::_Instance()->stop();
 }
 
 //Update when a file is dropped on HTTP interface (it has the same behavior as a drop in FaustLive window)
-void FLApp::compile_HttpData(const char* data, int port){
-        
+void FLApp::compile_HttpData(const char* data, int port)
+{
     FLWindow* win;
-    
     QString source(data);
     QString error("");
     

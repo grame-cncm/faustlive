@@ -42,8 +42,11 @@ typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
 #define LLVM_DSP_FACTORY
+
 #ifdef LLVM_DSP_FACTORY
+//#include "faust/dsp/poly-dsp-tools.h"
 #include "faust/dsp/llvm-dsp.h"
+class dsp_poly_factory;
 #else
 #include "faust/dsp/interpreter-dsp.h"
 #endif
@@ -57,7 +60,7 @@ enum {
 };
 
 union factory {
-    dsp_factory* fLLVMFactory;
+    dsp_poly_factory* fLLVMFactory;
     
 #ifdef REMOTE
     remote_dsp_factory* fRemoteFactory;

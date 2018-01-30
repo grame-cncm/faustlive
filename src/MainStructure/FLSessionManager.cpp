@@ -18,7 +18,7 @@
 #include <assert.h>
 
 #define LLVM_DSP
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/poly-dsp-tools.h"
 
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
@@ -152,7 +152,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //----Use IR Saving if possible
         if (QFileInfo(irFile.c_str()).exists()) {
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", optLevel);
         #else
             toCompile->fLLVMFactory = NULL;  // TODO
         #endif
@@ -165,7 +165,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             // New allocation
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+            toCompile->fLLVMFactory = createPolyDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
         #else
             toCompile->fLLVMFactory = createInterpreterDSPFactoryFromFile(fileToCompile, argc, argv, error);
         #endif
@@ -177,7 +177,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             if (toCompile->fLLVMFactory) {
             #ifdef LLVM_DSP_FACTORY
-                writeDSPFactoryToBitcodeFile(dynamic_cast<llvm_dsp_factory*>(toCompile->fLLVMFactory), irFile);
+                writePolyDSPFactoryToBitcodeFile(dynamic_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
                // TODO
             #endif
@@ -291,8 +291,6 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
     
-        dsp* dsp = toCompile->fLLVMFactory->createDSPInstance();
-        
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
         bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
@@ -300,13 +298,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(dsp, atoi(voices.c_str()), midi, group);
+            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
         } else {
-            compiledDSP = dsp;
+            compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
         }
          
         // For in-buffer MIDI control
-        if (midi && hasMIDISync(dsp)) {
+        if (midi && hasMIDISync(compiledDSP)) {
             compiledDSP = new timed_dsp(compiledDSP);
         }
     }
@@ -400,7 +398,8 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     if (factoryToDelete->fType == TYPE_LOCAL) {
         delete toDeleteDSP;
     #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        //deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        delete factoryToDelete->fFactory->fLLVMFactory;
     #else
         deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
     #endif
@@ -1096,7 +1095,7 @@ QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependenc
     std::vector<std::string> stdDependendies;
     
 #ifdef LLVM_DSP_FACTORY
-    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<llvm_dsp_factory*>(factoryDependency));
+    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<dsp_poly_factory*>(factoryDependency));
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }

@@ -12,25 +12,27 @@
 
 FLErrorWindow* FLErrorWindow::_errorWindow = NULL;
 
-FLErrorWindow::FLErrorWindow(){
+FLErrorWindow::FLErrorWindow()
+{
     fErrorText = new QTextEdit(this);
     init_Window();
     setWindowTitle("MESSAGE_WINDOW");
 }
 
-FLErrorWindow* FLErrorWindow::_Instance(){
-    if(_errorWindow == NULL)
+FLErrorWindow* FLErrorWindow::_Instance()
+{
+    if (_errorWindow == NULL)
         _errorWindow = new FLErrorWindow;
-    
     return _errorWindow;
 }
 
-FLErrorWindow::~FLErrorWindow(){
+FLErrorWindow::~FLErrorWindow()
+{
     delete fErrorText;
 }
 
-void FLErrorWindow::init_Window(){
-    
+void FLErrorWindow::init_Window()
+{
     fWidget = new QWidget(this);
     fButton = new QPushButton(tr("OK"), this);
     connect(fButton, SIGNAL(clicked()), this, SLOT(hideWin()));
@@ -65,26 +67,27 @@ void FLErrorWindow::init_Window(){
     fWidget->setLayout(fLayout);
 }
 
-void FLErrorWindow::redirectClose(){
+void FLErrorWindow::redirectClose()
+{
     emit close();
 }
 
-void FLErrorWindow::closeEvent(QCloseEvent* /*event*/){
-    
+void FLErrorWindow::closeEvent(QCloseEvent* /*event*/)
+{
     this->hideWin();
-    
-    if(QApplication::keyboardModifiers() == Qt::AltModifier)
+    if (QApplication::keyboardModifiers() == Qt::AltModifier)
         emit closeAll();
 }
 
-void FLErrorWindow::hideWin(){
+void FLErrorWindow::hideWin()
+{
     fErrorText->setPlainText("");
     hide();
 }
 
-void FLErrorWindow::print_Error(const QString& text){
-    
-    QString inter = fErrorText->toPlainText(); 
+void FLErrorWindow::print_Error(const QString& text)
+{
+    QString inter = fErrorText->toPlainText();
     QString wholeText = inter + "\n\n" + QDate::currentDate().toString() + "  " + QTime::currentTime().toString() +":\n" +text;
     
     fErrorText->setPlainText(wholeText);

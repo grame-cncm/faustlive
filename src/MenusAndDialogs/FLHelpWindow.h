@@ -45,18 +45,19 @@ class FLHelpWindow : public QMainWindow{
         QPlainTextEdit*   fWinText;
     
         QString fLibsFolder;
+        QString fTestDSPPath;
         map<string, vector<pair<string, string> > > fInfoLibs;
     
         void    parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
     
     public:
     
-        FLHelpWindow(const QString& libsFodler);
+        FLHelpWindow(const QString& libsFodler, const QString& testDSPPath);
         virtual ~FLHelpWindow();
     
         static  FLHelpWindow*   _helpWindow;
         static  FLHelpWindow*   _Instance();
-        static  void            createInstance(const QString home);
+        static  void            createInstance(const QString home, const QString& testDSPPath);
         static  void            deleteInstance();
     
         void    init();

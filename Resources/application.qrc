@@ -76,6 +76,7 @@
     <file>Examples/stereoEcho.dsp</file>
     <file>Examples/switcher.dsp</file>
     <file>Examples/tapiir.dsp</file>
+    <file>Examples/TestLibs.dsp</file>
     <file>Examples/tibetanBowl.dsp</file>
     <file>Examples/trumpet.dsp</file>
     <file>Examples/turenas.dsp</file>

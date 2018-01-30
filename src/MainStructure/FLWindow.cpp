@@ -55,8 +55,7 @@
 #include "faust/dsp/remote-dsp.h"
 #endif
 
-#include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/poly-dsp-tools.h"
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -975,7 +974,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
 
 void FLWindow::addInMIDIHandler(dsp* dsp)
 {
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(dsp);
+    dsp_poly_effect* poly = dynamic_cast<dsp_poly_effect*>(dsp);
     if (poly && fMIDIHandler) {
         fMIDIHandler->addMidiIn(poly);
     }
@@ -983,7 +982,7 @@ void FLWindow::addInMIDIHandler(dsp* dsp)
 
 void FLWindow::removeFromMIDIHandler(dsp* dsp)
 {
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(dsp);
+    dsp_poly_effect* poly = dynamic_cast<dsp_poly_effect*>(dsp);
     if (poly && fMIDIHandler) {
         fMIDIHandler->removeMidiIn(poly);
     }
