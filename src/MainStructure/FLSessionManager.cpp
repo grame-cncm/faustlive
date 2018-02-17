@@ -398,7 +398,6 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     if (factoryToDelete->fType == TYPE_LOCAL) {
         delete toDeleteDSP;
     #ifdef LLVM_DSP_FACTORY
-        //deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
         delete factoryToDelete->fFactory->fLLVMFactory;
     #else
         deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
