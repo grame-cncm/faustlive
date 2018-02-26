@@ -174,7 +174,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     string file = fTestDSPPath.toStdString();
   
 #ifdef LLVM_DSP_FACTORY
-    dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
+    llvm_dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
 #else
     dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
 #endif
@@ -208,7 +208,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
         delete temp_dsp;
         
     #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp_factory));
+        deleteDSPFactory(temp_factory);
     #else
         deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp_factory));
     #endif
