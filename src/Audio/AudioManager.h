@@ -3,10 +3,10 @@
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME. All rights reserved.
 //
 
-// AudioManager is an ameliorated audio. It controls one or two specific audio(s) to implement a crossfade audio between 2 dsp. 
+// AudioManager controls one or two specific audio(s) to implement a crossfade audio between 2 dsp.
 
 #ifndef _AudioManager_h
 #define _AudioManager_h
@@ -21,11 +21,9 @@ using namespace std;
 
 class AudioSettings;
 
-class AudioManager : public QObject, public audio {
-
-    private:
-
-        Q_OBJECT
+class AudioManager : public QObject, public audio
+{
+    Q_OBJECT
     
     public:
     

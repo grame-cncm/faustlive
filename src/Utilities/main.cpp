@@ -8,8 +8,6 @@
 
 // MAIN OF FAUSTLIVE = Starts the FaustLive Qt Application
 
-//#include <libgen.h>
-
 #include <stdlib.h>
 #include <iostream>
 #include <fcntl.h>
