@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file alias="Styles/Default.qss">Styles/Default.qss</file>
+<file alias="Styles/Blue.qss">Styles/Blue.qss</file>
+<file alias="Styles/Grey.qss">Styles/Grey.qss</file>
+<file alias="Styles/Salmon.qss">Styles/Salmon.qss</file>
+</qresource>
+</RCC>
