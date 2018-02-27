@@ -33,7 +33,7 @@ ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 
 ####### INCLUDES PATHS && LIBS PATHS
 DEPENDPATH += $$FAUSTDIR/include/faust/gui
-INCLUDEPATH += .
+INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities
 INCLUDEPATH += /usr/local/include
 
 unix {
@@ -104,13 +104,14 @@ win32 | portaudio {
 	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
 }
 
-unix:!macx {
-	LIBS        += -lasound
-	DEFINES     += ALSA
-	INCLUDEPATH += $$SRC/Audio/AL
-	HEADERS     += $$files($$SRC/Audio/AL/*.h)
-	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
-}
+# never implemented
+#unix:!macx {
+#	LIBS        += -lasound
+#	DEFINES     += ALSA
+#	INCLUDEPATH += $$SRC/Audio/AL
+#	HEADERS     += $$files($$SRC/Audio/AL/*.h)
+#	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
+#}
 
 
 ############################## 
