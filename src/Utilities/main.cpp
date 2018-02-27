@@ -3,7 +3,7 @@
 //  
 //
 //  Created by Sarah Denoux on 30/05/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME reserved.
 //
 
 // MAIN OF FAUSTLIVE = Starts the FaustLive Qt Application
@@ -17,8 +17,6 @@
 #include <cstdlib>
 
 #include <sstream>
-
-using namespace std;
 
 #include "FLApp.h"
 
@@ -34,6 +32,8 @@ using namespace std;
 
 #include <stdio.h>
 #include <stdlib.h>
+
+using namespace std;
 
 FLApp* app;
 
