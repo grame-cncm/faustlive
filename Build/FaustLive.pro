@@ -23,7 +23,7 @@ RCC_DIR 	= tmp
 CONFIG += exceptions rtti c++11
 
 ## QT libraries needed
-QT+=widgets core gui network
+QT += core gui widgets network
 DEFINES += APP_VERSION=\\\"2.0\\\" LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources
@@ -41,12 +41,17 @@ unix {
 	QMAKE_CXX_FLAGS = -Wno-unused-parameter -Wno-unused-variable
 }
 
+LIBS += -lqrencode
+LIBS += -lmicrohttpd
+LIBS += -lcurl
+
 
 static {
 	message("Uses static link for Faust libs")
-	LIBS += $$FAUSTDIR/lib/libfaust.a
-	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
-	LIBS += $$FAUSTDIR/lib/libOSCFaust.a
+	LIBS += -Wl,-static -lfaust -lHTTPDFaust -lOSCFaust
+#	LIBS += $$FAUSTDIR/lib/libfaust.a
+#	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
+#	LIBS += $$FAUSTDIR/lib/libOSCFaust.a
 } else {
 	message("Uses dynamic link for Faust libs")
 	LIBS += -lHTTPDFaust
@@ -54,13 +59,12 @@ static {
 	LIBS += -lfaust
 }
 
-LIBS += $$system($$LLVM_CONFIG --ldflags)
-LIBS += $$system($$LLVM_CONFIG --libs)
-LIBS += $$system($$LLVM_CONFIG --system-libs)
+# llvm is actually embedded into libfaust
+#LIBS += $$system($$LLVM_CONFIG --ldflags)
+#LIBS += $$system($$LLVM_CONFIG --libs)
+#LIBS += $$system($$LLVM_CONFIG --system-libs)
 
-LIBS += -lqrencode
-LIBS += -lmicrohttpd
-LIBS += -lcurl
+message ("LIBS: $$LIBS")
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -105,13 +109,13 @@ win32 | portaudio {
 }
 
 # never implemented
-#unix:!macx {
-#	LIBS        += -lasound
+unix:!macx {
+	LIBS        += -lasound
 #	DEFINES     += ALSA
 #	INCLUDEPATH += $$SRC/Audio/AL
 #	HEADERS     += $$files($$SRC/Audio/AL/*.h)
 #	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
-#}
+}
 
 
 ############################## 
