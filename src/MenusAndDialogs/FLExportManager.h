@@ -12,6 +12,7 @@
     POST /filepost : response with a SHA Key if the file could be compiled
     GET /sha/platform/architecture/binary.zip : response with the requested file that can then be written on the disk
 */
+
 #ifndef _FLExportManager_h
 #define _FLExportManager_h
 
@@ -20,15 +21,15 @@
 #include <list>
 
 #include <QtGui>
-#if QT_VERSION >= 0x050000
+//#if QT_VERSION >= 0x050000
 #include <QtWidgets>
-#endif
+//#endif
 
 #include <QtNetwork>
 
 using namespace std;
 
-class FLTargetChooser : public QDialog{
+class FLTargetChooser : public QDialog {
     
     private:
 

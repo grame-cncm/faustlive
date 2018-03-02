@@ -3,51 +3,43 @@
 
 #include <string>
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
+#include <QString>
 #include <QtWidgets>
+
+#ifdef WIN32
+#pragma warning (disable: 4100 4267)
 #endif
 
-using namespace std;
-
-void writeFile(const QString& filePath, const QString& content);
-
+void	writeFile(const QString& filePath, const QString& content);
 QString readFile(const QString& filePath);
-
 QString pathToContent(const QString& path);
+void	touchFolder(const QString& path);
+bool	executeInstruction(const QString& instruct, QString& errorMsg);
+void	deleteDirectoryAndContent(const QString& directory);
 
-void touchFolder(const QString& path);
+bool	tarFolder(const QString& folder, QString& errorMsg);
+bool	untarFolder(const QString& folder, QString& errorMsg);
 
-bool executeInstruction(const QString& instruct, QString& errorMsg);
+bool	rmDir(const QString &dirPath);
+bool	cpDir(const QString &srcPath, const QString &dstPath);
 
-void deleteDirectoryAndContent(const QString& directory);
-
-bool tarFolder(const QString& folder, QString& errorMsg);
-bool untarFolder(const QString& folder, QString& errorMsg);
-
-bool rmDir(const QString &dirPath);
-bool cpDir(const QString &srcPath, const QString &dstPath);
-
-bool isStringInt(const char* word);
-
+bool	isStringInt(const char* word);
 QString searchLocalIP();
 
-int get_numberParameters(const QString& compilOptions);
+int		get_numberParameters(const QString& compilOptions);
 
-string parse_compilationParams(QString& compilOptions);
+std::string parse_compilationParams(QString& compilOptions);
 
-bool parseKey(vector<string> options, const string& key, int& position);
+bool parseKey(std::vector<std::string> options, const std::string& key, int& position);
 
-bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
+bool addKeyIfExisting(std::vector<std::string>& options, std::vector<std::string>& newoptions, const std::string& key, const std::string& defaultKey, int& position);
 
-void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
+void addKeyValueIfExisting(std::vector<std::string>& options, std::vector<std::string>& newoptions, const std::string& key, const std::string& defaultValue);
 
-vector<string> reorganizeCompilationOptionsAux(vector<string>& options);
+std::vector<std::string> reorganizeCompilationOptionsAux(std::vector<std::string>& options);
 
-string FL_reorganize_compilation_options(QString compilationParams);
-
-string FL_generate_sha1(const string& dsp_content);
-
+std::string FL_reorganize_compilation_options(QString compilationParams);
+std::string FL_generate_sha1(const std::string& dsp_content);
 void centerOnPrimaryScreen(QWidget* w);
 
 #endif

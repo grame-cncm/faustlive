@@ -3,8 +3,14 @@
 //  
 //
 //  Created by Sarah Denoux on 13/05/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME. All rights reserved.
 //
+
+#include <QDesktopWidget>
+#include <QApplication>
+#include <QWidgetList>
+#include <QDate>
+#include <QTime>
 
 #include "FLErrorWindow.h"
 

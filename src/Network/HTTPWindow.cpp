@@ -8,17 +8,15 @@
 
 // HTTPWindow creates a QrCode which correspond to an httpd interface of your faust application so that you can control it within distance. 
 
-#include "HTTPWindow.h"
-
 #include "utilities.h"
+#include "HTTPWindow.h"
 
 using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
 
-HTTPWindow::HTTPWindow(){}
-
-HTTPWindow::~HTTPWindow(){}
+HTTPWindow::HTTPWindow()	{}
+HTTPWindow::~HTTPWindow()	{}
 
 //Brings window on front end and titles the window
 void HTTPWindow::frontShow_Httpd(QString windowTitle){

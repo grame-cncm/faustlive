@@ -5,11 +5,16 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#ifdef _WIN32
+#pragma warning (disable: 4100 4005)
+#endif
+
+// don't change the next includes order
+// it solves the conflict between winsock2 and windows headers
 #include "FLServerHttp.h"
 #include "FLApp.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <shlobj.h>
 #endif
 
@@ -34,7 +39,6 @@
 #include "FJUI.h"
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
-
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
     //Create Current Session Folder

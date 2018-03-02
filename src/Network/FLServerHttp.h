@@ -30,24 +30,19 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <fcntl.h>
-#include <stdlib.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#endif
-
-#include <microhttpd.h>
-
 #include <map>
 #include <vector>
 #include <string>
+
+#include <fcntl.h>
+#include <stdlib.h>
+
+#include <microhttpd.h>
+
+#include <QObject>
+
 #undef min
 #undef max
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
 
 using namespace std;
 
@@ -84,10 +79,8 @@ class FLServerHttp : public QObject
         bool            fCompiled;      // Compilation sucess
         
         string          fServerAddress;
-        
         string          fJson;
         string          fHtml;
-        
         string          fHome;
         
         map<int, string>     fDeclaredNames;

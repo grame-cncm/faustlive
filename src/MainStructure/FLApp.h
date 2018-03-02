@@ -12,10 +12,13 @@
 #ifndef _FLApp_h
 #define _FLApp_h
 
+#include <map>
+
+#include <QApplication>
 #include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
+#include <QMenu>
+#include <QMenuBar>
+#include <QProgressBar>
 
 #ifdef REMOTE
 class remote_dsp_server;
@@ -34,7 +37,6 @@ class FLWindow;
 class FLWinSettings;
 class AudioCreator;
 
-#include <map>
 using namespace std;
 
 class FLApp : public QApplication

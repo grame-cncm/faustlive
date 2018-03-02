@@ -5,6 +5,10 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#ifdef WIN32
+#pragma warning (disable: 4100)
+#endif
+
 #include "faust/gui/faustqt.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/FUI.h"
@@ -1430,7 +1434,7 @@ void FLWindow::allocateHttpInterface()
 	sprintf(charport, "%d", port);
 
     argv[0] = (char*)(windowTitle.toStdString().c_str());
-    argv[1] = "-port";
+    argv[1] = (char*)"-port";
 	argv[2] = charport;
     
     argv[argc] = 0; // NULL terminated argv

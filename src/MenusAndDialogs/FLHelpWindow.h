@@ -13,14 +13,19 @@
 #include <string>
 #include <map>
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
+#include <QMainWindow>
+#include <QString>
+#include <QTextBrowser>
+#include <QTreeWidget>
+#include <QPlainTextEdit>
+
+#ifdef WIN32
+#pragma warning (disable: 4100)
 #endif
 
-using namespace std;
-
 #include "faust/gui/meta.h"
+
+using namespace std;
 
 struct MyMeta: public Meta{
     
