@@ -41,7 +41,7 @@ FLRemoteDSPScanner::~FLRemoteDSPScanner(){
 
 void FLRemoteDSPScanner::getVueFromInterfaceList(std::vector<std::pair<std::string, std::string> >  interfaceList, QListWidget* vue){
     
-    for(int i = 0; i< interfaceList.size() ; i ++){
+    for(size_t i = 0; i< interfaceList.size() ; i ++){
         QListWidgetItem* item = new QListWidgetItem(interfaceList[i].second.c_str());
         vue->addItem(item);
         fItemToSHA[item] = interfaceList[i].first.c_str();

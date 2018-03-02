@@ -15,8 +15,12 @@
 #define _FLInterfaceManager_h
 
 #include <list>
-#include "faust/gui/GUI.h"
 #include "TMutex.h"
+
+#ifdef WIN32
+#pragma warning (disable: 4100)
+#endif
+#include "faust/gui/GUI.h"
 
 class FLInterfaceManager
 {

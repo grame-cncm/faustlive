@@ -10,6 +10,8 @@
 
 #ifndef _WIN32
 	#include <unistd.h>
+#else
+# pragma warning (disable: 4100)
 #endif
 #include <fstream>
 #include <map>

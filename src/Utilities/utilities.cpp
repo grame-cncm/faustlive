@@ -12,6 +12,8 @@
 #include <QtNetwork>
 #include <QWidgetList>
 
+using namespace std;
+
 void writeFile(const QString& filePath, const QString& content)
 {
     QFile f(filePath); 

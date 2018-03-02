@@ -89,7 +89,7 @@ static bool GetMaximumFiles(int& filecount)
 //_______________________________________________________________________
 #ifdef USEWINMAIN
 #include <windows.h>
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow){
+int WINAPI WinMain (HINSTANCE , HINSTANCE , PSTR , int ){
 #else
 int main( int argc, char **argv ){
 #endif

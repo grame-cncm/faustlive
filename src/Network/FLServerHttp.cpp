@@ -9,20 +9,22 @@
 // FLServer wraps another httpPage (typically a httpdInterface) in a droppable page that can send a new source to FaustLive
 
 #include <string>
-
-#include "FLServerHttp.h"
-#include "FLSettings.h"
-
-#define kFile "HtmlCompiler.html"
-
-#include "utilities.h"
-#define kTmpFile "TmpFile.dsp"
-
 #include <sstream>
 #include <iostream>
 #include <fstream> 
 
+#ifndef WIN32
 #include <curl/curl.h>
+#endif
+
+// don't change the next includes order and always keep FLServerHttp.h on first place
+// it (indirectly) solves the conflict between winsock2 and windows
+#include "FLServerHttp.h"
+#include "FLSettings.h"
+#include "utilities.h"
+
+#define kFile       "HtmlCompiler.html"
+#define kTmpFile    "TmpFile.dsp"
 
 using namespace std;
 
@@ -363,7 +365,8 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
 int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber)
 {
-    string resultingPage = "";
+#ifndef WIN32
+	string resultingPage = "";
     stringstream url; 
     
     url<<"http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< "/JSON";
@@ -396,6 +399,9 @@ int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string 
     }    
     
     return sendPage(connection, resultingPage.c_str(), resultingPage.size(), respcode, "application/json");
+#else
+return 1;
+#endif
 }
 
 //----------Accessor to Max Client Number--------

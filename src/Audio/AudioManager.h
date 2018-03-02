@@ -11,11 +11,15 @@
 #ifndef _AudioManager_h
 #define _AudioManager_h
 
-#include "AudioFactory.h"
-#include "faust/audio/audio.h"
-
 #include <string>
 #include <QObject>
+
+#ifdef WIN32
+#pragma warning (disable: 4100)
+#endif
+
+#include "AudioFactory.h"
+#include "faust/audio/audio.h"
 
 using namespace std;
 

@@ -5,6 +5,10 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#ifdef WIN32
+#pragma warning (disable: 4100)
+#endif
+
 #include "faust/gui/faustqt.h"
 #include "faust/dsp/dsp.h"
 

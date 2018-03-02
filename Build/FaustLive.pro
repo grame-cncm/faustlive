@@ -11,6 +11,8 @@ isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }
 ## The LLVM version we are building against, for the Version popup.
 isEmpty(LLVM_VERSION) 	{ LLVM_VERSION = $$system($$LLVM_CONFIG --version) }
 
+message ("FAUSTDIR $$FAUSTDIR")
+
 ## Output settings
 OBJECTS_DIR = tmp
 MOC_DIR 	= tmp
@@ -32,19 +34,22 @@ RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 
 ####### INCLUDES PATHS && LIBS PATHS
-DEPENDPATH += $$FAUSTDIR/include/faust/gui
-INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities
-INCLUDEPATH += /usr/local/include
+DEPENDPATH  += $$FAUSTDIR/include/faust/gui
+INCLUDEPATH += .
 
 unix {
 	LIBS += -L/usr/local/lib
 	QMAKE_CXX_FLAGS = -Wno-unused-parameter -Wno-unused-variable
+	INCLUDEPATH += /usr/local/include
 }
 
-LIBS += -lmicrohttpd
-LIBS += -lcurl
-
-
+win32 {
+	LIBS += $$FAUSTDIR/lib/libfaust.lib
+	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.lib
+	LIBS += $$FAUSTDIR/lib/libOSCFaust.lib
+	INCLUDEPATH += $$FAUSTDIR/include
+}
+else {
 static {
 	message("Uses static link for Faust libs")
 	LIBS += -Wl,-static -lfaust -lHTTPDFaust -lOSCFaust
@@ -56,6 +61,10 @@ static {
 	LIBS += -lHTTPDFaust
 	LIBS += -lOSCFaust
 	LIBS += -lfaust
+}
+	LIBS += -lqrencode
+	LIBS += -lmicrohttpd
+	LIBS += -lcurl
 }
 
 # llvm is actually embedded into libfaust
@@ -107,7 +116,6 @@ win32 | portaudio {
 	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
 }
 
-# never implemented
 unix:!macx {
 	LIBS        += -lasound
 #	DEFINES     += ALSA
