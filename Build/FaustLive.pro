@@ -6,12 +6,12 @@ TEMPLATE = app
 ROOT 	 = $$PWD/..
 SRC 	 = $$ROOT/src
 
+LOCALLIB 	= $$ROOT/lib
+
 isEmpty(FAUSTDIR) 		{ FAUSTDIR = /usr/local }
 isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }
 ## The LLVM version we are building against, for the Version popup.
 isEmpty(LLVM_VERSION) 	{ LLVM_VERSION = $$system($$LLVM_CONFIG --version) }
-
-message ("FAUSTDIR $$FAUSTDIR")
 
 ## Output settings
 OBJECTS_DIR = tmp
@@ -23,6 +23,7 @@ RCC_DIR 	= tmp
 
 #CONFIG += x86_64
 CONFIG += exceptions rtti c++11
+#message ("QMAKE_TARGET $$QMAKE_TARGET.arch")
 
 ## QT libraries needed
 QT += core gui widgets network
@@ -34,8 +35,8 @@ RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 
 ####### INCLUDES PATHS && LIBS PATHS
-DEPENDPATH  += $$FAUSTDIR/include/faust/gui
-INCLUDEPATH += .
+DEPENDPATH += $$FAUSTDIR/include/faust/gui
+INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities
 
 unix {
 	LIBS += -L/usr/local/lib
@@ -44,35 +45,27 @@ unix {
 }
 
 win32 {
-	LIBS += $$FAUSTDIR/lib/libfaust.lib
+    LIBS += winmm.lib
+    LIBS += $$FAUSTDIR/lib/faust.lib
 	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.lib
 	LIBS += $$FAUSTDIR/lib/libOSCFaust.lib
-	INCLUDEPATH += $$FAUSTDIR/include
+    LIBS += $$LOCALLIB/libmicrohttpd/x64/libmicrohttpd.lib
+    INCLUDEPATH += $$FAUSTDIR/include $$LOCALLIB/libmicrohttpd
+	DEFINES += _WIN32
 }
 else {
-static {
+ static {
 	message("Uses static link for Faust libs")
 	LIBS += -Wl,-static -lfaust -lHTTPDFaust -lOSCFaust
-#	LIBS += $$FAUSTDIR/lib/libfaust.a
-#	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
-#	LIBS += $$FAUSTDIR/lib/libOSCFaust.a
-} else {
+ } else {
 	message("Uses dynamic link for Faust libs")
 	LIBS += -lHTTPDFaust
 	LIBS += -lOSCFaust
 	LIBS += -lfaust
-}
-	LIBS += -lqrencode
+ }
 	LIBS += -lmicrohttpd
 	LIBS += -lcurl
 }
-
-# llvm is actually embedded into libfaust
-#LIBS += $$system($$LLVM_CONFIG --ldflags)
-#LIBS += $$system($$LLVM_CONFIG --libs)
-#LIBS += $$system($$LLVM_CONFIG --system-libs)
-
-message ("LIBS: $$LIBS")
 
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
@@ -95,7 +88,6 @@ SOURCES +=	$$files($$SRC/MainStructure/*.cpp)
 SOURCES +=	$$SRC/Network/FLServerHttp.cpp \
 			$$SRC/Network/HTTPWindow.cpp
 
-
 ############################## 
 # platform settings
 ############################## 
@@ -109,19 +101,27 @@ macx {
 }
 
 win32 | portaudio {
-	LIBS        += -lportaudio
+	win32 {
+		isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
+		LIBS += $$PADIR/lib/portaudio.lib
+		INCLUDEPATH += $$PADIR/include
+	}
+	else {
+		LIBS        += -lportaudio
+	}
 	DEFINES     += PORTAUDIO
 	INCLUDEPATH += $$SRC/Audio/PA
 	HEADERS     += $$files($$SRC/Audio/PA/*.h)
 	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
 }
 
+# never implemented
 unix:!macx {
 	LIBS        += -lasound
-	DEFINES     += ALSA
-	INCLUDEPATH += $$SRC/Audio/AL
-	HEADERS     += $$files($$SRC/Audio/AL/*.h)
-	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
+#	DEFINES     += ALSA
+#	INCLUDEPATH += $$SRC/Audio/AL
+#	HEADERS     += $$files($$SRC/Audio/AL/*.h)
+#	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
 }
 
 
