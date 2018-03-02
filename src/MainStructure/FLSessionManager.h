@@ -42,7 +42,9 @@ typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
 #ifdef WIN32
-#pragma warning (disable: 4100 4267)
+# pragma warning (disable: 4100 4267)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #define LLVM_DSP_FACTORY

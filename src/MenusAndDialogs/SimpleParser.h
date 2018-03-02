@@ -1,5 +1,5 @@
-#ifndef SIMPLEPARSER_H
-#define SIMPLEPARSER_H
+#ifndef FLSIMPLEPARSER_H
+#define FLSIMPLEPARSER_H
 
 #include <map>
 #include <vector>
@@ -11,4 +11,4 @@ using namespace std;
 
 bool parseOperatingSystemsList(const char*& p, vector<string>& platforms, map<string, vector<string> >& M);
 
-#endif // SIMPLEPARSER_H
+#endif // FLSIMPLEPARSER_H

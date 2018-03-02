@@ -3,13 +3,14 @@
 //  
 //
 //  Created by Sarah Denoux on 13/05/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME. All rights reserved.
 //
 
 #include "FLExportManager.h"
 
 #ifndef _WIN32
-	#include <unistd.h>
+# include <unistd.h>
+# pragma GCC diagnostic ignored "-Wunused-variable"
 #else
 # pragma warning (disable: 4100)
 #endif
@@ -18,8 +19,8 @@
 #include <vector>
 #include <string>
 #include <ctype.h>
-#include "SimpleParser.h"
 
+#include "SimpleParser.h"
 #include "utilities.h"
 
 #define LLVM_DSP_FACTORY
@@ -32,9 +33,14 @@
 #include "FLSettings.h"
 
 #include <QtNetwork>
-#include <qrencode.h>
+
+#ifndef QRCODECTRL
+# define QRCODECTRL
+#endif
+#include "faust/gui/faustqt.h"
 
 #define JSON_ONLY
+
 
 using namespace std;
 
@@ -579,10 +585,8 @@ void FLExportManager::showSaveB(){
     if(response->error() == QNetworkReply::NoError){
         
         fDataReceived = response->readAll();
-        
         fCheck2->setPixmap(fCheckImg);
         fCheck2->show();
-        
         fPrgBar->hide();
         
         QString sucessMsg = fAppName + "_" + fPlatform + "_" + fArchi;
@@ -597,40 +601,13 @@ void FLExportManager::showSaveB(){
             const int padding = 5;
             
             printf("URL TO BUILD QRCODE = %s\n", fUrl.toStdString().c_str());
-            
-            QRcode* qrc = QRcode_encodeString(fUrl.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-            
-            //   qDebug() << "QRcode width = " << qrc->width;
-            
-            QRgb colors[2];
-            colors[0] = qRgb(255, 255, 255); 	// 0 is white
-            colors[1] = qRgb(0, 0, 0); 			// 1 is black
-            
-            // build the QRCode image
-            QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
-            // clear the image
-            for (int y=0; y<qrc->width+2*padding; y++) {
-                for (int x=0; x<qrc->width+2*padding; x++) {
-                    image.setPixel(x, y, colors[0]);
-                }
-            }
-            // copy the qrcode inside
-            for (int y=0; y<qrc->width; y++) {
-                for (int x=0; x<qrc->width; x++) {
-                    image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
-                }
-            }
-            
-            QImage big = image.scaledToWidth(qrc->width*4);
-            
+			QImage image = getQRCode (fUrl, padding);
+            QImage big = image.scaledToWidth(image.width() * 4);
             QPixmap fQrCode = QPixmap::fromImage(big);
-            
             fQrCodeLabel->setPixmap(fQrCode);
-            
             fMsgLayout->addWidget(fQrCodeLabel, 6, 0, 1, 6, Qt::AlignCenter);
             fQrCodeLabel->show();
         }
-        
         fSaveB->show();
         
         response->deleteLater(); //IMPORTANT : on emploie la fonction deleteLater() pour supprimer la réponse du serveur.

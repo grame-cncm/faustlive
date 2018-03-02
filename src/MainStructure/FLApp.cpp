@@ -6,7 +6,9 @@
 //
 
 #ifdef _WIN32
-#pragma warning (disable: 4100 4005)
+# pragma warning (disable: 4100 4005)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 // don't change the next includes order
