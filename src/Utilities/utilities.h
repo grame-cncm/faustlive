@@ -7,7 +7,9 @@
 #include <QtWidgets>
 
 #ifdef WIN32
-#pragma warning (disable: 4100 4267)
+# pragma warning (disable: 4100 4267)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 void	writeFile(const QString& filePath, const QString& content);

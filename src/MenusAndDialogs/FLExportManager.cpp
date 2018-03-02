@@ -9,7 +9,8 @@
 #include "FLExportManager.h"
 
 #ifndef _WIN32
-	#include <unistd.h>
+# include <unistd.h>
+# pragma GCC diagnostic ignored "-Wunused-variable"
 #else
 # pragma warning (disable: 4100)
 #endif
@@ -18,8 +19,8 @@
 #include <vector>
 #include <string>
 #include <ctype.h>
-#include "SimpleParser.h"
 
+#include "SimpleParser.h"
 #include "utilities.h"
 
 #define LLVM_DSP_FACTORY

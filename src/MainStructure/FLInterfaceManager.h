@@ -18,7 +18,9 @@
 #include "TMutex.h"
 
 #ifdef WIN32
-#pragma warning (disable: 4100)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include "faust/gui/GUI.h"
 
