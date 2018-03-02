@@ -41,7 +41,6 @@ unix {
 	QMAKE_CXX_FLAGS = -Wno-unused-parameter -Wno-unused-variable
 }
 
-LIBS += -lqrencode
 LIBS += -lmicrohttpd
 LIBS += -lcurl
 
