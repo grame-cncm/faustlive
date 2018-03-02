@@ -978,17 +978,17 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
 
 void FLWindow::addInMIDIHandler(dsp* dsp)
 {
-    dsp_poly_effect* poly = dynamic_cast<dsp_poly_effect*>(dsp);
-    if (poly && fMIDIHandler) {
-        fMIDIHandler->addMidiIn(poly);
+    bool polyphony = fSettings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
+    if (polyphony && fMIDIHandler) {
+        fMIDIHandler->addMidiIn(static_cast<dsp_poly_effect*>(dsp));
     }
 }
 
 void FLWindow::removeFromMIDIHandler(dsp* dsp)
 {
-    dsp_poly_effect* poly = dynamic_cast<dsp_poly_effect*>(dsp);
-    if (poly && fMIDIHandler) {
-        fMIDIHandler->removeMidiIn(poly);
+    bool polyphony = fSettings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
+    if (polyphony && fMIDIHandler) {
+        fMIDIHandler->removeMidiIn(static_cast<dsp_poly_effect*>(dsp));
     }
 }
 
