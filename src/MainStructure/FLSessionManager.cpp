@@ -6,6 +6,10 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#ifndef _WIN32
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #include "FLSessionManager.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"

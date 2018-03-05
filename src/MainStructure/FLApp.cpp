@@ -7,12 +7,12 @@
 
 #ifdef _WIN32
 # pragma warning (disable: 4100 4005)
+# define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-// don't change the next includes order
-// it solves the conflict between winsock2 and windows headers
 #include "FLServerHttp.h"
 #include "FLApp.h"
 
