@@ -14,13 +14,13 @@
 #else
 # pragma warning (disable: 4100)
 #endif
+
 #include <fstream>
 #include <map>
 #include <vector>
 #include <string>
 #include <ctype.h>
 
-#include "SimpleParser.h"
 #include "utilities.h"
 
 #define LLVM_DSP_FACTORY
@@ -38,6 +38,7 @@
 # define QRCODECTRL
 #endif
 #include "faust/gui/faustqt.h"
+#include "SimpleParser.h"
 
 #define JSON_ONLY
 
