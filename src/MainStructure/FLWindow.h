@@ -16,11 +16,8 @@
 #define _FLWindow_h
 
 #include <string>
-
 #include <QtGui>
-//#if QT_VERSION >= 0x050000
 #include <QtWidgets>
-//#endif
 
 #ifdef WIN32
 # pragma warning (disable: 4100)

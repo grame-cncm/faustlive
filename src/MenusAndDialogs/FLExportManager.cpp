@@ -6,13 +6,13 @@
 //  Copyright (c) 2013 GRAME. All rights reserved.
 //
 
-#include "FLExportManager.h"
 
 #ifndef _WIN32
 # include <unistd.h>
 # pragma GCC diagnostic ignored "-Wunused-variable"
 #else
 # pragma warning (disable: 4100)
+# define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #endif
 
 #include <fstream>
@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <ctype.h>
+#include <QtNetwork>
 
 #include "utilities.h"
 
@@ -30,9 +31,9 @@
 #include "faust/dsp/interpreter-dsp.h"
 #endif
 
+#include "FLExportManager.h"
 #include "FLSettings.h"
 
-#include <QtNetwork>
 
 #ifndef QRCODECTRL
 # define QRCODECTRL
