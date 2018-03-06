@@ -82,10 +82,6 @@ static bool GetMaximumFiles(int& filecount)
 
 #endif
 
-
-#if defined(WIN32) && !defined(_DEBUG)
-# define USEWINMAIN
-#endif
 //_______________________________________________________________________
 #ifdef USEWINMAIN
 #include <windows.h>
@@ -94,7 +90,6 @@ int WINAPI WinMain (HINSTANCE , HINSTANCE , PSTR , int ){
 int main( int argc, char **argv ){
 #endif
 #ifdef USEWINMAIN
-	printf("USEWINMAIN\n");
 int argc = __argc;
 char **argv = __argv;
 #endif
