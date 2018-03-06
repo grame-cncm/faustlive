@@ -571,7 +571,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         argv[iteratorParams++] = strdup(path.c_str());
     }
     
-#ifdef _WIN32
+#ifdef LLVM_MATH 
     //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
     argv[iteratorParams++] = "-l";
     argv[iteratorParams++] = "llvm_math.ll";

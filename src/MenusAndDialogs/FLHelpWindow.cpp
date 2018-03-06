@@ -18,7 +18,6 @@
 #endif
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
-
 FLHelpWindow* FLHelpWindow::_helpWindow = NULL;
 
 FLHelpWindow::FLHelpWindow(const QString& libsFolder, const QString& testDSPPath)
@@ -153,27 +152,30 @@ void FLHelpWindow::setWinPropertiesText(const QString& currentText)
 /* We compile a test.dsp which imports all the faust libraries, declaring their characteristics in metadata to allow us to retrieve them */
 void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLibs)
 {
-	int argc = 2;
+//    int argc = 2;
+    int argc = 0;
 #ifdef _WIN32
-	argc = argc + 2;
+//	argc = argc + 2;
 #endif
-    const char** argv = new const char*[argc + 1];
-    
-    argv[0] = "-I";
+//    const char** argv = new const char*[argc + 1];
+    const char* argv[256]; // max arguments is 256
+
+    argv[argc++] = "-I";
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
     string libPath = fLibsFolder.toStdString();
-    argv[1] = libPath.c_str();
+    argv[argc++] = libPath.c_str();
     
-#ifdef _WIN32
-	argv[2] = "-l";
-	argv[3] = "llvm_math.ll";
+#ifdef LLVM_MATH
+	argv[argc++] = "-l";
+	argv[argc++] = "llvm_math.ll";
 #endif
     argv[argc] = 0; // NULL terminated argv
     string error;
     string file = fTestDSPPath.toStdString();
   
 #ifdef LLVM_DSP_FACTORY
+for (int i = 0; i < argc; i++)
     llvm_dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
 #else
     dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
@@ -183,7 +185,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
         return;
     }
     dsp* temp_dsp = temp_factory->createDSPInstance();
- 
+
     if (temp_dsp) {
 
         MyMeta* meta = new MyMeta;
@@ -234,7 +236,6 @@ void FLHelpWindow::setLibText()
 void FLHelpWindow::init()
 {
     //----------------------Global Help Window
-    
     QGroupBox* winGroup = new QGroupBox(this);
     QVBoxLayout* winLayout = new QVBoxLayout;
     
@@ -243,32 +244,24 @@ void FLHelpWindow::init()
     
     QTabWidget *myTabWidget = new QTabWidget(winGroup);
     
-    //---------------------General
-    
+    //---------------------General    
     QWidget* tab_general = new QWidget;
-    
     QVBoxLayout* generalLayout = new QVBoxLayout;
-    
     QPlainTextEdit* generalText = new QPlainTextEdit(tr("\nFaustLive is a dynamic compiler for audio DSP programs coded with Faust. It embeds Faust & LLVM compiler.\n\nEvery window of the application corresponds to an audio application, which parameters you can adjust."));
-    
     QLineEdit* lineEdit = new QLineEdit(tr(" Distributed by GRAME - Centre de Creation Musicale"));
     
     generalText->setReadOnly(true);
     lineEdit->setReadOnly(true);
-    
+
     myTabWidget->addTab(tab_general, QString(tr("General")));
     
     generalLayout->addWidget(generalText);
-    generalLayout->addWidget(lineEdit);
-    
+    generalLayout->addWidget(lineEdit);    
     tab_general->setLayout(generalLayout);
     
     //----------------------Tools
-    
     QWidget* tab_tool = new QWidget;
-    
     QGridLayout* toolLayout = new QGridLayout;
-    
     QListWidget *vue = new QListWidget;
     
     vue->addItem(QString(tr("FAUST")));
@@ -314,9 +307,7 @@ void FLHelpWindow::init()
     vue->setCurrentRow(0);
     
     //-----------------------Faust Libraries
-    
     QWidget* tab_app1 = new QWidget();
-    
     QGridLayout* appLayout1 = new QGridLayout;
     
     fTreeLibs = new QTreeWidget;
@@ -325,34 +316,26 @@ void FLHelpWindow::init()
     //    Mettre en route d'ajouter les librairies présentes dans le dossier Libs
     
     parseLibs(fInfoLibs);
-    
+
     QDir libsDir(fLibsFolder);
-    
     QFileInfoList children = libsDir.entryInfoList(QDir::Files);
-    
     QFileInfoList::iterator it;
-    
-    for(it = children.begin(); it != children.end(); it++){
+     for(it = children.begin(); it != children.end(); it++){
         if(it->completeSuffix().compare("ll") != 0 && it->completeSuffix().compare("dsp") != 0){
-            
-            
             QString completeName = it->baseName() + "." + it->completeSuffix();
             QTreeWidgetItem* newItem = new QTreeWidgetItem(fTreeLibs, QStringList(completeName));
             
             for(size_t i=0; i<fInfoLibs[completeName.toStdString()].size(); i++){
-                
-                QTreeWidgetItem* childItem = new QTreeWidgetItem(newItem, QStringList(QString(fInfoLibs[completeName.toStdString()][i].first.c_str())));
-                
-                newItem->addChild(childItem);
+                 QTreeWidgetItem* childItem = new QTreeWidgetItem(newItem, QStringList(QString(fInfoLibs[completeName.toStdString()][i].first.c_str())));
+                 newItem->addChild(childItem);
             }
-            
-            fTreeLibs->addTopLevelItem(newItem);
+             fTreeLibs->addTopLevelItem(newItem);
         }
     }
     
     connect(fTreeLibs, SIGNAL(itemSelectionChanged()), this, SLOT(setLibText()));
     fTreeLibs->setMaximumWidth(150);
-    
+
     appLayout1->addWidget(fTreeLibs, 0, 0, 1, 1);
     
     fLibsText = new QPlainTextEdit;
@@ -365,11 +348,8 @@ void FLHelpWindow::init()
     tab_app1->setLayout(appLayout1);
     
     //-----------------------Faust Live Menu
-    
     QWidget* tab_app = new QWidget();
-    
     QGridLayout* appLayout = new QGridLayout;
-    
     QListWidget *vue2 = new QListWidget;
     
     vue2->addItem(QString(tr("New Default Window")));
@@ -391,13 +371,10 @@ void FLHelpWindow::init()
     fAppText->setMinimumWidth(300);
     
     vue2->setCurrentRow(0);
-    
     appLayout->addWidget(fAppText, 0, 1, 1, 2);
-    
     myTabWidget->addTab(tab_app, QString(tr("Application Properties")));
-    
     tab_app->setLayout(appLayout);
-    
+
     //-----------------------Window Properties
     
     QWidget* tab_win = new QWidget();
