@@ -2,7 +2,12 @@
 # FAUSTLIVE.PRO
 ######################################################################
 TARGET 	 = FaustLive
-TEMPLATE = app
+win32 {
+	TEMPLATE = vcapp
+}
+else {
+	TEMPLATE = app
+}
 ROOT 	 = $$PWD/..
 SRC 	 = $$ROOT/src
 DESTDIR  = $$PWD/FaustLive
