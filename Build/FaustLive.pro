@@ -5,6 +5,7 @@ TARGET 	 = FaustLive
 TEMPLATE = app
 ROOT 	 = $$PWD/..
 SRC 	 = $$ROOT/src
+DESTDIR  = $$PWD/FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
@@ -45,13 +46,27 @@ unix {
 }
 
 win32 {
-    LIBS += winmm.lib
-    LIBS += $$FAUSTDIR/lib/faust.lib
-	LIBS += $$FAUSTDIR/lib/libHTTPDFaust.lib
-	LIBS += $$FAUSTDIR/lib/libOSCFaust.lib
-    LIBS += $$LOCALLIB/libmicrohttpd/x64/libmicrohttpd.lib
-    INCLUDEPATH += $$FAUSTDIR/include $$LOCALLIB/libmicrohttpd
 	DEFINES += _WIN32
+	msys|mingw {
+		DEFINES += USEWINMAIN 
+		DEFINES += GCC
+    	LIBS += -lwinmm -lws2_32
+    	LIBS += $$FAUSTDIR/lib/libfaust.a
+		LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
+		LIBS += $$FAUSTDIR/lib/libOSCFaust.a
+		LIBS += $$LOCALLIB/libmicrohttpd/x64/MSYS/libmicrohttpd.lib
+    	LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+ 	}
+	else {
+#	    CONFIG += console
+	    DEFINES += USEWINMAIN
+    	LIBS += winmm.lib ws2_32.lib
+    	LIBS += $$FAUSTDIR/lib/faust.lib
+		LIBS += $$FAUSTDIR/lib/libHTTPDFaust.lib
+		LIBS += $$FAUSTDIR/lib/libOSCFaust.lib
+    	LIBS += $$LOCALLIB/libmicrohttpd/x64/libmicrohttpd.lib
+	}
+    INCLUDEPATH += $$FAUSTDIR/include $$LOCALLIB/libmicrohttpd
 }
 else {
  static {
