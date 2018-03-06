@@ -10,6 +10,7 @@
 #ifndef _WIN32
 # include <unistd.h>
 # pragma GCC diagnostic ignored "-Wunused-variable"
+# pragma GCC diagnostic ignored "-Wunused-function"
 #else
 # pragma warning (disable: 4100)
 # define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
@@ -22,7 +23,6 @@
 #include <ctype.h>
 #include <QtNetwork>
 
-#include "SimpleParser.h"
 #include "utilities.h"
 
 #define LLVM_DSP_FACTORY
@@ -40,6 +40,7 @@
 # define QRCODECTRL
 #endif
 #include "faust/gui/faustqt.h"
+#include "SimpleParser.h"
 
 #define JSON_ONLY
 

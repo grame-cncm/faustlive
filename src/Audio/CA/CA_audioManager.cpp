@@ -12,6 +12,8 @@
 # pragma warning (disable: 4100)
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-variable"
+# pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 #include "CA_audioFader.h"
