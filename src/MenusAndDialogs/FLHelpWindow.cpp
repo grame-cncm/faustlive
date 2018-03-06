@@ -175,7 +175,6 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     string file = fTestDSPPath.toStdString();
   
 #ifdef LLVM_DSP_FACTORY
-for (int i = 0; i < argc; i++)
     llvm_dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
 #else
     dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
