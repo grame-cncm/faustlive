@@ -8,7 +8,7 @@
 
 // CA_audioManager controls 2 CA_audioFader. It can switch from one to another with a crossfade or it can act like a simple coreaudio-dsp
 
-#ifdef WIN32
+#if defined(_WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"

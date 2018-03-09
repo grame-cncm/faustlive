@@ -19,7 +19,7 @@
 #include <QtGui>
 #include <QtWidgets>
 
-#ifdef WIN32
+#if defined(_WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"

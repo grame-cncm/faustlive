@@ -5,7 +5,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(GCC)
 # pragma warning (disable: 4100 4005)
 # define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #else
