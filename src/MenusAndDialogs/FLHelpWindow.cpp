@@ -208,9 +208,9 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
         delete temp_dsp;
         
     #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(temp_factory));
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(temp_factory));
     #else
-        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(temp_factory));
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(temp_factory));
     #endif
 
     }

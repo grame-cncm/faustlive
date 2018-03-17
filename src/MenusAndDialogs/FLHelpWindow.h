@@ -39,16 +39,16 @@ class FLHelpWindow : public QMainWindow{
         Q_OBJECT
     
         QTextBrowser* fToolText;
-        QTreeWidget*  fTreeLibs;
-        QPlainTextEdit*   fLibsText;
-        QPlainTextEdit*   fAppText; 
-        QPlainTextEdit*   fWinText;
+        QTreeWidget* fTreeLibs;
+        QPlainTextEdit* fLibsText;
+        QPlainTextEdit* fAppText;
+        QPlainTextEdit* fWinText;
     
         QString fLibsFolder;
         QString fTestDSPPath;
         map<string, vector<pair<string, string> > > fInfoLibs;
     
-        void    parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
+        void parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
     
     public:
     
@@ -60,7 +60,7 @@ class FLHelpWindow : public QMainWindow{
         static  void            createInstance(const QString home, const QString& testDSPPath);
         static  void            deleteInstance();
     
-        void    init();
+        void init();
     
         virtual void closeEvent(QCloseEvent* event);
     

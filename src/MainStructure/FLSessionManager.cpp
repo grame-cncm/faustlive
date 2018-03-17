@@ -177,7 +177,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             if (toCompile->fLLVMFactory) {
             #ifdef LLVM_DSP_FACTORY
-                writePolyDSPFactoryToBitcodeFile(dynamic_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
+                writePolyDSPFactoryToBitcodeFile(static_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
                // TODO
             #endif
@@ -400,7 +400,7 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     #ifdef LLVM_DSP_FACTORY
         delete factoryToDelete->fFactory->fLLVMFactory;
     #else
-        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
     #endif
         factoryToDelete->fFactory->fLLVMFactory = NULL;
     }
@@ -1094,7 +1094,7 @@ QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependenc
     std::vector<std::string> stdDependendies;
     
 #ifdef LLVM_DSP_FACTORY
-    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<dsp_poly_factory*>(factoryDependency));
+    stdDependendies = getDSPFactoryLibraryList(static_cast<dsp_poly_factory*>(factoryDependency));
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }
