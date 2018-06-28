@@ -30,6 +30,7 @@ class FLToolBar;
 class FLStatusBar;
 class OSCUI;
 class MidiUI;
+class SoundUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
@@ -85,9 +86,12 @@ class FLWindow : public QMainWindow
         QTGUI*          fInterface;         //User control interface
         FUI*            fRCInterface;       //Graphical parameters saving interface
 
-        OSCUI*          fOscInterface;      //OSC interface 
+        OSCUI*          fOscInterface;      //OSC interface
+    
         MidiUI*         fMIDIInterface;     //MIDI interface
         midi_handler*   fMIDIHandler;       //RTMIDI midi-handler
+    
+        SoundUI*        fSoundfileInterface;//Soundfile interface
         
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address

@@ -300,6 +300,8 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if (polyphony) {
             compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
         } else {
+            // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
+            //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
         }
          

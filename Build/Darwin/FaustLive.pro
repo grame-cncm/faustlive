@@ -108,6 +108,8 @@ LIBS+=-lcrypto
 LIBS+=-lcurl
 LIBS+=-L/opt/local/lib
 
+LIBS+=-lsndfile
+
 DEFINES += HTTPCTRL
 DEFINES += QRCODECTRL
 
