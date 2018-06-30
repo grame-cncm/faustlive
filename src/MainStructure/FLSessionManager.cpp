@@ -14,6 +14,7 @@
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
+#include "faust/gui/SoundUI.h"
 
 #include <assert.h>
 
@@ -132,8 +133,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
-    factorySettings* mySetts = new factorySettings;
-    factory* toCompile = new factory;
+    factorySettings* mySetts = new factorySettings();
+    factory* toCompile = new factory();
     string error = "";
     
 //------ Additionnal compilation step or options (if set so in settings)
@@ -176,6 +177,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             }
             
             if (toCompile->fLLVMFactory) {
+                
+                // Create SoundUI manager using pathnames
+                mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getDSPFactoryIncludePathnames());
+                
             #ifdef LLVM_DSP_FACTORY
                 writePolyDSPFactoryToBitcodeFile(static_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
@@ -304,6 +309,9 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
             //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
         }
+        
+        // Setup SoundUI manager
+        compiledDSP->buildUserInterface(mySetts->fSoundfileInterface);
          
         // For in-buffer MIDI control
         if (midi && hasMIDISync(compiledDSP)) {
@@ -405,6 +413,8 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
     #endif
         factoryToDelete->fFactory->fLLVMFactory = NULL;
+        delete factoryToDelete->fSoundfileInterface;
+        factoryToDelete->fSoundfileInterface = NULL;
     }
 #ifdef REMOTE
     else {

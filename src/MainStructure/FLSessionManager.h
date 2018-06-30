@@ -54,6 +54,8 @@ class dsp_poly_factory;
 #include "TMutex.h"
 #include <iostream>
 
+class SoundUI;
+
 /**
  * Generic DSP decorator.
  */
@@ -110,6 +112,13 @@ struct factorySettings {
     QString         fPath;
     QString         fName;
     int             fType;
+    SoundUI*        fSoundfileInterface;
+    
+    factorySettings()
+    {
+        fFactory = NULL;
+        fSoundfileInterface = NULL;
+    }
 };
 
 class rtmidi;
@@ -124,7 +133,7 @@ class FLSessionManager : public QObject
         QString         fSessionFolder;
  
         static FLSessionManager* _sessionManager;
-        
+    
 //------ Handle name giving 
         QString         getDeclareName(QString text, QString default_name);
         

@@ -90,9 +90,7 @@ class FLWindow : public QMainWindow
     
         MidiUI*         fMIDIInterface;     //MIDI interface
         midi_handler*   fMIDIHandler;       //RTMIDI midi-handler
-    
-        SoundUI*        fSoundfileInterface;//Soundfile interface
-        
+      
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address
 

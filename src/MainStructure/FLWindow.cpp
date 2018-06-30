@@ -25,8 +25,6 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/midi/RtMidi.cpp"
 
-#include "faust/gui/SoundUI.h"
-
 #include "FLWindow.h"
 #include "HTTPWindow.h"
 #include "FLInterfaceManager.h"
@@ -94,9 +92,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fOscInterface = NULL;
     fMIDIInterface = NULL;
     fMIDIHandler = NULL;
-    
-    fSoundfileInterface = NULL;
-
+ 
     fInterface = NULL;
     fRCInterface = NULL;
     fCurrentDSP = NULL;
@@ -121,15 +117,11 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     connect(this, SIGNAL(remoteCnxLost(int)), this, SLOT(RemoteCallback(int)));
 #endif
     set_MenuBar(appMenus);
-    
-    fSoundfileInterface = new SoundUI();
 }
 
 FLWindow::~FLWindow()
 {
     delete menuBar();
-    
-    delete fSoundfileInterface;
 }
 
 //------------------------WINDOW ACTIONS
@@ -1017,10 +1009,6 @@ void FLWindow::buildInterfaces(dsp* compiledDSP)
     
     if (fMIDIInterface) {
         compiledDSP->buildUserInterface(fMIDIInterface);
-    }
-    
-    if (fSoundfileInterface) {
-        compiledDSP->buildUserInterface(fSoundfileInterface);
     }
 }
 
