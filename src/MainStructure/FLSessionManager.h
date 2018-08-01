@@ -44,7 +44,6 @@ typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #define LLVM_DSP_FACTORY
 
 #ifdef LLVM_DSP_FACTORY
-//#include "faust/dsp/poly-dsp-tools.h"
 #include "faust/dsp/llvm-dsp.h"
 class dsp_poly_factory;
 #else
@@ -221,7 +220,7 @@ class FLSessionManager : public QObject
     
     signals:
     
-        void                error(const QString&);
+        void               error(const QString&);
 };
 
 #endif

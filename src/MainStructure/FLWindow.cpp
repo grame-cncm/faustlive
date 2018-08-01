@@ -55,7 +55,7 @@
 #include "faust/dsp/remote-dsp.h"
 #endif
 
-#include "faust/dsp/poly-dsp-tools.h"
+#include "faust/dsp/poly-llvm-dsp.h"
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
