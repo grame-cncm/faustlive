@@ -178,9 +178,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             
             if (toCompile->fLLVMFactory) {
                 
-                // Create SoundUI manager using pathnames
-                mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getDSPFactoryIncludePathnames());
-                
             #ifdef LLVM_DSP_FACTORY
                 writePolyDSPFactoryToBitcodeFile(static_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
@@ -196,6 +193,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 			    return qMakePair(QString(""), (void*)NULL);
             }
         }
+        
+        // Create SoundUI manager using pathnames
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getDSPFactoryIncludePathnames());
     }
 //------ Compile remote factory
     else if (settings) {
