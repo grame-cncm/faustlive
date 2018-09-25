@@ -195,7 +195,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         }
         
         // Create SoundUI manager using pathnames
-        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getDSPFactoryIncludePathnames());
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames());
     }
 //------ Compile remote factory
     else if (settings) {
@@ -1106,7 +1106,7 @@ QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependenc
     std::vector<std::string> stdDependendies;
     
 #ifdef LLVM_DSP_FACTORY
-    stdDependendies = factoryDependency->getDSPFactoryLibraryList();
+    stdDependendies = factoryDependency->getLibraryList();
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }
