@@ -11,7 +11,7 @@
 #include "NJs_audioFader.h"
 
 NJs_audioFader::NJs_audioFader(int celt, const std::string master_ip, int master_port, int mtu, int latency, QObject* parent)
-: QObject(parent), netjackaudio(celt, master_ip, master_port, mtu, latency)
+: QObject(parent), netjackaudio(celt, master_ip, master_port, mtu, latency, 1, 1)
 {
     reset_Values();
     fNumberRestartAttempts = 0;
