@@ -2,7 +2,12 @@
 # FAUSTLIVE.PRO
 ######################################################################
 TARGET 	 = FaustLive
-TEMPLATE = app
+win32 {
+	TEMPLATE = vcapp
+}
+else {
+	TEMPLATE = app
+}
 ROOT 	 = $$PWD/..
 SRC 	 = $$ROOT/src
 DESTDIR  = $$PWD/FaustLive
@@ -50,12 +55,12 @@ win32 {
 	msys|mingw {
 		DEFINES += USEWINMAIN 
 		DEFINES += GCC
-    	LIBS += -lwinmm -lws2_32
     	LIBS += $$FAUSTDIR/lib/libfaust.a
 		LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
 		LIBS += $$FAUSTDIR/lib/libOSCFaust.a
 		LIBS += $$LOCALLIB/libmicrohttpd/x64/MSYS/libmicrohttpd.lib
     	LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+ 	  	LIBS += -lwinmm -lws2_32
  	}
 	else {
 #	    CONFIG += console

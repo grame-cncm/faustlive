@@ -19,7 +19,7 @@
 #include <QTreeWidget>
 #include <QPlainTextEdit>
 
-#if defined(_WIN32) && !defined(GCC)
+#if defined(WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"

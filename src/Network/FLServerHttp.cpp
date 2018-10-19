@@ -165,7 +165,7 @@ int FLServerHttp::handlePost(MHD_Connection *connection, const char* /**url**/, 
 }
 
 //Callback that parses the content of a post request
-int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
+int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind, const char *key, const char* /*filename*/, const char* /*content_type*/, const char* /*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size)
 {
     connection_info *con_info = (connection_info*)coninfo_cls;
     
@@ -187,10 +187,10 @@ int FLServerHttp::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, const c
 //Callback answering to any request to the server
 int FLServerHttp::answerToConnection(void *cls, 
                                     MHD_Connection *connection, 
-                                    const char *url, 
-                                    const char *method, 
-                                    const char */**version*/, 
-                                    const char *upload_data, 
+                                    const char* url, 
+                                    const char* method, 
+                                    const char* /*version*/, 
+                                    const char* upload_data, 
                                     size_t *upload_data_size, 
                                     void **con_cls)
 {
@@ -268,7 +268,7 @@ int FLServerHttp::sendPage(struct MHD_Connection *connection, const char *page, 
 }
 
 //Callback ending a client connection
-void FLServerHttp::requestCompleted(void */*cls*/, MHD_Connection */*connection*/, void **con_cls, MHD_RequestTerminationCode /*toe*/)
+void FLServerHttp::requestCompleted(void *, MHD_Connection *, void **con_cls, MHD_RequestTerminationCode)
 {
     connection_info *con_info = (connection_info*)*con_cls;
     

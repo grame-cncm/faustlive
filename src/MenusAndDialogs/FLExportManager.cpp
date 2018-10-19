@@ -7,7 +7,7 @@
 //
 
 
-#if defined(_WIN32) && !defined(GCC)
+#if defined(WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
 #else
 # include <unistd.h>
@@ -15,7 +15,7 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#ifdef _WIN32
+#ifdef WIN32
 # define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #endif
 

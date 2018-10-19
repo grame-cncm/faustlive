@@ -6,7 +6,7 @@
 #include <QString>
 #include <QtWidgets>
 
-#if defined(_WIN32) && !defined(GCC)
+#if defined(WIN32) && !defined(GCC)
 # pragma warning (disable: 4100 4267)
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"
