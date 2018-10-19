@@ -42,7 +42,3 @@ bool PA_audioFader::get_FadeOut()
 {
     return get_doWeFadeOut();
 }
-
-
-
-

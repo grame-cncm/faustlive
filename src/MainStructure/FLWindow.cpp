@@ -63,7 +63,7 @@
 #include "faust/dsp/remote-dsp.h"
 #endif
 
-#include "faust/dsp/poly-dsp-tools.h"
+#include "faust/dsp/poly-llvm-dsp.h"
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -100,7 +100,7 @@ FLWindow::FLWindow(QString& baseName, int index, const QString& home, FLWinSetti
     fOscInterface = NULL;
     fMIDIInterface = NULL;
     fMIDIHandler = NULL;
-
+ 
     fInterface = NULL;
     fRCInterface = NULL;
     fCurrentDSP = NULL;

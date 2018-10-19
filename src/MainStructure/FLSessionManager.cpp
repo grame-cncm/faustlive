@@ -18,11 +18,12 @@
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
+#include "faust/gui/SoundUI.h"
 
 #include <assert.h>
 
 #define LLVM_DSP
-#include "faust/dsp/poly-dsp-tools.h"
+#include "faust/dsp/poly-llvm-dsp.h"
 
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
@@ -136,8 +137,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
-    factorySettings* mySetts = new factorySettings;
-    factory* toCompile = new factory;
+    factorySettings* mySetts = new factorySettings();
+    factory* toCompile = new factory();
     string error = "";
     
 //------ Additionnal compilation step or options (if set so in settings)
@@ -180,8 +181,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             }
             
             if (toCompile->fLLVMFactory) {
+                
             #ifdef LLVM_DSP_FACTORY
-                writePolyDSPFactoryToBitcodeFile(dynamic_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
+                writePolyDSPFactoryToBitcodeFile(static_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
                // TODO
             #endif
@@ -195,6 +197,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 			    return qMakePair(QString(""), (void*)NULL);
             }
         }
+        
+        // Create SoundUI manager using pathnames
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames());
     }
 //------ Compile remote factory
     else if (settings) {
@@ -304,8 +309,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if (polyphony) {
             compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
         } else {
+            // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
+            //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
         }
+        
+        // Setup SoundUI manager
+        compiledDSP->buildUserInterface(mySetts->fSoundfileInterface);
          
         // For in-buffer MIDI control
         if (midi && hasMIDISync(compiledDSP)) {
@@ -404,9 +414,11 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     #ifdef LLVM_DSP_FACTORY
         delete factoryToDelete->fFactory->fLLVMFactory;
     #else
-        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
     #endif
         factoryToDelete->fFactory->fLLVMFactory = NULL;
+        delete factoryToDelete->fSoundfileInterface;
+        factoryToDelete->fSoundfileInterface = NULL;
     }
 #ifdef REMOTE
     else {
@@ -1098,7 +1110,7 @@ QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependenc
     std::vector<std::string> stdDependendies;
     
 #ifdef LLVM_DSP_FACTORY
-    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<dsp_poly_factory*>(factoryDependency));
+    stdDependendies = factoryDependency->getLibraryList();
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }
