@@ -74,12 +74,9 @@ else {
 	LIBS += -Wl,-static -lfaust -lHTTPDFaust -lOSCFaust
  } else {
 	message("Uses dynamic link for Faust libs")
-	LIBS += -lHTTPDFaust
-	LIBS += -lOSCFaust
-	LIBS += -lfaust
+	LIBS += -lHTTPDFaust -lOSCFaust -lfaust
  }
-	LIBS += -lmicrohttpd
-	LIBS += -lcurl
+	LIBS += -lmicrohttpd -lcurl -lsndfile
 }
 
 DEFINES += HTTPCTRL
