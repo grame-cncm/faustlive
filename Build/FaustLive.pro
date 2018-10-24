@@ -9,8 +9,9 @@ else {
 	TEMPLATE = app
 }
 ROOT 	 = $$PWD/..
+BUILD 	 = $$PWD
 SRC 	 = $$ROOT/src
-DESTDIR  = $$PWD/FaustLive
+DESTDIR  = $$PWD
 
 LOCALLIB 	= $$ROOT/lib
 
@@ -109,12 +110,13 @@ SOURCES +=	$$SRC/Network/FLServerHttp.cpp \
 # platform settings
 ############################## 
 macx {
+	message("MacOS CoreAudio driver")
 	LIBS        += -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI
 	DEFINES     += COREAUDIO
 	INCLUDEPATH += $$SRC/Audio/CA
 	HEADERS     += $$files($$SRC/Audio/CA/*.h)
 	SOURCES     += $$files($$SRC/Audio/CA/*.cpp)
-	QMAKE_INFO_PLIST = ./MacOS/FaustLiveInfo.plist
+	QMAKE_INFO_PLIST = $$BUILD/Darwin/FaustLiveInfo.plist
 }
 
 win32 | portaudio {
@@ -134,17 +136,26 @@ win32 | portaudio {
 
 # never implemented
 unix:!macx {
+	message("Linux Alsa audio driver")
 	LIBS        += -lasound
-#	DEFINES     += ALSA
-#	INCLUDEPATH += $$SRC/Audio/AL
-#	HEADERS     += $$files($$SRC/Audio/AL/*.h)
-#	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
+	DEFINES     += ALSA
+	INCLUDEPATH += $$SRC/Audio/AL
+	HEADERS     += $$files($$SRC/Audio/AL/*.h)
+	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
 }
 
 
 ############################## 
 # optional settings
 ############################## 
+portaudio {
+	message("Portaudio included")
+	LIBS        += -lportaudio
+	INCLUDEPATH += $$SRC/Audio/PA
+	HEADERS     += $$files($$SRC/Audio/PA/*.h)
+	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
+}
+
 jack {
 	message("Jack included")
 	LIBS        += -ljack
