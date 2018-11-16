@@ -2,7 +2,7 @@
 # FAUSTLIVE.PRO
 ######################################################################
 TARGET 	 = FaustLive
-win32 {
+win32:!msys:!mingw {
 	TEMPLATE = vcapp
 }
 else {
@@ -46,12 +46,11 @@ INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Net
 
 unix {
 	LIBS += -L/usr/local/lib
-	QMAKE_CXX_FLAGS = -Wno-unused-parameter -Wno-unused-variable
+	QMAKE_CXX_FLAGS +== -Wno-unused-parameter -Wno-unused-variable
 	INCLUDEPATH += /usr/local/include
 }
 
 win32 {
-	DEFINES += _WIN32
 	msys|mingw {
 		DEFINES += USEWINMAIN 
 		DEFINES += GCC
@@ -63,6 +62,7 @@ win32 {
  	  	LIBS += -lwinmm -lws2_32
  	}
 	else {
+		DEFINES += _WIN32
 #	    CONFIG += console
 	    DEFINES += USEWINMAIN
     	LIBS += winmm.lib ws2_32.lib
@@ -95,8 +95,7 @@ HEADERS +=  $$files($$SRC/Audio/*.h)
 HEADERS +=  $$files($$SRC/MenusAndDialogs/*.h)
 HEADERS +=  $$files($$SRC/MainStructure/*.h)
 HEADERS +=  $$SRC/Network/FLServerHttp.h \
-			$$SRC/Network/HTTPWindow.h \
-			$$FAUSTDIR/include/faust/gui/faustqt.h
+			$$SRC/Network/HTTPWindow.h 
 
 SOURCES += 	$$files($$SRC/Utilities/*.cpp)
 SOURCES +=	$$files($$SRC/Audio/*.cpp) 
@@ -117,20 +116,27 @@ macx {
 	QMAKE_INFO_PLIST = ./MacOS/FaustLiveInfo.plist
 }
 
-win32 | portaudio {
-	win32 {
-		isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
-		LIBS += $$PADIR/lib/portaudio.lib
-		INCLUDEPATH += $$PADIR/include
-	}
-	else {
-		LIBS        += -lportaudio
-	}
-	DEFINES     += PORTAUDIO
-	INCLUDEPATH += $$SRC/Audio/PA
-	HEADERS     += $$files($$SRC/Audio/PA/*.h)
-	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
+unix|msys|mingw {
+#	QMAKE_CXX_FLAGS += $$system(pkg-config --cflags sndfile)
+#	LIBS += $$system(pkg-config --libs sndfile)
+	LIBS += -lsndfile -lFLAC -logg -lvorbis -lvorbisenc -lspeex
 }
+
+
+#win32 | portaudio {
+#	win32 {
+#		isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
+#		LIBS += $$PADIR/lib/portaudio.lib
+#		INCLUDEPATH += $$PADIR/include
+#	}
+#	else {
+#		LIBS        += -lportaudio
+#	}
+#	DEFINES     += PORTAUDIO
+#	INCLUDEPATH += $$SRC/Audio/PA
+#	HEADERS     += $$files($$SRC/Audio/PA/*.h)
+#	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
+#}
 
 # never implemented
 unix:!macx {
@@ -145,6 +151,28 @@ unix:!macx {
 ############################## 
 # optional settings
 ############################## 
+portaudio {
+	message("portaudio included")
+	win32 {
+		msys|mingw {
+			QMAKE_CXX_FLAGS += $$system(pkg-config --clfagss portaudio-2.0)
+	    	LIBS += $$system(pkg-config --libs portaudio-2.0)
+		}
+		else {
+			isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
+			LIBS += $$PADIR/lib/portaudio.lib
+			INCLUDEPATH += $$PADIR/include		
+		}
+	}
+	else {
+		LIBS        += -lportaudio
+	}
+	DEFINES     += PORTAUDIO
+	INCLUDEPATH += $$SRC/Audio/PA
+	HEADERS     += $$files($$SRC/Audio/PA/*.h)
+	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
+}
+
 jack {
 	message("Jack included")
 	LIBS        += -ljack
