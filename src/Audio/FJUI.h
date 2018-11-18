@@ -47,7 +47,7 @@ struct FJUI
         std::list<std::pair<std::string, std::string> >	Connections;
         
 		while (f.good()) {
-//            f>>cote;
+//          f>>cote;
             cote = f.get();
             
             if (f.good()) {
@@ -56,7 +56,7 @@ struct FJUI
                     gORn++;
                 } else if (gORn == 1) {
                     g += cote;
-                }else if (gORn == 3) {
+                } else if (gORn == 3) {
                     n += cote;
                 }
                 
@@ -87,7 +87,6 @@ struct FJUI
             
             std::map<std::string,std::string>::iterator it;
             for (it = changeTable.begin(); it != changeTable.end() ; it++) {
-                
                 size_t pos = port1.find(it->first);
                 if (pos != std::string::npos) {
                     char nextCharacter = port1[pos+it->first.length()];
