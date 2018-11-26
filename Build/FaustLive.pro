@@ -4,20 +4,27 @@
 TARGET 	 = FaustLive
 win32:!msys:!mingw {
 	TEMPLATE = vcapp
+	CONFIG += console
 }
 else {
 	TEMPLATE = app
 }
 ROOT 	 = $$PWD/..
+BUILD 	 = $$PWD
 SRC 	 = $$ROOT/src
-DESTDIR  = $$PWD/FaustLive
+DESTDIR  = $$PWD
 
 LOCALLIB 	= $$ROOT/lib
 
-isEmpty(FAUSTDIR) 		{ FAUSTDIR = /usr/local }
+
+#isEmpty(FAUSTDIR) 		{ FAUSTDIR = /usr/local }
+isEmpty(FAUSTLIB) 		{ FAUSTLIB = "$$system(faust -libdir)" }
+isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }	
+
 isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }
 ## The LLVM version we are building against, for the Version popup.
 isEmpty(LLVM_VERSION) 	{ LLVM_VERSION = $$system($$LLVM_CONFIG --version) }
+LLVM_LIBS = $$system($$LLVM_CONFIG --libnames)
 
 ## Output settings
 OBJECTS_DIR = tmp
@@ -29,7 +36,6 @@ RCC_DIR 	= tmp
 
 #CONFIG += x86_64
 CONFIG += exceptions rtti c++11
-#message ("QMAKE_TARGET $$QMAKE_TARGET.arch")
 
 ## QT libraries needed
 QT += core gui widgets network
@@ -41,7 +47,7 @@ RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 
 ####### INCLUDES PATHS && LIBS PATHS
-DEPENDPATH += $$FAUSTDIR/include/faust/gui
+DEPENDPATH += $$FAUSTINC/faust/gui
 INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities
 
 unix {
@@ -51,27 +57,35 @@ unix {
 }
 
 win32 {
+#message ("win32")
 	msys|mingw {
 		DEFINES += USEWINMAIN 
 		DEFINES += GCC
-    	LIBS += $$FAUSTDIR/lib/libfaust.a
-		LIBS += $$FAUSTDIR/lib/libHTTPDFaust.a
-		LIBS += $$FAUSTDIR/lib/libOSCFaust.a
+    	LIBS += $$FAUSTLIB/libfaust.a
+		LIBS += $$FAUSTLIB/libHTTPDFaust.a
+		LIBS += $$FAUSTLIB/libOSCFaust.a
+#		LIBS += $$system(pkg-config --libs libmicrohttpd)
+#		LIBS += -L/mingw64/lib -lmicrohttpd 
+		#-lgnutls /mingw64/lib/libintl.dll.a -lws2_32 -lgmp /mingw64/lib/libunistring.dll.a -lidn2 -lhogweed -lgmp -lnettle -ltasn1
+		LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
 		LIBS += $$LOCALLIB/libmicrohttpd/x64/MSYS/libmicrohttpd.lib
-    	LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
- 	  	LIBS += -lwinmm -lws2_32
+ 	  	LIBS += -lwinmm -lws2_32 
  	}
 	else {
 		DEFINES += _WIN32
+		LIBSNDFILE = "C:\Program Files\Mega-Nerd\libsndfile"
 #	    CONFIG += console
-	    DEFINES += USEWINMAIN
-    	LIBS += winmm.lib ws2_32.lib
-    	LIBS += $$FAUSTDIR/lib/faust.lib
-		LIBS += $$FAUSTDIR/lib/libHTTPDFaust.lib
-		LIBS += $$FAUSTDIR/lib/libOSCFaust.lib
+#	    DEFINES += USEWINMAIN
+#		QMAKE_LFLAGS += $$system($$LLVM_CONFIG --ldflags)
+    	LIBS += winmm.lib ws2_32.lib $$LIBSNDFILE/lib/libsndfile-1.lib
+    	LIBS += $$FAUSTLIB/libfaust.lib
+		LIBS += $$FAUSTLIB/libHTTPDFaust.lib
+		LIBS += $$FAUSTLIB/libOSCFaust.lib
     	LIBS += $$LOCALLIB/libmicrohttpd/x64/libmicrohttpd.lib
+    	LIBS += $$LLVM_LIBS
+    	CONFIG += portaudio
 	}
-    INCLUDEPATH += $$FAUSTDIR/include $$LOCALLIB/libmicrohttpd
+    INCLUDEPATH += $$FAUSTINC $$LIBSNDFILE/include $$LOCALLIB/libmicrohttpd
 }
 else {
  static {
@@ -95,7 +109,8 @@ HEADERS +=  $$files($$SRC/Audio/*.h)
 HEADERS +=  $$files($$SRC/MenusAndDialogs/*.h)
 HEADERS +=  $$files($$SRC/MainStructure/*.h)
 HEADERS +=  $$SRC/Network/FLServerHttp.h \
-			$$SRC/Network/HTTPWindow.h 
+			$$SRC/Network/HTTPWindow.h \
+			$$FAUSTINC/faust/gui/faustqt.h
 
 SOURCES += 	$$files($$SRC/Utilities/*.cpp)
 SOURCES +=	$$files($$SRC/Audio/*.cpp) 
@@ -108,43 +123,30 @@ SOURCES +=	$$SRC/Network/FLServerHttp.cpp \
 # platform settings
 ############################## 
 macx {
+	message("MacOS CoreAudio driver")
 	LIBS        += -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI
 	DEFINES     += COREAUDIO
 	INCLUDEPATH += $$SRC/Audio/CA
 	HEADERS     += $$files($$SRC/Audio/CA/*.h)
 	SOURCES     += $$files($$SRC/Audio/CA/*.cpp)
-	QMAKE_INFO_PLIST = ./MacOS/FaustLiveInfo.plist
+	QMAKE_INFO_PLIST = $$BUILD/Darwin/FaustLiveInfo.plist
 }
 
 unix|msys|mingw {
 #	QMAKE_CXX_FLAGS += $$system(pkg-config --cflags sndfile)
 #	LIBS += $$system(pkg-config --libs sndfile)
-	LIBS += -lsndfile -lFLAC -logg -lvorbis -lvorbisenc -lspeex
+#	LIBS += -lsndfile -lFLAC -logg -lvorbis -lspeex
+	#-lFLAC -logg -lvorbis -lvorbisfile -lvorbisenc -lspeex
 }
-
-
-#win32 | portaudio {
-#	win32 {
-#		isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
-#		LIBS += $$PADIR/lib/portaudio.lib
-#		INCLUDEPATH += $$PADIR/include
-#	}
-#	else {
-#		LIBS        += -lportaudio
-#	}
-#	DEFINES     += PORTAUDIO
-#	INCLUDEPATH += $$SRC/Audio/PA
-#	HEADERS     += $$files($$SRC/Audio/PA/*.h)
-#	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
-#}
 
 # never implemented
 unix:!macx {
+	message("Linux Alsa audio driver")
 	LIBS        += -lasound
-#	DEFINES     += ALSA
-#	INCLUDEPATH += $$SRC/Audio/AL
-#	HEADERS     += $$files($$SRC/Audio/AL/*.h)
-#	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
+	DEFINES     += ALSA
+	INCLUDEPATH += $$SRC/Audio/AL
+	HEADERS     += $$files($$SRC/Audio/AL/*.h)
+	SOURCES     += $$files($$SRC/Audio/AL/*.cpp)
 }
 
 
@@ -152,23 +154,11 @@ unix:!macx {
 # optional settings
 ############################## 
 portaudio {
-	message("portaudio included")
-	win32 {
-		msys|mingw {
-			QMAKE_CXX_FLAGS += $$system(pkg-config --clfagss portaudio-2.0)
-	    	LIBS += $$system(pkg-config --libs portaudio-2.0)
-		}
-		else {
-			isEmpty(PADIR) 		{ PADIR = $$LOCALLIB/portaudio }
-			LIBS += $$PADIR/lib/portaudio.lib
-			INCLUDEPATH += $$PADIR/include		
-		}
-	}
-	else {
-		LIBS        += -lportaudio
-	}
+	message("Portaudio included")
+	win32 { LIBS += $$ROOT/lib/portaudio/lib/portaudio.lib}
+	else  { LIBS += -lportaudio}
 	DEFINES     += PORTAUDIO
-	INCLUDEPATH += $$SRC/Audio/PA
+	INCLUDEPATH += $$SRC/Audio/PA $$ROOT/lib/portaudio/include
 	HEADERS     += $$files($$SRC/Audio/PA/*.h)
 	SOURCES     += $$files($$SRC/Audio/PA/*.cpp)
 }
