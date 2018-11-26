@@ -90,12 +90,14 @@ win32 {
 else {
  static {
 	message("Uses static link for Faust libs")
-	LIBS += -Wl,-static -lfaust -lHTTPDFaust -lOSCFaust
+	LIBS += $$FAUSTLIB/libfaust.a
+	LIBS += $$FAUSTLIB/libHTTPDFaust.a
+	LIBS += $$FAUSTLIB/libOSCFaust.a
  } else {
 	message("Uses dynamic link for Faust libs")
 	LIBS += -lHTTPDFaust -lOSCFaust -lfaust
  }
-	LIBS += -lmicrohttpd -lcurl -lsndfile
+ LIBS += -lmicrohttpd -lsndfile -lcurl
 }
 
 DEFINES += HTTPCTRL

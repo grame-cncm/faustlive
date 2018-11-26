@@ -2,9 +2,7 @@
 arch ?= $(shell uname -s)
 VERSION = $(shell cat Resources/distVersion.txt)
 
-system	:= $(shell uname -s)
-OUTDIR = fldir
-
+system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), Darwin)
 	TARGET ?= unix
@@ -12,26 +10,32 @@ ifeq ($(system), Darwin)
 else
 ifeq ($(system), MINGW)
 	TARGET ?= windows
+	CONFIG+=portaudio
 else
 ifeq ($(system), Linux)
 	TARGET ?= unix
+	CONFIG+=
 else
 	TARGET = undefined
 endif
 endif
 endif
 
+OUTDIR = fldir
+MAKE ?= make
+
+
 all :
-	make $(TARGET)
+	$(MAKE) $(TARGET)
 
 undefined:
 	$(error System is undefined, not target available)
 
 unix: $(OUTDIR)/Makefile
-	make -C $(OUTDIR) -j 4
+	$(MAKE) -C $(OUTDIR) -j 4
 
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
-	cd $(OUTDIR) && qmake .. $(SPEC)
+	cd $(OUTDIR) && qmake .. $(SPEC) $(CONFIG)
 	
 $(OUTDIR) :
 	mkdir $(OUTDIR)
