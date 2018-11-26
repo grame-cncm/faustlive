@@ -10,6 +10,8 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
+#include <iostream>
+
 #include "FLSessionManager.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
@@ -108,13 +110,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
     string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
-    
-    printf("argc %d\n", argc);
-    
+
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
         errorMsg = err.c_str();
         return qMakePair(QString(""), (void*)NULL);
     }
+
 //  shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
@@ -143,7 +144,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
 //------ Additionnal compilation step or options (if set so in settings)
     if (settings) {
-        QString errMsg;
+       QString errMsg;
         if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(),
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ") + errMsg);
@@ -157,14 +158,15 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //----Use IR Saving if possible
         if (QFileInfo(irFile.c_str()).exists()) {
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+        	string error;
+            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", error, optLevel);
         #else
             toCompile->fLLVMFactory = NULL;  // TODO
         #endif
             
         }
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
-        
+
         //----Create DSP Factory
         if (!toCompile->fLLVMFactory) {
             
@@ -536,29 +538,21 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     int iteratorParams = 0;
     
     /// POLYPHONY
-    if (settings) {
-        numberFixedParams += 6;
-    }
+    if (settings)			numberFixedParams += 6;
     
-    // MACHINE
-    
-    if (settings) {
-        numberFixedParams += 2;
-    }
-    
-    if (sourcePath != "") {
-        numberFixedParams += 2;
-    }
+    // MACHINE    
+    if (settings)			numberFixedParams += 2;    
+    if (sourcePath != "")	numberFixedParams += 2;
   
 #ifdef _WIN32
-    numberFixedParams += 2;
+//    numberFixedParams += 2;
 #endif
     
-    //+7 = -I libraryPath -I currentFolder
+	//+7 = -I libraryPath -I currentFolder
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
-    
-    const char** argv = new const char*[argc+1];
+	
+	const char** argv = new const char*[argc+1];
     
     // MACHINE
     
@@ -630,7 +624,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         argv[iteratorParams++] = (settings->value("Polyphony/GroupEnabled", 
             FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0";
     }
-    
+
     argv[argc] = 0; // NULL terminated argv
     return argv;
 }
