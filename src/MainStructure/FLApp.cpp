@@ -13,6 +13,8 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
+#include <QDir>
+
 #include "FLServerHttp.h"
 #include "FLApp.h"
 
@@ -39,6 +41,7 @@
 #include "FLWinSettings.h"
 #include "FLPreferenceWindow.h"
 #include "FJUI.h"
+
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
@@ -178,18 +181,15 @@ void FLApp::create_Session_Hierarchy()
        environment variable to specify an alternative directory name under
        which the Faust session directory will be created. */
     const char *sessiondir = getenv("FAUSTLIVE_SESSIONDIR");
-    if (sessiondir) {
-        fSessionFolder = sessiondir;
+	if (sessiondir) {
+		fSessionFolder = sessiondir;
         if (!QFileInfo(fSessionFolder).exists()) {
             QDir direct(fSessionFolder);
             direct.mkdir(fSessionFolder);
         }
     } else {
-        char path[512];
-        if (!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)) {
-            fSessionFolder = path;
-        }
-    }
+		fSessionFolder = QDir::homePath();
+	}
     fSessionFolder += "\\FaustLive-CurrentSession-";
     separationChar = "\\";
 #else
