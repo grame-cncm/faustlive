@@ -4,7 +4,6 @@
 TARGET 	 = FaustLive
 win32:!msys:!mingw {
 	TEMPLATE = vcapp
-	CONFIG += console
 }
 else {
 	TEMPLATE = app
@@ -16,8 +15,6 @@ DESTDIR  = $$PWD/FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
-
-#isEmpty(FAUSTDIR) 		{ FAUSTDIR = /usr/local }
 isEmpty(FAUSTLIB) 		{ FAUSTLIB = "$$system(faust -libdir)" }
 isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }	
 
@@ -64,19 +61,25 @@ win32 {
     	LIBS += $$FAUSTLIB/libfaust.a
 		LIBS += $$FAUSTLIB/libHTTPDFaust.a
 		LIBS += $$FAUSTLIB/libOSCFaust.a
-#		LIBS += $$system(pkg-config --libs libmicrohttpd)
-#		LIBS += -L/mingw64/lib -lmicrohttpd 
-		#-lgnutls /mingw64/lib/libintl.dll.a -lws2_32 -lgmp /mingw64/lib/libunistring.dll.a -lidn2 -lhogweed -lgmp -lnettle -ltasn1
 		LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
 		LIBS += $$LOCALLIB/libmicrohttpd/x64/MSYS/libmicrohttpd.lib
  	  	LIBS += -lwinmm -lws2_32 
  	}
 	else {
 		DEFINES += _WIN32
-		LIBSNDFILE = "C:\Program Files\Mega-Nerd\libsndfile"
-#	    CONFIG += console
-#	    DEFINES += USEWINMAIN
-#		QMAKE_LFLAGS += $$system($$LLVM_CONFIG --ldflags)
+		defined(LIBSNDFILE) {}
+		else { LIBSNDFILE = "C:\Program Files\Mega-Nerd\libsndfile" }
+		message ("Using libsndfile from $$LIBSNDFILE")
+		CONSOLE { 
+			CONFIG += console 
+			message ("Generates FaustLive with console")
+		}
+		else {
+			CONFIG -= console
+			DEFINES += USEWINMAIN
+		}
+		LLVM_LD_FLAGS= "$$system($$LLVM_CONFIG --ldflags)"
+		QMAKE_LFLAGS += "$$replace(LLVM_LD_FLAGS, "-", "/")"
     	LIBS += winmm.lib ws2_32.lib $$LIBSNDFILE/lib/libsndfile-1.lib
     	LIBS += $$FAUSTLIB/libfaust.lib
 		LIBS += $$FAUSTLIB/libHTTPDFaust.lib
@@ -135,14 +138,6 @@ macx {
 	QMAKE_INFO_PLIST = $$BUILD/Darwin/FaustLiveInfo.plist
 }
 
-unix|msys|mingw {
-#	QMAKE_CXX_FLAGS += $$system(pkg-config --cflags sndfile)
-#	LIBS += $$system(pkg-config --libs sndfile)
-#	LIBS += -lsndfile -lFLAC -logg -lvorbis -lspeex -lasound
-	#-lFLAC -logg -lvorbis -lvorbisfile -lvorbisenc -lspeex
-}
-
-# never implemented
 unix:!macx {
    	CONFIG += jack
 	LIBS += -lasound -ltinfo
