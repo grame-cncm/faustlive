@@ -12,7 +12,7 @@ else {
 ROOT 	 = $$PWD/..
 BUILD 	 = $$PWD
 SRC 	 = $$ROOT/src
-DESTDIR  = $$PWD
+DESTDIR  = $$PWD/FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
@@ -97,7 +97,8 @@ else {
 	message("Uses dynamic link for Faust libs")
 	LIBS += -lHTTPDFaust -lOSCFaust -lfaust
  }
- LIBS += -lmicrohttpd -lsndfile -lcurl
+ LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+ LIBS += -lmicrohttpd -lsndfile -lcurl -lz -ldl
 }
 
 DEFINES += HTTPCTRL
@@ -137,12 +138,21 @@ macx {
 unix|msys|mingw {
 #	QMAKE_CXX_FLAGS += $$system(pkg-config --cflags sndfile)
 #	LIBS += $$system(pkg-config --libs sndfile)
-#	LIBS += -lsndfile -lFLAC -logg -lvorbis -lspeex
+#	LIBS += -lsndfile -lFLAC -logg -lvorbis -lspeex -lasound
 	#-lFLAC -logg -lvorbis -lvorbisfile -lvorbisenc -lspeex
 }
 
 # never implemented
 unix:!macx {
+   	CONFIG += jack
+	LIBS += -lasound -ltinfo
+}
+
+
+############################## 
+# optional settings
+############################## 
+alsa {
 	message("Linux Alsa audio driver")
 	LIBS        += -lasound
 	DEFINES     += ALSA
@@ -152,9 +162,6 @@ unix:!macx {
 }
 
 
-############################## 
-# optional settings
-############################## 
 portaudio {
 	message("Portaudio included")
 	win32 { LIBS += $$ROOT/lib/portaudio/lib/portaudio.lib}
