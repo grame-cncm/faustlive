@@ -13,14 +13,21 @@
 #include <string>
 #include <map>
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
+#include <QMainWindow>
+#include <QString>
+#include <QTextBrowser>
+#include <QTreeWidget>
+#include <QPlainTextEdit>
+
+#if defined(WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-using namespace std;
-
 #include "faust/gui/meta.h"
+
+using namespace std;
 
 struct MyMeta: public Meta{
     

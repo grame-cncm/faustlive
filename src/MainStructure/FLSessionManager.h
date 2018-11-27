@@ -41,11 +41,17 @@
 typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100 4267)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #define LLVM_DSP_FACTORY
 
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
-class dsp_poly_factory;
+struct dsp_poly_factory;
 #else
 #include "faust/dsp/interpreter-dsp.h"
 #endif

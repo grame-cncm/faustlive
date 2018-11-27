@@ -3,10 +3,20 @@
 //  
 //
 //  Created by Sarah Denoux on 15/07/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME. All rights reserved.
 //
 
 // CA_audioManager controls 2 CA_audioFader. It can switch from one to another with a crossfade or it can act like a simple coreaudio-dsp
+
+#include <QDateTime>
+
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-variable"
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 #include "CA_audioFader.h"
 #include "CA_audioManager.h"

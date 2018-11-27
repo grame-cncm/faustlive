@@ -8,6 +8,10 @@
 
 // This class adds new features to jackaudio so that the dsp of the audioClient can be dynamically changed. MoreOver, the two dsp will be switched with a crossfade between them. 
 
+#ifdef WIN32
+#pragma warning (disable: 4100)
+#endif
+
 #include "PA_audioFader.h"
 
 PA_audioFader::PA_audioFader(long srate, long bsize) : portaudio(srate, bsize) {}

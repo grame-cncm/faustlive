@@ -5,6 +5,14 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-variable"
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #include "faust/gui/faustqt.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/FUI.h"
@@ -1430,7 +1438,7 @@ void FLWindow::allocateHttpInterface()
 	sprintf(charport, "%d", port);
 
     argv[0] = (char*)(windowTitle.toStdString().c_str());
-    argv[1] = "-port";
+    argv[1] = (char*)"-port";
 	argv[2] = charport;
     
     argv[argc] = 0; // NULL terminated argv

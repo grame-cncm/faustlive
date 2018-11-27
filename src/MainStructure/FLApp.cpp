@@ -5,11 +5,20 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100 4005)
+# define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+#include <QDir>
+
 #include "FLServerHttp.h"
 #include "FLApp.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <shlobj.h>
 #endif
 
@@ -33,8 +42,8 @@
 #include "FLPreferenceWindow.h"
 #include "FJUI.h"
 
-//----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 
+//----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
 FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
 
     //Create Current Session Folder
@@ -172,18 +181,15 @@ void FLApp::create_Session_Hierarchy()
        environment variable to specify an alternative directory name under
        which the Faust session directory will be created. */
     const char *sessiondir = getenv("FAUSTLIVE_SESSIONDIR");
-    if (sessiondir) {
-        fSessionFolder = sessiondir;
+	if (sessiondir) {
+		fSessionFolder = sessiondir;
         if (!QFileInfo(fSessionFolder).exists()) {
             QDir direct(fSessionFolder);
             direct.mkdir(fSessionFolder);
         }
     } else {
-        char path[512];
-        if (!SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)) {
-            fSessionFolder = path;
-        }
-    }
+		fSessionFolder = QDir::homePath();
+	}
     fSessionFolder += "\\FaustLive-CurrentSession-";
     separationChar = "\\";
 #else

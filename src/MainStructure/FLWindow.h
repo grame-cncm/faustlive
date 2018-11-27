@@ -16,10 +16,13 @@
 #define _FLWindow_h
 
 #include <string>
-
 #include <QtGui>
-#if QT_VERSION >= 0x050000
 #include <QtWidgets>
+
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include "faust/midi/rt-midi.h"

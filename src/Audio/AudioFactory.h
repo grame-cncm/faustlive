@@ -12,11 +12,12 @@
 #ifndef _AudioFactory_h
 #define _AudioFactory_h
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
+//#include <QtGui>
+//#if QT_VERSION >= 0x050000
+//#include <QtWidgets>
+//#endif
 
+class QGroupBox;
 class AudioSettings;
 class AudioManager;
 
