@@ -51,7 +51,7 @@ typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
-class dsp_poly_factory;
+struct dsp_poly_factory;
 #else
 #include "faust/dsp/interpreter-dsp.h"
 #endif
