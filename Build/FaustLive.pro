@@ -28,10 +28,6 @@ OBJECTS_DIR = tmp
 MOC_DIR 	= tmp
 RCC_DIR 	= tmp
 
-#QMAKE_EXTRA_TARGETS += all
-#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
-
-#CONFIG += x86_64
 CONFIG += exceptions rtti c++11
 
 ## QT libraries needed
@@ -42,6 +38,13 @@ DEFINES += APP_VERSION=\\\"2.0\\\" LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 RESOURCES        = $$ROOT/Resources/application.qrc
 RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
+macx {
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
+	QMAKE_INFO_PLIST = rsrc/FaustLiveInfo.plist
+}
+win32 {
+	RC_FILE = rsrc/FaustLive.rc
+}
 
 ####### INCLUDES PATHS && LIBS PATHS
 DEPENDPATH += $$FAUSTINC/faust/gui
@@ -53,8 +56,8 @@ unix {
 	INCLUDEPATH += /usr/local/include
 }
 
+####### windows config
 win32 {
-#message ("win32")
 	msys|mingw {
 		DEFINES += USEWINMAIN 
 		DEFINES += GCC
