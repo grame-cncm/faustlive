@@ -15,7 +15,7 @@ dlls are included for Win32/Debug architecture
 - libmicrohttpd
 
 Other Packages
-- jackosx 	http://www.jackosx.com/
+- jackosx 	http://jackaudio.org/
 - faust		https://sourceforge.net/projects/faudiostream/files/
 	Copy template.props and name it faust.props
 	Modify faust.props with the paths to your dependencies
