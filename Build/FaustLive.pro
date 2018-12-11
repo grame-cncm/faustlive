@@ -18,6 +18,10 @@ LOCALLIB 	= $$ROOT/lib
 isEmpty(FAUSTLIB) 		{ FAUSTLIB = "$$system(faust -libdir)" }
 isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }	
 
+message ("Using Faust libs from $$FAUSTLIB")
+message ("Using Faust incl from $$FAUSTINC")
+
+
 isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }
 ## The LLVM version we are building against, for the Version popup.
 isEmpty(LLVM_VERSION) 	{ LLVM_VERSION = $$system($$LLVM_CONFIG --version) }
@@ -48,7 +52,7 @@ win32 {
 
 ####### INCLUDES PATHS && LIBS PATHS
 DEPENDPATH += $$FAUSTINC/faust/gui
-INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities
+INCLUDEPATH += . $$SRC/Audio $$SRC/MainStructure $$SRC/MenusAndDialogs $$SRC/Network $$SRC/Utilities $$FAUSTINC 
 
 unix {
 	LIBS += -L/usr/local/lib
@@ -91,9 +95,11 @@ win32 {
     	LIBS += $$LLVM_LIBS
     	CONFIG += portaudio
 	}
-    INCLUDEPATH += $$FAUSTINC $$LIBSNDFILE/include $$LOCALLIB/libmicrohttpd
+    INCLUDEPATH += $$LIBSNDFILE/include $$LOCALLIB/libmicrohttpd
 }
 else {
+ LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+ LIBS += -lmicrohttpd -lsndfile -lcurl -lz -ldl
  static {
 	message("Uses static link for Faust libs")
 	LIBS += $$FAUSTLIB/libfaust.a
@@ -101,10 +107,9 @@ else {
 	LIBS += $$FAUSTLIB/libOSCFaust.a
  } else {
 	message("Uses dynamic link for Faust libs")
-	LIBS += -lHTTPDFaust -lOSCFaust -lfaust
+	LIBS += -L$$FAUSTLIB -lHTTPDFaust -lOSCFaust -lfaust
+	LIBS += -Wl,-rpath,$$FAUSTLIB
  }
- LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
- LIBS += -lmicrohttpd -lsndfile -lcurl -lz -ldl
 }
 
 DEFINES += HTTPCTRL
@@ -133,7 +138,7 @@ SOURCES +=	$$SRC/Network/FLServerHttp.cpp \
 ############################## 
 macx {
 	message("MacOS CoreAudio driver")
-	LIBS        += -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI
+	LIBS        += -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI 
 	DEFINES     += COREAUDIO
 	INCLUDEPATH += $$SRC/Audio/CA
 	HEADERS     += $$files($$SRC/Audio/CA/*.h)
@@ -146,6 +151,7 @@ unix:!macx {
 	LIBS += -lasound -ltinfo
 }
 
+LIBS += $$system(llvm-config --system-libs)
 
 ############################## 
 # optional settings
