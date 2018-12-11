@@ -48,8 +48,10 @@ help:
 # 	@echo "make uninstall : undo what install did"
 # 	@echo "make dist : make a FaustLive distribution as a .dmg file"
 
-math_lib :
-	$(MAKE) -C Build/$(arch) math_lib
+math_lib : ../Resources/Libs/llvm_math.ll	
+
+../Resources/Libs/llvm_math.ll : ../src/Utilities/llvm_math.c 
+	clang -emit-llvm ../src/Utilities/llvm_math.c -c -S -o ../Resources/Libs/llvm_math.ll
 
 deploy:
 	macdeployqt FaustLive/FaustLive.app
