@@ -123,8 +123,6 @@
     <file>Html/ServerAvailableInterfacesTail.html</file>
     <file>Html/ServerHead.html</file>
     <file>Html/ServerTail.html</file>
-    <file>buildVersion.txt</file>
-    <file>distVersion.txt</file>
     <file>../Documentation/UserManual.pdf</file>
     <file>../Documentation/faust-quick-reference.pdf</file>
 </qresource>

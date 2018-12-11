@@ -1,6 +1,5 @@
 ### Platform name
 arch ?= $(shell uname -s)
-VERSION = $(shell cat Resources/distVersion.txt)
 
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
@@ -48,7 +47,7 @@ help:
 # 	@echo "make uninstall : undo what install did"
 # 	@echo "make dist : make a FaustLive distribution as a .dmg file"
 
-math_lib : ../Resources/Libs/llvm_math.ll	
+mathlib : ../Resources/Libs/llvm_math.ll	
 
 ../Resources/Libs/llvm_math.ll : ../src/Utilities/llvm_math.c 
 	clang -emit-llvm ../src/Utilities/llvm_math.c -c -S -o ../Resources/Libs/llvm_math.ll

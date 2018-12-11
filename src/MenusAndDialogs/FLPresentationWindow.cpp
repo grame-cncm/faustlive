@@ -204,7 +204,8 @@ void FLPresentationWindow::init()
     layout4->addWidget(cancel);
     layout4->addWidget(new QLabel(""));    
     QString grame = "<p>Version ";
-    grame += readFile(":/distVersion.txt");
+//    grame += readFile(":/distVersion.txt");
+    grame += VERSION;
     grame += " by GRAME, Centre de Creation Musicale";
     QLabel* more = new QLabel(grame);  
     more->setAlignment(Qt::AlignCenter);

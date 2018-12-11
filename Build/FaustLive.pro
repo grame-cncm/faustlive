@@ -15,6 +15,7 @@ DESTDIR  = $$PWD/FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
+VERSION = $$system(cat $$ROOT/version.txt)
 isEmpty(FAUSTLIB) 		{ FAUSTLIB = "$$system(faust -libdir)" }
 isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }	
 
@@ -36,7 +37,9 @@ CONFIG += exceptions rtti c++11
 
 ## QT libraries needed
 QT += core gui widgets network
-DEFINES += APP_VERSION=\\\"2.0\\\" LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
+DEFINES += VERSION=\\\"$$VERSION\\\"
+DEFINES += APP_VERSION=\\\"2.0\\\"
+DEFINES += LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources
 RESOURCES        = $$ROOT/Resources/application.qrc

@@ -1480,31 +1480,32 @@ void FLApp::version_Action(){
     
     QVBoxLayout* layoutGeneral = new QVBoxLayout;
     
-    QString text = "FAUSTLIVE \n- Dist version ";
-    text += readFile(":/distVersion.txt");
-    text += "- Build version ";
-    text += readFile(":/buildVersion.txt");
-    text += "\nThis application is using ";
-    text += "\n""- LLVM Compiler ";
+    QString text = "FAUSTLIVE Version ";
+    text += VERSION;
+//    text += readFile(":/distVersion.txt");
+//    text += "- Build version ";
+//    text += readFile(":/buildVersion.txt");
+    text += "\n\nBased on ";
+    text += "\n - LLVM Compiler ";
     text += LLVM_VERSION;
 #ifdef ALSA
-    text += "\n""- ALSA ";
+    text += "\n - ALSA ";
     text += "1.0";
 #endif
 #ifdef COREAUDIO
-    text += "\n""- CoreAudio API ";
+    text += "\n - CoreAudio API ";
     text += "4.0";
 #endif
 #ifdef JACK
-    text += "\n""- Jack 2";
+    text += "\n - Jack 2";
 //    text += jack_get_version_string();
 #endif
 #ifdef NETJACK
-    text += "\n""- NetJack ";
+    text += "\n - NetJack ";
     text += "2.1";
 #endif
 #ifdef PORTAUDIO
-    text += "\n""- PortAudio ";
+    text += "\n - PortAudio ";
     text += "v19";
 #endif
         
