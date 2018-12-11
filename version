@@ -1,0 +1,67 @@
+#!/bin/bash
+# 
+# Faust project
+# version management tool
+#
+
+if [ $# -ne 1 ]
+then
+	echo "FaustLive version management utility"
+	echo "usage: version version_num"
+	echo "       version_num format: n.n.n"
+	exit 1
+fi
+
+function major {
+	echo $1 | sed 's/\..*//'
+}
+function minor {
+	echo $1 | sed 's/[0-9]*\.\([0-9]*\)\..*/\1/'
+}
+function patch {
+	echo $1 | sed 's/[0-9]*\.[0-9]*\.\([0-9]*\)/\1/'
+}
+function winVer {
+	echo $1 | sed "s/\./,$2/g"
+}
+function rcUpdate {
+ 	sed "s/FILEVERSION[ 	].*/FILEVERSION $2/" $1 | \
+ 	sed "s/PRODUCTVERSION[ 	].*/PRODUCTVERSION $2/" | \
+ 	sed "s/VALUE \"FileVersion\"..*/VALUE \"FileVersion\", \"$3\"/" | \
+ 	sed "s/VALUE \"ProductVersion\"..*/VALUE \"ProductVersion\", \"$3\"/"
+}
+
+ROOT=.
+VERSION=$1
+MAJOR=$(major $VERSION)
+MINOR=$(minor $VERSION)
+PATCH=$(patch $VERSION)
+WINVERS=$(winVer $VERSION)",0"
+WINVERS2=$(winVer $VERSION " ")", 0"
+
+if [ -d compiler ]
+then
+	echo "moving version number to $VERSION"
+else
+	echo "this script must be called from the FaustLive project root directory"
+	exit 1
+fi
+
+VERS=$ROOT/version.txt
+echo " updating $VERS"
+echo $VERSION > $VERS
+
+FLRC=$ROOT/Build/rsrc/FaustLive.rc
+echo " updating $FLRC"
+rcUpdate $FLRC $WINVERS "$WINVERS2" > TMP$$
+mv -f TMP$$ $FLRC
+
+FLPL=$ROOT/Build/rsrc/FaustLiveInfo.plist
+echo " updating $FLPL"
+sed -e "s/>[1-9][0-9]*\.[0-9]*\.[0-9]*</>$VERSION</" > TMP$$
+mv -f TMP$$ $FLPL
+
+
+echo "### You need to recompile FaustLive for the change to take effect."
+
+exit 0

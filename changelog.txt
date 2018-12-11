@@ -1,0 +1,11 @@
+====================================================
+              FaustLive - Change log
+----------------------------------------------------
+GRAME - Centre national de creation musicale
+http://www.grame.fr
+====================================================
+Copyright GRAME (c) 2009-2018
+                                  
+----------------------------------------------------
+Version 2.4.6
+- integrates faust compiler 2.11.13 based on llvm 7.0.0
