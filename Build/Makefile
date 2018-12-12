@@ -1,19 +1,18 @@
-### Platform name
-arch ?= $(shell uname -s)
 
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), Darwin)
 	TARGET ?= unix
 	SPEC ?= -spec macx-clang
+	DEPLOY ?= macdeployqt
 else
 ifeq ($(system), MINGW)
 	TARGET ?= windows
-	CONFIG +=portaudio
+	DEPLOY ?= macdeployqt
 else
 ifeq ($(system), Linux)
 	TARGET ?= unix
-	CONFIG +=
+	DEPLOY ?= echo no deployment on Linux for 
 else
 	TARGET = undefined
 endif
@@ -30,22 +29,23 @@ all :
 unix: $(OUTDIR)/Makefile
 	$(MAKE) -C $(OUTDIR) -j 4
 
+help:
+	@echo "----- FaustLive Makefile -----"
+	@echo "Available target are:"
+	@echo "  'all'  (default) : compiles FaustLive."
+	@echo "  'deploy'         : call $(DEPLOY)."
+	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
+	@echo "  'mathlib'        : generate or update llvm_math.ll."
+
+windows: 
+	@echo Compiling on Windows MSYS might work but has not been tested.
+	@echo Proceed manually.
+
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
 	cd $(OUTDIR) && qmake .. $(SPEC)
 	
 $(OUTDIR) :
 	mkdir $(OUTDIR)
-
-help:
-	@echo "----- FaustLive Makefile -----"
-	@echo "in progress..."
-# 	@echo "To enable Jack or NetJack driver : 'make JACK=1 NETJACK=1'"
-# 	@echo "To enable remote processing : 'make REMOTE=1'"
-# 	@echo "make or make all : compile FaustLive"
-# 	@echo "make clean : remove all object files"
-# 	@echo "make install : install FaustLive and its resources in Applications"
-# 	@echo "make uninstall : undo what install did"
-# 	@echo "make dist : make a FaustLive distribution as a .dmg file"
 
 mathlib : ../Resources/Libs/llvm_math.ll	
 
@@ -53,11 +53,10 @@ mathlib : ../Resources/Libs/llvm_math.ll
 	clang -emit-llvm ../src/Utilities/llvm_math.c -c -S -o ../Resources/Libs/llvm_math.ll
 
 deploy:
-	macdeployqt FaustLive/FaustLive.app
+	$(DEPLOY) FaustLive/FaustLive.???
 
 clean :
-	$(MAKE) -C $(OUTDIR) clean
-	rm -rf FaustLive
+	rm -rf $(OUTDIR) FaustLive
 
 undefined:
 	$(error System is undefined, not target available)

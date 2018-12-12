@@ -1,10 +1,18 @@
-# FaustLive 
 
-
+FaustLive 
+============================
 ## The swiss knife for [Faust](https://faust.grame.fr) development.
+--------------
 
-### [Grame](http://www.grame.fr) - Centre National de Creation Musicale
+FaustLive is a stand-alone application that compiles and run Faust dsp code on the fly using [LLVM](http://llvm.org).
 
-The goal of this project is to build a standalone application that embeds Faust (as the libfaust library) and LLVM compiler to provide dynamical compilation for the Faust programming language.
+It supports also native applications generation using the [Faust online compiler](https://faust.grame.fr/tools/onlinecompiler/).
 
-To build FaustLive, you’ll have to go to the folder "Build" and follow the platform specific README.
+### Limitations and known bugs
+
+ - crashes on Windows when compiling a dsp with input signals, on a machine without input audio device
+ - may crash on startup due to incorrect cache. In this case, find the `FaustLive-CurrentSession-2.0` folder in your home folder, remove it and restart. On Unix like stations (Linux, MacOS), this folder is hidden and located at `$HOME/.FaustLive-CurrentSession-2.0` 
+ 
+
+--------------
+#### [Grame](http://www.grame.fr) - Centre National de Creation Musicale
