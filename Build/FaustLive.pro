@@ -15,7 +15,7 @@ DESTDIR  = $$PWD/FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
-VERSION = $$system(cat $$ROOT/version.txt)
+VERSION = $$cat($$ROOT/version.txt)
 isEmpty(FAUSTLIB) 		{ FAUSTLIB = "$$system(faust -libdir)" }
 isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }	
 
