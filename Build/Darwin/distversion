@@ -1,6 +1,0 @@
-#Upgrading number version in Info.plist
-bN=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" FaustLiveInfo.plist)
-bN=$(echo "$bN+0.01" | bc -l)
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $bN" FaustLiveInfo.plist
-
-echo $bN > "../../Resources/distVersion.txt"
