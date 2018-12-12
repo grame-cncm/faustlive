@@ -53,6 +53,10 @@ install (
     FILES     ${FLDOC}/faust-quick-reference.pdf ${FLDOC}/UserManual.pdf DESTINATION ${DEST}/Documentation
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+install (
+    FILES     README.html DESTINATION ${DEST}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
 
 
 ####################################
