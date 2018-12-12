@@ -904,6 +904,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
         
         QString recallingPath = fSessionFolder + "/Windows/FLW-" + groups[i] + "/FLW-" + groups[i] + ".dsp";
         QString savedContent = pathToContent(recallingPath);
+		if (savedContent.isEmpty()) continue;
         
         QString settingsPath = groups[i] + "/Path";
         QString originalPath = generalSettings->value(settingsPath, "").toString();

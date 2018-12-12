@@ -45,7 +45,11 @@ QString pathToContent(const QString& path)
     
     file.seekg (0, file.end);
     int size = file.tellg();
-    file.seekg (0, file.beg);
+	if (size <= 0) {
+		cerr << path.toStdString() << ": pathToContent failed with size=" << size << endl;
+		return "";	// something wrong here: abort
+	}
+	file.seekg (0, file.beg);
     
     // And allocate buffer to that a single line can be read...
     char* buffer = new char[size + 1];
