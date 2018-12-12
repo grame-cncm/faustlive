@@ -17,7 +17,7 @@ macos: build README.html
 	hdiutil create $(NAME).dmg -srcfolder build/$(NAME) -ov
 
 windows: README.html
-	@echo Run the 
+	@echo Run the makepgk.bat script
 
 README.html: ../README.md
 	echo "<!DOCTYPE html><html><xmp>" > README.html

@@ -28,7 +28,12 @@ file (GLOB APP ${FLDIR}/*)
 # install section
 ####################################
 set (CMAKE_INSTALL_PREFIX .)
-set (DEST FaustLive-${VERSION})
+if (WIN32)
+	set (DEST .)
+else()
+	set (DEST FaustLive-${VERSION})
+endif()
+set (CPACKDEST FaustLive-${VERSION})
 
 ####################################
 # install headers
@@ -72,7 +77,7 @@ set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
 
 set (CPACK_MONOLITHIC_INSTALL true)
 set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/GPL.txt)
-set (CPACK_PACKAGE_INSTALL_DIRECTORY  FaustLive)
+set (CPACK_PACKAGE_INSTALL_DIRECTORY  ${CPACKDEST})
 
 ####################################
 # NSIS specific section
