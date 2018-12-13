@@ -5,7 +5,9 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
 Copyright GRAME (c) 2009-2018
-                                  
+                                
 ----------------------------------------------------
 Version 2.4.6
-- integrates faust compiler 2.13.11 based on llvm 7.0.0
+
+ - improves session restoration
+ - integrates faust compiler 2.13.11 based on llvm 7.0.0

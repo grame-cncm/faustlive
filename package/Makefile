@@ -1,7 +1,8 @@
 
 VERSION := $(shell cat ../version.txt)
-FLDIR := ../Build/FaustLive
-NAME  := FaustLive-$(VERSION)
+FLDIR   := ../Build/FaustLive
+NAME    := FaustLive-$(VERSION)
+CHGELOG := ../changelog.txt
 
 help:
 	@echo "-- FaustLive packaging --"
@@ -19,12 +20,17 @@ macos: build README.html
 windows: README.html
 	@echo Run the makepgk.bat script
 
+README.html: N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
+README.html: N := $(shell expr $(N) - 7)
 README.html: ../README.md
-	echo "<!DOCTYPE html><html><xmp>" > README.html
+	@echo "<!DOCTYPE html><html><xmp>" > README.html
 	cat ../README.md >> README.html
-	echo "</xmp>" >> README.html
-	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> README.html
-	echo "</html>" >> README.html
+	@echo "<br /><br />" >> README.html
+	@echo "###Change log" >> README.html
+	tail -n $(N) $(CHGELOG) >> README.html
+	@echo "</xmp>" >> README.html
+	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> README.html
+	@echo "</html>" >> README.html
 
 build:
 	mkdir build
