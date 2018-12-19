@@ -8,8 +8,8 @@ FaustLive - How to compile
 - you must have [LLVM](http://llvm.org/) installed and the `llvm-config` command available from the command line..
 - you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed.
 - you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
-- [Linux] you must have [jack](http://jackaudio.org/) installed.
-- [Windows] you must have [portaudio](http://www.portaudio.com/) installed.
+- [Linux] you must have [JACK](http://jackaudio.org/) installed.
+- [Windows] you must have [PortAudio](http://www.portaudio.com/) installed.
 
 
 ## Compilation steps
@@ -67,7 +67,7 @@ $ make deploy
 
 ## Note for Windows
 
-You must make sure you're using the same compilation environment than the one used by Faust and llvm. The current Faust distribution is based on LLVM 7.0.0, both build with MS Visual Studio 14 2015. If you want to use another environment, you'll have to recompile Faust and LLVM with this environment.
+You must make sure you're using the same compilation environment than the one used by Faust and LLVM. The current Faust distribution is based on LLVM 7.0.0, both build with MS Visual Studio 14 2015. If you want to use another environment, you'll have to recompile Faust and LLVM with this environment.
 
 To generate a Visual Studio project with qmake, it is recommended to run `qmake` from a command.com
 
