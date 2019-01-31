@@ -42,12 +42,15 @@ DEFINES += APP_VERSION=\\\"2.0\\\"
 DEFINES += LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources
-RESOURCES        = $$ROOT/Resources/application.qrc
+RESOURCES       += $$ROOT/Resources/application.qrc
 RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 macx {
 	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
 	QMAKE_INFO_PLIST = rsrc/FaustLiveInfo.plist
+	RSRC.files 	= $$ROOT/Resources/Images/FaustLiveIcon.icns
+	RSRC.path 	= Contents/Resources
+	QMAKE_BUNDLE_DATA += RSRC
 }
 win32 {
 	RC_FILE = rsrc/FaustLive.rc
@@ -146,7 +149,6 @@ macx {
 	INCLUDEPATH += $$SRC/Audio/CA
 	HEADERS     += $$files($$SRC/Audio/CA/*.h)
 	SOURCES     += $$files($$SRC/Audio/CA/*.cpp)
-	QMAKE_INFO_PLIST = $$BUILD/Darwin/FaustLiveInfo.plist
 }
 
 unix:!macx {
