@@ -23,7 +23,7 @@ void JA_audioManager::shutdown_message(const char * msg, void* arg)
 JA_audioManager::JA_audioManager(shutdown_callback cb, void* arg): AudioManager(cb, arg)
 {
     fCurrentAudio = new JA_audioFader;
-    fCurrentAudio->shutdown(cb, arg);
+    fCurrentAudio->setShutdownCb(cb, arg);
 }
 
 JA_audioManager::~JA_audioManager()

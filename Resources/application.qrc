@@ -76,6 +76,7 @@
     <file>Examples/stereoEcho.dsp</file>
     <file>Examples/switcher.dsp</file>
     <file>Examples/tapiir.dsp</file>
+    <file>Examples/TestLibs.dsp</file>
     <file>Examples/tibetanBowl.dsp</file>
     <file>Examples/trumpet.dsp</file>
     <file>Examples/turenas.dsp</file>
@@ -116,14 +117,12 @@
     <file>Libs/tubes.lib</file>
     <file>Libs/vaeffects.lib</file>
 
-    <file>Libs/llvm_math.ll</file>
-    <file>Libs/TestLibs.dsp</file>
+    <file>LLVM/llvm_math.ll</file>
+    
     <file>Html/ServerAvailableInterfacesHead.html</file>
     <file>Html/ServerAvailableInterfacesTail.html</file>
     <file>Html/ServerHead.html</file>
     <file>Html/ServerTail.html</file>
-    <file>buildVersion.txt</file>
-    <file>distVersion.txt</file>
     <file>../Documentation/UserManual.pdf</file>
     <file>../Documentation/faust-quick-reference.pdf</file>
 </qresource>

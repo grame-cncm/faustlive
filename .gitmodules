@@ -1,0 +1,3 @@
+[submodule "Resources/Libs"]
+	path = Resources/Libs
+	url = https://github.com/grame-cncm/faustlibraries.git

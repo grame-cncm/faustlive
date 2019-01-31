@@ -6,6 +6,12 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#ifndef _WIN32
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+#include <iostream>
+
 #include "FLSessionManager.h"
 #include "FLSettings.h"
 #include "FLWinSettings.h"
@@ -14,11 +20,12 @@
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
+#include "faust/gui/SoundUI.h"
 
 #include <assert.h>
 
 #define LLVM_DSP
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/poly-llvm-dsp.h"
 
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
@@ -103,13 +110,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
     string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
-    
-    printf("argc %d\n", argc);
-    
+
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
         errorMsg = err.c_str();
         return qMakePair(QString(""), (void*)NULL);
     }
+
 //  shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
@@ -132,13 +138,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
-    factorySettings* mySetts = new factorySettings;
-    factory* toCompile = new factory;
+    factorySettings* mySetts = new factorySettings();
+    factory* toCompile = new factory();
     string error = "";
     
 //------ Additionnal compilation step or options (if set so in settings)
     if (settings) {
-        QString errMsg;
+       QString errMsg;
         if (!generateAuxFiles(shaKey.c_str(), settings->value("Path", "").toString(),
             settings->value("AutomaticExport/Options", "").toString(), shaKey.c_str(), errMsg)) {
 			FLErrorWindow::_Instance()->print_Error(QString("Additional Compilation Step : ") + errMsg);
@@ -152,20 +158,20 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         //----Use IR Saving if possible
         if (QFileInfo(irFile.c_str()).exists()) {
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = readDSPFactoryFromBitcodeFile(irFile, "", optLevel);
+            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", error, optLevel);
         #else
             toCompile->fLLVMFactory = NULL;  // TODO
         #endif
             
         }
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
-        
+
         //----Create DSP Factory
         if (!toCompile->fLLVMFactory) {
             
             // New allocation
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = createDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
+            toCompile->fLLVMFactory = createPolyDSPFactoryFromFile(fileToCompile, argc, argv, "", error, optLevel);
         #else
             toCompile->fLLVMFactory = createInterpreterDSPFactoryFromFile(fileToCompile, argc, argv, error);
         #endif
@@ -176,8 +182,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             }
             
             if (toCompile->fLLVMFactory) {
+                
             #ifdef LLVM_DSP_FACTORY
-                writeDSPFactoryToBitcodeFile(dynamic_cast<llvm_dsp_factory*>(toCompile->fLLVMFactory), irFile);
+                writePolyDSPFactoryToBitcodeFile(static_cast<dsp_poly_factory*>(toCompile->fLLVMFactory), irFile);
             #else
                // TODO
             #endif
@@ -191,6 +198,9 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 			    return qMakePair(QString(""), (void*)NULL);
             }
         }
+        
+        // Create SoundUI manager using pathnames
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames());
     }
 //------ Compile remote factory
     else if (settings) {
@@ -291,8 +301,6 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
     
-        dsp* dsp = toCompile->fLLVMFactory->createDSPInstance();
-        
         string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
         bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
@@ -300,13 +308,18 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = new mydsp_poly(dsp, atoi(voices.c_str()), midi, group);
+            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
         } else {
-            compiledDSP = dsp;
+            // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
+            //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
+            compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
         }
+        
+        // Setup SoundUI manager
+        compiledDSP->buildUserInterface(mySetts->fSoundfileInterface);
          
         // For in-buffer MIDI control
-        if (midi && hasMIDISync(dsp)) {
+        if (midi && hasMIDISync(compiledDSP)) {
             compiledDSP = new timed_dsp(compiledDSP);
         }
     }
@@ -400,11 +413,13 @@ void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
     if (factoryToDelete->fType == TYPE_LOCAL) {
         delete toDeleteDSP;
     #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        delete factoryToDelete->fFactory->fLLVMFactory;
     #else
-        deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
     #endif
         factoryToDelete->fFactory->fLLVMFactory = NULL;
+        delete factoryToDelete->fSoundfileInterface;
+        factoryToDelete->fSoundfileInterface = NULL;
     }
 #ifdef REMOTE
     else {
@@ -522,29 +537,21 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     int iteratorParams = 0;
     
     /// POLYPHONY
-    if (settings) {
-        numberFixedParams += 6;
-    }
+    if (settings)			numberFixedParams += 6;
     
-    // MACHINE
-    
-    if (settings) {
-        numberFixedParams += 2;
-    }
-    
-    if (sourcePath != "") {
-        numberFixedParams += 2;
-    }
+    // MACHINE    
+    if (settings)			numberFixedParams += 2;    
+    if (sourcePath != "")	numberFixedParams += 2;
   
 #ifdef _WIN32
-    numberFixedParams += 2;
+//    numberFixedParams += 2;
 #endif
     
-    //+7 = -I libraryPath -I currentFolder
+	//+7 = -I libraryPath -I currentFolder
     argc = numberFixedParams;
     argc += get_numberParameters(faustOptions);
-    
-    const char** argv = new const char*[argc+1];
+	
+	const char** argv = new const char*[argc+1];
     
     // MACHINE
     
@@ -573,7 +580,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         argv[iteratorParams++] = strdup(path.c_str());
     }
     
-#ifdef _WIN32
+#ifdef LLVM_MATH 
     //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
     argv[iteratorParams++] = "-l";
     argv[iteratorParams++] = "llvm_math.ll";
@@ -616,7 +623,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         argv[iteratorParams++] = (settings->value("Polyphony/GroupEnabled", 
             FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0";
     }
-    
+
     argv[argc] = 0; // NULL terminated argv
     return argv;
 }
@@ -897,6 +904,7 @@ map<int, QString> FLSessionManager::currentSessionRestoration()
         
         QString recallingPath = fSessionFolder + "/Windows/FLW-" + groups[i] + "/FLW-" + groups[i] + ".dsp";
         QString savedContent = pathToContent(recallingPath);
+		if (savedContent.isEmpty()) continue;
         
         QString settingsPath = groups[i] + "/Path";
         QString originalPath = generalSettings->value(settingsPath, "").toString();
@@ -1096,7 +1104,7 @@ QVector<QString> FLSessionManager::getDependencies(dsp_factory* factoryDependenc
     std::vector<std::string> stdDependendies;
     
 #ifdef LLVM_DSP_FACTORY
-    stdDependendies = getDSPFactoryLibraryList(dynamic_cast<llvm_dsp_factory*>(factoryDependency));
+    stdDependendies = factoryDependency->getLibraryList();
     for (size_t i = 0; i<stdDependendies.size(); i++) {
         dependencies.push_back(stdDependendies[i].c_str());
     }

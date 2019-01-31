@@ -41,12 +41,53 @@
 typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 #endif
 
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100 4267)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #define LLVM_DSP_FACTORY
+
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
+struct dsp_poly_factory;
 #else
 #include "faust/dsp/interpreter-dsp.h"
 #endif
+
+#include "TMutex.h"
+#include <iostream>
+
+class SoundUI;
+
+/**
+ * Generic DSP decorator.
+ */
+
+class synchronized_dsp : public decorator_dsp, public TLockAble {
+    
+    public:
+        
+        synchronized_dsp(dsp* dsp = 0):decorator_dsp(dsp) {}
+        virtual ~synchronized_dsp() {}
+        
+        virtual int getNumInputs() { TLock(this); return fDSP->getNumInputs(); }
+        virtual int getNumOutputs() { TLock(this); return fDSP->getNumOutputs(); }
+        virtual void buildUserInterface(UI* ui_interface) { TLock(this); std::cout <<"synchronized_dsp::buildUserInterface " << this << "\n";  fDSP->buildUserInterface(ui_interface);}
+        virtual int getSampleRate() { TLock(this); return fDSP->getSampleRate(); }
+        virtual void init(int samplingRate) { TLock(this); std::cout <<"synchronized_dsp::init" << this << "\n"; fDSP->init(samplingRate); }
+        virtual void instanceInit(int samplingRate) { TLock(this); fDSP->instanceInit(samplingRate); }
+        virtual void instanceConstants(int samplingRate) { TLock(this); fDSP->instanceConstants(samplingRate); }
+        virtual void instanceResetUserInterface() { TLock(this); fDSP->instanceResetUserInterface(); }
+        virtual void instanceClear() { TLock(this); fDSP->instanceClear(); }
+        virtual decorator_dsp* clone() { TLock(this); return new decorator_dsp(fDSP->clone()); }
+        virtual void metadata(Meta* m) { TLock(this); fDSP->metadata(m); }
+        // Beware: subclasses usually have to overload the two 'compute' methods
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { TLock(this); fDSP->compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { TLock(this);  std::cout <<"synchronized_dsp::compute" << this << "\n"; fDSP->compute(date_usec, count, inputs, outputs); }
+    
+};
 
 class FLWinSettings;
 
@@ -57,7 +98,7 @@ enum {
 };
 
 union factory {
-    dsp_factory* fLLVMFactory;
+    dsp_poly_factory* fLLVMFactory;
     
 #ifdef REMOTE
     remote_dsp_factory* fRemoteFactory;
@@ -76,6 +117,13 @@ struct factorySettings {
     QString         fPath;
     QString         fName;
     int             fType;
+    SoundUI*        fSoundfileInterface;
+    
+    factorySettings()
+    {
+        fFactory = NULL;
+        fSoundfileInterface = NULL;
+    }
 };
 
 class rtmidi;
@@ -90,7 +138,7 @@ class FLSessionManager : public QObject
         QString         fSessionFolder;
  
         static FLSessionManager* _sessionManager;
-        
+    
 //------ Handle name giving 
         QString         getDeclareName(QString text, QString default_name);
         
@@ -178,7 +226,7 @@ class FLSessionManager : public QObject
     
     signals:
     
-        void                error(const QString&);
+        void               error(const QString&);
 };
 
 #endif

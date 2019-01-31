@@ -1,8 +1,0 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-<file alias="Styles/Default.qss">@FAUSTDIR@/include/faust/gui/Styles/Default.qss</file>
-<file alias="Styles/Blue.qss">@FAUSTDIR@/include/faust/gui/Styles/Blue.qss</file>
-<file alias="Styles/Grey.qss">@FAUSTDIR@/include/faust/gui/Styles/Grey.qss</file>
-<file alias="Styles/Salmon.qss">@FAUSTDIR@/include/faust/gui/Styles/Salmon.qss</file>
-</qresource>
-</RCC>

@@ -13,10 +13,13 @@ EXT =
 endif
 endif
 
-all:
+all: updatesubmodules
 	$(MAKE) -C Build/$(arch)
 	rm -rf FaustLive$(EXT)
 	cp -R Build/$(arch)/FaustLive$(EXT) .
+
+updatesubmodules:
+	if test -d .git; then git submodule update --init; fi
 
 help:
 	@echo "Usage : 'make; sudo make install'"

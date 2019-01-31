@@ -14,8 +14,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include <openssl/sha.h>
-
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
 

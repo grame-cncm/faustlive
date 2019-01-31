@@ -3,12 +3,10 @@
 //  
 //
 //  Created by Sarah Denoux on 30/05/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME reserved.
 //
 
 // MAIN OF FAUSTLIVE = Starts the FaustLive Qt Application
-
-//#include <libgen.h>
 
 #include <stdlib.h>
 #include <iostream>
@@ -19,8 +17,6 @@
 #include <cstdlib>
 
 #include <sstream>
-
-using namespace std;
 
 #include "FLApp.h"
 
@@ -36,6 +32,8 @@ using namespace std;
 
 #include <stdio.h>
 #include <stdlib.h>
+
+using namespace std;
 
 FLApp* app;
 
@@ -84,19 +82,14 @@ static bool GetMaximumFiles(int& filecount)
 
 #endif
 
-
-#if defined(WIN32) && !defined(_DEBUG)
-# define USEWINMAIN
-#endif
 //_______________________________________________________________________
 #ifdef USEWINMAIN
 #include <windows.h>
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow){
+int WINAPI WinMain (HINSTANCE , HINSTANCE , PSTR , int ){
 #else
 int main( int argc, char **argv ){
 #endif
 #ifdef USEWINMAIN
-	printf("USEWINMAIN\n");
 int argc = __argc;
 char **argv = __argv;
 #endif

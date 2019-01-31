@@ -19,7 +19,7 @@ class crossfade_TCoreAudioRenderer: public TCoreAudioRenderer, public AudioFader
     
     public:
 
-        crossfade_TCoreAudioRenderer()
+        crossfade_TCoreAudioRenderer(audio* audio) : TCoreAudioRenderer(audio)
         {
            reset_Values();
         }
@@ -62,13 +62,13 @@ class CA_audioFader : public audio, public AudioFader_Interface
         
     public:
     
-        CA_audioFader(int srate, int fpb)
+        CA_audioFader(int srate, int fpb) : fCrossFadeDevice(this)
         {
             fSampleRate = srate;
             fBufferSize = fpb;
         }
         
-        CA_audioFader(int fpb)
+        CA_audioFader(int fpb) : fCrossFadeDevice(this)
         { 
             fSampleRate = -1;
             fBufferSize = fpb;

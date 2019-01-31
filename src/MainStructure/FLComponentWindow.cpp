@@ -5,11 +5,21 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #include "faust/gui/faustqt.h"
 #include "faust/dsp/dsp.h"
 
+#include "FLComponentItem.h"
+#include "FLComponentLabel.h"
 #include "FLComponentWindow.h"
 #include "FLSessionManager.h"
+#include "FLNodes.h"
 #include "FLWinSettings.h"
 #include "utilities.h"
 
@@ -18,8 +28,8 @@
 
 /****************************LAYOUT OPTIMIZATION TREE*****************/
 
-binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2){
-    
+binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2)
+{
     QSize screenSize = QApplication::desktop()->geometry().size(); 
     
     int screenWidth = screenSize.width();
@@ -45,8 +55,8 @@ binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2){
 }
 
 //Returns a list of Root Nodes
-QList<binaryNode*> createListTrees(QList<FLComponentItem*> components){
-    
+QList<binaryNode*> createListTrees(QList<FLComponentItem*> components)
+{
     QList<binaryNode*> newListTrees;
     
     if(components.size() == 0){}
@@ -74,8 +84,8 @@ QList<binaryNode*> createListTrees(QList<FLComponentItem*> components){
     return newListTrees;
 }
 
-QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QList<binaryNode*> existingTrees){
-    
+QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QList<binaryNode*> existingTrees)
+{
     QList<binaryNode*>newListTrees;
     
     for(QList<binaryNode*>::iterator it = existingTrees.begin(); it != existingTrees.end(); it++){
@@ -100,16 +110,14 @@ QList<binaryNode*> dispatchComponentOnListOfTrees(FLComponentItem* component, QL
     return newListTrees;
 }
 
-binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
-    
+binaryNode* calculateBestDisposition(QList<FLComponentItem*> components)
+{
     QList<binaryNode*> binaryTrees = createListTrees(components);
     
     binaryNode* minSurfaceTree = *(binaryTrees.begin());
     
     for(QList<binaryNode*>::iterator it = binaryTrees.begin(); it != binaryTrees.end(); it++){
-        
         int nodeSurface = (*it)->surface();
-        
         if( nodeSurface < minSurfaceTree->surface())
             minSurfaceTree = *it;
     }
@@ -117,172 +125,9 @@ binaryNode* calculateBestDisposition(QList<FLComponentItem*> components){
     return minSurfaceTree;
 }
 
-/****************************COMPONENT ITEM***************************/
-FLComponentItem::FLComponentItem(const QString& index, QWidget* parent) : QWidget(parent){
-   
-    fIndex = index;
-    
-    setAcceptDrops(true);
-    
-    fSource = "";
-    fLayout = new QVBoxLayout;
-    
-    QLabel *image = new QLabel("<h2>DROP YOUR FAUST DSP</h2>");
-    image->setAlignment(Qt::AlignCenter);
-    
-    fLayout->addWidget(image);
-    fCurrentWidget = image;
-    
-    setLayout(fLayout);
-    
-    fCompiledDSP = NULL;
-}
-
-FLComponentItem::FLComponentItem(const QString& source, QRect rect, QWidget* parent) : QWidget(parent){
-    fSource = source;
-    setGeometry(rect);
-}
-
-FLComponentItem::~FLComponentItem(){
-    
-    FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
-    if(fCompiledDSP)
-        sessionManager->deleteDSPandFactory(fCompiledDSP);
-    
-    delete fLayout;
-}
-
-QString FLComponentItem::source(){
-    if(fSource == "")
-        fSource = "process = _;";
-    return fSource;
-}
-
-void FLComponentItem::dragEnterEvent ( QDragEnterEvent * event ){
-    
-    if (event->mimeData()->hasFormat("text/uri-list")){
-        
-        QList<QString>    sourceList;
-        QList<QUrl> urls = event->mimeData()->urls();
-        QList<QUrl>::iterator i;
-        
-        for (i = urls.begin(); i != urls.end(); i++) {
-            if(QFileInfo(i->toLocalFile()).completeSuffix() == "dsp" || i->toString().indexOf("http://") == 0)
-                event->acceptProposedAction();
-        }
-    }
-    if(event->mimeData()->hasFormat("text/plain")){
-        
-        if(event->mimeData()->text().indexOf("http://") == 0 || event->mimeData()->text().indexOf("file://") == 0)
-            event->acceptProposedAction();
-    }
-}
-
-QString FLComponentItem::handleDrop(QDropEvent * event){
-    
-    QList<QUrl> urls = event->mimeData()->urls();
-    QList<QUrl>::iterator i;
-    
-    QString sourceToSave("");
-    
-    if (event->mimeData()->hasFormat("text/uri-list")){
-        for (i = urls.begin(); i != urls.end(); i++){
-            if(i->isLocalFile())
-                sourceToSave = i->toLocalFile();
-            else
-                sourceToSave = i->toString();
-        }
-    }
-    else if(event->mimeData()->hasFormat("text/plain") && sourceToSave == "")
-        sourceToSave = event->mimeData()->text();
-    
-    
-    return sourceToSave;
-}
-
-void FLComponentItem::createInterfaceInRect(const QString& source){
-    
-    QString errorMsg("");
-    
-    FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    
-    QPair<QString, void*> factorySetts = sessionManager->createFactory(source, NULL, errorMsg);
-    
-    if(factorySetts.second == NULL){
-        FLErrorWindow::_Instance()->print_Error(errorMsg);
-        return;
-    }
-    
-    fCompiledDSP = sessionManager->createDSP(factorySetts, source, NULL, NULL, NULL, errorMsg);
-    
-    if (fCompiledDSP == NULL)
-        return;
-    
-    fSource = source;
-//    setTitle(QFileInfo(fSource).baseName());
-    QWidget* parent = (QWidget*) this;
-    QTGUI* inter = new QTGUI(parent);
-    fCompiledDSP->buildUserInterface(inter);
-    
-//    interface->setMinimumSize(300,300);
-    
-//    printf("RECT HEIGHT || WIDTH= %i || %i\n", interface->rect().height(), interface->rect().width());
-    
-//    QPixmap pixmap(interface->minimumSize()); 
-//    interface->render(&pixmap);
-//    pixmap.save("example.png");
-    
-//    pixmap (QSize(15,15), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    
-//    QPixmap pix(interface->size());
-//    
-//    interface->render(&pix);
-//    
-//    QLabel* inter = new QLabel;
-//    inter->setPixmap(pixmap);
-//    inter->setSize(interface->size());
-    
-    inter->setEnabled(false);
-//    inter->resize(150,150);
-//    interface->run();
-    
-    delete fLayout;
-    delete fCurrentWidget;
-//    delete interface;
-    fLayout = new QVBoxLayout;
-    fLayout->addWidget(inter);
-    setLayout(fLayout);
-    
-    fCurrentWidget = inter;
-}
-
-void FLComponentItem::dropEvent ( QDropEvent * event ){
-    
-    QString source = handleDrop(event);
-        
-    if(source != ""){
-        event->acceptProposedAction();
-        createInterfaceInRect(source);
-    }
-}
-
-QString FLComponentItem::faustComponent(const QString& layoutIndex){
-    
-//    Il faut pouvoir discerner les cas où on veut rendre le component (file ou URL web), où on veut rendre la source (ensemble de components ou "")
-    
-    if(QFileInfo(fSource).exists() || fSource.indexOf("http://") == 0){
-        QString faustCode = "vgroup(\"[" + layoutIndex + "]component" + fIndex + "\", component(\"" + fSource + "\"))";
-        
-        return faustCode;
-    }
-    else
-        return fSource;
-}
-
 /****************************COMPONENT WINDOW***************************/
-FLComponentWindow::FLComponentWindow(){
-    
+FLComponentWindow::FLComponentWindow()
+{
     setAcceptDrops(true);
 //    setGeometry(300,300, 300,300);
     init();
@@ -290,8 +135,8 @@ FLComponentWindow::FLComponentWindow(){
     centerOnPrimaryScreen(this);
 }
 
-FLComponentWindow::~FLComponentWindow(){
-
+FLComponentWindow::~FLComponentWindow()
+{
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
         
         for(QList<FLComponentItem*>::iterator it2 = it->begin(); it2 != it->end(); it2++){
@@ -304,10 +149,9 @@ FLComponentWindow::~FLComponentWindow(){
     delete fHComponentLayout;
 }
 
-void FLComponentWindow::init(){
- 
-    
-    QScrollArea *sa = new QScrollArea( this );
+void FLComponentWindow::init()
+{
+    QScrollArea *sa = new QScrollArea(this);
     
     sa->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded);
     sa->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded);
@@ -425,13 +269,12 @@ void FLComponentWindow::init(){
 }
 
 //Create a faust program that puts in parallel each column component then compose them sequentially.
-void FLComponentWindow::createComponent(){
-
+void FLComponentWindow::createComponent()
+{
     hide();
-    
     fItems = componentListWithoutEmptyItem(fItems);
     
-    if(fItems.size() !=0){
+    if(fItems.size() !=0) {
         
         FLMessageWindow::_Instance()->displayMessage("Creating component...");
         FLMessageWindow::_Instance()->show();
@@ -480,20 +323,14 @@ void FLComponentWindow::createComponent(){
         emit newComponent("");
 }
 
-void FLComponentWindow::addComponentRow(){
-    
+void FLComponentWindow::addComponentRow()
+{
     int verticalIndex = 0;
-
     int horizontalIndex = 0;
     
     for(QList<QList<FLComponentItem*> >::iterator it = fItems.begin(); it != fItems.end(); it++ ){
-        
-        
-        
         QString winIndex = QString::number(horizontalIndex+1) + QString::number(it->size()+1);
-        
         FLComponentItem* item = new FLComponentItem(winIndex);
-        
         fVerticalElements[verticalIndex].second->layout()->addWidget(item);
         it->push_back(item);
         verticalIndex++;
@@ -501,9 +338,9 @@ void FLComponentWindow::addComponentRow(){
     }
 }
 
-void FLComponentWindow::deleteComponentRow(){
-    
-//    First Row cannot be deleted
+void FLComponentWindow::deleteComponentRow()
+{
+    // First Row cannot be deleted
     if(fItems.begin()->size() == 1)
         return;
     
@@ -525,7 +362,8 @@ void FLComponentWindow::deleteComponentRow(){
 //    adjustSize();
 }
 
-void FLComponentWindow::addComponentColumn(){
+void FLComponentWindow::addComponentColumn()
+{
     
     QPixmap flecheImage(":/Images/fleche.png");
     
@@ -554,12 +392,11 @@ void FLComponentWindow::addComponentColumn(){
     
     fItems.push_back(newColumn);
     fVerticalElements.push_back(qMakePair(flecheLabel, newVbox));
-    
 }
 
-void FLComponentWindow::deleteComponentColumn(){
-    
-//    First Column cannot be deleted
+void FLComponentWindow::deleteComponentColumn()
+{
+    // First Column cannot be deleted
     if(fItems.size() == 1)
         return;
     
@@ -593,8 +430,8 @@ void FLComponentWindow::deleteComponentColumn(){
 //    adjustSize();
 }
 
-QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem(QList<QList<FLComponentItem*> > items){
-    
+QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem(QList<QList<FLComponentItem*> > items)
+{
     QList<QList<FLComponentItem* > > listWithoutEmptyItem;
     
     for(QList<QList<FLComponentItem*> >::iterator it = items.begin(); it != items.end(); it++){
@@ -613,12 +450,13 @@ QList<QList<FLComponentItem*> > FLComponentWindow::componentListWithoutEmptyItem
     return listWithoutEmptyItem;
 }
 
-void FLComponentWindow::closeEvent(QCloseEvent* /*event*/){
-    
+void FLComponentWindow::closeEvent(QCloseEvent* /*event*/)
+{
     emit deleteIt();
 }
 
-void FLComponentWindow::cancel(){
+void FLComponentWindow::cancel()
+{
     emit close();
 }
 

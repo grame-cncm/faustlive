@@ -7,7 +7,6 @@
 
 void* llvm_malloc(size_t size)
 { 
-    printf("SIZE OF MALLOC = %zi\n", size);
     return malloc(size); 
 }
 

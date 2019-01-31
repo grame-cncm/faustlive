@@ -16,10 +16,13 @@
 #define _FLWindow_h
 
 #include <string>
-
 #include <QtGui>
-#if QT_VERSION >= 0x050000
 #include <QtWidgets>
+
+#if defined(_WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include "faust/midi/rt-midi.h"
@@ -30,6 +33,7 @@ class FLToolBar;
 class FLStatusBar;
 class OSCUI;
 class MidiUI;
+class SoundUI;
 class FLWindow;
 class FLWinSettings;
 class remote_dsp_factory;
@@ -85,10 +89,11 @@ class FLWindow : public QMainWindow
         QTGUI*          fInterface;         //User control interface
         FUI*            fRCInterface;       //Graphical parameters saving interface
 
-        OSCUI*          fOscInterface;      //OSC interface 
+        OSCUI*          fOscInterface;      //OSC interface
+    
         MidiUI*         fMIDIInterface;     //MIDI interface
         midi_handler*   fMIDIHandler;       //RTMIDI midi-handler
-        
+      
         httpdUI*        fHttpInterface;     //Httpd interface for distance control      
         HTTPWindow*     fHttpdWindow;       //Supporting QRcode and httpd address
 

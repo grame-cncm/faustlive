@@ -17,7 +17,7 @@
 //#define kFadeOutCoefficient 1.000186
 
 #define kNumberOfCrossFadeProcess 60
-#define kFadeCoefficient 0.00003255
+#define kFadeCoefficient 0.00003255f
 //#define kFadeOutCoefficient 0.000386
 
 class AudioFader_Implementation

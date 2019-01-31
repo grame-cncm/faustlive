@@ -13,14 +13,21 @@
 #include <string>
 #include <map>
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
+#include <QMainWindow>
+#include <QString>
+#include <QTextBrowser>
+#include <QTreeWidget>
+#include <QPlainTextEdit>
+
+#if defined(WIN32) && !defined(GCC)
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-using namespace std;
-
 #include "faust/gui/meta.h"
+
+using namespace std;
 
 struct MyMeta: public Meta{
     
@@ -39,27 +46,28 @@ class FLHelpWindow : public QMainWindow{
         Q_OBJECT
     
         QTextBrowser* fToolText;
-        QTreeWidget*  fTreeLibs;
-        QPlainTextEdit*   fLibsText;
-        QPlainTextEdit*   fAppText; 
-        QPlainTextEdit*   fWinText;
+        QTreeWidget* fTreeLibs;
+        QPlainTextEdit* fLibsText;
+        QPlainTextEdit* fAppText;
+        QPlainTextEdit* fWinText;
     
         QString fLibsFolder;
+        QString fTestDSPPath;
         map<string, vector<pair<string, string> > > fInfoLibs;
     
-        void    parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
+        void parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
     
     public:
     
-        FLHelpWindow(const QString& libsFodler);
+        FLHelpWindow(const QString& libsFodler, const QString& testDSPPath);
         virtual ~FLHelpWindow();
     
         static  FLHelpWindow*   _helpWindow;
         static  FLHelpWindow*   _Instance();
-        static  void            createInstance(const QString home);
+        static  void            createInstance(const QString home, const QString& testDSPPath);
         static  void            deleteInstance();
     
-        void    init();
+        void init();
     
         virtual void closeEvent(QCloseEvent* event);
     
