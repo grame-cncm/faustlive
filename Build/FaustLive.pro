@@ -105,7 +105,7 @@ win32 {
 }
 else {
  LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
- LIBS += -lmicrohttpd -lsndfile -lcurl -lz -ldl
+ LIBS += $$system(pkg-config --libs libmicrohttpd) -lsndfile -lcurl -lz -ldl
  static {
 	message("Uses static link for Faust libs")
 	LIBS += $$FAUSTLIB/libfaust.a
@@ -146,7 +146,7 @@ macx {
 	message("MacOS CoreAudio driver")
 	LIBS        += -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI 
 	DEFINES     += COREAUDIO
-	INCLUDEPATH += $$SRC/Audio/CA
+	INCLUDEPATH += $$SRC/Audio/CA $$system(pkg-config --cflags libmicrohttpd)
 	HEADERS     += $$files($$SRC/Audio/CA/*.h)
 	SOURCES     += $$files($$SRC/Audio/CA/*.cpp)
 }
