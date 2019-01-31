@@ -39,7 +39,7 @@ PATCH=$(patch $VERSION)
 WINVERS=$(winVer $VERSION)",0"
 WINVERS2=$(winVer $VERSION " ")", 0"
 
-if [ -d compiler ]
+if [ -d Build ]
 then
 	echo "moving version number to $VERSION"
 else
@@ -58,7 +58,7 @@ mv -f TMP$$ $FLRC
 
 FLPL=$ROOT/Build/rsrc/FaustLiveInfo.plist
 echo " updating $FLPL"
-sed -e "s/>[1-9][0-9]*\.[0-9]*\.[0-9]*</>$VERSION</" > TMP$$
+sed -e "s/>[1-9][0-9]*\.[0-9]*\.[0-9]*</>$VERSION</" $FLPL > TMP$$
 mv -f TMP$$ $FLPL
 
 

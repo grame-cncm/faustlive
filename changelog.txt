@@ -4,10 +4,10 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2009-2018
+Copyright GRAME (c) 2009-2019
                                 
 ----------------------------------------------------
-Version 2.4.6
+Version 2.5.0
 
  - improves session restoration
  - integrates faust compiler 2.14.4
