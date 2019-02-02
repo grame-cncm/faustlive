@@ -13,7 +13,7 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/OSCUI.h"

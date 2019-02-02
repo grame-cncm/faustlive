@@ -42,7 +42,7 @@
 #ifndef QRCODECTRL
 # define QRCODECTRL
 #endif
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "SimpleParser.h"
 
 #define JSON_ONLY

@@ -130,7 +130,7 @@ HEADERS +=  $$files($$SRC/MenusAndDialogs/*.h)
 HEADERS +=  $$files($$SRC/MainStructure/*.h)
 HEADERS +=  $$SRC/Network/FLServerHttp.h \
 			$$SRC/Network/HTTPWindow.h \
-			$$FAUSTINC/faust/gui/faustqt.h
+			$$FAUSTINC/faust/gui/QTUI.h
 
 SOURCES += 	$$files($$SRC/Utilities/*.cpp)
 SOURCES +=	$$files($$SRC/Audio/*.cpp) 
