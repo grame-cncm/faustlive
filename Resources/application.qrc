@@ -101,6 +101,7 @@
     <file>Libs/instruments.lib</file>
     <file>Libs/maths.lib</file>
     <file>Libs/maxmsp.lib</file>
+    <file>Libs/mi.lib</file>
     <file>Libs/misceffects.lib</file>
     <file>Libs/noises.lib</file>
     <file>Libs/oscillators.lib</file>
@@ -109,16 +110,16 @@
     <file>Libs/reducemaps.lib</file>
     <file>Libs/reverbs.lib</file>
     <file>Libs/routes.lib</file>
+    <file>Libs/sf.lib</file>
     <file>Libs/signals.lib</file>
+    <file>Libs/soundfiles.lib</file>
     <file>Libs/spats.lib</file>
     <file>Libs/stdfaust.lib</file>
     <file>Libs/synths.lib</file>
     <file>Libs/tonestacks.lib</file>
     <file>Libs/tubes.lib</file>
     <file>Libs/vaeffects.lib</file>
-
-    <file>LLVM/llvm_math.ll</file>
-    
+   
     <file>Html/ServerAvailableInterfacesHead.html</file>
     <file>Html/ServerAvailableInterfacesTail.html</file>
     <file>Html/ServerHead.html</file>
