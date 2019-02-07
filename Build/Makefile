@@ -20,11 +20,16 @@ endif
 endif
 
 OUTDIR = fldir
-MAKE ?= make
+MAKE   ?= make
+FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 
 
-all :
+all : ../Resources/application.qrc
 	$(MAKE) $(TARGET)
+
+../Resources/application.qrc : $(FAUSTLIBS)
+	@echo "Faust libraries changed: check that Resources/application.qrc is uptodate." && false
+
 
 unix: $(OUTDIR)/Makefile
 	$(MAKE) -C $(OUTDIR) -j 4
