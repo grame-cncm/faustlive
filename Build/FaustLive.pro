@@ -46,7 +46,7 @@ RESOURCES       += $$ROOT/Resources/application.qrc
 RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 macx {
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.11
 	QMAKE_INFO_PLIST = rsrc/FaustLiveInfo.plist
 	RSRC.files 	= $$ROOT/Resources/Images/FaustLiveIcon.icns
 	RSRC.path 	= Contents/Resources
