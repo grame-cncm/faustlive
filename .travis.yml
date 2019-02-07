@@ -11,7 +11,8 @@ before_install:
   - sudo apt-get install llvm
   - sudo apt-get install qt58-meta-full
   - source /opt/qt58/bin/qt58-env.sh
-  - qmake --version  
+  - qmake --version 
+  - llvm-config --version
   - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
   - make -C faust all
   - sudo make -C faust install
