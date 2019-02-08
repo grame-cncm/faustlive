@@ -9,7 +9,8 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install libmicrohttpd-dev cmake qt511-meta-minimal
   - wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-  - tar xzf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+  - file clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+  - tar xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
   - sudo ln -s $(pwd)/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-config /usr/bin/llvm-config
   - source /opt/qt511/bin/qt511-env.sh
   - qmake --version 
