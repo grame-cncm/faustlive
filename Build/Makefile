@@ -28,7 +28,7 @@ all : ../Resources/application.qrc
 	$(MAKE) $(TARGET)
 
 ../Resources/application.qrc : $(FAUSTLIBS)
-	@echo "Faust libraries changed: check that Resources/application.qrc is uptodate." && false
+	@echo "Faust libraries changed: check that Resources/application.qrc is uptodate." && true
 
 
 unix: $(OUTDIR)/Makefile
