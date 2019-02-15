@@ -33,7 +33,7 @@ OBJECTS_DIR = tmp
 MOC_DIR 	= tmp
 RCC_DIR 	= tmp
 
-CONFIG += exceptions rtti c++11
+CONFIG += exceptions rtti # c++11
 
 ## QT libraries needed
 QT += core gui widgets network
@@ -101,9 +101,11 @@ win32 {
     	LIBS += $$LLVM_LIBS
     	CONFIG += portaudio
 	}
+	CONFIG += c++11
     INCLUDEPATH += $$LIBSNDFILE/include $$LOCALLIB/libmicrohttpd
 }
 else {
+ QMAKE_CXXFLAGS += -std=c++11
  LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
  LIBS += $$system(pkg-config --libs libmicrohttpd) -lsndfile -lcurl -lz -ldl
  static {
