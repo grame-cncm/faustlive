@@ -3,8 +3,11 @@
 
 #include <string>
 
+#include <QtGui>
+#if QT_VERSION >= 0x050000
 #include <QString>
 #include <QtWidgets>
+#endif
 
 #if defined(WIN32) && !defined(GCC)
 # pragma warning (disable: 4100 4267)
