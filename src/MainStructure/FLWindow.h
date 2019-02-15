@@ -17,7 +17,9 @@
 
 #include <string>
 #include <QtGui>
+#if QT_VERSION >= 0x050000
 #include <QtWidgets>
+#endif
 
 #if defined(_WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
