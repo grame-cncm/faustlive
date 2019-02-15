@@ -13,6 +13,10 @@
 #include <string>
 #include <map>
 
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
 #include <QMainWindow>
 #include <QString>
 #include <QTextBrowser>
