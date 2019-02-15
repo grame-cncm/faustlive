@@ -40,7 +40,12 @@ help:
 	@echo "  'all'  (default) : compiles FaustLive."
 	@echo "  'deploy'         : call $(DEPLOY)."
 	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
+	@echo "  'update'         : git update, including submodule."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
+
+update: 
+	git submodule update --init
+	git pull --rebase
 
 windows: 
 	@echo Compiling on Windows MSYS might work but has not been tested.
