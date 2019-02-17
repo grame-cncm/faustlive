@@ -12,6 +12,15 @@ It supports also native applications generation using the [Faust online compiler
 
 FaustLive is based on the [Faust](https://faust.grame.fr) library and on [LLVM](http://llvm.org).
 
+## Libraries
+
+Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main FaustLive repository using the following commands:
+
+    git submodule update --remote --merge
+    git add Resources/Libs
+    git commit -m "Updating libraries"
+    git push
+
 
 ### Limitations and known bugs
 
