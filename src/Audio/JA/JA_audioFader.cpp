@@ -45,7 +45,7 @@ float JA_audioFader::crossfade_calculation(int i, int j)
     }
 }
 
-JA_audioFader::JA_audioFader(const void* icon_data, size_t icon_size) :jackaudio_midi(icon_data, icon_size)
+JA_audioFader::JA_audioFader() :jackaudio_midi()
 {
     if (FLSettings::_Instance()->value("General/Audio/Jack/AutoStart", true).toBool()) {
         unsetenv("JACK_NO_START_SERVER");
