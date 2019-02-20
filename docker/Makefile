@@ -6,7 +6,7 @@ VERSION  := 1.00
 BASE     := faustbase:$(VERSION)
 NAME     := faustlive:latest
 
-.phony base
+.phony: base
 
 build: base
 	@echo building docker image $(NAME)...
