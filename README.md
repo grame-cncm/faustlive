@@ -5,6 +5,8 @@ FaustLive
 ## The swiss knife for [Faust](https://faust.grame.fr) development.
 --------------
 
+dev : [![Build Status](https://travis-ci.org/grame-cncm/faustlive.svg=dev)](https://travis-ci.org/grame-cncm/faustlive)
+
 FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. 
 
 FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running, without sound interruption.
