@@ -1,0 +1,12 @@
+FROM ubuntu:xenial
+
+ENV PATH="/grame/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin:${PATH}"
+
+RUN apt-get update
+RUN apt-get install -y git cmake wget libmicrohttpd-dev
+RUN apt-get install -y qt4-default libcurl4-gnutls-dev libtinfo-dev libsndfile1-dev libjack-jackd2-dev libasound2-dev
+
+RUN mkdir grame
+WORKDIR /grame
+RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+RUN tar xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
