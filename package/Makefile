@@ -22,7 +22,7 @@ windows: README.html
 
 README.html: N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
 README.html: N := $(shell expr $(N) - 7)
-README.html: ../README.md
+README.html: ../README.md ../changelog.txt
 	@echo "<!DOCTYPE html><html><xmp>" > README.html
 	cat ../README.md >> README.html
 	@echo "<br /><br />" >> README.html
