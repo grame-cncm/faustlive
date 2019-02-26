@@ -21,6 +21,7 @@ isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }
 
 message ("Using Faust libs from $$FAUSTLIB")
 message ("Using Faust incl from $$FAUSTINC")
+message ("Generates FaustLive version $$VERSION")
 
 
 isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }

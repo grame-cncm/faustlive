@@ -51,6 +51,9 @@ windows:
 	@echo Compiling on Windows MSYS might work but has not been tested.
 	@echo Proceed manually.
 
+qmake:
+	cd $(OUTDIR) && qmake .. $(SPEC)
+
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
 	cd $(OUTDIR) && qmake .. $(SPEC)
 	
