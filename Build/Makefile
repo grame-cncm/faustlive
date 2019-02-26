@@ -8,7 +8,7 @@ ifeq ($(system), Darwin)
 else
 ifeq ($(system), MINGW)
 	TARGET ?= windows
-	DEPLOY ?= macdeployqt
+	DEPLOY ?= windeployqt
 else
 ifeq ($(system), Linux)
 	TARGET ?= unix

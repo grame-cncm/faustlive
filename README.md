@@ -30,6 +30,12 @@ Faust libraries are now in a [separated subproject](https://github.com/grame-cnc
  - crashes on Windows when compiling a dsp with input signals, on a machine without input audio device
  - may crash on startup due to incorrect cache. In this case, find the `FaustLive-CurrentSession-2.0` folder in your home folder, remove it and restart. On Unix like stations (Linux, MacOS), this folder is hidden and located at `$HOME/.FaustLive-CurrentSession-2.0` 
 
+
+## Building
+
+To build the FaustLive project, go to the `build` folder and start with the README file.
+
+
 <!--p align="center">
   <img width="70" src="./Resources/FaustLiveIcon.png"> <br />
   <img width="100" src="./Resources/faust.png">
