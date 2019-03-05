@@ -712,13 +712,16 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     updateFolderDate(shaKey);
     int iteratorParams = 0;
     int argc = 7;
-    
+#ifndef WIN32
+#warning ("change the hard coded argc size")
+#endif
+
     if (sourcePath != "") {
         argc += 2;
     }
     
 #ifdef _WIN32
-    argc += 2;
+//    argc += 2;
 #endif
     
     const char** argv = new const char*[argc];
