@@ -720,10 +720,6 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
         argc += 2;
     }
     
-#ifdef _WIN32
-//    argc += 2;
-#endif
-    
     const char** argv = new const char*[argc];
      
     // sourcePath include is first
