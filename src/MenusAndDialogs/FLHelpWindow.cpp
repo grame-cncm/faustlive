@@ -165,11 +165,6 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     //The library path is where libraries like the scheduler architecture file are = currentSession
     string libPath = fLibsFolder.toStdString();
     argv[argc++] = libPath.c_str();
-    
-#ifdef LLVM_MATH
-	argv[argc++] = "-l";
-	argv[argc++] = "llvm_math.ll";
-#endif
     argv[argc] = 0; // NULL terminated argv
     string error;
     string file = fTestDSPPath.toStdString();
