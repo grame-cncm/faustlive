@@ -12,15 +12,12 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#include "FLComponentItem.h"
-
-#include "faust/gui/faustqt.h"
-
-#include "FLSessionManager.h"
-#include "FLErrorWindow.h"
-
+#include "faust/gui/QTUI.h"
 #include "faust/dsp/dsp.h"
 
+#include "FLComponentItem.h"
+#include "FLSessionManager.h"
+#include "FLErrorWindow.h"
 
 /****************************COMPONENT ITEM***************************/
 FLComponentItem::FLComponentItem(const QString& index, QWidget* parent) : QWidget(parent)

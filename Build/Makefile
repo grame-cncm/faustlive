@@ -8,7 +8,7 @@ ifeq ($(system), Darwin)
 else
 ifeq ($(system), MINGW)
 	TARGET ?= windows
-	DEPLOY ?= macdeployqt
+	DEPLOY ?= windeployqt
 else
 ifeq ($(system), Linux)
 	TARGET ?= unix
@@ -20,11 +20,16 @@ endif
 endif
 
 OUTDIR = fldir
-MAKE ?= make
+MAKE   ?= make
+FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 
 
-all :
+all : ../Resources/application.qrc
 	$(MAKE) $(TARGET)
+
+../Resources/application.qrc : $(FAUSTLIBS)
+	@echo "Faust libraries changed: check that Resources/application.qrc is uptodate." && true
+
 
 unix: $(OUTDIR)/Makefile
 	$(MAKE) -C $(OUTDIR) -j 4
@@ -35,11 +40,19 @@ help:
 	@echo "  'all'  (default) : compiles FaustLive."
 	@echo "  'deploy'         : call $(DEPLOY)."
 	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
+	@echo "  'update'         : git update, including submodule."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
+
+update: 
+	git submodule update --init
+	git pull --rebase
 
 windows: 
 	@echo Compiling on Windows MSYS might work but has not been tested.
 	@echo Proceed manually.
+
+qmake:
+	cd $(OUTDIR) && qmake .. $(SPEC)
 
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
 	cd $(OUTDIR) && qmake .. $(SPEC)

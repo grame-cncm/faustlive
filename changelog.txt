@@ -4,11 +4,22 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2009-2019
+Copyright GRAME (c) 2014-2019
                                 
 ----------------------------------------------------
-Version 2.5.0
+05/03/2019: version 2.5.1
+
+- integrates Faust compiler 2.15.10
+- based on LLVM 7.0.0
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+                              
+----------------------------------------------------
+31/01/2019: version 2.5.0
 
  - improves session restoration
- - integrates faust compiler 2.14.4
- - based on llvm 7.0.0
+ - integrates Faust compiler 2.14.4
+ - based on LLVM 7.0.0

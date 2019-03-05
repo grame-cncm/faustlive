@@ -21,6 +21,7 @@ isEmpty(FAUSTINC) 		{ FAUSTINC = "$$system(faust -includedir)" }
 
 message ("Using Faust libs from $$FAUSTLIB")
 message ("Using Faust incl from $$FAUSTINC")
+message ("Generates FaustLive version $$VERSION")
 
 
 isEmpty(LLVM_CONFIG) 	{ LLVM_CONFIG = llvm-config }
@@ -33,7 +34,7 @@ OBJECTS_DIR = tmp
 MOC_DIR 	= tmp
 RCC_DIR 	= tmp
 
-CONFIG += exceptions rtti c++11
+CONFIG += exceptions rtti # c++11
 
 ## QT libraries needed
 QT += core gui widgets network
@@ -46,9 +47,9 @@ RESOURCES       += $$ROOT/Resources/application.qrc
 RESOURCES 	    += $$ROOT/Resources/styles.qrc
 ICON             = $$ROOT/Resources/Images/FaustLiveIcon.icns
 macx {
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.11
 	QMAKE_INFO_PLIST = rsrc/FaustLiveInfo.plist
-	RSRC.files 	= $$ROOT/Resources/Images/FaustLiveIcon.icns
+#	RSRC.files 	= $$ROOT/Resources/Images/FaustLiveIcon.icns
 	RSRC.path 	= Contents/Resources
 	QMAKE_BUNDLE_DATA += RSRC
 }
@@ -101,9 +102,11 @@ win32 {
     	LIBS += $$LLVM_LIBS
     	CONFIG += portaudio
 	}
+	CONFIG += c++11
     INCLUDEPATH += $$LIBSNDFILE/include $$LOCALLIB/libmicrohttpd
 }
 else {
+ QMAKE_CXXFLAGS += -std=c++11
  LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
  LIBS += $$system(pkg-config --libs libmicrohttpd) -lsndfile -lcurl -lz -ldl
  static {
@@ -130,7 +133,7 @@ HEADERS +=  $$files($$SRC/MenusAndDialogs/*.h)
 HEADERS +=  $$files($$SRC/MainStructure/*.h)
 HEADERS +=  $$SRC/Network/FLServerHttp.h \
 			$$SRC/Network/HTTPWindow.h \
-			$$FAUSTINC/faust/gui/faustqt.h
+			$$FAUSTINC/faust/gui/QTUI.h
 
 SOURCES += 	$$files($$SRC/Utilities/*.cpp)
 SOURCES +=	$$files($$SRC/Audio/*.cpp) 

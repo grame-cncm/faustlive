@@ -36,7 +36,7 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
     
     public:
     
-        JA_audioFader(const void* icon_data = NULL, size_t icon_size = 0);
+        JA_audioFader();
         virtual ~JA_audioFader();
         
         // Special version that names the JACK ports

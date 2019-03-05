@@ -12,7 +12,7 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/dsp/dsp.h"
 
 #include "FLComponentItem.h"

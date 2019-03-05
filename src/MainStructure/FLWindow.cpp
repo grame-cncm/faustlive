@@ -13,7 +13,7 @@
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/OSCUI.h"
@@ -1433,7 +1433,7 @@ void FLWindow::allocateHttpInterface()
     QString windowTitle = fWindowName + ":" + getName();
     int argc = 3;
     char* argv[4];  // NULL terminated argv
-	char charport[5];
+	char charport[20];
 	int port = 5510 + fWindowIndex;
 	sprintf(charport, "%d", port);
 

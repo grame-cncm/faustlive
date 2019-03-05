@@ -579,13 +579,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
         string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
     }
-    
-#ifdef LLVM_MATH 
-    //LLVM_MATH is added to resolve mathematical float functions, like powf on windows
-    argv[iteratorParams++] = "-l";
-    argv[iteratorParams++] = "llvm_math.ll";
-#endif
-    
+     
     //Parsing the compilationOptions from a string to a char**
     QString copy = faustOptions;
     
@@ -718,14 +712,13 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     updateFolderDate(shaKey);
     int iteratorParams = 0;
     int argc = 7;
-    
+#ifndef WIN32
+#warning ("change the hard coded argc size")
+#endif
+
     if (sourcePath != "") {
         argc += 2;
     }
-    
-#ifdef _WIN32
-    argc += 2;
-#endif
     
     const char** argv = new const char*[argc];
      
@@ -745,12 +738,6 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     argv[iteratorParams++] = "-I";
     string examplesFolder = fSessionFolder.toStdString() + "/Examples";
     argv[iteratorParams++] = strdup(examplesFolder.c_str());
-
-#ifdef _WIN32
-    //LLVM_MATH is added to resolve mathematical float functions, like powf
-    argv[iteratorParams++] = "-l";
-    argv[iteratorParams++] = "llvm_math.ll";
-#endif
     
     string pathSVG = svgPath.toStdString();
     argv[iteratorParams++] = "-svg";
