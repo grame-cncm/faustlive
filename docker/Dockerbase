@@ -9,4 +9,4 @@ RUN apt-get install -y qt4-default libcurl4-gnutls-dev libtinfo-dev libsndfile1-
 RUN mkdir grame
 WORKDIR /grame
 RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-RUN tar xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+RUN tar xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && rm  clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz

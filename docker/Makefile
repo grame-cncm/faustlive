@@ -8,7 +8,7 @@ NAME     := faustlive:latest
 
 .phony: base
 
-build: base
+build: base Dockerfile
 	@echo building docker image $(NAME)...
 	docker build -t $(NAME) .
 
@@ -26,7 +26,7 @@ list:
 	docker images
 	docker container ls
 
-base:
+base: Dockerbase
 	@echo building docker image $(BASE) ...
 	docker build -t $(NAME) -f Dockerbase .
 

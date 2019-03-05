@@ -35,5 +35,20 @@ README.html: ../README.md ../changelog.txt
 build:
 	mkdir build
 
+
+# make a faustlive distribution tarball
+dist ?= $(NAME)
+submodule = Resources/Libs
+dist :
+	rm -rf $(dist)
+	git submodule update --init
+	cd .. && git archive --format=tar --prefix=$(dist)/ HEAD | tar xf -
+# Grab the submodules.
+	cd ../$(dist) && rm -rf $(submodule) && git -C ../$(submodule) archive --format=tar --prefix=$(submodule) HEAD | tar xf -
+# Create the source tarball.
+	cd .. && tar cfz package/$(dist).tar.gz $(dist)
+	rm -rf ../$(dist)
+
+
 clean:
 	rm -rf build FaustLive-$(VERSION).dmg
