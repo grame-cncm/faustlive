@@ -11,6 +11,7 @@ Copyright GRAME (c) 2014-2019
 
 - integrates Faust compiler 2.15.10
 - based on LLVM 7.0.0
+- on OS X, the binary works (again) starting from OS 10.11 (El Capitan)
 
 Known issues: 
 
