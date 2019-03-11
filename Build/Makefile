@@ -52,10 +52,10 @@ windows:
 	@echo Proceed manually.
 
 qmake:
-	cd $(OUTDIR) && qmake .. $(SPEC)
+	cd $(OUTDIR) && qmake .. $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
 
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
-	cd $(OUTDIR) && qmake .. $(SPEC)
+	cd $(OUTDIR) && qmake .. $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
 	
 $(OUTDIR) :
 	mkdir $(OUTDIR)
