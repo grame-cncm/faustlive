@@ -1,8 +1,26 @@
 
+# start to determine the current platform
+system := $(shell uname -s)
+# normalizes MINGW versions
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+
+ifeq ($(system),  MINGW)
+	TARGET = windows
+endif
+ifeq ($(system),  Darwin)
+	TARGET = macos
+else
+	TARGET = help
+endif
+
 VERSION := $(shell cat ../version.txt)
 FLDIR   := ../Build/FaustLive
 NAME    := FaustLive-$(VERSION)
 CHGELOG := ../changelog.txt
+DEST    ?= .
+
+all:
+	$(MAKE) $(TARGET)
 
 help:
 	@echo "-- FaustLive packaging --"
@@ -15,7 +33,7 @@ macos: build README.html
 	macdeployqt $(FLDIR)/FaustLive.app
 	cd build && cmake ..
 	cd build && make install
-	hdiutil create $(NAME)-osx.dmg -fs HFS+ -srcfolder build/$(NAME) -format UDBZ -ov
+	hdiutil create $(DEST)/)$(NAME)-osx.dmg -fs HFS+ -srcfolder build/$(NAME) -format UDBZ -ov
 
 windows: README.html
 	@echo Run the makepgk.bat script
