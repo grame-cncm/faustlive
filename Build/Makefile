@@ -21,6 +21,7 @@ endif
 
 OUTDIR = fldir
 MAKE   ?= make
+FAUST  ?= faust
 FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 
 
@@ -47,15 +48,24 @@ update:
 	git submodule update --init
 	git pull --rebase
 
+package: 
+	$(MAKE) -C ../package
+
+release: 
+	git pull --rebase
+	$(MAKE) clean
+	$(MAKE)
+	$(MAKE) package
+
 windows: 
 	@echo Compiling on Windows MSYS might work but has not been tested.
 	@echo Proceed manually.
 
 qmake:
-	cd $(OUTDIR) && qmake .. $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
+	cd $(OUTDIR) && qmake .. FAUST=$(FAUST) $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
 
 $(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
-	cd $(OUTDIR) && qmake .. $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
+	cd $(OUTDIR) && qmake .. FAUST=$(FAUST) $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
 	
 $(OUTDIR) :
 	mkdir $(OUTDIR)
