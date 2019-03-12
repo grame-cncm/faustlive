@@ -13,7 +13,8 @@ set (FLDOC ${ROOT}/Documentation)
 
 #######################################
 # versions management
-file (READ ${ROOT}/version.txt VERSION)
+file (READ ${ROOT}/version.txt FLVERSION)
+string ( STRIP ${FLVERSION} VERSION )
 get_major_minor_patch( ${VERSION} )
 
 message (STATUS "Configuring version ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
