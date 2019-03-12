@@ -1,8 +1,25 @@
 
+# start to determine the current platform
+system := $(shell uname -s)
+# normalizes MINGW versions
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+
+ifeq ($(system),  MINGW)
+	TARGET = windows
+endif
+ifeq ($(system),  Darwin)
+	TARGET = macos
+else
+	TARGET = help
+endif
+
 VERSION := $(shell cat ../version.txt)
 FLDIR   := ../Build/FaustLive
 NAME    := FaustLive-$(VERSION)
 CHGELOG := ../changelog.txt
+
+all:
+	$(MAKE) $(TARGET)
 
 help:
 	@echo "-- FaustLive packaging --"
