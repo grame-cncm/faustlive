@@ -22,6 +22,7 @@ endif
 OUTDIR = fldir
 MAKE   ?= make
 FAUST  ?= faust
+DEST   ?= .
 FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 
 
@@ -55,7 +56,7 @@ release:
 	git pull --rebase
 	$(MAKE) clean
 	$(MAKE)
-	$(MAKE) package
+	$(MAKE) package DEST=$(DEST)
 
 windows: 
 	@echo Compiling on Windows MSYS might work but has not been tested.
