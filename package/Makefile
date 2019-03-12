@@ -18,6 +18,7 @@ FLDIR   := ../Build/FaustLive
 NAME    := FaustLive-$(VERSION)
 CHGELOG := ../changelog.txt
 DEST    ?= .
+DISTDEST ?= package
 
 all:
 	$(MAKE) $(TARGET)
@@ -27,6 +28,7 @@ help:
 	@echo "Available targets are:"
 	@echo "  macos"
 	@echo "  windows"
+	@echo "  dist"
 	
 macos: FLIBS  := $(otool -L build/$(NAME)/FaustLive.app/Contents/MacOS/FaustLive | grep lib | grep -i faust | sed -e 's/dylib..*/dylib/' | sed -e 's/.rpath.//')
 macos: build README.html
@@ -64,7 +66,7 @@ dist :
 # Grab the submodules.
 	cd ../$(dist) && rm -rf $(submodule) && git -C ../$(submodule) archive --format=tar --prefix=$(submodule) HEAD | tar xf -
 # Create the source tarball.
-	cd .. && tar cfz package/$(dist).tar.gz $(dist)
+	cd .. && tar cfz $(DISTDEST)/$(dist).tar.gz $(dist)
 	rm -rf ../$(dist)
 
 
