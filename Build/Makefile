@@ -52,11 +52,15 @@ update:
 package: 
 	$(MAKE) -C ../package
 
+dist: 
+	$(MAKE) -C ../package dist
+
 release: 
 	git pull --rebase
 	$(MAKE) clean
 	$(MAKE)
 	$(MAKE) package DEST=$(DEST)
+	$(MAKE) dist DISTDEST=$(DEST)
 
 windows: 
 	@echo Compiling on Windows MSYS might work but has not been tested.

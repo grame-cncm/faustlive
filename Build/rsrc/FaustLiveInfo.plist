@@ -40,6 +40,8 @@
 	<string>2.5.2</string>
 	<key>CFBundleVersion</key>
 	<string>2.5.2</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FaustLive input signal</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright 2009-2019 Grame</string>
 	<key>NSHighResolutionCapable</key>
