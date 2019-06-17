@@ -108,18 +108,18 @@ win32 {
 }
 else {
  QMAKE_CXXFLAGS += -std=c++11
- LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+# LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
  LIBS += $$system(pkg-config --libs libmicrohttpd) -lsndfile -lcurl -lz -ldl
- static {
-	message("Uses static link for Faust libs")
-	LIBS += $$FAUSTLIB/libfaust.a
-	LIBS += $$FAUSTLIB/libHTTPDFaust.a
-	LIBS += $$FAUSTLIB/libOSCFaust.a
- } else {
+# static {
+#	message("Uses static link for Faust libs")
+#	LIBS += $$FAUSTLIB/libfaust.a
+#	LIBS += $$FAUSTLIB/libHTTPDFaust.a
+#	LIBS += $$FAUSTLIB/libOSCFaust.a
+#} else {
 	message("Uses dynamic link for Faust libs")
 	LIBS += -L$$FAUSTLIB -lHTTPDFaust -lOSCFaust -lfaust
 	LIBS += -Wl,-rpath,$$FAUSTLIB
- }
+# }
 }
 
 DEFINES += HTTPCTRL
