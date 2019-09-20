@@ -11,7 +11,7 @@ else {
 ROOT 	 = $$PWD/..
 BUILD 	 = $$PWD
 SRC 	 = $$ROOT/src
-DESTDIR  = $$PWD/FaustLive
+DESTDIR  = FaustLive
 
 LOCALLIB 	= $$ROOT/lib
 
