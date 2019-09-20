@@ -1,3 +1,4 @@
+#!/bin/sh
 clang -m32 -emit-llvm -S llvm_math.c -o llvm_math_32.ll
 llc -march=cpp -cppgen=module -cppfname=llvm_32_module llvm_math_32.ll 
 
