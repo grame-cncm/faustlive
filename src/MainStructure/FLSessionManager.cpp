@@ -32,7 +32,7 @@
 
 /* When creating a new DSP, it is associated to a unique SHA Key calculated from 
  the faust code, the name and the compilation options */
-/* This allows to accelerate compilation when reusing the same DSP */
+/* This allows one to accelerate compilation when reusing the same DSP */
 
 FLSessionManager* FLSessionManager::_sessionManager = 0;
 
