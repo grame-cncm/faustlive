@@ -305,7 +305,7 @@ void FLHelpWindow::init()
     QGridLayout* appLayout1 = new QGridLayout;
     
     fTreeLibs = new QTreeWidget;
-    fTreeLibs->setHeaderLabel("Available Librairies");
+    fTreeLibs->setHeaderLabel("Available Libraries");
     
     //    Mettre en route d'ajouter les librairies présentes dans le dossier Libs
     
