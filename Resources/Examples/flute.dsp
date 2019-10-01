@@ -4,7 +4,7 @@ declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
-declare description "A simple flute based on Smith algorythm: https://ccrma.stanford.edu/~jos/pasp/Flutes_Recorders_Pipe_Organs.html"; 
+declare description "A simple flute based on Smith algorithm: https://ccrma.stanford.edu/~jos/pasp/Flutes_Recorders_Pipe_Organs.html"; 
 
 import("instruments.lib");
 
@@ -83,13 +83,13 @@ boreDelayLength = ma.SR/freq-2;
 embouchureDelay = de.fdelay(4096,embouchureDelayLength);
 boreDelay = de.fdelay(4096,boreDelayLength);
 
-//Polinomial
+//Polynomial
 poly = _ <: _ - _*_*_;
 
 //jet filter is a lowpass filter (declared in miscfilter.lib)
 reflexionFilter = fi.lowpass(1,2000);
 
-//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spatialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
@@ -102,7 +102,7 @@ env1 = en.adsr(env1Attack,env1Decay,0.9,env1Release,(gate | pressureEnvelope))*p
 env2 = en.asr(env2Attack,1,env2Release,gate)*0.5;
 
 //Vibrato Envelope
-vibratoEnvelope = envVibrato(vibratoBegin,vibratoAttack,1,vibratoRelease,gate)*vibratoGain; 
+vibratoEnvelope = envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*vibratoGain; 
 
 vibrato = os.osc(vibratoFreq)*vibratoEnvelope;
 

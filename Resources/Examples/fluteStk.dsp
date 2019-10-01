@@ -96,8 +96,8 @@ stereo = stereoizer(ma.SR/freq);
 
 //----------------------- Algorithm implementation ----------------------------
 
-//the vibrato amplitude is controled by an envelope generator (declared in instruments.lib)
-vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,1,vibratoRelease,gate)*os.osc(vibratoFreq);
+//the vibrato amplitude is controlled by an envelope generator (declared in instruments.lib)
+vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
 
 //Breath pressure is controlled by an Attack / Decay / Sustain / Release envelope
 envelopeBreath = pressure*en.adsr(pressure*envelopeAttack,envelopeDecay,0.8,envelopeRelease,gate);

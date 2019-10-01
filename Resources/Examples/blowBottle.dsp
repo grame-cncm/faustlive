@@ -85,7 +85,7 @@ envelopeG =  gain*en.adsr(gain*envelopeAttack,envelopeDecay,1,envelopeRelease,ga
 envelope = pressure*en.adsr(gain*0.02,0.01,1,gain*0.2,gate);
 
 //vibrato
-vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(vibratoBegin,vibratoAttack,1,vibratoRelease,gate)*os.osc(vibratoFreq);
+vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
 
 //breat pressure
 breathPressure = envelope + vibrato;
