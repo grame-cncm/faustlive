@@ -108,7 +108,7 @@ win32 {
 }
 else {
  QMAKE_CXXFLAGS += -std=c++11
-# LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
+ LIBS += $$system($$LLVM_CONFIG --ldflags) $$system($$LLVM_CONFIG --libs)
  LIBS += $$system(pkg-config --libs libmicrohttpd) -lsndfile -lcurl -lz -ldl
 # static {
 #	message("Uses static link for Faust libs")
