@@ -30,7 +30,7 @@ echo DONE
 GOTO END
 
 :USAGE
-echo "Usage: MakeRelease.bat <version> <builddir> <VS version>
+echo "Usage: MakeRelease.bat <builddir> <VS version>
 echo "       <builddir>    is the windows build folder"
 echo "       <VS version>  is a visual studio version: 2015 or 2017"
 
