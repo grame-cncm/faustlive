@@ -15,6 +15,10 @@ GOTO USAGE
 :NEXT
 echo "Make sure you're on the correct branch"
 echo "Make sure your repo is uptodate (git pull --rebase)"
+echo "Make sure the latest faust version is installed"
+set CONT="no"
+set /p CONT=Type Y to continue... 
+if /i NOT %CONT%==Y exit
 
 set BUILD=%1
 
