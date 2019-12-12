@@ -91,7 +91,7 @@ stereo = stereoizer(ma.SR/freq);
 envelope = en.adsr(envelopeAttack,envelopeDecay,1,envelopeRelease,gate)*pressure*0.9;
 
 vibrato = os.osc(vibratoFreq)*vibratoGain*
-	envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,1,vibratoRelease,gate);
+	envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,100,vibratoRelease,gate);
 breath = envelope + envelope*no.noise*noiseGain;
 breathPressure = breath + breath*vibrato;
 

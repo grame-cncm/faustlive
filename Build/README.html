@@ -7,9 +7,9 @@ FaustLive - How to compile
 
 
 ### Prerequisites
-- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line.
-- you must have [Qt](https://www.qt.io/) installed and the `qmake` command available from the command line..
-- you must have [LLVM](http://llvm.org/) installed and the `llvm-config` command available from the command line..
+- you must have [Faust](https://faust.grame.fr/) installed, the `faust` command available from the command line, and the compiled `libfaust` library. Be sure to compile `libfaust` with every static and dynamic libraries, that is using the `make all` target in the Faust distibution main folder.
+- you must have [Qt](https://www.qt.io/) installed and the `qmake` command available from the command line.
+- you must have [LLVM](http://llvm.org/) installed and the `llvm-config` command available from the command line.
 - you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed.
 - you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
 - [Linux] you must have [JACK](http://jackaudio.org/) installed.
@@ -21,6 +21,9 @@ FaustLive - How to compile
 It is recommended to build the project in a separate subfolder. It isolates the compilation process from the rest of the project.
 
 ### Project generation
+
+After a fresh `git clone`, you'll have to retrieve the Faust libraries git submodule. Type `make update` once in the Build folder.
+
 Assuming that you compile in a subfolder named `fldir`, simply do the following:
 
 ~~~~

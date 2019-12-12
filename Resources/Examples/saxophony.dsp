@@ -92,7 +92,7 @@ envelope = (0.55+pressure*0.3)*en.asr(pressure*envelopeAttack,1,pressure*envelop
 breath = envelope + envelope*noiseGain*no.noise;
 
 //envVibrato is decalred in instruments.lib
-vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,1,vibratoRelease,gate)*osc(vibratoFreq);
+vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
 breathPressure = breath + breath*vibratoGain*os.osc(vibratoFreq);
 
 //Body filter is a one zero filter (declared in instruments.lib)

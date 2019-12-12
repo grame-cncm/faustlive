@@ -70,7 +70,7 @@ void PA_audioSettings::storeVisualSettings()
     char* bs_str = fBufferSize->text().toLatin1().data();
     
     int sample_rate = (isStringInt(sr_str) ? ((atoi(sr_str) == 0) ? 44100 : atoi(sr_str)) : 44100);
-    settings->setValue("General/Audio/PortAudio/BufferSize", sample_rate);
+    settings->setValue("General/Audio/PortAudio/SampleRate", sample_rate);
     
     int buffer_size = (isStringInt(bs_str) ? ((atoi(bs_str) == 0) ? 1024 : atoi(bs_str)) : 1024);
     settings->setValue("General/Audio/PortAudio/BufferSize", buffer_size);

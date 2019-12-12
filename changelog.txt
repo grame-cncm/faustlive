@@ -5,7 +5,19 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
 Copyright GRAME (c) 2014-2019
-   
+
+----------------------------------------------------
+10/10/2019: version 2.5.3
+
+- integrates Faust compiler version 2.19.1
+- based on LLVM 9.0.0 on Windows and OS X
+- on OS X, the binary works starting from OS 10.12
+- latest version of the Faust libraries
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
    
 ----------------------------------------------------
 12/03/2019: version 2.5.2
