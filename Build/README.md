@@ -20,6 +20,8 @@ It is recommended to build the project in a separate subfolder. It isolates the 
 
 After a fresh `git clone`, you'll have to retrieve the Faust libraries git submodule. Type `make update` once in the Build folder.
 
+Be sure to have all library files (located in **Resources/Libs**) and all examples files (located **Resources/Examples**) correctly listed in the **application.qrc** file.
+
 Assuming that you compile in a subfolder named `fldir`, simply do the following:
 
 ~~~~

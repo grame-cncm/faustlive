@@ -99,6 +99,7 @@
     <file>Libs/filters.lib</file>
     <file>Libs/hoa.lib</file>
     <file>Libs/instruments.lib</file>
+    <file>Libs/interpolators.lib</file>
     <file>Libs/maths.lib</file>
     <file>Libs/maxmsp.lib</file>
     <file>Libs/mi.lib</file>
@@ -107,6 +108,7 @@
     <file>Libs/oscillators.lib</file>
     <file>Libs/phaflangers.lib</file>
     <file>Libs/physmodels.lib</file>
+    <file>Libs/platform.lib</file>
     <file>Libs/reducemaps.lib</file>
     <file>Libs/reverbs.lib</file>
     <file>Libs/routes.lib</file>
@@ -119,6 +121,8 @@
     <file>Libs/tonestacks.lib</file>
     <file>Libs/tubes.lib</file>
     <file>Libs/vaeffects.lib</file>
+    <file>Libs/version.lib</file>
+    <file>Libs/webaudio.lib</file>
    
     <file>Html/ServerAvailableInterfacesHead.html</file>
     <file>Html/ServerAvailableInterfacesTail.html</file>

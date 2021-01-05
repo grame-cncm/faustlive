@@ -91,29 +91,29 @@ class FLServerHttp : public QObject
         
         struct          MHD_Daemon* fDaemon;
         
-        int             handleGet(MHD_Connection *connection, const char* url);
-        int             handlePost(MHD_Connection *connection, const char* url, void *info);
+        int             handleGet(MHD_Connection* connection, const char* url);
+        int             handlePost(MHD_Connection* connection, const char* url, void* info);
         
         void            updateAvailableInterfaces();
         int             getMaxClients();
         
-        int             sendPage(struct MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
+        int             sendPage(struct MHD_Connection *connection, const char* page, int length, int status_code, const char* type = 0);
         
-        static int      answerToConnection(void *cls, struct MHD_Connection *connection,
-                                         const char *url, const char *method,
-                                         const char *version, const char *upload_data,
-                                         size_t *upload_data_size, void **con_cls);
+        static int      answerToConnection(void* cls, struct MHD_Connection* connection,
+                                         const char* url, const char* method,
+                                         const char* version, const char* upload_data,
+                                         size_t* upload_data_size, void** con_cls);
                                          
         
         int             redirectJsonRequest(struct MHD_Connection *connection, string portNumber);
         
-        static void requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+        static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
         
-        static int iteratePost(void *coninfo_cls, MHD_ValueKind kind, 
-                                const char *key, const char *filename, 
-                                const char *content_type, 
-                                const char *transfer_encoding, 
-                                const char *data, uint64_t off, 
+        static int iteratePost(void* coninfo_cls, MHD_ValueKind kind,
+                                const char* key, const char* filename,
+                                const char* content_type,
+                                const char* transfer_encoding,
+                                const char* data, uint64_t off,
                                 size_t size);
      
     public:
