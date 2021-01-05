@@ -7,7 +7,7 @@ http://www.grame.fr
 Copyright GRAME (c) 2014-2021
 
 ----------------------------------------------------
-01/05/2021: version 2.5.4
+01/05/2021: version 2.5.5
 
 - integrates Faust compiler version 2.30.5
 - based on LLVM 10.0.0 on Windows and OS X
