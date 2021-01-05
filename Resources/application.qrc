@@ -109,6 +109,7 @@
     <file>Libs/phaflangers.lib</file>
     <file>Libs/physmodels.lib</file>
     <file>Libs/platform.lib</file>
+    <file>Libs/quantizers.lib</file>
     <file>Libs/reducemaps.lib</file>
     <file>Libs/reverbs.lib</file>
     <file>Libs/routes.lib</file>
@@ -122,6 +123,7 @@
     <file>Libs/tubes.lib</file>
     <file>Libs/vaeffects.lib</file>
     <file>Libs/version.lib</file>
+    <file>Libs/wdmodels.lib</file>
     <file>Libs/webaudio.lib</file>
    
     <file>Html/ServerAvailableInterfacesHead.html</file>

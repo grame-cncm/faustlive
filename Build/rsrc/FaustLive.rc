@@ -50,8 +50,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,5,3,0
- PRODUCTVERSION 2,5,3,0
+ FILEVERSION 2,5,5,0
+ PRODUCTVERSION 2,5,5,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,12 +67,12 @@ BEGIN
         BLOCK "040c04b0"
         BEGIN
             VALUE "FileDescription", "Faust Live Environment"
-            VALUE "FileVersion", "2, 5, 3, 0"
+            VALUE "FileVersion", "2, 5, 5, 0"
             VALUE "InternalName", "FaustLive"
             VALUE "LegalCopyright", "Copyright (C) 2009-2018 - Grame"
             VALUE "OriginalFilename", "FaustLive.exe"
             VALUE "ProductName", "FaustLive"
-            VALUE "ProductVersion", "2, 5, 3, 0"
+            VALUE "ProductVersion", "2, 5, 5, 0"
         END
     END
     BLOCK "VarFileInfo"
