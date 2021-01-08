@@ -66,18 +66,9 @@ install (
 
 ####################################
 # install VS redistributables
-if (WIN32)
-if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
-    set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
-elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
-    set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012/x64/Microsoft.VC141.CRT")
-else()
-    set (VS "/unknown/visual/studio/version")
-endif()
-install (
-    FILES  "${VS}/msvcp140.dll" "${VS}/vcruntime140.dll" DESTINATION ${DEST}/FaustLive
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
+if (MSVC)
+  set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${DEST}/FaustLive)
+  include (InstallRequiredSystemLibraries)
 endif()
 
 
