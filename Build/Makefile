@@ -44,9 +44,9 @@ help:
 	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
 	@echo "  'update'         : git update, including submodule."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
-	@echo "  'rsrc'           : re-generate application.qrc."
+	@echo "  'qrc'            : re-generate application.qrc."
 
-rsrc:
+qrc:
 	git submodule update --init
 	make -C ../Resources
 	
