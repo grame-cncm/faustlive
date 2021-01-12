@@ -30,11 +30,11 @@ all : ../Resources/application.qrc
 	$(MAKE) $(TARGET)
 
 ../Resources/application.qrc : $(FAUSTLIBS)
-	@echo "Faust libraries changed: check that Resources/application.qrc is uptodate." && true
+	make -C ../Resources
 
 
 unix: $(OUTDIR)/Makefile
-	$(MAKE) -C $(OUTDIR) -j 4
+	$(MAKE) -C $(OUTDIR)
 
 help:
 	@echo "----- FaustLive Makefile -----"
@@ -44,12 +44,18 @@ help:
 	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
 	@echo "  'update'         : git update, including submodule."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
+	@echo "  'rsrc'           : re-generate application.qrc."
 
+rsrc:
+	git submodule update --init
+	make -C ../Resources
+	
 update: 
 	git submodule update --init
 	git pull --rebase
 
 package: 
+	$(MAKE) rsrc
 	$(MAKE) -C ../package
 
 dist: 
