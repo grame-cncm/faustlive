@@ -15,8 +15,6 @@ before_install:
 #  - sudo rm -f   /usr/bin/llvm-config
 #  - sudo ln -s $(pwd)/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/llvm-config /usr/bin/llvm-config
   - source /opt/qt514/bin/qt514-env.sh
-  - cmake --version
-  - llvm-config --version
 #  - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
 #  - make -C faust all
 #  - sudo make -C faust install
@@ -26,4 +24,8 @@ branches:
   - dev
   - master
 
-script: make -C Build 
+script: 
+#  - make -C Build 
+  - cmake --version
+  - llvm-config --version
+  - ls -l /usr/bin/llvm-config*
