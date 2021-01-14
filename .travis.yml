@@ -18,8 +18,10 @@ before_install:
   - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
 #  - make -C faust all
 #  - sudo make -C faust install
-   - make -C faust/build cmake BACKENDS=all.cmake TARGETS=all.cmake -DLLVM_CONFIG=llvm-config-10
-   - make -C faust/build
+
+  - llvm-config --version
+  - make -C faust/build cmake BACKENDS=all.cmake TARGETS=all.cmake -DLLVM_CONFIG=llvm-config-10
+  - make -C faust/build
  
 branches:
   only:
@@ -28,6 +30,6 @@ branches:
 
 script: 
   - llvm-config --version
-  - make -C Build 
+#  - make -C Build 
 #  - cmake --version
 #  - ls -l /usr/bin/llvm-config*
