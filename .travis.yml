@@ -15,13 +15,15 @@ before_install:
   - sudo rm -f  /usr/bin/llvm-config
   - sudo ln -s  /usr/bin/llvm-config-10 /usr/bin/llvm-config
   - source /opt/qt514/bin/qt514-env.sh
-  - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
+#  - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
 #  - make -C faust all
 #  - sudo make -C faust install
 
   - llvm-config --version
-  - make -C faust/build cmake BACKENDS=all.cmake TARGETS=all.cmake -DLLVM_CONFIG=llvm-config-10
-  - make -C faust/build
+  - llvm-config-10 --version
+  - which llvm-config
+#  - make -C faust/build cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DLLVM_CONFIG=llvm-config-10"
+#  - make -C faust/build
  
 branches:
   only:
@@ -30,6 +32,7 @@ branches:
 
 script: 
   - llvm-config --version
+  - llvm-config-10 --version
 #  - make -C Build 
 #  - cmake --version
 #  - ls -l /usr/bin/llvm-config*
