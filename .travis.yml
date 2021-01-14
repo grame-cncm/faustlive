@@ -12,8 +12,8 @@ before_install:
 #  - wget https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz  
 #  - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 #  
-  - sudo rm -f   /usr/bin/llvm-config
-  - sudo cd /usr/bin && ln -s llvm-config-10 llvm-config
+  - sudo rm -f  /usr/bin/llvm-config
+  - sudo ln -s  /usr/bin/llvm-config-10 /usr/bin/llvm-config
   - source /opt/qt514/bin/qt514-env.sh
   - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
   - make -C faust all
