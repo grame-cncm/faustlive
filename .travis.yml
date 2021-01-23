@@ -1,19 +1,22 @@
 os: linux
-dist: bionic
+dist: focal
 sudo: required
 language: cpp
 compiler: clang
 
 before_install:
-  - sudo add-apt-repository -y ppa:beineri/opt-qt-5.12.0-bionic
+  - sudo add-apt-repository -y ppa:beineri/opt-qt-5.14.2-focal
   - sudo apt-get update -qq
-  - sudo apt-get install libmicrohttpd-dev cmake qt512-meta-minimal libglu1-mesa-dev libsndfile1-dev libjack-jackd2-dev libasound2-dev -y
-  - wget http://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-  - tar xf clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-  - sudo rm -f   /usr/bin/llvm-config
-  - sudo ln -s $(pwd)/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/llvm-config /usr/bin/llvm-config
-  - source /opt/qt512/bin/qt512-env.sh
+  - sudo apt-get install libmicrohttpd-dev cmake qt514-meta-minimal libglu1-mesa-dev libsndfile1-dev libjack-jackd2-dev libasound2-dev -y
+  - source /opt/qt514/bin/qt514-env.sh
+  - sudo mv $(which llvm-config) $(which llvm-config)-7
+  - wget https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+  - tar xf clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+  - sudo mv /usr/bin/llvm-config /usr/bin/llvm-config-10
+  - sudo ln -s $(pwd)/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/llvm-config /usr/bin/llvm-config
+  
   - git clone --single-branch --recurse-submodules -j 2 --depth 1 https://github.com/grame-cncm/faust.git
+#  - make -C faust/build cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DLLVM_CONFIG=$(pwd)/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/llvm-config"
   - make -C faust all
   - sudo make -C faust install
  
@@ -22,4 +25,6 @@ branches:
   - dev
   - master
 
-script: make -C Build 
+script: 
+  - make -C Build 
+
