@@ -221,9 +221,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     
     allocateInterfaces(fSettings->value("Name", "").toString());
     
-    // Polyphonic DSP is controlled by MIDI
-    addInMIDIHandler(fCurrentDSP);
-    
     buildInterfaces(fCurrentDSP);
     
     if (setDSP(errorMsg)) {
@@ -233,7 +230,6 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
         start_stop_watcher(true);
         return true;
     } else {
-        removeFromMIDIHandler(fCurrentDSP);
         sessionManager->deleteDSPandFactory(fCurrentDSP);
         deleteInterfaces();
         fCurrentDSP = NULL;
@@ -418,24 +414,20 @@ bool FLWindow::update_Window(const QString& source)
         
                 recall_Window();
                 
-                //Start crossfade and wait for its end
+                // Start crossfade and wait for its end
                 fAudioManager->start_Fade();
                 fAudioManager->wait_EndFade();
                 
-                //Switch the current DSP as the dropped one
+                // Switch the current DSP as the dropped one
                 dsp* old_dsp = fCurrentDSP;
                 fCurrentDSP = new_dsp;
                 
-                //Delete old dsp (and remove it from MIDI interface)
-                removeFromMIDIHandler(old_dsp);
+                // Delete old dsp (and remove it from MIDI interface)
                 FLSessionManager::_Instance()->deleteDSPandFactory(old_dsp);
                 deleteInterfaces();
                 
-                //Set the new interface & Recall the parameters of the window
+                // Set the new interface & Recall the parameters of the window
                 allocateInterfaces(newName);
-                
-                // Polyphonic DSP is controlled by MIDI
-                addInMIDIHandler(new_dsp);
                 
                 buildInterfaces(new_dsp);
                 
@@ -797,7 +789,6 @@ bool FLWindow::resetAudioDSPInterfaces()
     start_stop_watcher(false);
     stop_Audio();
     
-    removeFromMIDIHandler(fCurrentDSP);
     sessionManager->deleteDSPandFactory(fCurrentDSP);
     deleteInterfaces();
   
@@ -806,9 +797,6 @@ bool FLWindow::resetAudioDSPInterfaces()
     if (update_AudioArchitecture(errorMsg)) {
         
         allocateInterfaces(fSettings->value("Name", "").toString());
-        
-        // Polyphonic DSP is controlled by MIDI
-        addInMIDIHandler(fCurrentDSP);
         
         buildInterfaces(fCurrentDSP);
    
@@ -952,7 +940,7 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     
     if (!fIsDefault) {
         QScrollArea* sa = new QScrollArea(this);
-        
+
         fInterface = new QTGUI(sa);
         sa->setWidgetResizable(true);
         sa->setWidget(fInterface);
@@ -978,22 +966,6 @@ bool FLWindow::allocateInterfaces(const QString& nameEffect)
     }
 
     return true;
-}
-
-void FLWindow::addInMIDIHandler(dsp* dsp)
-{
-    bool polyphony = fSettings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
-    if (polyphony && fMIDIHandler) {
-        fMIDIHandler->addMidiIn(static_cast<dsp_poly_effect*>(dsp));
-    }
-}
-
-void FLWindow::removeFromMIDIHandler(dsp* dsp)
-{
-    bool polyphony = fSettings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
-    if (polyphony && fMIDIHandler) {
-        fMIDIHandler->removeMidiIn(static_cast<dsp_poly_effect*>(dsp));
-    }
 }
 
 //Building QT Interface | Osc Interface | Parameter saving Interface | ToolBar
@@ -1131,7 +1103,6 @@ void FLWindow::closeWindow()
         fHttpdWindow = NULL;
     }
     
-    removeFromMIDIHandler(fCurrentDSP);
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
     deleteInterfaces();
 

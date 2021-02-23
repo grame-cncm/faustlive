@@ -33,6 +33,7 @@
 
 #include <QtNetwork>
 #include <map>
+#include <sstream>
 
 // THI IS UGLY !!! (to fix...)
 #ifdef REMOTE
@@ -164,6 +165,17 @@ class FLSessionManager : public QObject
         void            deleteArgv(int argc, const char** argv);
             
         QMap<dsp*, factorySettings*>  fDSPToFactory;
+    
+        bool hasCompileOption(dsp_factory* factory, const std::string& option)
+        {
+            assert(factory);
+            std::istringstream iss(factory->getCompileOptions());
+            std::string token;
+            while (std::getline(iss, token, ' ')) {
+                if (token == option) return true;
+            }
+            return false;
+        }
     
     #ifdef REMOTE
         QMap<QString, remote_dsp_factory*>  fPublishedFactories;

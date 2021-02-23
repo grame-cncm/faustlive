@@ -178,8 +178,8 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
         FLErrorWindow::_Instance()->print_Error(error.c_str());
         return;
     }
+    
     dsp* temp_dsp = temp_factory->createDSPInstance();
-
     if (temp_dsp) {
 
         MyMeta* meta = new MyMeta;
@@ -208,7 +208,6 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     #else
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(temp_factory));
     #endif
-
     }
 }
 

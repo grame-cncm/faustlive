@@ -21,6 +21,7 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
 #include "faust/gui/SoundUI.h"
+#include "faust/dsp/dsp-adapter.h"
 
 #include <assert.h>
 
@@ -322,6 +323,13 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if (midi && hasMIDISync(compiledDSP)) {
             compiledDSP = new timed_dsp(compiledDSP);
         }
+        
+        // TODO
+        /*
+        if (hasCompileOption(toCompile->fLLVMFactory, "-double")) {
+            compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
+        }
+        */
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
@@ -585,6 +593,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     for (int i = numberFixedParams; i < argc; i++) {
         string parseResult = parse_compilationParams(copy);
+      
         // OPTION DOUBLE HAS TO BE SKIPED
         if (parseResult == "-double") {
             FLErrorWindow::_Instance()->print_Error("-double option is not supported !");
