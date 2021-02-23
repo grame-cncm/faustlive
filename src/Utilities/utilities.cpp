@@ -12,6 +12,8 @@
 #include <QtNetwork>
 #include <QWidgetList>
 
+#include "QTDefs.h"
+
 using namespace std;
 
 void writeFile(const QString& filePath, const QString& content)
@@ -74,8 +76,9 @@ bool executeInstruction(const QString& instruct, QString& errorMsg)
 {
     QProcess myCmd;
     QByteArray error;
+    QStringList args;
     
-    myCmd.start(instruct);
+    myCmd.start(instruct, args);
     myCmd.waitForFinished();
     error = myCmd.readAllStandardError();
     
@@ -582,7 +585,11 @@ void centerOnPrimaryScreen(QWidget* w)
 	QWidgetList l = QApplication::topLevelWidgets();
     
 	if (l.empty()) {
+#ifdef QTNEWPRIMARYSCREEN
+		w->move(QGuiApplication::primaryScreen()->virtualGeometry().center());
+#else
     	w->move(dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center());
+#endif
     } else {
     	QWidget* topwidget = l.first();	
     	w->move(dw->screenGeometry(topwidget).center() - w->geometry().center());

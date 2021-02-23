@@ -53,6 +53,7 @@
 #include "FLFileWatcher.h"
 #include "FLErrorWindow.h"
 #include "FLMessageWindow.h"
+#include "QTDefs.h"
 
 #ifdef JACK
 #include "JA_audioManager.h"
@@ -1482,7 +1483,11 @@ void FLWindow::viewQRCode()
 void FLWindow::exportToPNG()
 {
     QFileDialog* fileDialog = new QFileDialog;
+#ifdef QTNEWCONFIRMOVERWRITE
+    fileDialog->setOption(QFileDialog::DontConfirmOverwrite, false);
+#else
     fileDialog->setConfirmOverwrite(true);
+#endif
     QString filename;
     filename = fileDialog->getSaveFileName(NULL, "PNG Name", tr(""), tr("(*.png)"));
     QString errorMsg;

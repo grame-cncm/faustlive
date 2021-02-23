@@ -11,8 +11,10 @@
 #include <QWidgetList>
 #include <QDate>
 #include <QTime>
+#include <QScreen>
 
 #include "FLErrorWindow.h"
+#include "QTDefs.h"
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
@@ -58,7 +60,11 @@ void FLErrorWindow::init_Window()
     
 	QWidgetList l = QApplication::topLevelWidgets();
 	if (l.empty()) {
+#ifdef QTNEWPRIMARYSCREEN
+		screenSize = QGuiApplication::primaryScreen()->size();
+#else
     	screenSize = dw->availableGeometry(dw->primaryScreen()).size();
+#endif
     } else {
     	QWidget* w = l.first();	
     	screenSize = dw->screenGeometry(w).size();

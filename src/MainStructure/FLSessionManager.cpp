@@ -17,6 +17,7 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 #include "FLErrorWindow.h"
+#include "QTDefs.h"
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
@@ -847,7 +848,7 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent)
     if (existingNameMessage->clickedButton() == yes_Button) {
         
         QFileDialog* fileDialog = new QFileDialog;
-#ifdef QT45
+#ifdef QTNEWCONFIRMOVERWRITE
         fileDialog->setOption (QFileDialog::DontConfirmOverwrite, false);
 #else
         fileDialog->setConfirmOverwrite(true);

@@ -37,6 +37,7 @@
 
 #include "FLExportManager.h"
 #include "FLSettings.h"
+#include "QTDefs.h"
 
 
 #ifndef QRCODECTRL
@@ -547,8 +548,11 @@ void FLExportManager::getFileFromKey(const char* key){
 void FLExportManager::saveFileOnDisk(){
     
     QFileDialog* fileDialog = new QFileDialog;
+#ifdef QTNEWCONFIRMOVERWRITE
+    fileDialog->setOption(QFileDialog::DontConfirmOverwrite, false);
+#else
     fileDialog->setConfirmOverwrite(true);
-    
+#endif
     QString filenameToSave;
     
     //     nom par défaut dans le dialogue
