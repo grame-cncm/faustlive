@@ -4,8 +4,9 @@ project(FaustLive)
 
 #######################################
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-set (SRCDIR  	${ROOT}/src)
-set (RSRCDIR  	${ROOT}/Resources)
+set (SRCDIR  	 ${ROOT}/src)
+set (RSRCDIR  	 ${ROOT}/Resources)
+set (LOCALLIBDIR ${ROOT}/lib)
 
 #######################################
 # versions management
@@ -32,7 +33,10 @@ string(REGEX REPLACE "\n$" "" FAUST_LIBRARY_DIR "${FAUST_LIBRARY_DIR_TMP}")
 string(REGEX REPLACE "\n$" "" FAUST_INCLUDE_DIRS "${FAUST_INCLUDE_DIRS_TMP}")
 string(REGEX MATCH "Version [0-9.]*" FAUST_VERSION ${FAUST_VERSION_TMP})
 if (WIN32)
-	set (FAUST_LIBRARIES ${FAUST_LIBRARY_DIR}/faust.lib)
+	string (REPLACE "\\" "/" WFAUST_LIBRARY_DIR ${FAUST_LIBRARY_DIR})
+	string (REPLACE "\\" "/" WFAUST_INCLUDE_DIRS ${FAUST_INCLUDE_DIRS})
+	set (FAUST_INCLUDE_DIRS ${WFAUST_INCLUDE_DIRS})
+	set (FAUST_LIBRARIES ${WFAUST_LIBRARY_DIR}/libfaust.lib)
 else()
 	set (FAUST_LIBRARIES "-L${FAUST_LIBRARY_DIR}" -lfaust -lHTTPDFaust -lOSCFaust)
 endif()
@@ -58,17 +62,13 @@ execute_process(COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBRARIES_TM
 string(REGEX REPLACE "\n$" "" LLVM_VERSION "${LLVM_VERSION_TMP}")
 string(REGEX REPLACE " *\n$" "" LLVM_LIBRARIES "${LLVM_LIBRARIES_TMP}")
 string(REGEX REPLACE " *\n$" "" LLVM_LDFLAGS "${LLVM_LDFLAGS_TMP}")
-set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES})
+if (WIN32)
+	set (LLVM_LIBRARIES ${LLVM_LIBRARIES})
+else()
+	set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES})
+endif()
 set (LLVM_DEFINES -DLLVM_VERSION="${LLVM_VERSION}")
 message (STATUS "Using LLVM version ${LLVM_VERSION}")
-
-#######################################
-# libmicrohttpd settings
-if (WIN32)
-else()
-	execute_process(COMMAND pkg-config --libs libmicrohttpd OUTPUT_VARIABLE LIBMHTTPD_TMP )
-	string(REGEX REPLACE "\n$" "" LIBMICROHPPTD_LIBRARIES "${LIBMHTTPD_TMP}")
-endif()
 
 #######################################
 # Qt settings
@@ -95,6 +95,15 @@ file (GLOB FAUSTLIVE_INCLUDE_DIRS  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SRCDIR
 set (FAUSTLIVE_HEADERS ${FAUSTLIVE_HEADERS} ${FAUST_INCLUDE_DIRS}/faust/gui/QTUI.h)
 #message ("FAUSTLIVE_HEADERS ${FAUSTLIVE_HEADERS}")
 
+#######################################
+# libmicrohttpd settings
+if (WIN32)
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${LOCALLIBDIR}/libmicrohttpd/x64/libmicrohttpd.lib)
+	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${LOCALLIBDIR}/libmicrohttpd)
+else()
+	execute_process(COMMAND pkg-config --libs libmicrohttpd OUTPUT_VARIABLE LIBMHTTPD_TMP )
+	string(REGEX REPLACE "\n$" "" LIBMICROHPPTD_LIBRARIES "${LIBMHTTPD_TMP}")
+endif()
 
 #######################################
 # audio settings
@@ -124,6 +133,7 @@ elseif (AUDIO STREQUAL portaudio)
 	file (GLOB AUDIO_HEADERS  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}  ${SRCDIR}/Audio/PA/*.h )
 	if (WIN32)
 		set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${ROOT}/lib/portaudio/lib/portaudio.lib )
+		set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${LOCALLIBDIR}/portaudio/include)
 	else()
 		set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} -lportaudio )
 	endif()
@@ -164,7 +174,7 @@ endif()
 # sndfile support
 if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
-		set ( LIBSNDFILE = "C:\Program Files\Mega-Nerd\libsndfile" )
+		set ( LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile" )
 	endif()
 	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  winmm.lib ws2_32.lib ${LIBSNDFILE}/lib/libsndfile-1.lib)
 	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS}  ${LIBSNDFILE}/include)
@@ -198,6 +208,7 @@ elseif(APPLE)
 	set(FAUSTLIVE_EXE MACOSX_BUNDLE)
 endif()
 
+#message ("FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}")
 
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 #######################################
