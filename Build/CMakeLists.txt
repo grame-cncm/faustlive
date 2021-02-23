@@ -80,13 +80,6 @@ set (CMAKE_AUTORCC ON)
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 set (QTINCDIRS 	${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS})
 set (QTLIBS 	Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
-if (${Qt5Widgets_VERSION} VERSION_GREATER_EQUAL "4.3")
-	set ( FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -DQTCOLOR43)
-endif()
-if (${Qt5Widgets_VERSION} VERSION_GREATER_EQUAL "4.5")
-	set ( FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -DQT45)
-endif()
-
 message (STATUS "Using Qt version ${Qt5Core_VERSION}")
 
 #######################################
