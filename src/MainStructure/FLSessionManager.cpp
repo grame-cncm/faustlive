@@ -838,7 +838,11 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent)
     if (existingNameMessage->clickedButton() == yes_Button) {
         
         QFileDialog* fileDialog = new QFileDialog;
+#ifdef QT45
+        fileDialog->setOption (QFileDialog::DontConfirmOverwrite, false);
+#else
         fileDialog->setConfirmOverwrite(true);
+#endif
         QString filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
         
         if (QFileInfo(filename).suffix().indexOf("dsp") == -1) {
