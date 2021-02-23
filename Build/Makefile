@@ -20,6 +20,7 @@ endif
 endif
 
 OUTDIR = fldir
+BUILDDIR = builddir
 MAKE   ?= make
 FAUST  ?= faust
 DEST   ?= .
@@ -32,6 +33,12 @@ all : ../Resources/application.qrc
 ../Resources/application.qrc : $(FAUSTLIBS)
 	make -C ../Resources
 
+cmake: $(BUILDDIR) ../Resources/application.qrc
+	cd $(BUILDDIR) && cmake .. $(GENERATOR)
+	cmake --build $(BUILDDIR) --config Release
+
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
 
 unix: $(OUTDIR)/Makefile
 	$(MAKE) -C $(OUTDIR)
