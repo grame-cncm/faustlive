@@ -210,7 +210,14 @@ elseif(APPLE)
 	set(FAUSTLIVE_EXE MACOSX_BUNDLE)
 endif()
 
-#message ("FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}")
+if(APPLE)
+	set (OSXTARGET 10.11)
+	set (CMAKE_C++_FLAGS -mmacosx-version-min=${OSXTARGET})
+	set (CMAKE_LDFLAGS -mmacosx-version-min=${OSXTARGET})
+	set (CMAKE_OSX_DEPLOYMENT_TARGET ${OSXTARGET})
+	set (MACOSX_DEPLOYMENT_TARGET ${OSXTARGET})
+	message (STATUS "MacOSX deployment target set to ${OSXTARGET}")
+endif()
 
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 #######################################
