@@ -259,3 +259,124 @@ set_target_properties (${faustlive} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${BINDIR}
 )
 
+
+#######################################
+# install section
+#######################################
+
+#######################################
+# install paths 
+# defined before loading subprojects
+if (APPLE)
+	set (CMAKE_INSTALL_PREFIX $ENV{HOME}/FaustLive-${VERSION})
+elseif(WIN32)
+	set (HOME $ENV{USERPROFILE})
+	string (REPLACE "\\" "/" UXHOME "${HOME}")
+	set (CMAKE_INSTALL_PREFIX ${UXHOME}/FaustLive-${VERSION})
+endif()
+if (PACK)
+	set (CMAKE_INSTALL_PREFIX .)
+elseif (DEFINED PREFIX)
+	set (CMAKE_INSTALL_PREFIX ${PREFIX})
+endif()
+message (STATUS "FaustLive install prefix set to ${CMAKE_INSTALL_PREFIX}")
+
+if (APPLE OR WIN32)
+	set (INSTALL_BIN 		${CMAKE_INSTALL_PREFIX})
+	set (INSTALL_DOC 		${CMAKE_INSTALL_PREFIX}/Documentation)
+else()
+	set (INSTALL_BIN 		${CMAKE_INSTALL_PREFIX}/bin)
+	set (INSTALL_SHARED 	${CMAKE_INSTALL_PREFIX}/share/)
+	set (INSTALL_DOC 		${INSTALL_SHARED}/faustlive/doc)
+	set (INSTALL_ICONS 		${INSTALL_SHARED}/icons/hicolor)
+endif()
+
+if (APPLE)
+install ( CODE "message (STATUS \"Call macdeployqt\")"
+		  CODE "execute_process ( COMMAND macdeployqt ${BINDIR}/FaustLive.app )"
+)
+endif()
+
+
+####################################
+# install compiled resources
+install ( TARGETS ${faustlive}
+	RUNTIME DESTINATION ${INSTALL_BIN}
+	BUNDLE DESTINATION  ${INSTALL_BIN}
+)
+
+####################################
+# install documentation
+install (
+    FILES ${ROOT}/Documentation/faust-quick-reference.pdf ${ROOT}/Documentation/UserManual.pdf DESTINATION ${INSTALL_DOC}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+if (APPLE OR WIN32)
+install (
+    FILES ${ROOT}/package/README.html DESTINATION ${INSTALL_BIN}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+else()
+install (
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/rsrc/FaustLive.desktop DESTINATION ${INSTALL_SHARED}/applications/
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    FILES ${RSRCDIR}/Images/FaustLiveIcon.png DESTINATION ${INSTALL_ICONS}/32x32/apps/
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    FILES ${RSRCDIR}/Images/Faustlive.svg DESTINATION ${INSTALL_ICONS}/scalable/apps/
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    FILES ${RSRCDIR}/Images/Faustlive.xpm DESTINATION ${INSTALL_SHARED}/pixmaps/
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+endif()
+
+####################################
+# install VS redistributables
+if (MSVC)
+  set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_BIN})
+  include (InstallRequiredSystemLibraries)
+endif()
+
+
+####################################
+# deploy applications
+
+set (PACKNAME FaustLive-${VERSION})
+if(WIN32)
+	if (PACK)
+		set  (INSTALL_APPS ${CMAKE_CURRENT_SOURCE_DIR}/guidodir/_CPack_Packages/win64/NSIS64/${PACKNAME}-win64)
+	endif()
+	install ( CODE "message (STATUS \"Call windeployqt\")"
+			  CODE "execute_process ( COMMAND windeployqt ${INSTALL_APPS}/FaustLive.exe )"
+	)
+endif()
+
+
+####################################
+# cpack section
+####################################
+set (CPACK_PACKAGE_NAME   "FaustLive")
+set (CPACK_PACKAGE_VENDOR "GRAME")
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUSTLive - an environment for the design of Faust DSP.")
+set (CPACK_PACKAGE_VERSION   ${VERSION})
+set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+
+set (CPACK_MONOLITHIC_INSTALL true)
+set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/GPL.txt)
+set (CPACK_PACKAGE_INSTALL_DIRECTORY ${PACKNAME})
+
+####################################
+# NSIS specific section
+set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
+set (CPACK_NSIS_MODIFY_PATH on)
+set (CPACK_NSIS_MUI_ICON "${ROOT}/Resources/Images/FaustLiveIcon.ico")
+
+include (CPack)
