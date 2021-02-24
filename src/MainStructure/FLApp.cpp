@@ -6,7 +6,7 @@
 //
 
 #if defined(_WIN32) && !defined(GCC)
-# pragma warning (disable: 4100 4005)
+# pragma warning (disable: 4100 4005 4996)
 # define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"

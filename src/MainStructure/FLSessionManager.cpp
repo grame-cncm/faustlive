@@ -8,6 +8,8 @@
 
 #ifndef _WIN32
 # pragma GCC diagnostic ignored "-Wunused-function"
+#else
+#pragma warning(disable: 4996)
 #endif
 
 #include <iostream>
