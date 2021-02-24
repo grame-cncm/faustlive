@@ -20,6 +20,17 @@ option ( REMOTE 		"Includes remote computing" off )
 set (CMAKE_CXX_STANDARD 11)
 
 #######################################
+# check for pkg-config 
+# used later for libsndfile and libmicrohttpd
+if (NOT WIN32)
+include(FindPkgConfig)
+if (NOT PKG_CONFIG_FOUND)
+	message (FATAL "Cannot find pkg-config")
+endif()
+endif()
+
+
+#######################################
 # faust settings
 execute_process(COMMAND faust  -libdir
                 OUTPUT_VARIABLE FAUST_LIBRARY_DIR_TMP
@@ -39,12 +50,10 @@ if (WIN32)
 	set (FAUST_LIBRARIES ${WFAUST_LIBRARY_DIR}/libfaust.lib)
 else()
 	set (FAUST_LIBRARIES "-L${FAUST_LIBRARY_DIR}" -lfaust -lHTTPDFaust -lOSCFaust)
+	set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} ${FAUST_LIBRARY_DIR})
 endif()
 message (STATUS "Using Faust ${FAUST_VERSION}")
 
-
-set (CMAKE_BUILD_RPATH "${FAUST_LIBRARY_DIR}")
-set (CMAKE_SKIP_BUILD_RPATH FALSE)
 
 #######################################
 # llvm settings
@@ -58,16 +67,19 @@ if (NOT LLVM_FOUND EQUAL 0)
 	message (FATAL "${LLVM_CONFIG} not found: ${LLVM_FOUND}")
 endif()
 execute_process(COMMAND ${LLVM_CONFIG}  --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP )
+execute_process(COMMAND ${LLVM_CONFIG}  --libdir OUTPUT_VARIABLE LLVM_LIBDIR )
 execute_process(COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBRARIES_TMP1 )
 execute_process(COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_LIBRARIES_TMP2 )
 string(REGEX REPLACE "\n$" "" LLVM_VERSION "${LLVM_VERSION_TMP}")
-string(REGEX REPLACE " *\n$" "" LLVM_LIBRARIES1 "${LLVM_LIBRARIES_TMP1}")
-string(REGEX REPLACE " *\n$" "" LLVM_LIBRARIES2 "${LLVM_LIBRARIES_TMP2}")
+string(REGEX REPLACE " *\n$" "" LLVM_LIBRARIES "${LLVM_LIBRARIES_TMP1}")
+string(REGEX REPLACE " *\n$" "" LLVM_SYS_LIBRARIES "${LLVM_LIBRARIES_TMP2}")
 string(REGEX REPLACE " *\n$" "" LLVM_LDFLAGS "${LLVM_LDFLAGS_TMP}")
+string(REGEX REPLACE "\n$" "" LLVM_RPATH "${LLVM_LIBDIR}")
 if (WIN32)
-	set (LLVM_LIBRARIES ${LLVM_LIBRARIES1} ${LLVM_LIBRARIES2})
+	set (LLVM_LIBRARIES ${LLVM_LIBRARIES} ${LLVM_SYS_LIBRARIES})
 else()
-	set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES1} ${LLVM_LIBRARIES2})
+	set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES} ${LLVM_SYS_LIBRARIES})
+	set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} ${LLVM_RPATH})
 endif()
 set (LLVM_DEFINES -DLLVM_VERSION="${LLVM_VERSION}")
 message (STATUS "Using LLVM version ${LLVM_VERSION}")
@@ -96,8 +108,26 @@ if (WIN32)
 	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${LOCALLIBDIR}/libmicrohttpd/x64/libmicrohttpd.lib)
 	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${LOCALLIBDIR}/libmicrohttpd)
 else()
-	execute_process(COMMAND pkg-config --libs libmicrohttpd OUTPUT_VARIABLE LIBMHTTPD_TMP )
-	string(REGEX REPLACE "\n$" "" LIBMICROHPPTD_LIBRARIES "${LIBMHTTPD_TMP}")
+	pkg_check_modules (LMHTTPD REQUIRED libmicrohttpd)
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${LMHTTPD_LDFLAGS})
+	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${LMHTTPD_INCLUDE_DIRS})
+	set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} ${LMHTTPD_LIBRARY_DIRS})
+endif()
+
+#######################################
+# sndfile support
+if (WIN32)
+	if (NOT DEFINED LIBSNDFILE)
+		set ( LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile" )
+	endif()
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  winmm.lib ws2_32.lib ${LIBSNDFILE}/lib/libsndfile-1.lib)
+	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS}  ${LIBSNDFILE}/include)
+	set (FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -D_WIN32 -DUSEWINMAIN)
+else()
+	pkg_check_modules (SNDFILE REQUIRED sndfile)
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${SNDFILE_LDFLAGS} -lcurl)
+	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${SNDFILE_INCLUDE_DIRS})
+	set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} ${SNDFILE_LIBRARY_DIRS})
 endif()
 
 #######################################
@@ -166,18 +196,6 @@ endif()
 
 
 #######################################
-# sndfile support
-if (WIN32)
-	if (NOT DEFINED LIBSNDFILE)
-		set ( LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile" )
-	endif()
-	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  winmm.lib ws2_32.lib ${LIBSNDFILE}/lib/libsndfile-1.lib)
-	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS}  ${LIBSNDFILE}/include)
-	set (FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -D_WIN32 -DUSEWINMAIN)
-else()
-	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  -lsndfile -lcurl -lz -ldl)
-endif()
-
 set ( FAUSTLIVE_SRC 	${FAUSTLIVE_SRC} 	 ${AUDIO_SRC})
 set ( FAUSTLIVE_HEADERS ${FAUSTLIVE_HEADERS} ${AUDIO_HEADERS})
 
@@ -211,6 +229,13 @@ if(APPLE)
 	set (MACOSX_DEPLOYMENT_TARGET ${OSXTARGET})
 	message (STATUS "MacOSX deployment target set to ${OSXTARGET}")
 endif()
+
+#message ("FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}")
+
+set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} "/usr/lib")
+set (CMAKE_BUILD_RPATH ${FAUSTLIVE_RPATH})
+set (CMAKE_SKIP_BUILD_RPATH FALSE)
+#message ("FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH}")
 
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 #######################################
