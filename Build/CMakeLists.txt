@@ -64,7 +64,7 @@ execute_process(COMMAND ${LLVM_CONFIG}  --version
                 OUTPUT_VARIABLE LLVM_VERSION_TMP
                 RESULT_VARIABLE LLVM_FOUND)
 if (NOT LLVM_FOUND EQUAL 0)
-	message (FATAL "${LLVM_CONFIG} not found: ${LLVM_FOUND}")
+	message (FATAL " ${LLVM_CONFIG} not found: ${LLVM_FOUND}")
 endif()
 execute_process(COMMAND ${LLVM_CONFIG}  --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP )
 execute_process(COMMAND ${LLVM_CONFIG}  --libdir OUTPUT_VARIABLE LLVM_LIBDIR )
@@ -228,6 +228,8 @@ if(APPLE)
 	set (CMAKE_OSX_DEPLOYMENT_TARGET ${OSXTARGET})
 	set (MACOSX_DEPLOYMENT_TARGET ${OSXTARGET})
 	message (STATUS "MacOSX deployment target set to ${OSXTARGET}")
+elseif(UNIX)
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} -lpthread -lasound)
 endif()
 
 #message ("FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}")
