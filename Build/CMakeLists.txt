@@ -261,14 +261,21 @@ set_target_properties (${faustlive} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${BINDIR}
 )
 
+#######################################
+# windows post processing
+if (WIN32)
+configure_file (${ROOT}/lib/portaudio/lib/portaudio.dll ${BINDIR}/portaudio_x64.dll COPYONLY)
+configure_file (${LIBSNDFILE}/bin/libsndfile-1.dll ${BINDIR}/libsndfile-1.dll COPYONLY)
+add_custom_command(TARGET ${faustlive} POST_BUILD
+                   COMMAND windeployqt FaustLive.exe
+                   WORKING_DIRECTORY ${BINDIR})
+endif()
+
 
 #######################################
 # install section
 #######################################
-
-#######################################
 # install paths 
-# defined before loading subprojects
 if (APPLE)
 	set (CMAKE_INSTALL_PREFIX $ENV{HOME}/FaustLive-${VERSION})
 elseif(WIN32)
@@ -306,6 +313,14 @@ install ( TARGETS ${faustlive}
 	RUNTIME DESTINATION ${INSTALL_BIN}
 	BUNDLE DESTINATION  ${INSTALL_BIN}
 )
+
+if (WIN32)
+install (
+    DIRECTORY ${BINDIR}/ DESTINATION ${INSTALL_BIN}
+    USE_SOURCE_PERMISSIONS
+	PATTERN "FaustLive.exe" EXCLUDE
+)
+endif()
 
 ####################################
 # install documentation
@@ -380,5 +395,6 @@ set (CPACK_PACKAGE_INSTALL_DIRECTORY ${PACKNAME})
 set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
 set (CPACK_NSIS_MODIFY_PATH on)
 set (CPACK_NSIS_MUI_ICON "${ROOT}/Resources/Images/FaustLiveIcon.ico")
+set (CPACK_GENERATOR NSIS64)
 
 include (CPack)
