@@ -16,6 +16,7 @@ message (STATUS "Generates FaustLive version ${VERSION}")
 #######################################
 # Options 
 option ( REMOTE 		"Includes remote computing" off )
+option ( QT6 			"Uses Qt6" off )
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -91,10 +92,17 @@ message (STATUS "Using LLVM version ${LLVM_VERSION}")
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTOUIC ON)
 set (CMAKE_AUTORCC ON)
-find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-set (QTINCDIRS 	${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS})
-set (QTLIBS 	Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
-message (STATUS "Using Qt version ${Qt5Core_VERSION}")
+if (QT6)
+	find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
+	set (QTINCDIRS 	${Qt6Core_INCLUDE_DIRS} ${Qt6Gui_INCLUDE_DIRS} ${Qt6Widgets_INCLUDE_DIRS} ${Qt6Network_INCLUDE_DIRS})
+	set (QTLIBS 	Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network)
+	message (STATUS "Using Qt version ${Qt6Core_VERSION}")
+else()
+	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+	set (QTINCDIRS 	${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS})
+	set (QTLIBS 	Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
+	message (STATUS "Using Qt version ${Qt5Core_VERSION}")
+endif()
 
 #######################################
 # set sources and include dirs

@@ -463,9 +463,9 @@ void FLExportManager::postExport(){
     // Open the file to send
     data = "--" + boundary + "\r\n";
     data += "Content-Disposition: form-data; name=\"file\"; filename=\"";
-    data += fAppName;
+    data += fAppName.toUtf8();
     data += ".dsp\";\r\nContent-Type: text/plain\r\n\r\n";
-    data += fCodeToSend;
+    data += fCodeToSend.toUtf8();
     data += "\r\n--" + boundary + "--\r\n";
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);

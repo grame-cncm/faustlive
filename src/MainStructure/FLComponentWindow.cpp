@@ -15,6 +15,7 @@
 #include "faust/gui/QTUI.h"
 #include "faust/dsp/dsp.h"
 
+#include "QTDefs.h"
 #include "FLComponentItem.h"
 #include "FLComponentLabel.h"
 #include "FLComponentWindow.h"
@@ -30,8 +31,12 @@
 
 binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2)
 {
-    QSize screenSize = QApplication::desktop()->geometry().size(); 
-    
+#ifdef QT6
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+#else
+    QSize screenSize = QApplication::desktop()->geometry().size();
+#endif
+
     int screenWidth = screenSize.width();
     int screenHeight = screenSize.height();
     
