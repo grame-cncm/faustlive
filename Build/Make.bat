@@ -1,38 +1,61 @@
 
-echo off
+@echo off
+
+set MSVC="Visual Studio 15 2017 Win64"
+set VERSION="2.5.5"
 
 IF [%1]==[]     GOTO USAGE
+IF %1==faustlive 	(
+	CALL :COMPILE
+	GOTO DONE
+)
+IF %1==install (
+	CALL :INSTALL
+	GOTO DONE
+)
+IF %1==package (
+	CALL :PACKAGE
+	GOTO DONE
+)
 
-echo "This script must be called from the adequate command.com"
-echo "i.e. the one distributed with your target Visual Studio version"
-echo "and corresponding to your target architecture (x64)"
+GOTO USAGE
 
-set BUILD=%1
-set PROJ=FaustLive.vcxproj
-
-IF EXIST %BUILD% GOTO PROJECT
-mkdir %BUILD%
-
-
-:PROJECT
-cd %BUILD%
-IF EXIST %PROJ% GOTO COMPILE
-echo "################# Generating FaustLive project #################"
-qmake ..
-
-:COMPILE
-echo "###################### Building FaustLive ######################"
-msbuild %PROJ%   /p:Configuration=Release /p:Platform=x64 /maxcpucount:4
-
-cd ../FaustLive
-windeployqt --release --compiler-runtime FaustLive.exe
+@rem --- installation -------------------------------
+:INSTALL
+cd builddir
+cmake .. -DPREFIX=../FaustLive-%VERSION%
+cmake --build . --config Release --target install
 cd ..
+EXIT /B
 
-echo "DONE - Your package is available from the package folder"
-GOTO END
+@rem --- packaging ----------------------------------
+:PACKAGE
+cd builddir
+cmake .. -DPACK=on
+cmake --build . --config Release --target package
+move FaustLive-*.exe ..
+cd ..
+EXIT /B
+
+@rem --- fauslive compilation -------------------------
+:COMPILE
+	IF NOT EXIST builddir (
+		echo Create output folder
+		mkdir builddir
+	)
+	cd builddir
+	cmake .. -G %MSVC%
+	cmake --build . --config Release
+	cd ..
+EXIT /B
+
 
 :USAGE
-echo "Usage: Make.bat <builddir>
-echo "       <builddir>    is the windows build folder"
+echo Usage: %0 [COMMAND]
+echo where COMMAND is in:
+echo   faustlive : compiles faustlive
+echo   install : install faustlive to the current folder
+echo   package : build the faustlive package
+echo   help    : display this help
 
-:END
+:DONE
