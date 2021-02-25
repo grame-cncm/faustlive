@@ -69,7 +69,7 @@ BEGIN
             VALUE "FileDescription", "Faust Live Environment"
             VALUE "FileVersion", "2, 5, 5, 0"
             VALUE "InternalName", "FaustLive"
-            VALUE "LegalCopyright", "Copyright (C) 2009-2018 - Grame"
+            VALUE "LegalCopyright", "Copyright (C) 2009-2021 - Grame"
             VALUE "OriginalFilename", "FaustLive.exe"
             VALUE "ProductName", "FaustLive"
             VALUE "ProductVersion", "2, 5, 5, 0"
