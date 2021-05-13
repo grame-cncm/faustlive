@@ -309,14 +309,16 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
         bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
         bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
+        bool is_double = hasCompileOption(toCompile->fLLVMFactory, "-double");
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
+            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group, is_double);
         } else {
             // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
             //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
+            if (is_double) compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
         }
         
         // Setup SoundUI manager
@@ -325,10 +327,6 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         // For in-buffer MIDI control
         if (midi && hasMIDISync(compiledDSP)) {
             compiledDSP = new timed_dsp(compiledDSP);
-        }
-        
-        if (hasCompileOption(toCompile->fLLVMFactory, "-double")) {
-            compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
         }
         
     }
