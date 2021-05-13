@@ -21,7 +21,7 @@ Make sure that the installed Faust package is using the same LLVM version than t
 > llvm-config --version
 ~~~~~~~~~~
 
-Once this preliminary verification have been made, from the `Build`folder type 
+Once this preliminary verification have been made, from the `Build` folder type 
 ~~~~~~~~~~
 > make
 ~~~~~~~~~~

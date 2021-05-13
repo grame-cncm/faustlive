@@ -327,12 +327,10 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
             compiledDSP = new timed_dsp(compiledDSP);
         }
         
-        // TODO
-        /*
         if (hasCompileOption(toCompile->fLLVMFactory, "-double")) {
             compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
         }
-        */
+        
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
@@ -596,15 +594,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     for (int i = numberFixedParams; i < argc; i++) {
         string parseResult = parse_compilationParams(copy);
-      
-        // OPTION DOUBLE HAS TO BE SKIPED
-        if (parseResult == "-double") {
-            FLErrorWindow::_Instance()->print_Error("-double option is not supported !");
-            // One less option
-            argc--;
-        } else {
-            argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
-        }
+        argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
