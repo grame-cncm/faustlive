@@ -24,7 +24,6 @@ Faust libraries are now in a [separated subproject](https://github.com/grame-cnc
     git commit -m "Updating libraries"
     git push
 
-
 ### Limitations and known bugs
 
  - crashes on Windows when compiling a dsp with input signals, on a machine without input audio device
