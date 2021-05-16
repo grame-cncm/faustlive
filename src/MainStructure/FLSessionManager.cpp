@@ -204,7 +204,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         }
         
         // Create SoundUI manager using pathnames
-        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames());
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames(), -1, nullptr, hasCompileOption(toCompile->fLLVMFactory, "-double"));
     }
 //------ Compile remote factory
     else if (settings) {
