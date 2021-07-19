@@ -8,6 +8,8 @@ MAKE   ?= make
 CMAKE  ?= cmake
 DEST   ?= .
 FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
+README  := README.html
+CHGELOG := ../changelog.txt
 
 
 all :
@@ -46,6 +48,21 @@ help:
 	@echo "  'clean'          : remove the $(BUILDDIR) and bin folders."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
 
+
+
+$(README): N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
+$(README): N := $(shell expr $(N) - 7)
+$(README): ../README.md ../changelog.txt
+	@echo "<!DOCTYPE html><html><xmp>" > $(README)
+	cat ../README.md >> $(README)
+	@echo "<br /><br />" >> $(README)
+	@echo "###Change log" >> $(README)
+	tail -n $(N) $(CHGELOG) >> $(README)
+	@echo "</xmp>" >> $(README)
+	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> $(README)
+	@echo "</html>" >> $(README)
+
+
 qrc: ../Resources/application.qrc 
 
 ../Resources/application.qrc : $(FAUSTLIBS)
@@ -55,7 +72,7 @@ install:
 	$(CMAKE) --build $(BUILDDIR) --target install
 
 package: PACK:=FaustLive-$(VERSION)
-package: 
+package: $(README)
 	$(MAKE) cmake CMAKEOPT='-DPREFIX=../$(PACK)'
 	$(MAKE) install
 	hdiutil create $(PACK).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
