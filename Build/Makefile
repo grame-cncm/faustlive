@@ -77,6 +77,7 @@ package: $(README)
 	$(MAKE) install
 	hdiutil create $(PACK).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 	@echo "Warning: package target has changed the install PREFIX"
+	mv $(PACK).dmg $(DEST)
 
 submodule = Resources/Libs
 dist : DIST:= FaustLive-$(VERSION)
@@ -85,15 +86,15 @@ dist :
 	cd .. && git archive --format=tar --prefix=$(DIST)/ HEAD | tar xf -
 	cd ../$(DIST) && git -C ../$(submodule) archive --format=tar --prefix=$(submodule) HEAD | tar xf -
 	cd .. && tar cfz $(DIST).tar.gz $(DIST)
-	mv ../$(DIST).tar.gz .
+	mv ../$(DIST).tar.gz $(DEST)
 	rm -rf ../$(DIST)
 
 release: 
 	git pull --rebase
 	$(MAKE) clean
 	$(MAKE)
-	$(MAKE) package DEST=$(DEST)
-	$(MAKE) dist DISTDEST=$(DEST)
+	$(MAKE) package
+	$(MAKE) dist
 
 mathlib : ../Resources/Libs/llvm_math.ll	
 
