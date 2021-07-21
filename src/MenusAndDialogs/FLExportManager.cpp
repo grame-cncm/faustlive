@@ -37,6 +37,7 @@
 
 #include "FLExportManager.h"
 #include "FLSettings.h"
+#include "QTDefs.h"
 
 
 #ifndef QRCODECTRL
@@ -462,9 +463,9 @@ void FLExportManager::postExport(){
     // Open the file to send
     data = "--" + boundary + "\r\n";
     data += "Content-Disposition: form-data; name=\"file\"; filename=\"";
-    data += fAppName;
+    data += fAppName.toUtf8();
     data += ".dsp\";\r\nContent-Type: text/plain\r\n\r\n";
-    data += fCodeToSend;
+    data += fCodeToSend.toUtf8();
     data += "\r\n--" + boundary + "--\r\n";
     
     requete.setRawHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
@@ -547,8 +548,11 @@ void FLExportManager::getFileFromKey(const char* key){
 void FLExportManager::saveFileOnDisk(){
     
     QFileDialog* fileDialog = new QFileDialog;
+#ifdef QTNEWCONFIRMOVERWRITE
+    fileDialog->setOption(QFileDialog::DontConfirmOverwrite, false);
+#else
     fileDialog->setConfirmOverwrite(true);
-    
+#endif
     QString filenameToSave;
     
     //     nom par défaut dans le dialogue

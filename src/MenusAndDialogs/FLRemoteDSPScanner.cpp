@@ -16,7 +16,7 @@ using namespace std;
 
 /*****************************FLRemoteDSPScanner**********************************/
 
-FLRemoteDSPScanner::FLRemoteDSPScanner(QWidget* parent):QDialog(parent, 0){
+FLRemoteDSPScanner::FLRemoteDSPScanner(QWidget* parent):QDialog(parent){
     
     setWindowFlags(Qt::FramelessWindowHint);
     

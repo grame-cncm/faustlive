@@ -1,87 +1,131 @@
-<!DOCTYPE html>
-<html>
-<xmp>
+<!DOCTYPE html><html><xmp>
 
-FaustLive - How to compile
+
+FaustLive
 ============================
+## The swiss knife for [Faust](https://faust.grame.fr) development.
+--------------
+
+master : [![Build Status](https://travis-ci.org/grame-cncm/faustlive.svg?branch=master)](https://travis-ci.org/grame-cncm/faustlive)
+dev : [![Build Status](https://travis-ci.org/grame-cncm/faustlive.svg?branch=dev)](https://travis-ci.org/grame-cncm/faustlive)
+
+FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. 
+
+FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled and run on the fly by simple drag and drop. They can even be edited and recompiled while running, without sound interruption.
+It supports also native applications generation using the [Faust online compiler](https://faust.grame.fr/tools/onlinecompiler/).
+
+FaustLive is based on the [Faust](https://faust.grame.fr) library and on [LLVM](http://llvm.org).
+
+## Libraries
+
+Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main FaustLive repository using the following commands:
+
+    git submodule update --remote --merge
+    git add Resources/Libs
+    git commit -m "Updating libraries"
+    git push
+
+### Limitations and known bugs
+
+ - crashes on Windows when compiling a dsp with input signals, on a machine without input audio device
+ - may crash on startup due to incorrect cache. In this case, find the `FaustLive-CurrentSession-2.0` folder in your home folder, remove it and restart. On Unix like stations (Linux, MacOS), this folder is hidden and located at `$HOME/.FaustLive-CurrentSession-2.0` 
 
 
-### Prerequisites
-- you must have [Faust](https://faust.grame.fr/) installed, the `faust` command available from the command line, and the compiled `libfaust` library. Be sure to compile `libfaust` with every static and dynamic libraries, that is using the `make all` target in the Faust distibution main folder.
-- you must have [Qt](https://www.qt.io/) installed and the `qmake` command available from the command line.
-- you must have [LLVM](http://llvm.org/) installed and the `llvm-config` command available from the command line.
-- you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed.
-- you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
-- [Linux] you must have [JACK](http://jackaudio.org/) installed.
-- [Windows] you must have [PortAudio](http://www.portaudio.com/) installed.
+## Building
+
+To build the FaustLive project, go to the `build` folder and start with the README file.
 
 
-## Compilation steps
-
-It is recommended to build the project in a separate subfolder. It isolates the compilation process from the rest of the project.
-
-### Project generation
-
-After a fresh `git clone`, you'll have to retrieve the Faust libraries git submodule. Type `make update` once in the Build folder.
-
-Assuming that you compile in a subfolder named `fldir`, simply do the following:
-
-~~~~
-$ cd fldir
-$ qmake .. [an optionnal project specification]
-~~~~
-
-The project specification determines the output project type: a Makefile, an Xcode project, a Visual Studio project etc. The specification has the following form: 
-
-`-spec` __qmake-spec__ 
-
-where __qmake-spec__ depends on your platform. You should find a folder named `mkspecs` in your Qt distribution, that contains all the supported Qt spec (e.g. macx-xcode, win32-msvc, linux-g++,...). `qmake` has default values for the -spec option (generates a Makefile on Unix like platforms).
-
-
-### Compilation
-
-It depends on your project type. On most cases you'll only have to type `make`. 
-Otherwise open the project with the chosen IDE and proceed as usual with your IDE.
-
-The **FaustLive** application is generated in a subfolder name FaustLive.
-
-
-### Finalisation
-
-The finalisation step ensures that all the resources and libraries necessary to FaustLive are present for distribution. This finalisation step is required on Windows, required on MacOS for distribution and doesn'texist on Linux. Qt includes tools for that. 
-
-On MacOS type :
-
-~~~~
-$ macdeployqt FaustLive/FaustLive.app
-~~~~
-
-On Windows type :
-
-~~~~
-$ windeployqt FaustLive/FaustLive.exe
-~~~~
-
-
-## Compilation using the Makefile
-
-Works on Unix like platforms. It performs all the above steps with 2 targets:
-
-~~~~
-$ make
-$ make deploy
-~~~~
-
-## Note for Windows
-
-You must make sure you're using the same compilation environment than the one used by Faust and LLVM. The current Faust distribution is based on LLVM 7.0.0, both build with MS Visual Studio 14 2015. If you want to use another environment, you'll have to recompile Faust and LLVM with this environment.
-
-To generate a Visual Studio project with qmake, it is recommended to run `qmake` from a command.com
+<!--p align="center">
+  <img width="70" src="./Resources/FaustLiveIcon.png"> <br />
+  <img width="100" src="./Resources/faust.png">
+</p-->
 
 --------------
 #### [Grame](http://www.grame.fr) - Centre National de Creation Musicale
+<br /><br />
+###Change log
 
+----------------------------------------------------
+05/03/2021: version 2.5.6
+
+- support for -double option
+- integrates Faust compiler version 2.33.1
+- based on LLVM 12.0.0 on Windows and OS X
+- latest version of the Faust libraries
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+
+----------------------------------------------------
+01/05/2021: version 2.5.5
+
+- integrates Faust compiler version 2.30.5
+- based on LLVM 10.0.0 on Windows and OS X
+- latest version of the Faust libraries
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+
+----------------------------------------------------
+10/10/2019: version 2.5.4
+
+- integrates Faust compiler version 2.27.1
+- based on LLVM 10.0.0 on Windows and OS X
+- latest version of the Faust libraries
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+
+----------------------------------------------------
+10/10/2019: version 2.5.3
+
+- integrates Faust compiler version 2.19.1
+- based on LLVM 9.0.0 on Windows and OS X
+- on OS X, the binary works starting from OS 10.12
+- latest version of the Faust libraries
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+   
+----------------------------------------------------
+12/03/2019: version 2.5.2
+
+- integrates Faust compiler version 2.15.11
+- based on LLVM 7.0.0
+- on OS X, the binary works (again) starting from OS 10.11 (El Capitan)
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+                             
+----------------------------------------------------
+05/03/2019: version 2.5.1
+
+- integrates Faust compiler version 2.15.10
+- based on LLVM 7.0.0
+- on OS X, the binary works (again) starting from OS 10.11 (El Capitan)
+
+Known issues: 
+
+ - Http control (using the 'Window/View QRCode' menu item) is sometimes buggy
+ - DSPs using the 'soundfile' primitive cannot be exported on the remote compilation service  
+                              
+----------------------------------------------------
+31/01/2019: version 2.5.0
+
+ - improves session restoration
+ - integrates Faust compiler version 2.14.4
+ - based on LLVM 7.0.0
 </xmp>
-
-<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>
 </html>

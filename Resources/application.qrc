@@ -95,6 +95,7 @@
     <file>../Documentation/UserManual.pdf</file>
     <file>../Documentation/faust-quick-reference.pdf</file>
 
+    <file>Libs/aanl.lib</file>
     <file>Libs/all.lib</file>
     <file>Libs/analyzers.lib</file>
     <file>Libs/basics.lib</file>
@@ -103,6 +104,7 @@
     <file>Libs/demos.lib</file>
     <file>Libs/dx7.lib</file>
     <file>Libs/envelopes.lib</file>
+    <file>Libs/fds.lib</file>
     <file>Libs/filters.lib</file>
     <file>Libs/hoa.lib</file>
     <file>Libs/instruments.lib</file>

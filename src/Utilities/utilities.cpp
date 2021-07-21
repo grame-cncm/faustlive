@@ -12,6 +12,8 @@
 #include <QtNetwork>
 #include <QWidgetList>
 
+#include "QTDefs.h"
+
 using namespace std;
 
 void writeFile(const QString& filePath, const QString& content)
@@ -74,8 +76,9 @@ bool executeInstruction(const QString& instruct, QString& errorMsg)
 {
     QProcess myCmd;
     QByteArray error;
+    QStringList args;
     
-    myCmd.start(instruct);
+    myCmd.start(instruct, args);
     myCmd.waitForFinished();
     error = myCmd.readAllStandardError();
     
@@ -578,15 +581,27 @@ string parse_compilationParams(QString& compilOptions)
 // on the screen of the top level widget
 void centerOnPrimaryScreen(QWidget* w)
 {
-    QDesktopWidget *dw = QApplication::desktop();
 	QWidgetList l = QApplication::topLevelWidgets();
+#ifdef QTNEWPRIMARYSCREEN
+	QPoint center = QGuiApplication::primaryScreen()->virtualGeometry().center();
+#else
+	QDesktopWidget *dw = QApplication::desktop();
+	QPoint center = dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center();
+#endif
+	const QRect r = w->geometry();
+	w->move(center.x() - r.width()/2, center.y() - r.height()/2);
     
-	if (l.empty()) {
-    	w->move(dw->availableGeometry(dw->primaryScreen()).center() - w->geometry().center());
-    } else {
-    	QWidget* topwidget = l.first();	
-    	w->move(dw->screenGeometry(topwidget).center() - w->geometry().center());
-    }
+//	if (l.empty()) {
+//		w->move(center);
+//    } else {
+//    	QWidget* topwidget = l.first();
+//#ifdef QTNEWPRIMARYSCREEN
+//		QPoint center = QGuiApplication::primaryScreen()->virtualGeometry().center();
+//#else
+//		dw->screenGeometry(topwidget).center()
+//#endif
+//    	w->move(dw->screenGeometry(topwidget).center() - w->geometry().center());
+//    }
 }
 
 

@@ -6,7 +6,7 @@
 //
 
 #if defined(_WIN32) && !defined(GCC)
-# pragma warning (disable: 4100 4005)
+# pragma warning (disable: 4100 4005 4996)
 # define WIN32_LEAN_AND_MEAN    // this is intended to solve the winsock API redefinitions
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -41,6 +41,7 @@
 #include "FLWinSettings.h"
 #include "FLPreferenceWindow.h"
 #include "FJUI.h"
+#include "QTDefs.h"
 
 
 //----------------------CONSTRUCTOR/DESTRUCTOR---------------------------
@@ -62,7 +63,11 @@ FLApp::FLApp(int& argc, char** argv) : QApplication(argc, argv){
     //fDSPServer = NULL;
 #endif
     //Initializing screen parameters
+#ifdef QTNEWPRIMARYSCREEN
+    QSize screenSize = QGuiApplication::primaryScreen()->geometry().size();
+#else
     QSize screenSize = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen())->geometry().size();
+#endif
     fScreenWidth = screenSize.width();
     fScreenHeight = screenSize.height();
     
@@ -1043,8 +1048,11 @@ void FLApp::update_CurrentSession(){
 void FLApp::take_Snapshot(){
     
     QFileDialog* fileDialog = new QFileDialog;
+#ifdef QTNEWCONFIRMOVERWRITE
+    fileDialog->setOption(QFileDialog::DontConfirmOverwrite, false);
+#else
     fileDialog->setConfirmOverwrite(true);
-    
+#endif
 	QString filename;
     
 #ifndef _WIN32

@@ -6,13 +6,19 @@
 //  Copyright (c) 2013 GRAME. All rights reserved.
 //
 
+#include "QTDefs.h"
+
+#ifndef QT6
 #include <QDesktopWidget>
+#endif
 #include <QApplication>
 #include <QWidgetList>
 #include <QDate>
 #include <QTime>
+#include <QScreen>
 
 #include "FLErrorWindow.h"
+
 
 //-----------------------ERRORWINDOW IMPLEMENTATION
 
@@ -51,19 +57,24 @@ void FLErrorWindow::init_Window()
     fErrorText->setFont(font);
     
     fErrorText->setReadOnly(true);
-    
+
+#ifdef QT6
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+#else
     QSize screenSize;
-    
     QDesktopWidget *dw = QApplication::desktop();
-    
 	QWidgetList l = QApplication::topLevelWidgets();
 	if (l.empty()) {
+#ifdef QTNEWPRIMARYSCREEN
+		screenSize = QGuiApplication::primaryScreen()->size();
+#else
     	screenSize = dw->availableGeometry(dw->primaryScreen()).size();
+#endif
     } else {
     	QWidget* w = l.first();	
     	screenSize = dw->screenGeometry(w).size();
     }
-    
+#endif
     this->setGeometry(screenSize.width()*3/4 , 0,screenSize.width()/4,screenSize.height()/10);
     this->setCentralWidget(fWidget);
     

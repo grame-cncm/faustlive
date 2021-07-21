@@ -1,85 +1,100 @@
+#############################################
+#          FaustLive Makefile
+#############################################
+VERSION := $(shell cat ../version.txt)
 
-system := $(shell uname -s)
-system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
-ifeq ($(system), Darwin)
-	TARGET ?= unix
-	SPEC ?= -spec macx-clang
-	DEPLOY ?= macdeployqt
-else
-ifeq ($(system), MINGW)
-	TARGET ?= windows
-	DEPLOY ?= windeployqt
-else
-ifeq ($(system), Linux)
-	TARGET ?= unix
-	DEPLOY ?= echo no deployment on Linux for 
-else
-	TARGET = undefined
-endif
-endif
-endif
-
-OUTDIR = fldir
+BUILDDIR ?= builddir
 MAKE   ?= make
-FAUST  ?= faust
+CMAKE  ?= cmake
 DEST   ?= .
 FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
+README  := README.html
+CHGELOG := ../changelog.txt
 
 
-all : ../Resources/application.qrc
-	$(MAKE) $(TARGET)
+all :
+	@git submodule update --init
+	$(MAKE) qrc
+	$(MAKE) cmake
+	$(MAKE) faustlive
 
-../Resources/application.qrc : $(FAUSTLIBS)
-	make -C ../Resources
 
+faustlive: $(BUILDDIR)
+	$(CMAKE) --build $(BUILDDIR) --config Release
 
-unix: $(OUTDIR)/Makefile
-	$(MAKE) -C $(OUTDIR)
+cmake: $(BUILDDIR)
+	cd $(BUILDDIR) && $(CMAKE) .. $(CMAKEOPT) $(GENERATOR)
+
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
 
 help:
 	@echo "----- FaustLive Makefile -----"
 	@echo "Available target are:"
-	@echo "  'all'  (default) : compiles FaustLive."
-	@echo "  'deploy'         : call $(DEPLOY)."
-	@echo "  'clean'          : remove the $(OUTDIR) and FaustLive folders."
-	@echo "  'update'         : git update, including submodule."
-	@echo "  'mathlib'        : generate or update llvm_math.ll."
+	@echo "  'all'  (default) : call the qrc, cmake and faustlive targets."
 	@echo "  'qrc'            : re-generate application.qrc."
+	@echo "  'cmake'          : re-generate the cmake project."
+	@echo "  'faustlive'      : compiles FaustLive."
+	@echo "Variables:"
+	@echo "  'GENERATOR'      : a cmake generator passed to 'cmake' target"
+	@echo "  'CMAKEOPT'       : cmake options passed to 'cmake' target"
+	@echo "  'PREFIX'         : install prefix to be passed to 'cmake'"
+	@echo "Packaging:"
+	@echo "  'install'        : install the faustlive package"
+	@echo "  'package'        : build the faustlive package [MacOS]"
+	@echo "  'dist'           : make a faustlive distribution tarball."
+	@echo "Utilities:"
+	@echo "  'deploy'         : call $(DEPLOY)."
+	@echo "  'clean'          : remove the $(BUILDDIR) and bin folders."
+	@echo "  'mathlib'        : generate or update llvm_math.ll."
 
-qrc:
-	git submodule update --init
+
+
+$(README): N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
+$(README): N := $(shell expr $(N) - 7)
+$(README): ../README.md ../changelog.txt
+	@echo "<!DOCTYPE html><html><xmp>" > $(README)
+	cat ../README.md >> $(README)
+	@echo "<br /><br />" >> $(README)
+	@echo "###Change log" >> $(README)
+	tail -n $(N) $(CHGELOG) >> $(README)
+	@echo "</xmp>" >> $(README)
+	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> $(README)
+	@echo "</html>" >> $(README)
+
+
+qrc: ../Resources/application.qrc 
+
+../Resources/application.qrc : $(FAUSTLIBS)
 	make -C ../Resources
-	
-update: 
-	git submodule update --init
-	git pull --rebase
 
-package: 
-	$(MAKE) rsrc
-	$(MAKE) -C ../package
+install: 
+	$(CMAKE) --build $(BUILDDIR) --target install
 
-dist: 
-	$(MAKE) -C ../package dist
+package: PACK:=FaustLive-$(VERSION)
+package: $(README)
+	$(MAKE) cmake CMAKEOPT='-DPREFIX=../$(PACK)'
+	$(MAKE) install
+	hdiutil create $(PACK).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
+	@echo "Warning: package target has changed the install PREFIX"
+	mv $(PACK).dmg $(DEST)
+
+submodule = Resources/Libs
+dist : DIST:= FaustLive-$(VERSION)
+dist :
+	rm -rf ../$(DIST)
+	cd .. && git archive --format=tar --prefix=$(DIST)/ HEAD | tar xf -
+	cd ../$(DIST) && git -C ../$(submodule) archive --format=tar --prefix=$(submodule) HEAD | tar xf -
+	cd .. && tar cfz $(DIST).tar.gz $(DIST)
+	mv ../$(DIST).tar.gz $(DEST)
+	rm -rf ../$(DIST)
 
 release: 
 	git pull --rebase
 	$(MAKE) clean
 	$(MAKE)
-	$(MAKE) package DEST=$(DEST)
-	$(MAKE) dist DISTDEST=$(DEST)
-
-windows: 
-	@echo Compiling on Windows MSYS might work but has not been tested.
-	@echo Proceed manually.
-
-qmake:
-	cd $(OUTDIR) && qmake .. FAUST=$(FAUST) $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
-
-$(OUTDIR)/Makefile : $(OUTDIR) FaustLive.pro
-	cd $(OUTDIR) && qmake .. FAUST=$(FAUST) $(SPEC) QMAKE_CFLAGS_ISYSTEM=-I
-	
-$(OUTDIR) :
-	mkdir $(OUTDIR)
+	$(MAKE) package
+	$(MAKE) dist
 
 mathlib : ../Resources/Libs/llvm_math.ll	
 
@@ -87,11 +102,8 @@ mathlib : ../Resources/Libs/llvm_math.ll
 	clang -emit-llvm ../src/Utilities/llvm_math.c -c -S -o ../Resources/Libs/llvm_math.ll
 
 deploy:
-	$(DEPLOY) FaustLive/FaustLive.???
+	cd bin && macdeployqt FaustLive.app
 
 clean :
-	rm -rf $(OUTDIR) FaustLive
-
-undefined:
-	$(error System is undefined, not target available)
+	rm -rf $(BUILDDIR) bin
 

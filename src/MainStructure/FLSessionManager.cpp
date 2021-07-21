@@ -8,6 +8,8 @@
 
 #ifndef _WIN32
 # pragma GCC diagnostic ignored "-Wunused-function"
+#else
+#pragma warning(disable: 4996)
 #endif
 
 #include <iostream>
@@ -17,10 +19,12 @@
 #include "FLWinSettings.h"
 #include "utilities.h"
 #include "FLErrorWindow.h"
+#include "QTDefs.h"
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/libfaust.h"
 #include "faust/gui/SoundUI.h"
+#include "faust/dsp/dsp-adapter.h"
 
 #include <assert.h>
 
@@ -200,7 +204,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         }
         
         // Create SoundUI manager using pathnames
-        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames());
+        mySetts->fSoundfileInterface = new SoundUI(toCompile->fLLVMFactory->getIncludePathnames(), -1, nullptr, hasCompileOption(toCompile->fLLVMFactory, "-double"));
     }
 //------ Compile remote factory
     else if (settings) {
@@ -305,14 +309,16 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
         bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
         bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
+        bool is_double = hasCompileOption(toCompile->fLLVMFactory, "-double");
         
         // For polyphony support
         if (polyphony) {
-            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group);
+            compiledDSP = toCompile->fLLVMFactory->createPolyDSPInstance(atoi(voices.c_str()), midi, group, is_double);
         } else {
             // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
             //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
+            if (is_double) compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
         }
         
         // Setup SoundUI manager
@@ -322,6 +328,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         if (midi && hasMIDISync(compiledDSP)) {
             compiledDSP = new timed_dsp(compiledDSP);
         }
+        
     }
 #ifdef REMOTE
 //----Create Remote DSP Instance
@@ -585,14 +592,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     
     for (int i = numberFixedParams; i < argc; i++) {
         string parseResult = parse_compilationParams(copy);
-        // OPTION DOUBLE HAS TO BE SKIPED
-        if (parseResult == "-double") {
-            FLErrorWindow::_Instance()->print_Error("-double option is not supported !");
-            // One less option
-            argc--;
-        } else {
-            argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
-        }
+        argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
@@ -838,7 +838,11 @@ QString FLSessionManager::askForSourceSaving(const QString& sourceContent)
     if (existingNameMessage->clickedButton() == yes_Button) {
         
         QFileDialog* fileDialog = new QFileDialog;
+#ifdef QTNEWCONFIRMOVERWRITE
+        fileDialog->setOption (QFileDialog::DontConfirmOverwrite, false);
+#else
         fileDialog->setConfirmOverwrite(true);
+#endif
         QString filename = fileDialog->getSaveFileName(NULL, "Save DSP", tr(""), tr("(*.dsp)"));
         
         if (QFileInfo(filename).suffix().indexOf("dsp") == -1) {

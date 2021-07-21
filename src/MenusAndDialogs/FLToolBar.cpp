@@ -260,7 +260,7 @@ void FLToolBar::init()
     
     compilationLayout->addRow(new QLabel("Faust Compiler Options"));
     compilationLayout->addRow(fAutomaticExportLine);
-    compilationLayout->addRow(new QLabel("Ex: -lang ajs -o filename.js"));
+    compilationLayout->addRow(new QLabel("Ex: -lang rust -o filename.rs"));
     
     compilationLayout->addRow(new QLabel(""));
     
