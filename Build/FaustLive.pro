@@ -40,7 +40,7 @@ CONFIG += exceptions rtti # c++11
 ## QT libraries needed
 QT += core gui widgets network
 DEFINES += VERSION=\\\"$$VERSION\\\"
-DEFINES += APP_VERSION=\\\"2.0\\\"
+DEFINES += APP_VERSION=\\\"2.1\\\"
 DEFINES += LLVM_VERSION=\\\"$$LLVM_VERSION\\\"
 
 ## Images/Examples and other needed resources

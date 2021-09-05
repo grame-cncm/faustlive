@@ -11,6 +11,10 @@ FaustLive - How to compile
 - [Linux] you must have [JACK](http://jackaudio.org/) installed.
 - [Windows] you must have [PortAudio](http://www.portaudio.com/) installed.
 
+## Preparing a new release
+
+Be sure to raise the `-DAPP_VERSION="X.X"` flag in the *CMakeLists.txt* file so that the .*FaustLive-CurrentSession-XX* cache folder is recreated with the new compiled and released version.
+
 ## Compilation
 
 Make sure that the installed Faust package is using the same LLVM version than the one used to compile FaustLive. To check this point, you can query both faust and llvm:
