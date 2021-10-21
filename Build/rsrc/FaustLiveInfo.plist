@@ -37,9 +37,9 @@
 	<key>CFBundleLongVersionString</key>
 	<string></string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.5.6</string>
+	<string>2.5.7</string>
 	<key>CFBundleVersion</key>
-	<string>2.5.6</string>
+	<string>2.5.7</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>FaustLive input signal</string>
 	<key>NSHumanReadableCopyright</key>
