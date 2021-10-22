@@ -25,6 +25,12 @@
 #include <string>
 #include <ctype.h>
 #include <QtNetwork>
+#include <QtGlobal>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+# define Qt6 true
+#else
+# define Qt6 false
+#endif
 
 #include "utilities.h"
 
@@ -119,8 +125,12 @@ void FLTargetChooser::init(){
     fMenu2Layout = new QGridLayout;
     
     fExportPlatform = new QComboBox(fMenu2Export);
-    connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
-    
+#if Qt6
+    connect(fExportPlatform, SIGNAL(currentIndexChanged(int)), this, SLOT(platformChanged(int)));
+#else
+	connect(fExportPlatform, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(platformChanged(const QString&)));
+#endif
+
     fExportArchi = new QComboBox(fMenu2Export);    
     
     fExportChoice = new QComboBox(fMenu2Export);
@@ -255,6 +265,21 @@ void FLTargetChooser::platformChanged(const QString& index){
     fExportArchi->clear();
     
     vector<string> architectures = fTargets[index.toStdString()];
+    vector<string>::iterator it;
+    
+    for (it = architectures.begin(); it!=architectures.end(); it++) {
+        fExportArchi->addItem((*it).c_str());
+    }
+    fExportArchi->show();
+}
+
+//Dynamic changes of the available architectures depending on platform
+void FLTargetChooser::platformChanged(int index){
+    
+    fExportArchi->hide();
+    fExportArchi->clear();
+    
+    vector<string> architectures = fTargets[fExportPlatform->itemText(index).toStdString()];
     vector<string>::iterator it;
     
     for (it = architectures.begin(); it!=architectures.end(); it++) {

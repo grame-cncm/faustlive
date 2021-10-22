@@ -79,6 +79,7 @@ class FLTargetChooser : public QDialog {
         
         void            abortReply();
         void            targetsDescriptionReceived(); 
+        void            platformChanged(int index);
         void            platformChanged(const QString& index);
         void            setLastState();
         virtual void    closeEvent(QCloseEvent* event);
