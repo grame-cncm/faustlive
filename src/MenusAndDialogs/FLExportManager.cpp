@@ -275,17 +275,7 @@ void FLTargetChooser::platformChanged(const QString& index){
 
 //Dynamic changes of the available architectures depending on platform
 void FLTargetChooser::platformChanged(int index){
-    
-    fExportArchi->hide();
-    fExportArchi->clear();
-    
-    vector<string> architectures = fTargets[fExportPlatform->itemText(index).toStdString()];
-    vector<string>::iterator it;
-    
-    for (it = architectures.begin(); it!=architectures.end(); it++) {
-        fExportArchi->addItem((*it).c_str());
-    }
-    fExportArchi->show();
+    platformChanged(fExportPlatform->itemText(index));
 }
 
 //When Cancel is pressed, the request is aborted
