@@ -30,11 +30,9 @@ Faust libraries are now in a [separated subproject](https://github.com/grame-cnc
  - crashes on Windows when compiling a dsp with input signals, on a machine without input audio device
  - may crash on startup due to incorrect cache. In this case, find the `FaustLive-CurrentSession-2.0` folder in your home folder, remove it and restart. On Unix like stations (Linux, MacOS), this folder is hidden and located at `$HOME/.FaustLive-CurrentSession-2.0` 
 
-
 ## Building
 
 To build the FaustLive project, go to the `build` folder and start with the README file.
-
 
 <!--p align="center">
   <img width="70" src="./Resources/FaustLiveIcon.png"> <br />
@@ -47,11 +45,19 @@ To build the FaustLive project, go to the `build` folder and start with the READ
 ###Change log
 
 ----------------------------------------------------
+10/21/2021: version 2.5.7
+
+- correct FaustLive-CurrentSession folder versioning to raise it for each release.
+- integrates Faust compiler version 2.37.2
+- based on LLVM 12.0.0 on and OS X and 10.0.0 on Windows 
+- latest version of the Faust libraries
+
+----------------------------------------------------
 05/03/2021: version 2.5.6
 
 - support for -double option
 - integrates Faust compiler version 2.33.1
-- based on LLVM 12.0.0 on Windows and OS X
+- based on LLVM 12.0.0 on and OS X and 10.0.0 on Windows 
 - latest version of the Faust libraries
 
 Known issues: 
