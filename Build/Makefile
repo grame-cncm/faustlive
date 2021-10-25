@@ -11,13 +11,11 @@ FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 README  := README.html
 CHGELOG := ../changelog.txt
 
-
 all :
-	@git submodule update --init
+	if test -d .git; then git submodule update --init; fi
 	$(MAKE) qrc
 	$(MAKE) cmake
 	$(MAKE) faustlive
-
 
 faustlive: $(BUILDDIR)
 	$(CMAKE) --build $(BUILDDIR) --config Release
@@ -48,8 +46,6 @@ help:
 	@echo "  'clean'          : remove the $(BUILDDIR) and bin folders."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
 
-
-
 $(README): N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
 $(README): N := $(shell expr $(N) - 7)
 $(README): ../README.md ../changelog.txt
@@ -61,7 +57,6 @@ $(README): ../README.md ../changelog.txt
 	@echo "</xmp>" >> $(README)
 	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> $(README)
 	@echo "</html>" >> $(README)
-
 
 qrc: ../Resources/application.qrc 
 
