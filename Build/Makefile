@@ -11,13 +11,11 @@ FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
 README  := README.html
 CHGELOG := ../changelog.txt
 
-
 all :
-	@git submodule update --init
+	if test -d .git; then git submodule update --init; fi
 	$(MAKE) qrc
 	$(MAKE) cmake
 	$(MAKE) faustlive
-
 
 faustlive: $(BUILDDIR)
 	$(CMAKE) --build $(BUILDDIR) --config Release
@@ -48,8 +46,6 @@ help:
 	@echo "  'clean'          : remove the $(BUILDDIR) and bin folders."
 	@echo "  'mathlib'        : generate or update llvm_math.ll."
 
-
-
 $(README): N := $(shell wc -l $(CHGELOG) | sed -e 's/ *\([0-9][0-9]*\).*/\1/')
 $(README): N := $(shell expr $(N) - 7)
 $(README): ../README.md ../changelog.txt
@@ -61,7 +57,6 @@ $(README): ../README.md ../changelog.txt
 	@echo "</xmp>" >> $(README)
 	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> $(README)
 	@echo "</html>" >> $(README)
-
 
 qrc: ../Resources/application.qrc 
 
@@ -79,15 +74,17 @@ package: $(README)
 	@echo "Warning: package target has changed the install PREFIX"
 	mv $(PACK).dmg $(DEST)
 
-submodule = Resources/Libs
+submodules = Resources/Libs
 dist : DIST:= FaustLive-$(VERSION)
 dist :
-	rm -rf ../$(DIST)
-	cd .. && git archive --format=tar --prefix=$(DIST)/ HEAD | tar xf -
-	cd ../$(DIST) && git -C ../$(submodule) archive --format=tar --prefix=$(submodule) HEAD | tar xf -
-	cd .. && tar cfz $(DIST).tar.gz $(DIST)
-	mv ../$(DIST).tar.gz $(DEST)
-	rm -rf ../$(DIST)
+	rm -rf $(DIST)
+# Grab the main source.
+	git -C .. archive --format=tar.gz --prefix=$(DIST)/ HEAD | tar xfz -
+# Grab the submodules.
+	for x in $(submodules); do (cd $(DIST) && rm -rf $$x && git -C ../../$$x archive --format=tar.gz --prefix=$$x/ HEAD | tar xfz -); done
+# Create the source tarball.
+	tar cfz $(DIST).tar.gz $(DIST)
+	rm -rf $(DIST)
 
 release: 
 	git pull --rebase
