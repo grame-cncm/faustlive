@@ -31,7 +31,14 @@ Faust libraries are now in a [separated subproject](https://github.com/grame-cnc
 
 ## Building
 
-To build the FaustLive project, go to the `build` folder and start with the README file.
+### Versionning
+
+- use the *version* script to raise the version number, like `./version 2.5.8`.
+- manually raise the `APP_VERSION` flag in Build/CMakeLists.txt (line 213)
+
+### Application building
+
+To build the FaustLive project, go to the `Build` folder and start with the README file.
 
 <!--p align="center">
   <img width="70" src="./Resources/FaustLiveIcon.png"> <br />
