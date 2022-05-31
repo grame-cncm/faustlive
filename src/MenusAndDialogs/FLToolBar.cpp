@@ -230,7 +230,7 @@ void FLToolBar::init()
     //--Faust
     fOptionLine = new QLineEdit(tr(""), compilationOptions);
     fOptionLine->setStyleSheet("*{background-color:white;}");
-    compilationLayout->addRow(new QLabel(tr("FAUST Compiler Options")));
+    compilationLayout->addRow(new QLabel(tr("Faust Compiler Options")));
     compilationLayout->addRow(fOptionLine);
     
     connect(fOptionLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
