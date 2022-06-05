@@ -304,7 +304,7 @@ if (APPLE OR WIN32)
 else()
 	set (INSTALL_BIN 		${CMAKE_INSTALL_PREFIX}/bin)
 	set (INSTALL_SHARED 	${CMAKE_INSTALL_PREFIX}/share/)
-	set (INSTALL_DOC 		${INSTALL_SHARED}/faustlive/doc)
+	set (INSTALL_DOC 		${INSTALL_SHARED}/doc/faustlive)
 	set (INSTALL_ICONS 		${INSTALL_SHARED}/icons/hicolor)
 endif()
 
