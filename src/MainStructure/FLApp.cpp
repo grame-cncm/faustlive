@@ -1541,19 +1541,19 @@ void FLApp::show_presentation_Action(){
 //Modification of application style
 void FLApp::styleClicked(const QString& style){
     
-    QFile file;
-    FLSettings::_Instance()->setValue("General/Style", style);
-    
-    QString styleFile = ":/Styles/" + style + ".qss";    
-    file.setFileName(styleFile);
-    
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QString styleSheet = QLatin1String(file.readAll());
-        
-        setStyleSheet(styleSheet);
-        file.close();
-    }
+//    QFile file;
+//    FLSettings::_Instance()->setValue("General/Style", style);
+//    
+//    QString styleFile = ":/Styles/" + style + ".qss";    
+//    file.setFileName(styleFile);
+//    
+//    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+//    {
+//        QString styleSheet = QLatin1String(file.readAll());
+//        
+//        setStyleSheet(styleSheet);
+//        file.close();
+//    }
 }
 
 //Preference triggered from Menu

@@ -25,12 +25,12 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent)
     
     connect(fWindowOptions, SIGNAL(clicked()), this, SLOT(buttonStateChanged()));
 
-    fWindowOptions->setStyleSheet("*{"
-                              "background-color: transparent;"
-                              "color: black;"
-                              "border-color: transparent;"
-                              "margin: 8px;"
-                                  "}");
+//    fWindowOptions->setStyleSheet("*{"
+//                              "background-color: transparent;"
+//                              "color: black;"
+//                              "border-color: transparent;"
+//                              "margin: 8px;"
+//                                  "}");
     
     fSaveButton = new QPushButton("Apply Changes");
     fSaveButton->setFlat(true);
@@ -38,22 +38,22 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent)
 //    fSaveButton->setEnabled(true);
     connect(fSaveButton, SIGNAL(clicked()), this, SLOT(modifiedOptions()));
     
-    fSaveButton->setStyleSheet("*:flat{"
-                               "background-color: transparent;"
-                               "color: black;"
-                               "border: 2px solid black;"
-                               "border-radius: 6px;"
-                               "}"
-                               "*:flat:hover:enabled{"
-                               "border: 2px solid #FFC0CB;" 
-                               "}" 
-                               "*:flat:enabled:pressed{"
-                               "background-color: #FFC0CB;"
-                               "}"
-                               "*:disabled{"
-                               "background-color: #606060;"
-                               "}"
-                               );
+//    fSaveButton->setStyleSheet("*:flat{"
+//                               "background-color: transparent;"
+//                               "color: black;"
+//                               "border: 2px solid black;"
+//                               "border-radius: 6px;"
+//                               "}"
+//                               "*:flat:hover:enabled{"
+//                               "border: 2px solid #FFC0CB;" 
+//                               "}" 
+//                               "*:flat:enabled:pressed{"
+//                               "background-color: #FFC0CB;"
+//                               "}"
+//                               "*:disabled{"
+//                               "background-color: #606060;"
+//                               "}"
+//                               );
     
     init();
 }
@@ -61,7 +61,7 @@ FLToolBar::FLToolBar(QSettings* settings, QWidget* parent) : QToolBar(parent)
 void FLToolBar::init()
 {
     fContainer = new QToolBox;
-    fContainer->setStyleSheet("*{background-color: transparent}");
+//    fContainer->setStyleSheet("*{background-color: transparent}");
 
     //------- OSC Control
     QWidget* oscBox = new QWidget();
@@ -71,14 +71,14 @@ void FLToolBar::init()
     QFormLayout* oscLayout = new QFormLayout;
     
     fPortInOscLine = new QLineEdit(tr(""), oscBox);
-    fPortInOscLine->setStyleSheet("*{background-color:white;}");
+//    fPortInOscLine->setStyleSheet("*{background-color:white;}");
     fPortInOscLine->setMaxLength(4);
     fPortInOscLine->setMaximumWidth(50);
     connect(fPortInOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fPortInOscLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fPortOutOscLine = new QLineEdit(tr(""), oscBox);
-    fPortOutOscLine->setStyleSheet("*{background-color:white;}");
+//    fPortOutOscLine->setStyleSheet("*{background-color:white;}");
     fPortOutOscLine->setMaxLength(4);
     fPortOutOscLine->setMaximumWidth(50);
     connect(fPortOutOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
@@ -86,12 +86,12 @@ void FLToolBar::init()
     
     fDestHostLine = new QLineEdit(tr(""), oscBox);
  // fDestHostLine->setInputMask("000.000.000.000");
-    fDestHostLine->setStyleSheet("*{background-color:white;}");
+//    fDestHostLine->setStyleSheet("*{background-color:white;}");
     connect(fDestHostLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fDestHostLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fPortErrOscLine = new QLineEdit(tr(""), oscBox);
-    fPortErrOscLine->setStyleSheet("*{background-color:white;}");
+//    fPortErrOscLine->setStyleSheet("*{background-color:white;}");
     fPortErrOscLine->setMaxLength(4);
     fPortErrOscLine->setMaximumWidth(50);
     connect(fPortErrOscLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
@@ -144,7 +144,7 @@ void FLToolBar::init()
     QFormLayout* polyLayout = new QFormLayout;
     
     fPolyLine = new QLineEdit(tr(""), polyBox);
-    fPolyLine->setStyleSheet("*{background-color:white;}");
+//    fPolyLine->setStyleSheet("*{background-color:white;}");
     fPolyLine->setMaxLength(4);
     fPolyLine->setMaximumWidth(50);
     connect(fPolyLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
@@ -182,21 +182,21 @@ void FLToolBar::init()
     fCVLine = new QLineEdit;
     fCVLine->setMaxLength(4);
     fCVLine->setMaximumWidth(50);
-    fCVLine->setStyleSheet("*{background-color:white;}");
+//    fCVLine->setStyleSheet("*{background-color:white;}");
     connect(fCVLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fCVLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fMTULine = new QLineEdit;
     fMTULine->setMaxLength(6);
     fMTULine->setMaximumWidth(50);
-    fMTULine->setStyleSheet("*{background-color:white;}");
+//    fMTULine->setStyleSheet("*{background-color:white;}");
     connect(fMTULine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fMTULine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
     fLatLine = new QLineEdit;
     fLatLine->setMaxLength(4);
     fLatLine->setMaximumWidth(50);
-    fLatLine->setStyleSheet("*{background-color:white;}");
+//    fLatLine->setStyleSheet("*{background-color:white;}");
     connect(fLatLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fLatLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     
@@ -229,7 +229,7 @@ void FLToolBar::init()
     
     //--Faust
     fOptionLine = new QLineEdit(tr(""), compilationOptions);
-    fOptionLine->setStyleSheet("*{background-color:white;}");
+//    fOptionLine->setStyleSheet("*{background-color:white;}");
     compilationLayout->addRow(new QLabel(tr("Faust Compiler Options")));
     compilationLayout->addRow(fOptionLine);
     
@@ -237,7 +237,7 @@ void FLToolBar::init()
     connect(fOptionLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
     //--LLVM
     fOptValLine = new QLineEdit(tr(""), compilationOptions);
-    fOptValLine->setStyleSheet("*{background-color:white;}");
+//    fOptValLine->setStyleSheet("*{background-color:white;}");
     
     fOptValLine->setMaxLength(3);
     fOptValLine->adjustSize();
@@ -253,7 +253,7 @@ void FLToolBar::init()
     
     //------ Automatic Export
     fAutomaticExportLine = new QLineEdit(tr(""), compilationOptions);
-    fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
+//    fAutomaticExportLine->setStyleSheet("*{background-color:white;}");
     
     connect(fAutomaticExportLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fAutomaticExportLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));
@@ -268,7 +268,7 @@ void FLToolBar::init()
     compilationLayout->addRow(new QLabel("-------Post-Compilation Script-------"));
     
     fScriptLine = new QLineEdit(tr(""), compilationOptions);
-    fScriptLine->setStyleSheet("*{background-color:white;}");
+//    fScriptLine->setStyleSheet("*{background-color:white;}");
     
     connect(fScriptLine, SIGNAL(textEdited(const QString&)), this, SLOT(enableButton(const QString&)));
     connect(fScriptLine, SIGNAL(returnPressed()), this, SLOT(modifiedOptions()));

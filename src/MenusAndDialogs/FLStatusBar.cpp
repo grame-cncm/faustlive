@@ -37,12 +37,12 @@ void FLStatusBar::init()
     
     fRemoteButton->setFlat(true);
     
-    fRemoteButton->setStyleSheet("*{"
-                                 "background-color: transparent;"
-                                 "border-color: transparent;"
-                                 "padding:0px 0px 0px 0px;"
-                                 "margin-left: 5px;"
-                                 "}");
+//    fRemoteButton->setStyleSheet("*{"
+//                                 "background-color: transparent;"
+//                                 "border-color: transparent;"
+//                                 "padding:0px 0px 0px 0px;"
+//                                 "margin-left: 5px;"
+//                                 "}");
     
     fRemoteMenu = new QMenu();
     fRemoteButton->setMenu(fRemoteMenu);

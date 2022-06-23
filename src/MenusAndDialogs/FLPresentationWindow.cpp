@@ -213,53 +213,53 @@ void FLPresentationWindow::init()
     layout4->addWidget(more);
     textBox->setLayout(layout4);
     
-    new_Window->setStyleSheet("QPushButton:flat{"
-                              "background-color: lightGray;"
-                              "color: black;"
-                              "border: 2px solid gray;"
-                              "border-radius: 6px;"
-                              "}"
-                              "QPushButton:flat:hover{"
-                              "background-color: darkGray;"                         
-                              "}" );
-    open_Window->setStyleSheet("QPushButton:flat{"
-                               "background-color: lightGray;"
-                               "color: black;"
-                               "border: 2px solid gray;"
-                               "border-radius: 6px;"
-                               "}"
-                               "QPushButton:flat:hover{"
-                               "background-color: darkGray;"                         
-                               "}" );
-    open_Session->setStyleSheet("QPushButton:flat{"
-                                "background-color: lightGray;"
-                                "color: black;"
-                                "border: 2px solid gray;"
-                                "border-radius: 6px;"
-                                "}"
-                                "QPushButton:flat:hover{"
-                                "background-color: darkGray;"                         
-                                "}" );
+//    new_Window->setStyleSheet("QPushButton:flat{"
+//                              "background-color: lightGray;"
+//                              "color: black;"
+//                              "border: 2px solid gray;"
+//                              "border-radius: 6px;"
+//                              "}"
+//                              "QPushButton:flat:hover{"
+//                              "background-color: darkGray;"                         
+//                              "}" );
+//    open_Window->setStyleSheet("QPushButton:flat{"
+//                               "background-color: lightGray;"
+//                               "color: black;"
+//                               "border: 2px solid gray;"
+//                               "border-radius: 6px;"
+//                               "}"
+//                               "QPushButton:flat:hover{"
+//                               "background-color: darkGray;"                         
+//                               "}" );
+//    open_Session->setStyleSheet("QPushButton:flat{"
+//                                "background-color: lightGray;"
+//                                "color: black;"
+//                                "border: 2px solid gray;"
+//                                "border-radius: 6px;"
+//                                "}"
+//                                "QPushButton:flat:hover{"
+//                                "background-color: darkGray;"                         
+//                                "}" );
     
-    preferences->setStyleSheet("QPushButton:flat{"
-                               "background-color: lightGray;"
-                               "color: black;"
-                               "border: 2px solid gray;"
-                               "border-radius: 6px;"
-                               "}"
-                               "QPushButton:flat:hover{"
-                               "background-color: darkGray;"                         
-                               "}" );
+//    preferences->setStyleSheet("QPushButton:flat{"
+//                               "background-color: lightGray;"
+//                               "color: black;"
+//                               "border: 2px solid gray;"
+//                               "border-radius: 6px;"
+//                               "}"
+//                               "QPushButton:flat:hover{"
+//                               "background-color: darkGray;"                         
+//                               "}" );
     
-    help->setStyleSheet("QPushButton:flat{"
-                        "background-color: lightGray;"
-                        "color: black;"
-                        "border: 2px solid gray;"
-                        "border-radius: 6px;"
-                        "}"
-                        "QPushButton:flat:hover{"
-                        "background-color: darkGray;"                         
-                        "}" );
+//    help->setStyleSheet("QPushButton:flat{"
+//                        "background-color: lightGray;"
+//                        "color: black;"
+//                        "border: 2px solid gray;"
+//                        "border-radius: 6px;"
+//                        "}"
+//                        "QPushButton:flat:hover{"
+//                        "background-color: darkGray;"                         
+//                        "}" );
     
     centerOnPrimaryScreen(this);
 }
