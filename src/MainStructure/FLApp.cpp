@@ -691,7 +691,7 @@ void FLApp::connectWindowSignals(FLWindow* win)
 FLWindow* FLApp::createWindow(int index, const QString& mySource, FLWinSettings* windowSettings, QString& error)
 {
     if (FLW_List.size() >= numberWindows) {
-        error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research.grame@gmail.com ^^";
+        error = "You cannot open more windows. If you are not happy with this limit, feel free to contact us : research@grame.fr ^^";
         return NULL;
     }
     
