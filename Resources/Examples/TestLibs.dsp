@@ -1,3 +1,3 @@
 import("stdfaust.lib");
 
-process = !;
+process = 0;
