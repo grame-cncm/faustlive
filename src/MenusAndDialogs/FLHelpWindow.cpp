@@ -10,6 +10,8 @@
 #include "utilities.h"
 #include "FLErrorWindow.h"
 
+#include <iostream>
+
 #define LLVM_DSP_FACTORY
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
@@ -165,7 +167,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
     //The library path is where libraries like the scheduler architecture file are = currentSession
     string libPath = fLibsFolder.toStdString();
     argv[argc++] = libPath.c_str();
-    argv[argc] = 0; // NULL terminated argv
+    argv[argc] = NULL; // NULL terminated argv
     string error;
     string file = fTestDSPPath.toStdString();
   
@@ -174,6 +176,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 #else
     dsp_factory* temp_factory = createInterpreterDSPFactoryFromFile(file, argc, argv, error);
 #endif
+ 
     if (!temp_factory) {
         FLErrorWindow::_Instance()->print_Error(error.c_str());
         return;
@@ -184,7 +187,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 
         MyMeta* meta = new MyMeta;
         temp_dsp->metadata(meta);
-
+       
         for (size_t i = 0; i < meta->datas.size(); i++) {
 
             string libName, key, value;
@@ -196,7 +199,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
             } else {
                 key = meta->datas[i].first;
             }
-
+            
             value = meta->datas[i].second;
             infoLibs[libName].push_back(make_pair(key, value));
         }

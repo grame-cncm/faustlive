@@ -618,7 +618,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
             FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0";
     }
 
-    argv[argc] = 0; // NULL terminated argv
+    argv[argc] = NULL; // NULL terminated argv
     return argv;
 }
 

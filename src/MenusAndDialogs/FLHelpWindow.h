@@ -33,17 +33,18 @@
 
 using namespace std;
 
-struct MyMeta: public Meta{
+struct MyMeta: public Meta {
     
     public:
     vector<pair<string, string> > datas;
     
-    virtual void declare(const char* key, const char* value){
+    virtual void declare(const char* key, const char* value)
+    {
         datas.push_back(make_pair(key, value));
     }
 };
 
-class FLHelpWindow : public QMainWindow{
+class FLHelpWindow : public QMainWindow {
     
     private:
     
@@ -66,10 +67,10 @@ class FLHelpWindow : public QMainWindow{
         FLHelpWindow(const QString& libsFodler, const QString& testDSPPath);
         virtual ~FLHelpWindow();
     
-        static  FLHelpWindow*   _helpWindow;
-        static  FLHelpWindow*   _Instance();
-        static  void            createInstance(const QString home, const QString& testDSPPath);
-        static  void            deleteInstance();
+        static FLHelpWindow* _helpWindow;
+        static FLHelpWindow* _Instance();
+        static void createInstance(const QString home, const QString& testDSPPath);
+        static void deleteInstance();
     
         void init();
     
@@ -77,12 +78,12 @@ class FLHelpWindow : public QMainWindow{
     
     public slots:
     
-        void    setToolText(const QString & currentText);
-        void    setAppPropertiesText(const QString& currentText);  
-        void    setWinPropertiesText(const QString& currentText);
-        void    setLibText();
+        void setToolText(const QString & currentText);
+        void setAppPropertiesText(const QString& currentText);
+        void setWinPropertiesText(const QString& currentText);
+        void setLibText();
     
-        void    hideWindow();
+        void hideWindow();
     
 };
 

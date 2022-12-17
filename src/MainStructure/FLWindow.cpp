@@ -910,7 +910,7 @@ void FLWindow::allocateOscInterface()
     string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
     argv[10] = (char*) (errport.c_str());
     
-    argv[argc] = 0; // NULL terminated argv
+    argv[argc] = NULL; // NULL terminated argv
 
     fOscInterface = new OSCUI(argv[0], argc, argv, NULL, &catch_OSCError, this, false);
     delete [] argv;
