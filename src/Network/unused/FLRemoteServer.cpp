@@ -501,7 +501,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
         for(int i = 0; i < argc; i++){
             argv[i] = (con_info->fCompilationOptions[i]).c_str();
         }
-        argv[argc] = 0; // NULL terminated argv
+        argv[argc] = NULL; // NULL terminated argv
         
         string error;
         con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
