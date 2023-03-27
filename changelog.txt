@@ -4,7 +4,14 @@
 GRAME - Centre National de Creation Musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2014-2022
+Copyright GRAME (c) 2014-2023
+
+----------------------------------------------------
+03/27/2023: version 2.5.14
+
+- integrates Faust compiler version 2.58.11
+- based on LLVM 15.0.7 on and OS X and 10.0.0 on Windows 
+- latest version of the Faust libraries
 
 ----------------------------------------------------
 12/17/2022: version 2.5.13
