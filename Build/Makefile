@@ -55,7 +55,9 @@ $(README): ../README.md ../changelog.txt
 	@echo "###Change log" >> $(README)
 	tail -n $(N) $(CHGELOG) >> $(README)
 	@echo "</xmp>" >> $(README)
-	@echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> $(README)
+	@echo "<script type=\"text/javascript\">" >> $(README)
+	cat strapdown.min.js >> $(README)
+	echo "</script>" >>$(README)
 	@echo "</html>" >> $(README)
 
 qrc: ../Resources/application.qrc 
