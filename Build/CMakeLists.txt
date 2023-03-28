@@ -340,6 +340,7 @@ install (
 if (APPLE OR WIN32)
 install (
     FILES ${ROOT}/build/README.html DESTINATION ${INSTALL_BIN}
+    FILES ${ROOT}/build/strapdown.min.js DESTINATION ${INSTALL_BIN}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 else()
