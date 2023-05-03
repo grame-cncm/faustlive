@@ -7,6 +7,14 @@ http://www.grame.fr
 Copyright GRAME (c) 2014-2023
 
 ----------------------------------------------------
+05/03/2023: version 2.5.15
+
+- restore the parameters between successive compilations 
+- integrates Faust compiler version 2.59.4
+- based on LLVM 15.0.7 on and OS X and 10.0.0 on Windows 
+- latest version of the Faust libraries
+
+----------------------------------------------------
 03/27/2023: version 2.5.14
 
 - integrates Faust compiler version 2.58.11

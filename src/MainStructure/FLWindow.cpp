@@ -417,9 +417,7 @@ bool FLWindow::update_Window(const QString& source)
             if (fAudioManager->init_FadeAudio(errorMsg, newName.toStdString().c_str(), new_dsp)) {
                 
                 fIsDefault = false;
-        
-                recall_Window();
-                
+             
                 // Start crossfade and wait for its end
                 fAudioManager->start_Fade();
                 fAudioManager->wait_EndFade();
@@ -436,6 +434,8 @@ bool FLWindow::update_Window(const QString& source)
                 allocateInterfaces(newName);
                 
                 buildInterfaces(new_dsp);
+                
+                recall_Window();
                 
                 fSource = sourceToCompile;
                 fWavSource = wavsource;
