@@ -81,6 +81,7 @@ jobs:
       shell: cmd
       run: |
         set PATH=%LLVM_DIR%;%PATH%
+        set Qt5_DIR=%Qt5_Dir%/lib/cmake/Qt5
         cd Build
         call Make.bat faustlive
         call Make.bat package
@@ -92,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
-        path: build/FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
+        path: Build/FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
         if-no-files-found: error
 
   create-release:

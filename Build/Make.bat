@@ -43,7 +43,7 @@ EXIT /B
 		mkdir builddir
 	)
 	cd builddir
-	cmake .. -DLIBSNDFILE=%LIBSNDFILE%
+	cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DLIBSNDFILE=%LIBSNDFILE%
 	cmake --build . --config Release
 	cd ..
 EXIT /B
