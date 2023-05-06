@@ -327,13 +327,14 @@ endif()
 ####################################
 # copy DLLs with windeployqt
 # Find the path to windeployqt executable
-find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${_qt5Core_install_prefix}/bin" "${Qt5_Dir}/bin" REQUIRED)
-
 # Create a custom command to run windeployqt after building the target
-if (WIN32 AND WINDEPLOYQT_EXECUTABLE)
+if (WIN32)
+
+	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${Qt5_DIR}/../../../bin" REQUIRED)
+
     add_custom_command(TARGET ${faustlive}
         POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E env PATH="${_qt5Core_install_prefix}/bin"
+        COMMAND "${CMAKE_COMMAND}" -E env PATH="${Qt5_DIR}/../../../bin"
         "${WINDEPLOYQT_EXECUTABLE}"
         --no-compiler-runtime
         --no-angle
