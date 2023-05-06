@@ -41,13 +41,15 @@ Some environment variables are necessary. Here are the steps. The implementation
 
 Put `llvm-config.exe` in our `PATH` ([INSTALL](https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-win11-x86_64/llvm-15.0.7-win11-x86_64.zip)).
 ```bash
-set PATH=%USERPROFILE%\faust\llvm\bin;%PATH%
+set PATH=%USERPROFILE%\faustlive\llvm\bin;%PATH%
 ```
 
 Set `LIBSNDFILE` to a path containing `bin/sndfile.dll` ([INSTALL](https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip)).
 ```bash
-set LIBSNDFILE=%USERPROFILE%\faust\libsndfile
+set LIBSNDFILE=%USERPROFILE%\faustlive\libsndfile
 ```
+
+Next we need Qt5. You can get Qt5 with with `pip install aqtinstall` and then `aqt install-qt windows desktop 5.15.2 win64_msvc2019_64`.
 
 Set `Qt5_DIR` to a directory containing `Qt5Config.cmake`.
 ```bash
@@ -56,7 +58,7 @@ set Qt5_DIR=C:\SDKs\Qt\5.15.13\msvc2019_64\lib\cmake\Qt5
 
 Then
 ~~~~~~~~~~
-> Make.bat install
+> Make.bat faustlive
 ~~~~~~~~~~
 
 A `Make.bat` script provides services equivalent to the `Makefile`.
