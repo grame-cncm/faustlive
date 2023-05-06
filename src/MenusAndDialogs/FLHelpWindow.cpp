@@ -64,7 +64,7 @@ void FLHelpWindow::setToolText(const QString & currentText)
     else if (currentText.compare("LLVM") == 0)
         fToolText->setHtml("<br>\nThanks to its embedded LLVM compiler, this application allows dynamic compilation of your Faust objects.<br><br>""LEARN MORE ABOUT LLVM : <a href = http://llvm.org>llvm.org</a>");
     else if (currentText.compare("COREAUDIO") == 0)
-        fToolText->setHtml("<br>Core Audio is the digital audio infrastructure of MAC OS X.<br><br>""LEARN MORE ABOUT COREAUDIO : <a href = http://developer.apple.com/library/ios/#documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatisCoreAudio/WhatisCoreAudio.html>developer.apple.com </a> ");
+        fToolText->setHtml("<br>Core Audio is the digital audio infrastructure of MAC OS X.<br><br>""LEARN MORE ABOUT COREAUDIO : <a href = http://developer.apple.com/library/std::ios/#documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatisCoreAudio/WhatisCoreAudio.html>developer.apple.com </a> ");
     else if (currentText.compare("JACK") == 0)
         fToolText->setHtml("<br>Jack (the Jack Audio Connection Kit) is a low-latency audio server. It can connect any number of different applications to a single hardware audio device.<br><br>YOU CAN DOWNLOAD IT HERE : <a href =http://www.jackosx.com> www.jackosx.com</a>\n");
     else if (currentText.compare("NETJACK") == 0)
@@ -152,7 +152,7 @@ void FLHelpWindow::setWinPropertiesText(const QString& currentText)
 
 //Set Faust Lib Text in Help Menu
 /* We compile a test.dsp which imports all the faust libraries, declaring their characteristics in metadata to allow us to retrieve them */
-void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLibs)
+void FLHelpWindow::parseLibs(std::map<std::string, std::vector<std::pair<std::string, std::string> > >& infoLibs)
 {
 //    int argc = 2;
     int argc = 0;
@@ -160,16 +160,16 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 //	argc = argc + 2;
 #endif
 //    const char** argv = new const char*[argc + 1];
-    const char* argv[256]; // max arguments is 256
+    const char* argv[256]; // std::max arguments is 256
 
     argv[argc++] = "-I";
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
-    string libPath = fLibsFolder.toStdString();
+    std::string libPath = fLibsFolder.toStdString();
     argv[argc++] = libPath.c_str();
     argv[argc] = NULL; // NULL terminated argv
-    string error;
-    string file = fTestDSPPath.toStdString();
+    std::string error;
+    std::string file = fTestDSPPath.toStdString();
   
 #ifdef LLVM_DSP_FACTORY
     llvm_dsp_factory* temp_factory = createDSPFactoryFromFile(file, argc, argv, "", error, 3);
@@ -190,10 +190,10 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
        
         for (size_t i = 0; i < meta->datas.size(); i++) {
 
-            string libName, key, value;
+            std::string libName, key, value;
             size_t pos = meta->datas[i].first.find("/");
 
-            if (pos != string::npos) {
+            if (pos != std::string::npos) {
                 libName = meta->datas[i].first.substr(0, pos);
                 key = meta->datas[i].first.substr(pos+1);
             } else {
@@ -201,7 +201,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
             }
             
             value = meta->datas[i].second;
-            infoLibs[libName].push_back(make_pair(key, value));
+            infoLibs[libName].push_back(std::make_pair(key, value));
         }
 
         delete temp_dsp;
@@ -217,7 +217,7 @@ void FLHelpWindow::parseLibs(map<string, vector<pair<string, string> > >& infoLi
 void FLHelpWindow::setLibText()
 {
     if (QFileInfo(fTreeLibs->currentItem()->text(0)).completeSuffix() != "lib") {
-        vector<pair<string, string> > libInfos = fInfoLibs[fTreeLibs->currentItem()->parent()->text(0).toStdString()];
+        std::vector<std::pair<std::string, std::string> > libInfos = fInfoLibs[fTreeLibs->currentItem()->parent()->text(0).toStdString()];
         for (size_t i=0; i<libInfos.size(); i++) {
             if (libInfos[i].first.compare(fTreeLibs->currentItem()->text(0).toStdString()) == 0) {
                 fLibsText->setPlainText(libInfos[i].second.c_str());

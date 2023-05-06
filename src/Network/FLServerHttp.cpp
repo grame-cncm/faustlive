@@ -26,7 +26,6 @@
 #define kFile       "HtmlCompiler.html"
 #define kTmpFile    "TmpFile.dsp"
 
-using namespace std;
 
 //--------------------------FLINTERMEDIATESERVER--------------------------//
 
@@ -35,7 +34,7 @@ FLServerHttp* FLServerHttp::_serverInstance = NULL;
 //--------------------------FLSERVER-------------------------------------//
 int FLServerHttp::fUploadingClients = 0;
 
-FLServerHttp::FLServerHttp(const string& home)
+FLServerHttp::FLServerHttp(const std::string& home)
 {
     fHome = home;
     fError = "";
@@ -49,7 +48,7 @@ FLServerHttp::FLServerHttp(const string& home)
 
 FLServerHttp::~FLServerHttp() {}
 
-void FLServerHttp::createInstance(const string& home)
+void FLServerHttp::createInstance(const std::string& home)
 {
     FLServerHttp::_serverInstance = new FLServerHttp(home);
 }
@@ -99,13 +98,13 @@ void FLServerHttp::stop()
 //---------------------- HANDLE REQUESTS ------------------------
 int FLServerHttp::handleGet(MHD_Connection* connection, const char* url)
 {
-    stringstream ss;
+    std::stringstream ss;
     
-    string head = fHome + "/ServerHead.html";
-    string tail = fHome + "/ServerTail.html";
+    std::string head = fHome + "/ServerHead.html";
+    std::string tail = fHome + "/ServerTail.html";
     
-    string responseHead = readFile(head.c_str()).toStdString();
-    string responseTail = readFile(tail.c_str()).toStdString();
+    std::string responseHead = readFile(head.c_str()).toStdString();
+    std::string responseTail = readFile(tail.c_str()).toStdString();
     
     // Request for the server
     if (strcmp(url,"/availableInterfaces") == 0) {
@@ -117,17 +116,17 @@ int FLServerHttp::handleGet(MHD_Connection* connection, const char* url)
     // Request for an interface
     } else if (strcmp(url,"/") != 0 && strcmp(url, "/favicon.ico")) {
         
-        string urlAsString(url);
+        std::string urlAsString(url);
         // As a JSON
-        if (urlAsString.find("JSON") != string::npos) {
+        if (urlAsString.find("JSON") != std::string::npos) {
             
-            string portNumber(url);
+            std::string portNumber(url);
             portNumber = portNumber.substr(1, portNumber.size()-6);
             
             return redirectJsonRequest(connection, portNumber);
         }  else {
         // As an html interface
-            string portNumber(url);
+            std::string portNumber(url);
             portNumber = portNumber.substr(1, portNumber.size()-1);
             
             ss << responseHead << "http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< responseTail;
@@ -146,7 +145,7 @@ int FLServerHttp::handlePost(MHD_Connection* connection, const char* /**url**/, 
     
     if (con_info->winUrl.compare("") != 0 && con_info->winUrl.compare(fServerAddress) != 0) {
         size_t pos = con_info->winUrl.rfind(":");
-        string portNumber = con_info->winUrl.substr(pos+1, con_info->winUrl.size()-pos-2);
+        std::string portNumber = con_info->winUrl.substr(pos+1, con_info->winUrl.size()-pos-2);
         port = atoi(portNumber.c_str()); 
     }
     
@@ -195,13 +194,13 @@ int FLServerHttp::answerToConnection(void* cls,
                                     void** con_cls)
 {
     FLServerHttp* server = (FLServerHttp*)cls;
-    string errorPage = kErrorPage;
+    std::string errorPage = kErrorPage;
     
     if (NULL == *con_cls) {
         connection_info* con_info;
     
         if (fUploadingClients >= server->getMaxClients()) {
-            string busyServer(kBusyPage);
+            std::string busyServer(kBusyPage);
             return server->sendPage(connection, busyServer.c_str (), busyServer.size (), MHD_HTTP_SERVICE_UNAVAILABLE, "text/html");
         }
         
@@ -261,7 +260,7 @@ int FLServerHttp::sendPage(struct MHD_Connection* connection, const char* page, 
     }
     
     MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
-    cout << "FLServerHttp::sendPage " << status_code << endl;
+    std::cout << "FLServerHttp::sendPage " << status_code << std::endl;
     ret = MHD_queue_response(connection, status_code, response);
     
     return ret;
@@ -288,14 +287,14 @@ void FLServerHttp::requestCompleted(void*, MHD_Connection*, void** con_cls, MHD_
 }
 
 //---------------- FAUST RECOMPILATION RESULT -----------------------------
-void FLServerHttp::compileSuccessfull(const string& url)
+void FLServerHttp::compileSuccessfull(const std::string& url)
 {
     fUrl = url;
     fCompiled = true;
     fPosted = true;
 }
 
-void FLServerHttp::compileFailed(const string& error)
+void FLServerHttp::compileFailed(const std::string& error)
 {
     fCompiled = false;
     fError = error;    
@@ -304,7 +303,7 @@ void FLServerHttp::compileFailed(const string& error)
 
 //--------------- HANDLE AVAILABLE HTTP INTERFACES ----------------
 
-void FLServerHttp::declareHttpInterface(int port,  const string& name)
+void FLServerHttp::declareHttpInterface(int port,  const std::string& name)
 {
      fDeclaredNames[port] = name;
     updateAvailableInterfaces();
@@ -318,17 +317,17 @@ void FLServerHttp::removeHttpInterface(int port)
 
 void FLServerHttp::updateAvailableInterfaces()
 {
-    stringstream json;
-    stringstream html;
+    std::stringstream json;
+    std::stringstream html;
     
-    string interfacesHead = fHome + "/ServerAvailableInterfacesHead.html";
+    std::string interfacesHead = fHome + "/ServerAvailableInterfacesHead.html";
     
     json << '{';
     html << readFile(interfacesHead.c_str()).toStdString();
     
     html<<"<table width=\"90%\" border=\"0\" cellspacing=\"10\" cellpadding=\"10\" align=\"center\">";
     
-    for (map<int, string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++) {
+    for (std::map<int, std::string>::iterator it = fDeclaredNames.begin(); it != fDeclaredNames.end(); it++) {
         
         if (it != fDeclaredNames.begin())
             json<<',';
@@ -344,7 +343,7 @@ void FLServerHttp::updateAvailableInterfaces()
     json << std::endl << "}";
     fJson = json.str();
     
-    string interfacesTail = fHome + "/ServerAvailableInterfacesTail.html";
+    std::string interfacesTail = fHome + "/ServerAvailableInterfacesTail.html";
     
     html<<"</table>"<<std::endl;
     html<<std::endl<<readFile(interfacesTail.c_str()).toStdString();
@@ -363,14 +362,14 @@ static size_t store_Response(void* buf, size_t size, size_t nmemb, void* userp)
 
 // A request for the JSON, written as :
 //IPadd:7777/5510/JSON is well redirected to IPadd:5510/JSON
-int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, string portNumber)
+int FLServerHttp::redirectJsonRequest(struct MHD_Connection *connection, std::string portNumber)
 {
 #ifndef WIN32
-	string resultingPage = "";
-    stringstream url; 
+	std::string resultingPage = "";
+    std::stringstream url; 
     
     url<<"http://"<< searchLocalIP().toStdString().c_str() <<":"<<portNumber.c_str()<< "/JSON";
-    string finalURL = url.str();
+    std::string finalURL = url.str();
     CURL *curl = curl_easy_init();
     
     long respcode = MHD_HTTP_BAD_REQUEST; 

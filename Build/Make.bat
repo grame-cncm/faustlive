@@ -1,7 +1,6 @@
 
 @echo off
 
-set MSVC="Visual Studio 15 2017 Win64"
 set VERSION="2.5.5"
 
 IF [%1]==[]     GOTO USAGE
@@ -44,7 +43,7 @@ EXIT /B
 		mkdir builddir
 	)
 	cd builddir
-	cmake .. -G %MSVC%
+	cmake .. -DLIBSNDFILE=%LIBSNDFILE%
 	cmake --build . --config Release
 	cd ..
 EXIT /B

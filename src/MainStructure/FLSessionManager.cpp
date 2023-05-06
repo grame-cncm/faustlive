@@ -112,7 +112,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     int argc;
     const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
-    string shaKey, err;
+    std::string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
 
     if (expandDSPFromString(name.toStdString(), faustContent.toStdString(), argc, argv, shaKey, err) == "") {
@@ -123,13 +123,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 //  shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
 //	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
     
-    string optvalue = QString::number(optLevel).toStdString();
+    std::string optvalue = QString::number(optLevel).toStdString();
     
 //  string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
 //  string shaKey = FL_generate_sha1(fullShaString);
     
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
-    string irFile = factoryFolder.toStdString() + "/" + shaKey;
+    std::string irFile = factoryFolder.toStdString() + "/" + shaKey;
     QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
     
 // Save source
@@ -138,13 +138,13 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     writeFile(faustFile, faustContent);
     
-    string fileToCompile(faustFile.toStdString());
-    string nameToCompile(name.toStdString());
+    std::string fileToCompile(faustFile.toStdString());
+    std::string nameToCompile(name.toStdString());
     
 //---- CreateFactory settings
     factorySettings* mySetts = new factorySettings();
     factory* toCompile = new factory();
-    string error = "";
+    std::string error = "";
     
 //------ Additionnal compilation step or options (if set so in settings)
     if (settings) {
@@ -211,7 +211,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 #ifdef REMOTE
         mySetts->fType = TYPE_REMOTE;
         
-        string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
+        std::string ip_server = settings->value("RemoteProcessing/MachineIP", "127.0.0.1").toString().toStdString();
         int port_server = settings->value("RemoteProcessing/MachinePort", 7777).toInt();
      
         std::vector<std::pair<std::string, std::string> > factories_list;
@@ -220,8 +220,8 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         if (factories) {
             for (unsigned int i = 0; i < factories_list.size(); i++) {
                 std::pair<std::string, std::string> item = factories_list[i];
-                string name = item.first;
-                string sha_key = item.second;
+                std::string name = item.first;
+                std::string sha_key = item.second;
                 printf("name = %s sha_key = %s\n", name.c_str(), sha_key.c_str());
                 remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(sha_key, ip_server, port_server);
                 /*
@@ -305,7 +305,7 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 //----Create Local DSP Instance
     if (type == TYPE_LOCAL) {
     
-        string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
+        std::string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
         bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
         bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
         bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
@@ -352,11 +352,11 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
         int errorToCatch1;
         
         argv1[argc1++] = "--LA_buffer_size";
-        string s1 = settings->value("BufferSize", 512).toString().toStdString();
+        std::string s1 = settings->value("BufferSize", 512).toString().toStdString();
         argv1[argc1++] = s1.c_str();
         
         argv1[argc1++] = "--LA_sample_rate";
-        string s2 = settings->value("SampleRate", 44100).toString().toStdString();
+        std::string s2 = settings->value("SampleRate", 44100).toString().toStdString();
         argv1[argc1++] = s2.c_str();
         
         if (audio) {
@@ -583,7 +583,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     if (sourcePath != "") {
         argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
-        string path = sourceChemin.toStdString();
+        std::string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
     }
      
@@ -591,17 +591,17 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     QString copy = faustOptions;
     
     for (int i = numberFixedParams; i < argc; i++) {
-        string parseResult = parse_compilationParams(copy);
+        std::string parseResult = parse_compilationParams(copy);
         argv[iteratorParams++] = (const char*)strdup(parseResult.c_str());
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
     argv[iteratorParams++] = "-I";
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    std::string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
     
     argv[iteratorParams++] = "-I";
-    string examplesFolder = fSessionFolder.toStdString() + "/Examples";
+    std::string examplesFolder = fSessionFolder.toStdString() + "/Examples";
     argv[iteratorParams++] = strdup(examplesFolder.c_str());
     
     // Polyphonic support
@@ -629,32 +629,32 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     const char** argv = new const char*[argc+1];
     
     argv[0] = "--NJ_ip";
-    string ip = searchLocalIP().toStdString();
+    std::string ip = searchLocalIP().toStdString();
     argv[1] = strdup(ip.c_str());
     
     argv[2] = "--NJ_latency";
     QString latency = winSettings->value("RemoteProcessing/Latency", "10").toString();
-    string lat = latency.toStdString();
+    std::string lat = latency.toStdString();
     argv[3] = strdup(lat.c_str());
   
     argv[4] = "--NJ_compression";
     QString cv = winSettings->value("RemoteProcessing/CV", "64").toString();
-    string compression = cv.toStdString();
+    std::string compression = cv.toStdString();
     argv[5] = strdup(compression.c_str());
     
     argv[6] = "--NJ_mtu";
     QString mtu = winSettings->value("RemoteProcessing/MTU", "1500").toString();
-    string mtuVal = mtu.toStdString();
+    std::string mtuVal = mtu.toStdString();
     argv[7] = strdup(mtuVal.c_str());
     
     argv[8] = "--NJ_buffer_size";
     QString buffer_size = winSettings->value("BufferSize", 512).toString();
-    string buffer_sizeVal = buffer_size.toStdString();
+    std::string buffer_sizeVal = buffer_size.toStdString();
     argv[9] = strdup(buffer_sizeVal.c_str());
     
     argv[10] = "--NJ_sample_rate";
     QString sample_rate = winSettings->value("SampleRate", 44100).toString();
-    string sample_rateVal = sample_rate.toStdString();
+    std::string sample_rateVal = sample_rate.toStdString();
     argv[11] = strdup(sample_rateVal.c_str());
     
     argv[argc] = 0; // NULL terminated argv
@@ -726,20 +726,20 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     if (sourcePath != "") {
         argv[iteratorParams++] = "-I";   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
-        string path = sourceChemin.toStdString();
+        std::string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
     argv[iteratorParams++] = "-I";
-    string libsFolder = fSessionFolder.toStdString() + "/Libs";
+    std::string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
     
     argv[iteratorParams++] = "-I";
-    string examplesFolder = fSessionFolder.toStdString() + "/Examples";
+    std::string examplesFolder = fSessionFolder.toStdString() + "/Examples";
     argv[iteratorParams++] = strdup(examplesFolder.c_str());
     
-    string pathSVG = svgPath.toStdString();
+    std::string pathSVG = svgPath.toStdString();
     argv[iteratorParams++] = "-svg";
     argv[iteratorParams++] = "-O";
     argv[iteratorParams++] = strdup(pathSVG.c_str());
@@ -758,9 +758,9 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
 //Calculate the faust expanded version
 QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString& source)
 {
-    string name_app = settings->value("Name", "").toString().toStdString();
-    string sha_key = settings->value("SHA", "").toString().toStdString();
-    string dsp_content = source.toStdString();
+    std::string name_app = settings->value("Name", "").toString().toStdString();
+    std::string sha_key = settings->value("SHA", "").toString().toStdString();
+    std::string dsp_content = source.toStdString();
     
     if (QFileInfo(source).exists()) {
         dsp_content = pathToContent(source).toStdString();
@@ -770,7 +770,7 @@ QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString&
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, NULL, argc);
-    string error_msg;
+    std::string error_msg;
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
 }
@@ -879,9 +879,9 @@ bool FLSessionManager::viewRestorationMsg(const QString& msg, const QString& yes
 
 //Behaviour of session restoration when re-starting the application
 //The user is notified in case of source file lost or modified. He can choose to reload from original file or backup.
-map<int, QString> FLSessionManager::currentSessionRestoration()
+std::map<int, QString> FLSessionManager::currentSessionRestoration()
 {
-    map<int, QString> windowIndexToSource;
+    std::map<int, QString> windowIndexToSource;
 //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
     QMap<QString, int> updated;
     FLSettings* generalSettings = FLSettings::_Instance();
@@ -961,7 +961,7 @@ void FLSessionManager::copySHAFolder(const QString& snapshotFolder)
     }
 }
 
-map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
+std::map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
 {
     QString filename = file;
     
@@ -976,7 +976,7 @@ map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
     
     QString snapshotFolder = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     copySHAFolder(snapshotFolder);
-    map<int, QString> windowIndexToSource;
+    std::map<int, QString> windowIndexToSource;
     
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
     QMap<QString, int> updated;

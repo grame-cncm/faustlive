@@ -17,7 +17,6 @@
 #include <QtWidgets>
 #endif
 
-using namespace std;
 
 class FLMessageWindow : public QDialog {
     

@@ -16,7 +16,7 @@ CA_audioSettings::CA_audioSettings(QGroupBox* parent) : AudioSettings(parent)
     QFormLayout* layout = new QFormLayout;
     fBufferSize = new QLineEdit;
     fSampleRate = new QTextBrowser;
-    string urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
+    std::string urlText = "To modify the machine sample rate, go to <a href = /Applications/Utilities/Audio\\MIDI\\Setup.app>Audio Configuration</a>";
     
     fSampleRate->setOpenExternalLinks(false);
     fSampleRate->setHtml(urlText.c_str());
@@ -63,15 +63,15 @@ void CA_audioSettings::storeVisualSettings()
 //The sample rate cannot be modified internally, it is redirected in Configuration Audio and Midi
 void CA_audioSettings::linkClicked(const QUrl& link)
 {
-    string myLink = link.path().toStdString();
+    std::string myLink = link.path().toStdString();
     size_t pos = myLink.find("\\");
     
-    while(pos != string::npos) {
+    while(pos != std::string::npos) {
         myLink.insert(pos + 1, 1, ' ');
         pos = myLink.find("\\", pos+2);
     }
     
-    string myCmd = "open -a " + myLink;
+    std::string myCmd = "open -a " + myLink;
     system(myCmd.c_str());
     
     fSampleRate->reload();

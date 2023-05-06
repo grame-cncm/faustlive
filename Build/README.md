@@ -37,6 +37,28 @@ The **FaustLive** application is generated in the `bin` folder.
 
 ### Note for Windows
 
+Some environment variables are necessary. Here are the steps. The implementation may need to change based on your system.
+
+Put `llvm-config.exe` in our `PATH` ([INSTALL](https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-win11-x86_64/llvm-15.0.7-win11-x86_64.zip)).
+```bash
+set PATH=%USERPROFILE%\faust\llvm\bin;%PATH%
+```
+
+Set `LIBSNDFILE` to a path containing `bin/sndfile.dll` ([INSTALL](https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip)).
+```bash
+set LIBSNDFILE=%USERPROFILE%\faust\libsndfile
+```
+
+Set `Qt5_DIR` to a directory containing `Qt5Config.cmake`.
+```bash
+set Qt5_DIR=C:\SDKs\Qt\5.15.13\msvc2019_64\lib\cmake\Qt5
+```
+
+Then
+~~~~~~~~~~
+> Make.bat install
+~~~~~~~~~~
+
 A `Make.bat` script provides services equivalent to the `Makefile`.
 For more details:
 ~~~~~~~~~~

@@ -24,7 +24,6 @@
 #include <QtWidgets>
 #endif
 
-using namespace std;
 
 class NJm_audioSettings : public AudioSettings {
 

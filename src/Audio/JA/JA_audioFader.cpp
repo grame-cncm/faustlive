@@ -17,17 +17,17 @@ float JA_audioFader::crossfade_calculation(int i, int j)
 {
     bool connectFadeOut = false;
     bool connectFadeIn = false;
-    list<pair<string, string> >::const_iterator it;
+    list<std::pair<std::string, std::string> >::const_iterator it;
      
     for (it = fConnections.begin(); it != fConnections.end(); it++) {
-        string jackPort(jack_port_name(fOutputPorts[j]));
+        std::string jackPort(jack_port_name(fOutputPorts[j]));
         if (jackPort.compare(it->first) == 0) {
             connectFadeOut = true;
             break;
         }
     }
     for (it = fConnectionsIn.begin(); it != fConnectionsIn.end(); it++) {
-        string jackPort(jack_port_name(fOutputPorts[j]));
+        std::string jackPort(jack_port_name(fOutputPorts[j]));
         if (jackPort.compare(it->first) == 0) {
             connectFadeIn = true;
             break;
@@ -130,9 +130,9 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName)
 }
 
 //Connect Jack port following Connections
-int JA_audioFader::reconnect(list<pair<string, string> > Connections)
+int JA_audioFader::reconnect(list<std::pair<std::string, std::string> > Connections)
 {        
-    list<pair<string, string> >::const_iterator it;
+    list<std::pair<std::string, std::string> >::const_iterator it;
     
     for (it = Connections.begin(); it != Connections.end(); it++) {
         jack_connect(fClient, it->first.c_str(), it->second.c_str());
@@ -214,7 +214,7 @@ void JA_audioFader::processAudio(jack_nframes_t nframes)
         // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
         fDSPIn->compute(-1, nframes, fInChannelDspIn, fIntermediateFadeIn); 
         
-        int numOutPorts = max(fDSP->getNumOutputs(), fDSPIn->getNumOutputs());
+        int numOutPorts = std::max(fDSP->getNumOutputs(), fDSPIn->getNumOutputs());
 		float** fOutFinal = (float**)alloca(numOutPorts * sizeof(float*));
         
         //Step 2 : Mixing the 2 DSP in the final output buffer taking into account the number of IN/OUT ports of the in- and out-coming DSP
@@ -273,7 +273,7 @@ void JA_audioFader::processAudio(jack_nframes_t nframes)
 }
 
 // Access to the fade parameter
-list<pair<string, string> > JA_audioFader::get_audio_connections(bool& saved)
+list<std::pair<std::string, std::string> > JA_audioFader::get_audio_connections(bool& saved)
 {
     saved = saveConnections();
     return fConnections;

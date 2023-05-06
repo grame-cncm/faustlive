@@ -45,7 +45,6 @@ class AudioManager;
 class HTTPWindow;
 class dsp;
 
-using namespace std;
 
 enum initType {
     kNoInit,

@@ -55,7 +55,6 @@
 #define JSON_ONLY
 
 
-using namespace std;
 
 FLTargetChooser* FLTargetChooser::_targetChooser = NULL;
 FLExportManager* FLExportManager::_exportManager = NULL;
@@ -226,7 +225,7 @@ void FLTargetChooser::targetsDescriptionReceived(){
             fExportPlatform->show();
             
             // prepare architecture menu
-            vector<string> archs = fTargets[fPlatforms[0]];
+            std::vector<std::string> archs = fTargets[fPlatforms[0]];
             
             for (size_t i=0; i<archs.size();i++) 
                 fExportArchi->addItem(archs[i].c_str());
@@ -264,8 +263,8 @@ void FLTargetChooser::platformChanged(const QString& index){
     fExportArchi->hide();
     fExportArchi->clear();
     
-    vector<string> architectures = fTargets[index.toStdString()];
-    vector<string>::iterator it;
+    std::vector<std::string> architectures = fTargets[index.toStdString()];
+    std::vector<std::string>::iterator it;
     
     for (it = architectures.begin(); it!=architectures.end(); it++) {
         fExportArchi->addItem((*it).c_str());
@@ -620,7 +619,7 @@ void FLExportManager::showSaveB(){
         fTextZone->setText(sucessMsg);
         fTextZone->show();
         
-        if(fChoice == "ios" || fChoice == "binary.apk" || fChoice == "binary.html"){
+        if(fChoice == "std::ios" || fChoice == "binary.apk" || fChoice == "binary.html"){
             
             //Construction of the flashcode
             const int padding = 5;
