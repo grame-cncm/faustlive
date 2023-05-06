@@ -41,14 +41,12 @@ jobs:
       # note that this sets the environment var Qt5_DIR
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.9'
+        version: '5.15.2'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         dir: '${{ github.workspace }}/'
         install-deps: 'true'
-        # modules: ''
-        archives: 'qtbase qtsvg'
         cache: 'false'
         cache-key-prefix: 'install-qt-action'
         setup-python: 'true'
