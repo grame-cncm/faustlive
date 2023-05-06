@@ -1,4 +1,4 @@
-name: libfaust
+name: faustlive
 
 env:
   FAUSTLIVE_VERSION: 2.5.15
@@ -77,12 +77,12 @@ jobs:
         curl -L ${{ matrix.libfaust-url }} -o libfaust.zip
         7z x libfaust.zip -y -olibfaust
 
-    - name: Build libfaust
+    - name: Build FaustLive
       shell: cmd
       run: |
         set PATH=%LLVM_DIR%;%PATH%
-        cd build
-        call Make.bat install
+        cd Build
+        call Make.bat faustlive
         call Make.bat package
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm/bin
