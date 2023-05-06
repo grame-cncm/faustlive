@@ -82,6 +82,7 @@ jobs:
       run: |
         set PATH=%LLVM_DIR%;%FAUST_DIR%;%PATH%
         set Qt5_DIR=%Qt5_Dir%/lib/cmake/Qt5
+        dir "%Qt5_DIR%/../../../bin"
         cd Build
         call Make.bat faustlive
         call Make.bat package
