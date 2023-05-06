@@ -80,7 +80,8 @@ string(REGEX REPLACE " *\n$" "" LLVM_SYS_LIBRARIES "${LLVM_LIBRARIES_TMP2}")
 string(REGEX REPLACE " *\n$" "" LLVM_LDFLAGS "${LLVM_LDFLAGS_TMP}")
 string(REGEX REPLACE "\n$" "" LLVM_RPATH "${LLVM_LIBDIR}")
 if (WIN32)
-	string(REPLACE " C:" ";C:" LLVM_LIBRARIES_LIST ${LLVM_LIBRARIES})
+	# MSVC link.exe expects semicolon separated .lib files
+	string ( REPLACE " " ";" LLVM_LIBRARIES_LIST ${LLVM_LIBRARIES} )
 	set (LLVM_LIBRARIES ${LLVM_LIBRARIES_LIST}) # ${LLVM_SYS_LIBRARIES})
 else()
 	set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES} ${LLVM_SYS_LIBRARIES})
@@ -326,13 +327,14 @@ endif()
 ####################################
 # copy DLLs with windeployqt
 # Find the path to windeployqt executable
-find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${_qt5Core_install_prefix}/bin")
-
 # Create a custom command to run windeployqt after building the target
-if (WIN32 AND WINDEPLOYQT_EXECUTABLE)
+if (WIN32)
+
+	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "$ENV{Qt5_DIR}/../../../bin" REQUIRED)
+
     add_custom_command(TARGET ${faustlive}
         POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E env PATH="${_qt5Core_install_prefix}/bin"
+        COMMAND "${CMAKE_COMMAND}" -E env PATH="$ENV{Qt5_DIR}/../../../bin"
         "${WINDEPLOYQT_EXECUTABLE}"
         --no-compiler-runtime
         --no-angle
