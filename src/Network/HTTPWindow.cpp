@@ -11,7 +11,6 @@
 #include "utilities.h"
 #include "HTTPWindow.h"
 
-using namespace std;
 
 //---------------------------HTTPWINDOW IMPLEMENTATION
 

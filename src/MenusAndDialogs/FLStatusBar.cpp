@@ -67,7 +67,7 @@ void FLStatusBar::openMachineMenu()
         // Add localhost to the machine list
         fIPToHostName["local processing"] = remote_dsp_machine::create("127.0.0.1", 0, "dummy");
         
-        map<string, remote_dsp_machine* >::iterator it = fIPToHostName.begin();
+        std::map<std::string, remote_dsp_machine* >::iterator it = fIPToHostName.begin();
         
         while (it != fIPToHostName.end()) {
             // Add the machines to the menu passed in parameter 
@@ -102,7 +102,7 @@ void FLStatusBar::switch_Machine()
 {
 #ifdef REMOTE
     QAction* action = qobject_cast<QAction*>(sender());
-    string action_str(action->text().toStdString());
+    std::string action_str(action->text().toStdString());
     
     // If the server is the same, there is no update
     if (fSettings->value("RemoteProcessing/MachineName", "local processing").toString() != action->text()) {

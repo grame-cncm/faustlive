@@ -17,7 +17,6 @@
 
 #include "faust/dsp/dsp.h"
 
-using namespace std;
 
 class HTTPWindow : public QMainWindow {
     

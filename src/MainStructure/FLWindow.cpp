@@ -66,7 +66,7 @@
 
 #include "faust/dsp/poly-llvm-dsp.h"
 
-list<GUI*> GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 /****************************FaustLiveWindow IMPLEMENTATION***************************/
@@ -896,18 +896,18 @@ void FLWindow::allocateOscInterface()
     argv[0] = (char*)(fWindowName.toStdString().c_str());
     argv[1] = (char*)"-port";
     
-    string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
+    std::string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
     argv[2] = (char*) (inport.c_str());
     argv[3] = (char*)"-xmit";
     argv[4] = (char*)"1";
     argv[5] = (char*)"-outport";
-    string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
+    std::string outport = fSettings->value("Osc/OutPort", "5511").toString().toStdString();
     argv[6] = (char*) (outport.c_str());
     argv[7] = (char*)"-desthost";
-    string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
+    std::string dest = fSettings->value("Osc/DestHost", "localhost").toString().toStdString();
     argv[8] = (char*) (dest.c_str());
     argv[9] = (char*)"-errport";
-    string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
+    std::string errport = fSettings->value("Osc/ErrPort", "5512").toString().toStdString();
     argv[10] = (char*) (errport.c_str());
     
     argv[argc] = NULL; // NULL terminated argv

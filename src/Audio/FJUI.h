@@ -17,7 +17,6 @@
 #include <map>
 #include <utility>
 
-using namespace std;
 
 struct FJUI
 {
@@ -25,11 +24,11 @@ struct FJUI
     // Saves the connections into the filename
     static void saveConnections(const char* filename, std::list<std::pair<std::string, std::string> > Connections)
 	{
-        std::ofstream f(filename, ios::trunc);
-        std::list<std::pair<string, string> > ::const_iterator it;
+        std::ofstream f(filename, std::ios::trunc);
+        std::list<std::pair<std::string, std::string> > ::const_iterator it;
         
 		for (it = Connections.begin(); it != Connections.end(); it++) {
-			f << endl<< "\"" <<it->first.c_str()<< "\"" << ' ' << "\""<< it->second.c_str()<< "\"";
+			f << std::endl<< "\"" <<it->first.c_str()<< "\"" << ' ' << "\""<< it->second.c_str()<< "\"";
         }
         
 		f.close();
@@ -62,7 +61,7 @@ struct FJUI
                 }
                 
                 if (gORn == 4) { 
-                    Connections.push_back(make_pair(g,n));
+                    Connections.push_back(std::make_pair(g,n));
 //                    printf("Connect = %s To %s\n", g.c_str(), n.c_str());
                     gORn = 0;
                     g = "";
@@ -81,7 +80,7 @@ struct FJUI
         std::list<std::pair<std::string, std::string> > Connections;
         
         std::ifstream readF(filename);
-		string  port1, port2;
+		std::string  port1, port2;
         
 		while (readF.good()) {
 			readF >> port1 >> port2;
@@ -111,7 +110,7 @@ struct FJUI
                 }
             }
             
-            Connections.push_back(make_pair(port1, port2));
+            Connections.push_back(std::make_pair(port1, port2));
 		}
 		readF.close();
         FJUI::saveConnections(filename, Connections);

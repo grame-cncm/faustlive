@@ -43,8 +43,8 @@ class JA_audioManager : public AudioManager {
         virtual void start_Fade();
         virtual void wait_EndFade();
         
-        virtual void connect_Audio(string homeDir);
-        virtual void save_Connections(string homeDir);
+        virtual void connect_Audio(std::string homeDir);
+        virtual void save_Connections(std::string homeDir);
 
         virtual int getBufferSize();
         virtual int getSampleRate();

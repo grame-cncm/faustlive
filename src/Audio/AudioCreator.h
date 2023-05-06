@@ -24,7 +24,6 @@
 class AudioSettings;
 class AudioManager;
 
-using namespace std;
 
 class AudioCreator : public QObject {
    

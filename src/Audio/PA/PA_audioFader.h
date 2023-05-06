@@ -16,7 +16,6 @@
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
 
-using namespace std;
 
 class PA_audioFader : public portaudio, public AudioFader_Interface, public AudioFader_Implementation {    
     

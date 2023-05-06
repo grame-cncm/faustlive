@@ -11,4 +11,5 @@ FaustLive*.dmg
 FaustLive*.tgz
 FaustLive*.tar.gz
 builddir
-
+Build/bin
+Build/FaustLive*.exe

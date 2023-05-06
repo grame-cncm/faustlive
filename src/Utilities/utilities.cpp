@@ -14,7 +14,6 @@
 
 #include "QTDefs.h"
 
-using namespace std;
 
 void writeFile(const QString& filePath, const QString& content)
 {
@@ -43,12 +42,12 @@ QString readFile(const QString& filePath)
 //Returns the content of a file passed in path
 QString pathToContent(const QString& path)
 {
-    ifstream file(path.toStdString().c_str(), std::ifstream::binary);
+    std::ifstream file(path.toStdString().c_str(), std::ifstream::binary);
     
     file.seekg (0, file.end);
     int size = file.tellg();
 	if (size <= 0) {
-		cerr << path.toStdString() << ": pathToContent failed with size=" << size << endl;
+		std::cerr << path.toStdString() << ": pathToContent failed with size=" << size << std::endl;
 		return "";	// something wrong here: abort
 	}
 	file.seekg (0, file.beg);
@@ -199,7 +198,7 @@ QString searchLocalIP()
 }
 
 //Look for 'key' in 'options' and modify the parameter 'position' if found
-bool parseKey(vector<string> options, const string& key, int& position)
+bool parseKey(std::vector<std::string> options, const std::string& key, int& position)
 {
     for (size_t i = 0; i < options.size(); i++){
         if (key == options[i]){
@@ -213,7 +212,7 @@ bool parseKey(vector<string> options, const string& key, int& position)
 
 //Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
 //#return true if 'key' was added
-bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
+bool addKeyIfExisting(std::vector<std::string>& options, std::vector<std::string>& newoptions, const std::string& key, const std::string& defaultKey, int& position)
 {
     if (parseKey(options, key, position)) {        
         newoptions.push_back(options[position]);
@@ -228,7 +227,7 @@ bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const
 }
 
 //Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue)
+void addKeyValueIfExisting(std::vector<std::string>& options, std::vector<std::string>& newoptions, const std::string& key, const std::string& defaultValue)
 {
     int position = 0;
     
@@ -246,12 +245,12 @@ void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, 
 /* Reorganizes the compilation options
  * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
  */
-vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
+std::vector<std::string> reorganizeCompilationOptionsAux(std::vector<std::string>& options)
 {
     bool vectorize = false;
     int position = 0;
     
-    vector<string> newoptions;
+    std::vector<std::string> newoptions;
     
     //------STEP 1 - Single or Double ?
     addKeyIfExisting(options, newoptions, "-double", "-single", position);
@@ -329,17 +328,17 @@ vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     return newoptions;
 }
 
-string FL_reorganize_compilation_options(QString compilationOptions)
+std::string FL_reorganize_compilation_options(QString compilationOptions)
 {
     int argc = get_numberParameters(compilationOptions);
-    vector<string> res1;
+    std::vector<std::string> res1;
     for (int i = 0; i < argc; i++) {
         res1.push_back(parse_compilationParams(compilationOptions));
     }
     
-    vector<string> res2 = reorganizeCompilationOptionsAux(res1);
-    string res3;
-    string sep;
+    std::vector<std::string> res2 = reorganizeCompilationOptionsAux(res1);
+    std::string res3;
+    std::string sep;
     for (size_t i = 0; i < res2.size(); i++) {
         res3 = res3 + sep + res2[i];
         sep = " ";
@@ -501,7 +500,7 @@ static void sha1_final(SHA1_CTX *ctx, uchar hash[])
     }
 }
 
-string FL_generate_sha1(const string& dsp_content)
+std::string FL_generate_sha1(const std::string& dsp_content)
 {
     SHA1_CTX ctx;
     unsigned char obuf[20] = {0};
@@ -512,7 +511,7 @@ string FL_generate_sha1(const string& dsp_content)
     sha1_final(&ctx, obuf);
   
 	// convert SHA1 key into hexadecimal string
-    string sha1key;
+    std::string sha1key;
     for (int i = 0; i < 20; i++) {
     	const char* H = "0123456789ABCDEF";
     	char c1 = H[(obuf[i] >> 4)];
@@ -555,7 +554,7 @@ int get_numberParameters(const QString& compilOptions)
 //Hand written Parser
 //Returns : the first option found, skipping the ' '
 //CompilOptions : the rest of the options are kept in
-string parse_compilationParams(QString& compilOptions)
+std::string parse_compilationParams(QString& compilOptions)
 {
     QString returning = "";
     int pos = 0;

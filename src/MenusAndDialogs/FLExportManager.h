@@ -27,7 +27,6 @@
 
 #include <QtNetwork>
 
-using namespace std;
 
 class FLTargetChooser : public QDialog {
     
@@ -38,8 +37,8 @@ class FLTargetChooser : public QDialog {
         static FLTargetChooser*    _targetChooser;
         
 //---> a little redondant. Could it be possible to only have fTargets ?? 
-        vector<string>                  fPlatforms;     // list of available export platforms
-        map<string, vector<string> >    fTargets;       // plateform -> available targets
+        std::vector<std::string>                  fPlatforms;     // list of available export platforms
+        std::map<std::string, std::vector<std::string> >    fTargets;       // plateform -> available targets
         
         QNetworkReply*      fTargetReply;
         

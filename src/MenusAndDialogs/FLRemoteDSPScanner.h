@@ -25,7 +25,6 @@
 
 #include <QtNetwork>
 
-using namespace std;
 
 class FLRemoteDSPScanner : public QDialog{
     
