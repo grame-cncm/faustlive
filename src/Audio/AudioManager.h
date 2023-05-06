@@ -23,7 +23,6 @@
 #include "AudioFactory.h"
 #include "faust/audio/audio.h"
 
-using namespace std;
 
 class AudioSettings;
 

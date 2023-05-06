@@ -7,7 +7,7 @@
 //                          Elementary parsers
 // ---------------------------------------------------------------------
 
-static bool parseArchitecturesList(const char*& p, vector<string>& v);
+static bool parseArchitecturesList(const char*& p, std::vector<std::string>& v);
 
 // Advance pointer p to the first non blank character
 static void skipBlank(const char*& p)
@@ -42,15 +42,15 @@ static bool parseChar(const char*& p, char x)
         p++;
         return true;
     } else {
-        cerr << "parsing error : expected character '" << x << "'" << ", instead got : " << p << endl;
+        std::cerr << "parsing error : expected character '" << x << "'" << ", instead got : " << p << std::endl;
         return false;
     }
 }
 
 // Parse a quoted string "..." and store the result in s, reports an error if it fails
-static bool parseString(const char*& p, string& s)
+static bool parseString(const char*& p, std::string& s)
 {
-    string str;
+    std::string str;
     skipBlank(p);
     const char* saved = p;
 
@@ -64,7 +64,7 @@ static bool parseString(const char*& p, string& s)
         }
     }
     p = saved;
-    std::cerr << "parsing error : expected quoted string, instead got : "<< p << std::endl;
+    std::cerr << "parsing error : expected quoted std::string, instead got : "<< p << std::endl;
     return false;
 }
 
@@ -73,7 +73,7 @@ static bool parseString(const char*& p, string& s)
 //  "os" : ["arch1, "arch2",...]
 // and store the result in os and al
 //
-static bool parseOperatingSystem(const char*& p, string& os, vector<string>& al)
+static bool parseOperatingSystem(const char*& p, std::string& os, std::vector<std::string>& al)
 {
     return  parseString(p,os) && parseChar(p,':')
     && parseChar(p,'[')
@@ -86,9 +86,9 @@ static bool parseOperatingSystem(const char*& p, string& os, vector<string>& al)
 //  "arch1, "arch2",...
 // and store the result in a vector v
 //
-static bool parseArchitecturesList(const char*& p, vector<string>& v)
+static bool parseArchitecturesList(const char*& p, std::vector<std::string>& v)
 {
-    string s;
+    std::string s;
     do {
         
         if (parseString(p,s)) {
@@ -109,12 +109,12 @@ static bool parseArchitecturesList(const char*& p, vector<string>& v)
 // This function is used by targetsDescriptionReceived() to parse the JSON
 // record sent by the webservice.
 //
-bool parseOperatingSystemsList(const char*& p, vector<string>& platforms, map<string, vector<string> >& M)
+bool parseOperatingSystemsList(const char*& p, std::vector<std::string>& platforms, std::map<std::string, std::vector<std::string> >& M)
 {
     parseChar(p, '{');
     do {
-        string          os;
-        vector<string>  archlist;
+        std::string          os;
+        std::vector<std::string>  archlist;
         if (parseOperatingSystem(p, os, archlist)) {
             platforms.push_back(os);
             M[os] = archlist;

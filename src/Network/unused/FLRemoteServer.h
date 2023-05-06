@@ -38,7 +38,6 @@
 
 class Server;
 
-using namespace std;
 
 class server_netjackaudio : public netjackaudio_midicontrol {  
 
@@ -91,23 +90,23 @@ struct connection_info_struct {
     std::string         fAnswerstring;      // the answer sent to the user after upload
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
-    string              fNameApp;
-    string              fFaustCode;
-    string              fFactoryKey;
-    vector<string>      fCompilationOptions;
-    string              fOptLevel;
+    std::string              fNameApp;
+    std::string              fFaustCode;
+    std::string              fFactoryKey;
+    std::vector<std::string>      fCompilationOptions;
+    std::string              fOptLevel;
     
     llvm_dsp_factory*   fLLVMFactory;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
-    string              fIP;
-    string              fPort;
-    string              fCV;
-    string              fMTU;
-    string              fLatency;
-    string              fSHAKey;
-    string              fInstanceKey;
+    std::string              fIP;
+    std::string              fPort;
+    std::string              fCV;
+    std::string              fMTU;
+    std::string              fLatency;
+    std::string              fSHAKey;
+    std::string              fInstanceKey;
     //--------------------------------------------- 
     
     void init(){
@@ -128,24 +127,24 @@ struct connection_info_struct {
 #include <netdb.h>
 #include <arpa/inet.h>
 
-string searchIP();
+std::string searchIP();
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 //
 class FL_slave_dsp : public slave_dsp{
     
-    slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
+    slave_dsp(llvm_dsp_factory* smartFactory, const std::string& compression, const std::string& ip, const std::string& port, const std::string& mtu, const std::string& latency, Server* server);
     ~slave_dsp();
 };
     
 //-- Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
+slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const std::string& compression, const std::string& ip, const std::string& port, const std::string& mtu, const std::string& latency, Server* server);
 
 void deleteSlaveDSPInstance(slave_dsp* smartPtr);
 
 class Server{
         
-    string          fError;
+    std::string          fError;
         
 public :
         
@@ -161,7 +160,7 @@ public :
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
 //    SHAKey, pair<NameApp, Factory>
-    map<string, pair<string, llvm_dsp_factory*> >         fAvailableFactories;
+    std::map<std::string, std::pair<std::string, llvm_dsp_factory*> >         fAvailableFactories;
         
 // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
     list<slave_dsp*>          fRunningDsp;
@@ -206,9 +205,9 @@ public :
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool        createInstance(connection_info_struct* con_info);
     
-    bool        startAudio(const string& shakey);
+    bool        startAudio(const std::string& shakey);
     
-    void        stopAudio(const string& shakey);
+    void        stopAudio(const std::string& shakey);
     
 // Register Service as Available
     static void*        registration(void* arg);

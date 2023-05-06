@@ -31,16 +31,15 @@
 
 #include "faust/gui/meta.h"
 
-using namespace std;
 
 struct MyMeta: public Meta {
     
     public:
-    vector<pair<string, string> > datas;
+    std::vector<std::pair<std::string, std::string> > datas;
     
     virtual void declare(const char* key, const char* value)
     {
-        datas.push_back(make_pair(key, value));
+        datas.push_back(std::make_pair(key, value));
     }
 };
 
@@ -58,9 +57,9 @@ class FLHelpWindow : public QMainWindow {
     
         QString fLibsFolder;
         QString fTestDSPPath;
-        map<string, vector<pair<string, string> > > fInfoLibs;
+        std::map<std::string, std::vector<std::pair<std::string, std::string> > > fInfoLibs;
     
-        void parseLibs(map<string, vector<pair<string, string> > >& infoLibs);
+        void parseLibs(std::map<std::string, std::vector<std::pair<std::string, std::string> > >& infoLibs);
     
     public:
     

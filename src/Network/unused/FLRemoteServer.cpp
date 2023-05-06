@@ -26,7 +26,7 @@ enum{
 // That way, we get the faust name declared in the faust DSP
 struct myMeta : public Meta
 {
-    string name;
+    std::string name;
     
     virtual void declare(const char* key, const char* value){
         if (strcmp(key, "name") == 0) {
@@ -38,7 +38,7 @@ struct myMeta : public Meta
 
 //------------SLAVE DSP FACTORY-------------------------------
 
-string getJson(connection_info_struct* con_info) 
+std::string getJson(connection_info_struct* con_info) 
 {
     myMeta metadata;
     metadataDSPFactory(con_info->fLLVMFactory, &metadata);
@@ -49,7 +49,7 @@ string getJson(connection_info_struct* con_info)
     
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
     dsp->buildUserInterface(&json);    
-    string answer = json.JSON();
+    std::string answer = json.JSON();
     
     printf("JSON = %s\n", answer.c_str());
         
@@ -64,7 +64,7 @@ string getJson(connection_info_struct* con_info)
 //--------------SLAVE DSP INSTANCE-----------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server){
+slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const std::string& compression, const std::string& ip, const std::string& port, const std::string& mtu, const std::string& latency, Server* server){
     
     return new FL_slave_dsp(smartFactory, compression, ip, port, mtu, latency, server);
 }
@@ -75,7 +75,7 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr){
 }
 
 // Allocation of real LLVM DSP INSTANCE
-FL_slave_dsp::FL_slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : slave_dsp(compression, ip, port, mtu, latency, server)
+FL_slave_dsp::FL_slave_dsp(llvm_dsp_factory* smartFactory, const std::string& compression, const std::string& ip, const std::string& port, const std::string& mtu, const std::string& latency, Server* server) : slave_dsp(compression, ip, port, mtu, latency, server)
 {
     fDSP = createInstance(smartFactory);
 }
@@ -272,9 +272,9 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
         
         printf("GetAvailableFactories %ld\n", fAvailableFactories.size());
 
-        string answerstring("");
+        std::string answerstring("");
         
-        for(map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
+        for(std::map<std::string, std::pair<std::string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
             
             answerstring += " " + it->first;
             answerstring += " " + it->second.first;
@@ -360,11 +360,11 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
     }
 }
 
-string nameWithoutSpaces(const string& name){
+std::string nameWithoutSpaces(const std::string& name){
     
-    string newname(name);
+    std::string newname(name);
     
-    while(newname.find(' ') != string::npos)
+    while(newname.find(' ') != std::string::npos)
         newname.replace(newname.find(' '), 1, "_");
     
     return newname;
@@ -413,7 +413,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
             con_info->fFactoryKey = data;
         
         if(strcmp(key,"options") == 0)
-            con_info->fCompilationOptions.push_back(string(data));
+            con_info->fCompilationOptions.push_back(std::string(data));
         
         if(strcmp(key,"opt_level") == 0)
             con_info->fOptLevel = data;
@@ -445,7 +445,7 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
 }
 
 // Start/Stop DSP Instance from its SHAKEY
-bool Server::startAudio(const string& shakey){
+bool Server::startAudio(const std::string& shakey){
     
     list<slave_dsp*>::iterator it;
     
@@ -461,7 +461,7 @@ bool Server::startAudio(const string& shakey){
     return false;
 }
 
-void Server::stopAudio(const string& shakey){
+void Server::stopAudio(const std::string& shakey){
     
     list<slave_dsp*>::iterator it;
     
@@ -475,7 +475,7 @@ void Server::stopAudio(const string& shakey){
 
 bool Server::getJsonFromKey(connection_info_struct* con_info){
     
-    string SHA_Key = con_info->fSHAKey;
+    std::string SHA_Key = con_info->fSHAKey;
     
     con_info->fNameApp = fAvailableFactories[SHA_Key].first;
     con_info->fLLVMFactory = fAvailableFactories[SHA_Key].second;
@@ -503,11 +503,11 @@ bool Server::compile_Data(connection_info_struct* con_info){
         }
         argv[argc] = NULL; // NULL terminated argv
         
-        string error;
+        std::string error;
         con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
         
         if (con_info->fLLVMFactory) {
-            fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+            fAvailableFactories[con_info->fSHAKey] = std::make_pair(con_info->fNameApp, con_info->fLLVMFactory);
             
             //      Once the factory is compiled, the json is stored as answerstring
             con_info->fAnswerstring = getJson(con_info);
@@ -540,7 +540,7 @@ bool Server::createInstance(connection_info_struct* con_info){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {
-            stringstream s;
+            std::stringstream s;
             s<<ERROR_INSTANCE_NOTCREATED;
             
             con_info->fAnswerstring = s.str();
@@ -548,7 +548,7 @@ bool Server::createInstance(connection_info_struct* con_info){
         }
     } else {
         
-        stringstream s;
+        std::stringstream s;
         s<<ERROR_FACTORY_NOTFOUND;
         
         con_info->fAnswerstring = s.str();
@@ -568,10 +568,10 @@ void* Server::registration(void* arg){
     
     Server* serv = (Server*)arg;
     
-    stringstream p;
+    std::stringstream p;
     p<<serv->fPort;
     
-    string nameRegisterService = "._";
+    std::string nameRegisterService = "._";
     
     nameRegisterService += searchIP();
     nameRegisterService += ":";

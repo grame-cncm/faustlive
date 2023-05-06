@@ -21,7 +21,6 @@
 
 #define CA_SAVINGFILE "CA_Settings.rf"
 
-using namespace std;
 
 class CA_audioSettings : public AudioSettings {
 

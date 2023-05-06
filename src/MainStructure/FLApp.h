@@ -37,7 +37,6 @@ class FLWindow;
 class FLWinSettings;
 class AudioCreator;
 
-using namespace std;
 
 class FLApp : public QApplication
 {
@@ -123,7 +122,7 @@ class FLApp : public QApplication
     
 //---------------------- FLWindow creation ----------------------
         QString             createWindowFolder(const QString& sessionFolder, int index);
-        QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges);
+        QString             copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, std::map<int, int> indexChanges);
     
     //When the application is launched without parameter, this timer will start a initialized window
         QTimer*             fInitTimer;
@@ -142,7 +141,7 @@ class FLApp : public QApplication
     
     //Functions of rehabilitation if sources disapears
         bool                recall_CurrentSession();
-		void				restoreSession(map<int, QString>);
+		void				restoreSession(std::map<int, QString>);
     
     //-----------------Questions about the current State
 

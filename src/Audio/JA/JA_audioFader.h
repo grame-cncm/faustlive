@@ -17,7 +17,6 @@
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
 
-using namespace std;
 
 class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public AudioFader_Implementation {    
     
@@ -28,7 +27,7 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
         float** fIntermediateFadeOut;
         float** fIntermediateFadeIn;
     
-        list<pair<string, string> > fConnectionsIn;		// Connections list
+        list<std::pair<std::string, std::string> > fConnectionsIn;		// Connections list
         
         virtual void processAudio(jack_nframes_t nframes);
     
@@ -46,9 +45,9 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
     
         virtual void init_FadeIn_Audio(dsp* DSP, const char* portsName);  
         
-        int reconnect(list<pair<string, string> > Connections);
+        int reconnect(list<std::pair<std::string, std::string> > Connections);
         
-        list<pair<string, string> > get_audio_connections(bool& saved);
+        list<std::pair<std::string, std::string> > get_audio_connections(bool& saved);
     
         virtual void launch_fadeOut();
         virtual void launch_fadeIn();

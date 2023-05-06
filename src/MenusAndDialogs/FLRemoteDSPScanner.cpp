@@ -12,7 +12,6 @@
 #ifdef REMOTE
 #include "faust/dsp/remote-dsp.h"
 #endif
-using namespace std;
 
 /*****************************FLRemoteDSPScanner**********************************/
 

@@ -92,7 +92,6 @@ class synchronized_dsp : public decorator_dsp, public TLockAble {
 
 class FLWinSettings;
 
-using namespace std;
 
 enum {
     TYPE_LOCAL, TYPE_REMOTE
@@ -224,9 +223,9 @@ class FLSessionManager : public QObject
         QString             contentOfShaSource(const QString& shaSource);
         
         void                saveCurrentSources(const QString& sessionFolder);
-        map<int, QString>   currentSessionRestoration();
+        std::map<int, QString>   currentSessionRestoration();
         void                createSnapshot(const QString& snapshotFolder);
-        map<int, QString>   snapshotRestoration(const QString& filename);
+        std::map<int, QString>   snapshotRestoration(const QString& filename);
         
     
 /* This is a not finished attempt to implement a publish service of DSP to make them accessible from the outside */

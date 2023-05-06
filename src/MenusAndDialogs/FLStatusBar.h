@@ -17,7 +17,6 @@
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
-using namespace std;
 
 
 #ifdef REMOTE
@@ -35,7 +34,7 @@ class FLStatusBar : public QStatusBar{
         QPushButton*        fRemoteButton;
         bool                fRemoteEnabled;
     #ifdef REMOTE    
-        map<string, remote_dsp_machine* > fIPToHostName;  //Correspondance of remote machine IP to its name
+        std::map<std::string, remote_dsp_machine* > fIPToHostName;  //Correspondance of remote machine IP to its name
     #endif
         QString             fFormerIp;
         int                 fFormerPort;

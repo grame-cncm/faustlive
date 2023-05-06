@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 
 project(FaustLive)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #######################################
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 set (SRCDIR  	 ${ROOT}/src)
@@ -130,7 +133,7 @@ if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
 		set ( LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile" )
 	endif()
-	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  winmm.lib ws2_32.lib ${LIBSNDFILE}/lib/libsndfile-1.lib)
+	set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}  winmm.lib ws2_32.lib ${LIBSNDFILE}/lib/sndfile.lib)
 	set (FAUSTLIVE_INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS}  ${LIBSNDFILE}/include)
 	set (FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -D_WIN32 -DUSEWINMAIN)
 else()
@@ -269,15 +272,19 @@ set_target_properties (${faustlive} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY  ${BINDIR}
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${BINDIR}
 )
+if (MSVC)
+target_compile_options(${faustlive} PRIVATE /permissive-)
+target_compile_options(${faustlive} PUBLIC "/Zc:__cplusplus")
+endif ()
 
 #######################################
 # windows post processing
 if (WIN32)
 configure_file (${ROOT}/lib/portaudio/lib/portaudio.dll ${BINDIR}/portaudio_x64.dll COPYONLY)
-configure_file (${LIBSNDFILE}/bin/libsndfile-1.dll ${BINDIR}/libsndfile-1.dll COPYONLY)
-add_custom_command(TARGET ${faustlive} POST_BUILD
-                   COMMAND windeployqt FaustLive.exe
-                   WORKING_DIRECTORY ${BINDIR})
+configure_file (${LIBSNDFILE}/bin/sndfile.dll ${BINDIR}/sndfile.dll COPYONLY)
+# add_custom_command(TARGET ${faustlive} POST_BUILD
+#                    COMMAND windeployqt FaustLive.exe
+#                    WORKING_DIRECTORY ${BINDIR})
 endif()
 
 
@@ -313,6 +320,34 @@ if (APPLE)
 install ( CODE "message (STATUS \"Call macdeployqt\")"
 		  CODE "execute_process ( COMMAND macdeployqt ${BINDIR}/FaustLive.app )"
 )
+endif()
+
+
+####################################
+# copy DLLs with windeployqt
+# Find the path to windeployqt executable
+find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${_qt5Core_install_prefix}/bin")
+
+# Create a custom command to run windeployqt after building the target
+if (WIN32 AND WINDEPLOYQT_EXECUTABLE)
+    add_custom_command(TARGET ${faustlive}
+        POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E env PATH="${_qt5Core_install_prefix}/bin"
+        "${WINDEPLOYQT_EXECUTABLE}"
+        --no-compiler-runtime
+        --no-angle
+        --no-opengl-sw
+        --no-system-d3d-compiler
+        --no-webkit2
+        # --no-webkit2-process
+        # --no-translate
+        --no-translations
+        --no-quick-import
+        # --no-quick-dialogs
+        --qmldir "${CMAKE_SOURCE_DIR}"
+        \"$<TARGET_FILE:FaustLive>\"
+        COMMENT "Running windeployqt..."
+    )
 endif()
 
 

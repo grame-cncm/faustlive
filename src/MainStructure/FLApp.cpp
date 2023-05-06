@@ -657,17 +657,17 @@ QString FLApp::createWindowFolder(const QString& sessionFolder, int index)
     return path;
 }
 
-QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, map<int, int> indexChanges)
+QString FLApp::copyWindowFolder(const QString& sessionNewFolder, int newIndex, const QString& sessionFolder, int index, std::map<int, int> indexChanges)
 {
     QString newPath = sessionNewFolder + "/Windows/" + fWindowBaseName + QString::number(newIndex);
     QString oldPath = sessionFolder + "/Windows/" + fWindowBaseName + QString::number(index);
     cpDir(oldPath, newPath);
     QString jcPath = newPath + "/Connections.jc";
-    map<string, string> indexStringChanges;
+    std::map<std::string, std::string> indexStringChanges;
     
-    for(map<int, int>::iterator it = indexChanges.begin(); it!= indexChanges.end(); it++) {
-        string oldN = fWindowBaseName.toStdString() + QString::number(it->first).toStdString();
-        string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
+    for(std::map<int, int>::iterator it = indexChanges.begin(); it!= indexChanges.end(); it++) {
+        std::string oldN = fWindowBaseName.toStdString() + QString::number(it->first).toStdString();
+        std::string newN = fWindowBaseName.toStdString() + QString::number(it->second).toStdString();
         indexStringChanges[oldN] = newN;
     }
     
@@ -1136,14 +1136,14 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     
     QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     
-    map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename);
+    std::map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename);
 
-    map<int, int> indexChanges;
+    std::map<int, int> indexChanges;
     
     QList<int> currentIndexes = get_currentIndexes();
     
 //    Creating mapping between saved index and new index
-    for(map<int, QString>::iterator it = restoredSources.begin(); it != restoredSources.end(); it++){
+    for(std::map<int, QString>::iterator it = restoredSources.begin(); it != restoredSources.end(); it++){
         
         int indexValue;
         
@@ -1157,7 +1157,7 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     }
     
 //    Restore windows with new index
-    for(map<int, int>::iterator it = indexChanges.begin(); it != indexChanges.end(); it++){
+    for(std::map<int, int>::iterator it = indexChanges.begin(); it != indexChanges.end(); it++){
         
         QString windowPath = copyWindowFolder(fSessionFolder, it->second, folderName, it->first, indexChanges);
     
@@ -1179,9 +1179,9 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
 }
 
 //--- Common function to the snapshots and the current session
-void FLApp::restoreSession( map<int, QString> restoredSources){
+void FLApp::restoreSession( std::map<int, QString> restoredSources){
 
-    map<int, QString>::iterator it;
+    std::map<int, QString>::iterator it;
     for(it = restoredSources.begin(); it != restoredSources.end(); it++){
         
         QString windowPath = createWindowFolder(fSessionFolder, it->first);
@@ -1198,7 +1198,7 @@ void FLApp::restoreSession( map<int, QString> restoredSources){
 //----Recall saved current session
 bool FLApp::recall_CurrentSession(){
 
-    map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
+    std::map<int, QString> restoredSources = FLSessionManager::_Instance()->currentSessionRestoration();
     
     if(restoredSources.size() == 0)
         return false;
@@ -1413,7 +1413,7 @@ void FLApp::duplicate(FLWindow* window){
     //Save then Copy the duplicated window's parameters
     window->saveWindow();
     
-    map<int, int> indexChanges;
+    std::map<int, int> indexChanges;
     indexChanges[window->get_indexWindow()] = val;
     
     QString windowPath = copyWindowFolder(fSessionFolder, val, fSessionFolder, window->get_indexWindow(), indexChanges);
@@ -1784,7 +1784,7 @@ void FLApp::compile_HttpData(const char* data, int port)
     
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
     if (success){
-        string url = win->get_HttpUrl().toStdString();
+        std::string url = win->get_HttpUrl().toStdString();
         FLServerHttp::_Instance()->compileSuccessfull(url);
     } else {
         FLServerHttp::_Instance()->compileFailed(error.toStdString());

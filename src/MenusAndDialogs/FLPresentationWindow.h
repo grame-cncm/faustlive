@@ -18,7 +18,6 @@
 #include <QtWidgets>
 #endif
 
-using namespace std;
 
 class FLPresentationWindow : public QDialog{
     

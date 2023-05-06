@@ -41,10 +41,10 @@ binaryNode* createBestContainerTree(binaryNode* node1, binaryNode* node2)
     int screenHeight = screenSize.height();
     
     int hWidth = node1->rectSurface().width() + node2->rectSurface().width();
-    int hHeight = max(node1->rectSurface().height(), node2->rectSurface().height());
+    int hHeight = std::max(node1->rectSurface().height(), node2->rectSurface().height());
     int hSurface = hWidth * hHeight;
     
-    int vWidth = max(node1->rectSurface().width(), node2->rectSurface().width());
+    int vWidth = std::max(node1->rectSurface().width(), node2->rectSurface().width());
     int vHeight = node1->rectSurface().height() + node2->rectSurface().height();
     int vSurface = vWidth * vHeight;
     

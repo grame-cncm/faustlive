@@ -54,7 +54,7 @@ void PA_audioSettings::setVisualSettings()
 {
     FLSettings* settings = FLSettings::_Instance();
     
-    stringstream sr, bs;
+    std::stringstream sr, bs;
     bs << settings->value("General/Audio/PortAudio/BufferSize", 1024).toInt();
     sr << settings->value("General/Audio/PortAudio/SampleRate", 44100).toInt();
     

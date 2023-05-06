@@ -21,14 +21,13 @@
 
 #define PA_SAVINGFILE "PA_Settings.rf"
 
-using namespace std;
 
 class PA_audioSettings : public AudioSettings {
 
     private:
     
-        map<string, int> fInputdevices;
-        map<string, int> fOutputdevices;
+        std::map<std::string, int> fInputdevices;
+        std::map<std::string, int> fOutputdevices;
 
         //Graphical PortAudio Settings
         QLineEdit*       fSampleRate;

@@ -73,7 +73,7 @@ void FLPresentationWindow::init()
     layout->addWidget(image);
     iconeBox->setLayout(layout);
     
-    string welcome = "<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler version " + string(getCLibFaustVersion());
+    std::string welcome = "<h2>WELCOME TO FAUSTLIVE</h2>\nDynamic Faust Compiler version " + std::string(getCLibFaustVersion());
     QLabel* text = new QLabel(welcome.c_str());
     text->setAlignment(Qt::AlignCenter);
     
