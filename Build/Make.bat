@@ -1,7 +1,7 @@
 
 @echo off
 
-set VERSION="2.5.5"
+set VERSION="2.5.15"
 
 IF [%1]==[]     GOTO USAGE
 IF %1==faustlive 	(
