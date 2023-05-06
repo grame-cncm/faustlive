@@ -327,7 +327,7 @@ endif()
 ####################################
 # copy DLLs with windeployqt
 # Find the path to windeployqt executable
-find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${_qt5Core_install_prefix}/bin")
+find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${_qt5Core_install_prefix}/bin" "${Qt5_Dir}/bin" REQUIRED)
 
 # Create a custom command to run windeployqt after building the target
 if (WIN32 AND WINDEPLOYQT_EXECUTABLE)
