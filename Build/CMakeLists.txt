@@ -330,11 +330,11 @@ endif()
 # Create a custom command to run windeployqt after building the target
 if (WIN32)
 
-	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${Qt5_DIR}/../../../bin" REQUIRED)
+	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "$ENV{Qt5_DIR}/../../../bin" REQUIRED)
 
     add_custom_command(TARGET ${faustlive}
         POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E env PATH="${Qt5_DIR}/../../../bin"
+        COMMAND "${CMAKE_COMMAND}" -E env PATH="$ENV{Qt5_DIR}/../../../bin"
         "${WINDEPLOYQT_EXECUTABLE}"
         --no-compiler-runtime
         --no-angle
