@@ -1,4 +1,4 @@
-name: libfaust
+name: faustlive
 
 env:
   FAUSTLIVE_VERSION: 2.5.15
@@ -47,16 +47,14 @@ jobs:
         arch: 'win64_msvc2019_64'
         dir: '${{ github.workspace }}/'
         install-deps: 'true'
-        # modules: ''
-        archives: 'qtbase qtsvg'
         cache: 'false'
         cache-key-prefix: 'install-qt-action'
         setup-python: 'true'
         tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
         set-env: 'true'
         tools-only: 'false'
-        aqtversion: '==2.1.*'
-        py7zrversion: '==0.19.*'
+        aqtversion: '==3.1.*'
+        py7zrversion: '==0.20.*'
         extra: '--external 7z'
 
     - name: Download LLVM
@@ -77,22 +75,24 @@ jobs:
         curl -L ${{ matrix.libfaust-url }} -o libfaust.zip
         7z x libfaust.zip -y -olibfaust
 
-    - name: Build libfaust
+    - name: Build FaustLive
       shell: cmd
       run: |
-        set PATH=%LLVM_DIR%;%PATH%
-        cd build
-        call Make.bat install
+        set PATH=%LLVM_DIR%;%FAUST_DIR%;%PATH%
+        set Qt5_DIR=%Qt5_Dir%/lib/cmake/Qt5
+        cd Build
+        call Make.bat faustlive
         call Make.bat package
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm/bin
         LIBSNDFILE: ${{ github.workspace }}/libsndfile
+        FAUST_DIR: ${{ github.workspace }}/libfaust/bin
 
     - name: Upload FaustLive installer
       uses: actions/upload-artifact@v3
       with:
         name: FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
-        path: build/FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
+        path: Build/FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
         if-no-files-found: error
 
   create-release:
