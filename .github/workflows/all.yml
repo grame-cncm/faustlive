@@ -80,7 +80,7 @@ jobs:
     - name: Build FaustLive
       shell: cmd
       run: |
-        set PATH=%LLVM_DIR%;%PATH%
+        set PATH=%LLVM_DIR%;%FAUST_DIR%;%PATH%
         set Qt5_DIR=%Qt5_Dir%/lib/cmake/Qt5
         cd Build
         call Make.bat faustlive
@@ -88,6 +88,7 @@ jobs:
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm/bin
         LIBSNDFILE: ${{ github.workspace }}/libsndfile
+        FAUST_DIR: ${{ github.workspace }}/libfaust/bin
 
     - name: Upload FaustLive installer
       uses: actions/upload-artifact@v3
