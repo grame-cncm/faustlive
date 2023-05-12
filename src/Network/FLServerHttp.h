@@ -41,10 +41,6 @@
 
 #include <QObject>
 
-#undef min
-#undef std::max
-
-
 #define POSTBUFFERSIZE 512
 
 #define GET 0
@@ -52,14 +48,14 @@
 
 struct connection_info {
 
-    int connectiontype;                         // GET or POST
-    struct MHD_PostProcessor *postprocessor;    // the POST processor used internally by microhttpd
-    int answercode;                             // used internally by microhttpd to see where things went wrong or right
+    int connectiontype;                       // GET or POST
+    struct MHD_PostProcessor *postprocessor;  // the POST processor used internally by microhttpd
+    int answercode;                           // used internally by microhttpd to see where things went wrong or right
     
     std::string data;
     std::string compilationOptions;
-    std::string winUrl;                              // To be able to replace faust content in the right FLWindow
-    std::string answerstring;                   // the answer sent to the user after upload
+    std::string winUrl;                       // To be able to replace faust content in the right FLWindow
+    std::string answerstring;                 // the answer sent to the user after upload
     
 };
 
@@ -70,41 +66,41 @@ class FLServerHttp : public QObject
 
         Q_OBJECT
         
-        int             fMaxCients;
-        std::string          fError;         // Not important right now
-        std::string          fUrl;           // Url of wrapped http page 
+        int         fMaxCients;
+        std::string fError;  // Not important right now
+        std::string fUrl;    // Url of wrapped http page
         
-        bool            fPosted;        // Post request completed
-        bool            fCompiled;      // Compilation sucess
+        bool fPosted;        // Post request completed
+        bool fCompiled;      // Compilation sucess
         
-        std::string          fServerAddress;
-        std::string          fJson;
-        std::string          fHtml;
-        std::string          fHome;
+        std::string fServerAddress;
+        std::string fJson;
+        std::string fHtml;
+        std::string fHome;
         
-        std::map<int, std::string>     fDeclaredNames;
+        std::map<int, std::string> fDeclaredNames;
         
-        static FLServerHttp*    _serverInstance;
+        static FLServerHttp* _serverInstance;
         
-        static int      fUploadingClients;
+        static int fUploadingClients;
         
-        struct          MHD_Daemon* fDaemon;
+        struct MHD_Daemon* fDaemon;
         
-        int             handleGet(MHD_Connection* connection, const char* url);
-        int             handlePost(MHD_Connection* connection, const char* url, void* info);
+        int handleGet(MHD_Connection* connection, const char* url);
+        int handlePost(MHD_Connection* connection, const char* url, void* info);
         
-        void            updateAvailableInterfaces();
-        int             getMaxClients();
+        void updateAvailableInterfaces();
+        int  getMaxClients();
         
-        int             sendPage(struct MHD_Connection *connection, const char* page, int length, int status_code, const char* type = 0);
+        int sendPage(struct MHD_Connection *connection, const char* page, int length, int status_code, const char* type = 0);
         
-        static int      answerToConnection(void* cls, struct MHD_Connection* connection,
-                                         const char* url, const char* method,
-                                         const char* version, const char* upload_data,
-                                         size_t* upload_data_size, void** con_cls);
+        static int answerToConnection(void* cls, struct MHD_Connection* connection,
+                                     const char* url, const char* method,
+                                     const char* version, const char* upload_data,
+                                     size_t* upload_data_size, void** con_cls);
                                          
         
-        int             redirectJsonRequest(struct MHD_Connection *connection, std::string portNumber);
+        int redirectJsonRequest(struct MHD_Connection *connection, std::string portNumber);
         
         static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
         
@@ -120,19 +116,19 @@ class FLServerHttp : public QObject
         FLServerHttp(const std::string& home);
         virtual ~FLServerHttp();
          
-        bool        start();
-        void        stop();
+        bool start();
+        void stop();
         
-        void        declareHttpInterface(int port, const std::string& name);
-        void        removeHttpInterface(int port);
+        void declareHttpInterface(int port, const std::string& name);
+        void removeHttpInterface(int port);
         
-        void        compileSuccessfull(const std::string& url);
-        void        compileFailed(const std::string& error);
+        void compileSuccessfull(const std::string& url);
+        void compileFailed(const std::string& error);
       
         static void createInstance(const std::string& homeFolder);
         static void deleteInstance();
           
-        static      FLServerHttp* _Instance();
+        static FLServerHttp* _Instance();
           
     signals:
         
