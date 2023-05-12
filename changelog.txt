@@ -11,7 +11,7 @@ Copyright GRAME (c) 2014-2023
 
 - restore the parameters between successive compilations 
 - integrates Faust compiler version 2.59.5
-- based on LLVM 15.0.7 on and OS X and 10.0.0 on Windows 
+- based on LLVM 15.0.7 on and OS X and Windows 
 - latest version of the Faust libraries
 
 ----------------------------------------------------
