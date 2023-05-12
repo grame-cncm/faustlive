@@ -96,7 +96,7 @@ jobs:
         if-no-files-found: error
 
   create-release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && inputs.create_release }} 
+    if: ${{ inputs.create_release }}
     needs: [build-windows]
     runs-on: ubuntu-latest
     name: "Create Release on GitHub"
@@ -105,8 +105,7 @@ jobs:
         with:
           path: "dist"
 
-      - uses: ncipollo/release-action@v1
+      - uses: softprops/action-gh-release@v1
         with:
-          artifacts: "dist/*/*"
-          token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
+          files: "dist/*/*"
