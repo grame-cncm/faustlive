@@ -9,6 +9,7 @@
 // JA_audioManager controls 1 JA_audioFader. It can switch from one DSP to another with a crossfade or it can act like a simple jackaudio-dsp
 // JA_audioManager also controls the JACK connections of the audio. 
 
+#include <list>
 #include "JA_audioManager.h"
 #include "JA_audioFader.h"
 #include <QFileInfo>
@@ -89,7 +90,7 @@ void JA_audioManager::connect_Audio(std::string homeDir)
 {
     if (FLSettings::_Instance()->value("General/Audio/Jack/AutoConnect", true).toBool()) {
         if (QFileInfo(homeDir.c_str()).exists()) {
-            list<std::pair<std::string, std::string> > connection = FJUI::recallConnections(homeDir.c_str());
+            std::list<std::pair<std::string, std::string> > connection = FJUI::recallConnections(homeDir.c_str());
             fCurrentAudio->reconnect(connection);
         } else {
             fCurrentAudio->defaultConnections();
@@ -103,7 +104,7 @@ void JA_audioManager::connect_Audio(std::string homeDir)
 void JA_audioManager::save_Connections(std::string homeDir)
 {
     bool saved;
-    list<std::pair<std::string, std::string> > connections = fCurrentAudio->get_audio_connections(saved);
+    std::list<std::pair<std::string, std::string> > connections = fCurrentAudio->get_audio_connections(saved);
     if (saved) {
         FJUI::saveConnections(homeDir.c_str(), connections);
     }
