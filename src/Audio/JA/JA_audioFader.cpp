@@ -17,7 +17,7 @@ float JA_audioFader::crossfade_calculation(int i, int j)
 {
     bool connectFadeOut = false;
     bool connectFadeIn = false;
-    list<std::pair<std::string, std::string> >::const_iterator it;
+    std::list<std::pair<std::string, std::string> >::const_iterator it;
      
     for (it = fConnections.begin(); it != fConnections.end(); it++) {
         std::string jackPort(jack_port_name(fOutputPorts[j]));
@@ -130,9 +130,9 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName)
 }
 
 //Connect Jack port following Connections
-int JA_audioFader::reconnect(list<std::pair<std::string, std::string> > Connections)
+int JA_audioFader::reconnect(std::list<std::pair<std::string, std::string> > Connections)
 {        
-    list<std::pair<std::string, std::string> >::const_iterator it;
+    std::list<std::pair<std::string, std::string> >::const_iterator it;
     
     for (it = Connections.begin(); it != Connections.end(); it++) {
         jack_connect(fClient, it->first.c_str(), it->second.c_str());
@@ -273,7 +273,7 @@ void JA_audioFader::processAudio(jack_nframes_t nframes)
 }
 
 // Access to the fade parameter
-list<std::pair<std::string, std::string> > JA_audioFader::get_audio_connections(bool& saved)
+std::list<std::pair<std::string, std::string> > JA_audioFader::get_audio_connections(bool& saved)
 {
     saved = saveConnections();
     return fConnections;
