@@ -990,7 +990,7 @@ void FLApp::update_Recent_Session()
     
     for (QList<QString>::iterator it = fRecentSessions.begin(); it != fRecentSessions.end(); it++){
         
-        printf("Index = %i || Size = %i || Session = %s\n", index, fRecentSessions.size(), it->toStdString().c_str());
+        printf("Index = %i || Size = %lld || Session = %s\n", index, fRecentSessions.size(), it->toStdString().c_str());
         
         if(index<kMAXRECENT){
         
