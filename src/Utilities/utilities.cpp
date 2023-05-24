@@ -185,7 +185,7 @@ QString searchLocalIP()
     
     for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
 		if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
-			printf("HOST = %s at pos = %i\n", it->toString().toStdString().c_str(), it->toString().indexOf("169."));
+			printf("HOST = %s at pos = %lld\n", it->toString().toStdString().c_str(), it->toString().indexOf("169."));
 			//Filter strange windows default adress 169.x.x.x
 			if(it->toString().indexOf("169.") != 0)
 	            return it->toString();
