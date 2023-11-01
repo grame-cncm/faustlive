@@ -236,7 +236,7 @@ elseif(APPLE)
 endif()
 
 if(APPLE)
-	set (OSXTARGET 10.11)
+	set (OSXTARGET 11)
 	set (CMAKE_C++_FLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_LDFLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_OSX_DEPLOYMENT_TARGET ${OSXTARGET})
