@@ -12,7 +12,7 @@ README  := README.html
 CHGELOG := ../changelog.txt
 
 all :
-	if test -d .git; then git submodule update --init; fi
+	if test -d ../.git; then git submodule update --init; fi
 	$(MAKE) qrc
 	$(MAKE) cmake
 	$(MAKE) faustlive
