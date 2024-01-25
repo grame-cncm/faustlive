@@ -77,9 +77,9 @@ class TMutex
 		{
 			// Use recursive mutex
 			pthread_mutexattr_t mutex_attr;
-			assert(pthread_mutexattr_init(&mutex_attr) == 0);
-			assert(pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE) == 0);
-			assert(pthread_mutex_init(&fMutex, &mutex_attr) == 0);
+			pthread_mutexattr_init(&mutex_attr);
+			pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+			pthread_mutex_init(&fMutex, &mutex_attr);
 		}
 		virtual ~TMutex()
 		{
