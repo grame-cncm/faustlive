@@ -1,7 +1,7 @@
 name: faustlive
 
 env:
-  FAUSTLIVE_VERSION: 2.5.17
+  FAUSTLIVE_VERSION: 2.5.18
 
 # Controls when the action will run.
 on:
@@ -28,7 +28,7 @@ jobs:
             os: windows-2022
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-win11-x86_64.zip
             libsndfile-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/libsndfile-1.2.0-win64.zip
-            libfaust-url: https://github.com/grame-cncm/faust/releases/download/2.70.3/Faust-2.70.3-win64.exe
+            libfaust-url: https://github.com/grame-cncm/faust/releases/download/2.72.13/Faust-2.72.13-win64.exe
 
     steps:
     - uses: actions/checkout@v3
