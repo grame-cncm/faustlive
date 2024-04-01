@@ -39,7 +39,7 @@ jobs:
 
     - name: Install Qt
       # note that this sets the environment var Qt5_DIR
-      uses: jurplel/install-qt-action@v4
+      uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2'
         host: 'windows'
