@@ -1494,8 +1494,8 @@ void FLApp::version_Action(){
 //    text += "- Build version ";
 //    text += readFile(":/buildVersion.txt");
     text += "\n\nBased on ";
-    text += "\n - LLVM Compiler ";
-    text += LLVM_VERSION;
+    text += "\n - libfaust ";
+    text += getCLibFaustVersion();
 #ifdef ALSA
     text += "\n - ALSA ";
     text += "1.0";
