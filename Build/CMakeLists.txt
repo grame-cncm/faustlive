@@ -19,7 +19,7 @@ message (STATUS "Generates FaustLive version ${VERSION}")
 #######################################
 # Options 
 option ( REMOTE 		"Includes remote computing" off )
-option ( QT6 			"Uses Qt6" off )
+option ( QT6 			"Uses Qt6" on )
 
 set (CMAKE_CXX_STANDARD 11)
 
