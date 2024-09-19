@@ -19,7 +19,7 @@ message (STATUS "Generates FaustLive version ${VERSION}")
 #######################################
 # Options 
 option ( REMOTE 		"Includes remote computing" off )
-option ( QT6 			"Uses Qt6" on )
+option ( QT6 			"Uses Qt6" off )
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -236,7 +236,7 @@ elseif(APPLE)
 endif()
 
 if(APPLE)
-	set (OSXTARGET 11)
+	set (OSXTARGET 10.15)
 	set (CMAKE_C++_FLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_LDFLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_OSX_DEPLOYMENT_TARGET ${OSXTARGET})
