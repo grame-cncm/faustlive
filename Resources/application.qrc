@@ -109,6 +109,7 @@
     <file>Libs/hoa.lib</file>
     <file>Libs/instruments.lib</file>
     <file>Libs/interpolators.lib</file>
+    <file>Libs/linearalgebra.lib</file>
     <file>Libs/maths.lib</file>
     <file>Libs/maxmsp.lib</file>
     <file>Libs/mi.lib</file>
