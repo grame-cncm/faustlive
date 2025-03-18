@@ -21,7 +21,7 @@ PA_audioFader::~PA_audioFader() {}
 int PA_audioFader::processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
 {
     // Process samples
-    fDsp->compute(current_time * 1000000., frames, ibuf, obuf);
+    fDSP->compute(current_time * 1000000., frames, ibuf, obuf);
     crossfade_Calcul(frames, fDevNumOutChans, obuf);
 	return paContinue;
 }
