@@ -115,3 +115,15 @@ background: grey;
 QListWidget{
 background-color: transparent;
 }
+
+/* Value displays of sliders and knobs (QTUI addNumDisplay: QDoubleSpinBox with a border
+   and NoButtons). With Qt 6.12 on macOS, a border in the spin box style sheet leaves its
+   inner QLineEdit 1 pixel wide, so the value is invisible: place the (hidden) buttons
+   relative to the border to give the text its width back. */
+QAbstractSpinBox[buttonSymbols="NoButtons"] {
+padding: 0px 3px;
+}
+QAbstractSpinBox[buttonSymbols="NoButtons"]::up-button,
+QAbstractSpinBox[buttonSymbols="NoButtons"]::down-button {
+subcontrol-origin: border;
+}
