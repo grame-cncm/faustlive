@@ -73,7 +73,9 @@ echo "::endgroup::"
 echo "::group::libsndfile $SNDFILE_VERSION"
 archive=$(download "https://github.com/libsndfile/libsndfile/releases/download/$SNDFILE_VERSION/libsndfile-$SNDFILE_VERSION.tar.xz" $SNDFILE_SHA256)
 tar -xJf "$archive" -C "$WORK"
+# libsndfile 1.2.2 asks for CMake 3.1, which CMake 4 refuses without CMAKE_POLICY_VERSION_MINIMUM
 cmake -S "$WORK/libsndfile-$SNDFILE_VERSION" -B "$WORK/sndfile-build" -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF \
     -DENABLE_EXTERNAL_LIBS=OFF -DENABLE_MPEG=OFF -DBUILD_PROGRAMS=OFF -DBUILD_EXAMPLES=OFF \
     -DBUILD_TESTING=OFF -DENABLE_CPACK=OFF -DINSTALL_MANPAGES=OFF

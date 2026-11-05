@@ -31,10 +31,13 @@ EXIT /B
 :PACKAGE
 cd builddir
 cmake .. -DPACK=on
+IF ERRORLEVEL 1 GOTO FAILED
 cmake --build . --config Release --target package
+IF ERRORLEVEL 1 GOTO FAILED
 move FaustLive-*.exe ..
+IF ERRORLEVEL 1 GOTO FAILED
 cd ..
-EXIT /B
+EXIT /B 0
 
 @rem --- fauslive compilation -------------------------
 :COMPILE
@@ -44,9 +47,17 @@ EXIT /B
 	)
 	cd builddir
 	cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DLIBSNDFILE=%LIBSNDFILE%
+	IF ERRORLEVEL 1 GOTO FAILED
 	cmake --build . --config Release
+	IF ERRORLEVEL 1 GOTO FAILED
 	cd ..
-EXIT /B
+EXIT /B 0
+
+@rem --- a step failed: back to the Build folder, report the error -----
+:FAILED
+cd ..
+echo Make.bat: a build step failed
+EXIT /B 1
 
 
 :USAGE
