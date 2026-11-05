@@ -100,13 +100,15 @@
     <file>Libs/analyzers.lib</file>
     <file>Libs/basics.lib</file>
     <file>Libs/compressors.lib</file>
+    <file>Libs/debug.lib</file>
     <file>Libs/delays.lib</file>
     <file>Libs/demos.lib</file>
-    <file>Libs/dx7.lib</file>
     <file>Libs/envelopes.lib</file>
+    <file>Libs/fastmath.lib</file>
     <file>Libs/fds.lib</file>
     <file>Libs/filters.lib</file>
     <file>Libs/hoa.lib</file>
+    <file>Libs/hysteresis.lib</file>
     <file>Libs/instruments.lib</file>
     <file>Libs/interpolators.lib</file>
     <file>Libs/linearalgebra.lib</file>
@@ -114,10 +116,12 @@
     <file>Libs/maxmsp.lib</file>
     <file>Libs/mi.lib</file>
     <file>Libs/misceffects.lib</file>
+    <file>Libs/motion.lib</file>
     <file>Libs/noises.lib</file>
     <file>Libs/oscillators.lib</file>
     <file>Libs/phaflangers.lib</file>
     <file>Libs/physmodels.lib</file>
+    <file>Libs/pinktrombone.lib</file>
     <file>Libs/platform.lib</file>
     <file>Libs/quantizers.lib</file>
     <file>Libs/reducemaps.lib</file>
@@ -135,5 +139,15 @@
     <file>Libs/version.lib</file>
     <file>Libs/wdmodels.lib</file>
     <file>Libs/webaudio.lib</file>
+    <file alias="Libs/effect.lib">Libs/old/effect.lib</file>
+    <file alias="Libs/filter.lib">Libs/old/filter.lib</file>
+    <file alias="Libs/math.lib">Libs/old/math.lib</file>
+    <file alias="Libs/music.lib">Libs/old/music.lib</file>
+    <file alias="Libs/oscillator.lib">Libs/old/oscillator.lib</file>
+    <file alias="Libs/dx7.lib">Libs/dx7/dx7.lib</file>
+    <file alias="Libs/env.lib">Libs/dx7/env.lib</file>
+    <file alias="Libs/lfo.lib">Libs/dx7/lfo.lib</file>
+    <file alias="Libs/operator.lib">Libs/dx7/operator.lib</file>
+    <file alias="Libs/pitchenv.lib">Libs/dx7/pitchenv.lib</file>
 </qresource>
 </RCC>

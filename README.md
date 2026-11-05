@@ -20,7 +20,9 @@ FaustLive is based on the [Faust](https://faust.grame.fr) library and on [LLVM](
 Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main FaustLive repository using the following commands:
 
     git submodule update --remote --merge
-    git add Resources/Libs
+    make -C Resources                      # regenerates Resources/application.qrc
+    make -C Build && make -C Build test    # checks that every bundled library and example compiles
+    git add Resources/Libs Resources/application.qrc
     git commit -m "Updating libraries"
     git push
 
@@ -34,11 +36,15 @@ Faust libraries are now in a [separated subproject](https://github.com/grame-cnc
 ### Versionning
 
 - use the *version* script to raise the version number, like `./version 2.5.8`.
-- manually raise the `APP_VERSION` flag in Build/CMakeLists.txt (line 213)
+- manually raise the `FAUSTLIVE_APP_VERSION` variable in Build/CMakeLists.txt when the session caches (libraries, compiled DSPs) must be reset
 
 ### Application building
 
 To build the FaustLive project, go to the `Build` folder and start with the README file.
+
+### Tests
+
+`make -C Build test` builds and runs the test suite (CTest, see the `tests` folder and `AGENTS.md`).
 
 <!--p align="center">
   <img width="70" src="./Resources/FaustLiveIcon.png"> <br />

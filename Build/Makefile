@@ -7,7 +7,8 @@ BUILDDIR ?= builddir
 MAKE   ?= make
 CMAKE  ?= cmake
 DEST   ?= .
-FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib)
+FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib ../Resources/Libs/old/*.lib ../Resources/Libs/dx7/*.lib)
+CTEST  ?= ctest
 README  := README.html
 CHGELOG := ../changelog.txt
 
@@ -23,6 +24,9 @@ faustlive: $(BUILDDIR)
 cmake: $(BUILDDIR)
 	cd $(BUILDDIR) && $(CMAKE) .. $(CMAKEOPT) $(GENERATOR)
 
+test: faustlive
+	cd $(BUILDDIR) && $(CTEST) -C Release --output-on-failure $(CTESTOPT)
+
 $(BUILDDIR):
 	mkdir $(BUILDDIR)
 
@@ -33,9 +37,11 @@ help:
 	@echo "  'qrc'            : re-generate application.qrc."
 	@echo "  'cmake'          : re-generate the cmake project."
 	@echo "  'faustlive'      : compiles FaustLive."
+	@echo "  'test'           : compiles and runs the test suite (ctest, see ../tests)."
 	@echo "Variables:"
 	@echo "  'GENERATOR'      : a cmake generator passed to 'cmake' target"
 	@echo "  'CMAKEOPT'       : cmake options passed to 'cmake' target"
+	@echo "  'CTESTOPT'       : ctest options passed to 'test' target (e.g. '-L dsp', '-LE app')"
 	@echo "  'PREFIX'         : install prefix to be passed to 'cmake'"
 	@echo "Packaging:"
 	@echo "  'install'        : install the faustlive package"

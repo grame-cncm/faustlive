@@ -13,7 +13,7 @@ FaustLive - How to compile
 
 ## Preparing a new release
 
-Be sure to raise the `-DAPP_VERSION="X.X"` flag in the *CMakeLists.txt* file so that the .*FaustLive-CurrentSession-XX* cache folder is recreated with the new compiled and released version.
+Be sure to raise the `FAUSTLIVE_APP_VERSION` variable in the *CMakeLists.txt* file so that the .*FaustLive-CurrentSession-XX* cache folder is recreated with the new compiled and released version.
 
 ## Compilation
 

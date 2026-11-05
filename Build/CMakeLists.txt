@@ -19,7 +19,16 @@ message (STATUS "Generates FaustLive version ${VERSION}")
 #######################################
 # Options 
 option ( REMOTE 		"Includes remote computing" off )
-option ( QT6 			"Uses Qt6" off )
+option ( QT6 			"Uses Qt6" on )
+if (WIN32)
+	option ( TESTS 		"Builds the test suite (run with 'ctest')" off )
+else()
+	option ( TESTS 		"Builds the test suite (run with 'ctest')" on )
+endif()
+
+# Name of the session cache folder: ~/.FaustLive-CurrentSession-${FAUSTLIVE_APP_VERSION}
+# Raise it for a release that must not reuse the previous session caches (libraries, SHAFolder...)
+set (FAUSTLIVE_APP_VERSION 2.13)
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -214,7 +223,7 @@ set ( FAUSTLIVE_SRC 	${FAUSTLIVE_SRC} 	 ${AUDIO_SRC})
 set ( FAUSTLIVE_HEADERS ${FAUSTLIVE_HEADERS} ${AUDIO_HEADERS})
 
 set (INCLUDE_DIRS ${FAUSTLIVE_INCLUDE_DIRS} ${QTINCDIRS} ${FAUST_INCLUDE_DIRS})
-set (FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -DVERSION="${VERSION}" -DAPP_VERSION="2.13" -DHTTPCTRL -DQRCODECTRL ${LLVM_DEFINES})
+set (FAUSTLIVE_DEFINITIONS ${FAUSTLIVE_DEFINITIONS} -DVERSION="${VERSION}" -DAPP_VERSION="${FAUSTLIVE_APP_VERSION}" -DHTTPCTRL -DQRCODECTRL ${LLVM_DEFINES})
 set (FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES} ${FAUST_LIBRARIES} ${QTLIBS} ${LLVM_LIBRARIES} ${LIBMICROHPPTD_LIBRARIES})
 #message ("FAUSTLIVE_LIBRARIES ${FAUSTLIVE_LIBRARIES}")
 
@@ -277,6 +286,13 @@ if (MSVC)
 target_compile_options(${faustlive} PRIVATE /permissive-)
 target_compile_options(${faustlive} PUBLIC "/Zc:__cplusplus")
 endif ()
+
+#######################################
+# tests (see tests/CMakeLists.txt)
+if (TESTS)
+	enable_testing()
+	add_subdirectory (${ROOT}/tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
+endif()
 
 #######################################
 # windows post processing

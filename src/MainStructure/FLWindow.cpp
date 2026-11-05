@@ -893,7 +893,9 @@ void FLWindow::allocateOscInterface()
     
 //---- Allocation for windows needs
     char** argv = new char*[argc + 1];
-    argv[0] = (char*)(fWindowName.toStdString().c_str());
+    // argv[0] (used as the OSC root name) must outlive the OSCUI construction
+    std::string windowName = fWindowName.toStdString();
+    argv[0] = (char*)(windowName.c_str());
     argv[1] = (char*)"-port";
     
     std::string inport = fSettings->value("Osc/InPort", "5510").toString().toStdString();
@@ -1412,9 +1414,10 @@ void FLWindow::allocateHttpInterface()
     char* argv[4];  // NULL terminated argv
 	char charport[20];
 	int port = 5510 + fWindowIndex;
-	sprintf(charport, "%d", port);
+	snprintf(charport, sizeof(charport), "%d", port);
 
-    argv[0] = (char*)(windowTitle.toStdString().c_str());
+    std::string title = windowTitle.toStdString();  // must outlive the httpdUI construction
+    argv[0] = (char*)(title.c_str());
     argv[1] = (char*)"-port";
 	argv[2] = charport;
     
