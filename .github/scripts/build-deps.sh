@@ -36,7 +36,7 @@ case "$(uname -s)" in
         sha256() { shasum -a 256 < "$1" | cut -d' ' -f1; }
         ;;
     Linux)
-        SYSTEM="Linux, glibc $(ldd --version | head -n1 | awk '{print $NF}')"
+        SYSTEM="Linux, $(getconf GNU_LIBC_VERSION)"
         JOBS=${JOBS:-$(nproc)}
         sha256() { sha256sum < "$1" | cut -d' ' -f1; }
         ;;
