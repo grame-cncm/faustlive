@@ -28,7 +28,7 @@ endif()
 
 # Name of the session cache folder: ~/.FaustLive-CurrentSession-${FAUSTLIVE_APP_VERSION}
 # Raise it for a release that must not reuse the previous session caches (libraries, SHAFolder...)
-set (FAUSTLIVE_APP_VERSION 2.13)
+set (FAUSTLIVE_APP_VERSION 2.14)
 
 set (CMAKE_CXX_STANDARD 11)
 

@@ -8,7 +8,7 @@ A Qt desktop application (C++, ~17k lines) to edit, compile and run [Faust](http
 DSP programs on the fly. Each window holds one DSP, JIT-compiled by the embedded **libfaust + LLVM**
 and played through an audio driver (CoreAudio on macOS, JACK on Linux, PortAudio on Windows).
 Editing the source file triggers a recompilation and a crossfade to the new DSP without interrupting
-the sound. Version: `version.txt` (2.5.20).
+the sound. Version: `version.txt` (2.5.21).
 
 ## Repository layout
 
@@ -124,7 +124,7 @@ release, `faust-ref` to build another Faust commit). To try a branch:
 
 - Session folder: `$HOME/.FaustLive-CurrentSession-<FAUSTLIVE_APP_VERSION>` (Windows:
   `%USERPROFILE%\FaustLive-CurrentSession-…` or `FAUSTLIVE_SESSIONDIR`). `FAUSTLIVE_APP_VERSION` is set in
-  `Build/CMakeLists.txt` (currently `2.13`, independent from the app version).
+  `Build/CMakeLists.txt` (currently `2.14`, independent from the app version).
 - At startup `FLApp::create_Session_Hierarchy` copies `:/Libs`, `:/Examples`, `:/Html`… into it
   **only for files that are missing**. So a user who upgrades FaustLive keeps the old libraries unless
   `FAUSTLIVE_APP_VERSION` is raised. Raise it for a release that ships new libraries.

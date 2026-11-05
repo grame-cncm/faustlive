@@ -8,7 +8,7 @@ name: faustlive
 # (.github/llvm, fetched by .github/actions/fetch-llvm) and cached per platform.
 
 env:
-  FAUSTLIVE_VERSION: 2.5.20
+  FAUSTLIVE_VERSION: 2.5.21
   # Faust commit (or branch, tag) libfaust is built from, when not given to workflow_dispatch
   FAUST_REF: 6bc7087e5a0d8181c55b49f80447cc4a60310444
   QT_VERSION: 6.8.3
