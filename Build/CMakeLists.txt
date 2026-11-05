@@ -91,7 +91,9 @@ string(REGEX REPLACE "\n$" "" LLVM_RPATH "${LLVM_LIBDIR}")
 if (WIN32)
 	# MSVC link.exe expects semicolon separated .lib files
 	string ( REPLACE " " ";" LLVM_LIBRARIES_LIST ${LLVM_LIBRARIES} )
-	set (LLVM_LIBRARIES ${LLVM_LIBRARIES_LIST}) # ${LLVM_SYS_LIBRARIES})
+	# system libraries of a static LLVM (psapi.lib, ntdll.lib...)
+	string ( REPLACE " " ";" LLVM_SYS_LIBRARIES_LIST "${LLVM_SYS_LIBRARIES}" )
+	set (LLVM_LIBRARIES ${LLVM_LIBRARIES_LIST} ${LLVM_SYS_LIBRARIES_LIST})
 else()
 	set (LLVM_LIBRARIES ${LLVM_LDFLAGS} ${LLVM_LIBRARIES} ${LLVM_SYS_LIBRARIES})
 	set (FAUSTLIVE_RPATH ${FAUSTLIVE_RPATH} ${LLVM_RPATH})
@@ -245,7 +247,16 @@ elseif(APPLE)
 endif()
 
 if(APPLE)
-	set (OSXTARGET 10.15)
+	# -DOSXTARGET=x.y, else $MACOSX_DEPLOYMENT_TARGET, else the minimum of the Qt version
+	if (NOT DEFINED OSXTARGET)
+		if (DEFINED ENV{MACOSX_DEPLOYMENT_TARGET} AND NOT "$ENV{MACOSX_DEPLOYMENT_TARGET}" STREQUAL "")
+			set (OSXTARGET $ENV{MACOSX_DEPLOYMENT_TARGET})
+		elseif (QT6)
+			set (OSXTARGET 12.0)
+		else()
+			set (OSXTARGET 10.15)
+		endif()
+	endif()
 	set (CMAKE_C++_FLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_LDFLAGS -mmacosx-version-min=${OSXTARGET})
 	set (CMAKE_OSX_DEPLOYMENT_TARGET ${OSXTARGET})
@@ -346,19 +357,24 @@ endif()
 # Create a custom command to run windeployqt after building the target
 if (WIN32)
 
-	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "$ENV{Qt5_DIR}/../../../bin" REQUIRED)
+	# windeployqt is next to the Qt package found above (<Qt>/lib/cmake/Qt6 -> <Qt>/bin)
+	if (QT6)
+		set (QT_BIN_DIR "${Qt6_DIR}/../../../bin")
+		set (WINDEPLOYQT_QT5_OPTIONS)
+	else()
+		set (QT_BIN_DIR "${Qt5_DIR}/../../../bin")
+		set (WINDEPLOYQT_QT5_OPTIONS --no-angle --no-webkit2)	# no longer exist in Qt 6
+	endif()
+	find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS "${QT_BIN_DIR}" REQUIRED)
+	message (STATUS "Using ${WINDEPLOYQT_EXECUTABLE}")
 
     add_custom_command(TARGET ${faustlive}
         POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E env PATH="$ENV{Qt5_DIR}/../../../bin"
-        "${WINDEPLOYQT_EXECUTABLE}"
+        COMMAND "${WINDEPLOYQT_EXECUTABLE}"
         --no-compiler-runtime
-        --no-angle
         --no-opengl-sw
         --no-system-d3d-compiler
-        --no-webkit2
-        # --no-webkit2-process
-        # --no-translate
+        ${WINDEPLOYQT_QT5_OPTIONS}
         --no-translations
         --no-quick-import
         # --no-quick-dialogs

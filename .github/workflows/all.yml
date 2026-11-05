@@ -1,9 +1,21 @@
 name: faustlive
 
+# Builds the FaustLive binaries:
+#   - macOS arm64 (macos-15) and x86_64 (macos-15-intel): FaustLive-<version>-macos-<arch>.dmg
+#     (ad-hoc signed, not notarized), after running the headless tests (ctest -LE app)
+#   - Windows x64 (windows-2022): FaustLive-<version>-win64.exe (NSIS installer)
+# libfaust is built from the Faust sources (FAUST_REF) with Grame's static LLVM
+# (.github/llvm, fetched by .github/actions/fetch-llvm) and cached per platform.
+
 env:
   FAUSTLIVE_VERSION: 2.5.20
+  # Faust commit (or branch, tag) libfaust is built from, when not given to workflow_dispatch
+  FAUST_REF: 6bc7087e5a0d8181c55b49f80447cc4a60310444
+  QT_VERSION: 6.8.3
+  MACOSX_DEPLOYMENT_TARGET: "12.0"
+  # Raise to rebuild the cached dependencies (libfaust, libsndfile, libmicrohttpd)
+  DEPS_CACHE_VERSION: 1
 
-# Controls when the action will run.
 on:
   push:
     tags:
@@ -15,9 +27,100 @@ on:
         type: boolean
         description: Create a draft release
         default: true
+      faust-ref:
+        type: string
+        description: Faust commit, branch or tag to build libfaust from (empty = FAUST_REF of the workflow)
+        default: ''
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos-arm64
+            os: macos-15
+            llvm-platform: macos-arm64
+          - name: macos-x86_64
+            os: macos-15-intel
+            llvm-platform: macos-x86_64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Check the version
+      run: test "$(cat version.txt)" = "$FAUSTLIVE_VERSION" || { echo "::error::version.txt is $(cat version.txt), FAUSTLIVE_VERSION is $FAUSTLIVE_VERSION"; exit 1; }
+
+    - uses: actions/checkout@v4
+      with:
+        repository: grame-cncm/faust
+        ref: ${{ inputs.faust-ref || env.FAUST_REF }}
+        path: faust
+
+    - name: Faust commit
+      id: faust
+      run: |
+        git -C faust submodule update --init --depth 1 libraries
+        echo "sha=$(git -C faust rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+    - uses: ./.github/actions/fetch-llvm
+      with:
+        platform: ${{ matrix.llvm-platform }}
+
+    - name: Install pkg-config
+      run: command -v pkg-config || brew install pkgconf
+
+    - uses: actions/cache@v4
+      id: deps
+      with:
+        path: ${{ runner.temp }}/deps
+        key: deps-${{ matrix.name }}-${{ env.DEPS_CACHE_VERSION }}-${{ steps.faust.outputs.sha }}-${{ hashFiles('.github/llvm/SHA256SUMS', '.github/scripts/build-deps-macos.sh') }}
+
+    - name: Build libmicrohttpd, libsndfile and Faust
+      if: steps.deps.outputs.cache-hit != 'true'
+      run: .github/scripts/build-deps-macos.sh "$RUNNER_TEMP/deps" faust
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: mac
+        target: desktop
+        arch: clang_64
+        cache: true
+
+    - name: Build FaustLive
+      run: |
+        export PATH="$RUNNER_TEMP/deps/faust/bin:$PATH"
+        export PKG_CONFIG_PATH="$RUNNER_TEMP/deps/lib/pkgconfig"
+        faust --version
+        make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR -DCMAKE_BUILD_TYPE=Release"
+        make -C Build faustlive -j "$(sysctl -n hw.ncpu)"
+
+    - name: Test
+      # app.smoke needs an audio device
+      run: |
+        cd Build/builddir
+        ctest -LE app --output-on-failure -j "$(sysctl -n hw.ncpu)"
+
+    - name: Make the package
+      run: |
+        export PATH="$RUNNER_TEMP/deps/faust/bin:$PATH"
+        make -C Build package
+        mv Build/FaustLive-$FAUSTLIVE_VERSION.dmg Build/FaustLive-$FAUSTLIVE_VERSION-${{ matrix.name }}.dmg
+        otool -L Build/FaustLive-$FAUSTLIVE_VERSION/FaustLive.app/Contents/MacOS/FaustLive
+        lipo -info Build/FaustLive-$FAUSTLIVE_VERSION/FaustLive.app/Contents/MacOS/FaustLive
+
+    - name: Upload FaustLive package
+      uses: actions/upload-artifact@v4
+      with:
+        name: FaustLive-${{ env.FAUSTLIVE_VERSION }}-${{ matrix.name }}.dmg
+        path: Build/FaustLive-${{ env.FAUSTLIVE_VERSION }}-${{ matrix.name }}.dmg
+        if-no-files-found: error
 
   build-windows:
     runs-on: ${{ matrix.os }}
@@ -26,80 +129,106 @@ jobs:
         include:
           - name: win64
             os: windows-2022
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-win11-x86_64.zip
-            libsndfile-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/libsndfile-1.2.0-win64.zip
-            libfaust-url: https://github.com/grame-cncm/faust/releases/download/2.79.3/Faust-2.79.3-win64.exe
+            libsndfile-url: https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    
+
+    - name: Check the version
+      shell: bash
+      run: test "$(cat version.txt | tr -d '\r')" = "$FAUSTLIVE_VERSION" || { echo "::error::version.txt is not $FAUSTLIVE_VERSION"; exit 1; }
+
+    - uses: actions/checkout@v4
+      with:
+        repository: grame-cncm/faust
+        ref: ${{ inputs.faust-ref || env.FAUST_REF }}
+        path: faust
+
+    - name: Faust commit
+      id: faust
+      shell: bash
+      run: |
+        git -C faust submodule update --init --depth 1 libraries
+        echo "sha=$(git -C faust rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
     - uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Install Qt
-      # note that this sets the environment var Qt5_DIR
-      uses: jurplel/install-qt-action@v3
+    - uses: ./.github/actions/fetch-llvm
       with:
-        version: '5.15.2'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_msvc2019_64'
-        dir: '${{ github.workspace }}/'
-        install-deps: 'true'
-        cache: 'false'
-        cache-key-prefix: 'install-qt-action'
-        setup-python: 'true'
-        tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-        set-env: 'true'
-        tools-only: 'false'
-        aqtversion: '==3.1.*'
-        py7zrversion: '==0.20.*'
-        extra: '--external 7z'
+        platform: windows-x64
 
-    - name: Download LLVM
-      run: |
-        # Libfaust will need to link against LLVM.
-        # We download a Windows x86_64 LLVM build that we've built in advance.
-        curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        7z x llvm.zip -y
+    - uses: actions/cache@v4
+      id: deps
+      with:
+        path: ${{ runner.temp }}/deps
+        key: deps-${{ matrix.name }}-${{ env.DEPS_CACHE_VERSION }}-${{ steps.faust.outputs.sha }}-${{ hashFiles('.github/llvm/SHA256SUMS') }}
 
-    - name: Download Libsndfile
+    - name: Build Faust
+      if: steps.deps.outputs.cache-hit != 'true'
+      shell: bash
       run: |
-        curl -L ${{ matrix.libsndfile-url }} -o libsndfile.zip
-        7z x libsndfile.zip -y
+        set -euo pipefail
+        TEMP=$(cygpath -m "$RUNNER_TEMP")
+        cmake -S faust/build -B "$TEMP/faust-build" -G "Visual Studio 17 2022" -A x64 \
+          -C faust/build/backends/most.cmake \
+          -DINCLUDE_EXECUTABLE=ON -DINCLUDE_STATIC=ON -DINCLUDE_DYNAMIC=OFF \
+          -DINCLUDE_OSC=ON -DINCLUDE_HTTP=ON -DOSCDYNAMIC=OFF -DHTTPDYNAMIC=OFF \
+          -DINCLUDE_ITP=OFF -DINCLUDE_EMCC=OFF -DINCLUDE_WASM_GLUE=OFF \
+          -DINCLUDE_LLVM_STATIC_IN_ARCHIVE=OFF \
+          -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="$LLVM_CONFIG" \
+          -DLLVM_REQUIRED_VERSION="$LLVM_REQUIRED_VERSION" -DLLVM_FORBID_ASSERTIONS=ON \
+          -DCMAKE_INSTALL_PREFIX="$TEMP/deps/faust"
+        cmake --build "$TEMP/faust-build" --config Release --parallel 4
+        cmake --install "$TEMP/faust-build" --config Release
+        "$TEMP/deps/faust/bin/faust.exe" --version
+        ls "$TEMP/deps/faust/lib"
+
+    - name: Download libsndfile
+      shell: bash
+      run: |
+        curl -fL --retry 3 ${{ matrix.libsndfile-url }} -o libsndfile.zip
+        7z x libsndfile.zip -y > /dev/null
         mv libsndfile-1.2.0-win64 libsndfile
 
-    - name: Download Faust
-      run: |
-        curl -L ${{ matrix.libfaust-url }} -o libfaust.zip
-        7z x libfaust.zip -y -olibfaust
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: windows
+        target: desktop
+        arch: win64_msvc2022_64
+        cache: true
 
     - name: Build FaustLive
       shell: cmd
       run: |
-        set PATH=%LLVM_DIR%;%FAUST_DIR%;%PATH%
-        set Qt5_DIR=%Qt5_Dir%/lib/cmake/Qt5
+        set PATH=%RUNNER_TEMP%\deps\faust\bin;%PATH%
+        set CMAKE_PREFIX_PATH=%QT_ROOT_DIR%
+        faust --version
         cd Build
         call Make.bat faustlive
+        IF ERRORLEVEL 1 EXIT /B 1
         call Make.bat package
+        IF ERRORLEVEL 1 EXIT /B 1
       env:
-        LLVM_DIR: ${{ github.workspace }}/llvm/bin
         LIBSNDFILE: ${{ github.workspace }}/libsndfile
-        FAUST_DIR: ${{ github.workspace }}/libfaust/bin
 
     - name: Upload FaustLive installer
       uses: actions/upload-artifact@v4
       with:
-        name: FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
-        path: Build/FaustLive-${{env.FAUSTLIVE_VERSION}}-${{matrix.name}}.exe
+        name: FaustLive-${{ env.FAUSTLIVE_VERSION }}-${{ matrix.name }}.exe
+        path: Build/FaustLive-${{ env.FAUSTLIVE_VERSION }}-${{ matrix.name }}.exe
         if-no-files-found: error
 
   create-release:
     if: ${{ inputs.create_release }}
-    needs: [build-windows]
+    needs: [build-macos, build-windows]
     runs-on: ubuntu-latest
     name: "Create Release on GitHub"
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:

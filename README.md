@@ -5,8 +5,7 @@ FaustLive
 ## The swiss knife for [Faust](https://faust.grame.fr) development.
 --------------
 
-master : [![Build Status](https://travis-ci.org/grame-cncm/faustlive.svg?branch=master)](https://travis-ci.org/grame-cncm/faustlive)
-dev : [![Build Status](https://travis-ci.org/grame-cncm/faustlive.svg?branch=dev)](https://travis-ci.org/grame-cncm/faustlive)
+[![faustlive](https://github.com/grame-cncm/faustlive/actions/workflows/all.yml/badge.svg)](https://github.com/grame-cncm/faustlive/actions/workflows/all.yml)
 
 FaustLive is an advanced self-contained prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. Thanks to its fully embedded compilation chain, FaustLive is simple to install and doesn't require any external compiler, development toolchain or SDK to run. 
 
@@ -45,6 +44,13 @@ To build the FaustLive project, go to the `Build` folder and start with the READ
 ### Tests
 
 `make -C Build test` builds and runs the test suite (CTest, see the `tests` folder and `AGENTS.md`).
+
+### Continuous integration
+
+The [faustlive workflow](.github/workflows/all.yml) builds the binaries on GitHub Actions: a `.dmg` for macOS
+Apple Silicon and one for macOS Intel (macOS 12 or later, ad-hoc signed, not notarized), and the Windows x64 installer.
+It runs on tags and from the Actions tab (`workflow_dispatch`), where it can create a draft release.
+libfaust is built from the Faust sources with the static LLVM published by the Faust project.
 
 <!--p align="center">
   <img width="70" src="./Resources/FaustLiveIcon.png"> <br />

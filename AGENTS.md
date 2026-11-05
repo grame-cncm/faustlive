@@ -23,7 +23,7 @@ the sound. Version: `version.txt` (2.5.20).
 | `Resources/Libs/` | Git submodule → [grame-cncm/faustlibraries](https://github.com/grame-cncm/faustlibraries) |
 | `Build/` | `CMakeLists.txt` (the real build), `Makefile` (wrapper), `Make.bat` (Windows), `rsrc/` (plist, rc, desktop file). `FaustLive.pro` is legacy qmake |
 | `tests/` | Test suite (CTest), see below |
-| `.github/workflows/all.yml` | Windows-only release build (manual or on tag). `.travis.yml` and `docker/` are obsolete |
+| `.github/` | CI: `workflows/all.yml` (macOS arm64/x86_64 and Windows binaries, see "Continuous integration"), `actions/fetch-llvm` and `llvm/` (copied from Faust), `scripts/build-deps-macos.sh`. `.travis.yml` and `docker/` are obsolete |
 
 ## Building
 
@@ -50,7 +50,7 @@ CMake options: `QT6` (default on), `TESTS` (default on, off on Windows), `REMOTE
 no longer exists), `AUDIO=coreaudio|jack|portaudio|netjack` (the `alsa` branch points to a missing `src/Audio/AL`).
 
 Expected build noise on macOS: linker warnings about objects built for a newer macOS than the
-deployment target (`OSXTARGET` is 10.15 in `Build/CMakeLists.txt`) and libc++ "platform no longer supported"
+deployment target (`OSXTARGET`: `-DOSXTARGET=x.y`, else `$MACOSX_DEPLOYMENT_TARGET`, else 12.0 with Qt 6) and libc++ "platform no longer supported"
 warnings. They are not errors.
 
 ## Tests
@@ -92,6 +92,34 @@ git add Resources/Libs Resources/application.qrc
 only for generating the documentation. If upstream adds a library in a new subfolder, add the folder to
 `LIBSUBDIRS` and check that `library.stdfaust_prefixes` passes. Then update `changelog.txt`.
 
+## Continuous integration
+
+`.github/workflows/all.yml` runs on tags and on `workflow_dispatch` (inputs: `create_release` for a draft
+release, `faust-ref` to build another Faust commit). To try a branch:
+`gh workflow run all.yml --ref <branch> -f create_release=false`.
+
+| Job | Runner | Result |
+|---|---|---|
+| `build-macos` (`macos-arm64`) | `macos-15` | `FaustLive-<version>-macos-arm64.dmg` |
+| `build-macos` (`macos-x86_64`) | `macos-15-intel` | `FaustLive-<version>-macos-x86_64.dmg` |
+| `build-windows` (`win64`) | `windows-2022` | `FaustLive-<version>-win64.exe` (NSIS, `Build/Make.bat package`) |
+
+- **LLVM**: Grame's static LLVM (release `llvm-<version>-<revision>` of grame-cncm/faust), downloaded and
+  checked against `.github/llvm/SHA256SUMS` by `.github/actions/fetch-llvm`. These three files are copied from
+  the Faust repository (`/.github`): to upgrade LLVM, copy them again and update `FAUST_REF` accordingly.
+- **libfaust**: built from the Faust sources at `FAUST_REF` (env of the workflow) with `backends/most.cmake`, static
+  `libfaust` + `libOSCFaust` + `libHTTPDFaust`, installed in `$RUNNER_TEMP/deps/faust` and cached
+  (key: platform, `DEPS_CACHE_VERSION`, Faust commit, LLVM checksums, deps script). `faust -libdir` is relative to
+  the executable, so FaustLive's CMake finds it through `PATH`.
+- **macOS** dependencies come from `.github/scripts/build-deps-macos.sh <prefix> <faust source>`, which also runs
+  locally (needs `LLVM_CONFIG`): static libmicrohttpd and libsndfile **without external libraries** (soundfiles in
+  WAV/AIFF/CAF..., no FLAC/Ogg/MP3), deployment target 12.0 (Qt 6.8). Then `make -C Build cmake faustlive`,
+  `ctest -LE app`, `make -C Build package` (macdeployqt + ad-hoc `codesign`, `CODESIGN_ID` to sign for real;
+  the dmg is not notarized).
+- **Windows**: Qt via `jurplel/install-qt-action`, libsndfile 1.2.0 zip, libmicrohttpd and PortAudio from `lib/`;
+  tests are not run (`TESTS` is off on Windows).
+- Bump `QT_VERSION` / `FAUST_REF` in the workflow env; raise `DEPS_CACHE_VERSION` to force a rebuild of the deps.
+
 ## Runtime layout and caches (important when debugging)
 
 - Session folder: `$HOME/.FaustLive-CurrentSession-<FAUSTLIVE_APP_VERSION>` (Windows:
@@ -121,7 +149,7 @@ only for generating the documentation. If upstream adds a library in a new subfo
 - Faust architecture headers come from the installed Faust (`faust -includedir`). A translation unit that
   links Faust GUI code must define `GUI::fGuiList` and `GUI::gTimedZoneMap` once.
 - Release: `./version x.y.z` (updates `version.txt`, plist, rc), update `changelog.txt` and
-  `FAUSTLIVE_VERSION` in `.github/workflows/all.yml`, raise `FAUSTLIVE_APP_VERSION` if the session caches
+  `FAUSTLIVE_VERSION` in `.github/workflows/all.yml` (the workflow checks it against `version.txt`), raise `FAUSTLIVE_APP_VERSION` if the session caches
   must be reset.
 - Do not commit build outputs (`Build/bin`, `Build/builddir`, `*.dmg`, `Build/xcode`).
 

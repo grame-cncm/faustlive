@@ -9,6 +9,7 @@ CMAKE  ?= cmake
 DEST   ?= .
 FAUSTLIBS := $(wildcard ../Resources/Libs/*.lib ../Resources/Libs/old/*.lib ../Resources/Libs/dx7/*.lib)
 CTEST  ?= ctest
+CODESIGN_ID ?= -
 README  := README.html
 CHGELOG := ../changelog.txt
 
@@ -45,7 +46,7 @@ help:
 	@echo "  'PREFIX'         : install prefix to be passed to 'cmake'"
 	@echo "Packaging:"
 	@echo "  'install'        : install the faustlive package"
-	@echo "  'package'        : build the faustlive package [MacOS]"
+	@echo "  'package'        : build the faustlive package [MacOS] (signed with CODESIGN_ID, ad-hoc by default)"
 	@echo "  'dist'           : make a faustlive distribution tarball."
 	@echo "Utilities:"
 	@echo "  'deploy'         : call $(DEPLOY)."
@@ -78,9 +79,13 @@ package: PACK:=FaustLive-$(VERSION)
 package: $(README)
 	$(MAKE) cmake CMAKEOPT='-DPREFIX=../$(PACK)'
 	$(MAKE) install
+	# macdeployqt and the install step modify the binaries: sign the bundle again
+	# (ad-hoc by default, mandatory on Apple Silicon; CODESIGN_ID='Developer ID ...' to sign)
+	codesign --force --deep --sign "$(CODESIGN_ID)" $(PACK)/FaustLive.app
+	codesign --verify --deep --strict $(PACK)/FaustLive.app
 	hdiutil create $(PACK).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 	@echo "Warning: package target has changed the install PREFIX"
-	mv $(PACK).dmg $(DEST)
+	if [ "$(DEST)" != "." ]; then mv $(PACK).dmg $(DEST); fi
 
 submodules = Resources/Libs
 dist : DIST:= FaustLive-$(VERSION)
