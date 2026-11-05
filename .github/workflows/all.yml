@@ -11,7 +11,7 @@ name: faustlive
 env:
   FAUSTLIVE_VERSION: 2.5.21
   # Faust commit (or branch, tag) libfaust is built from, when not given to workflow_dispatch
-  FAUST_REF: 6bc7087e5a0d8181c55b49f80447cc4a60310444
+  FAUST_REF: 5ff8333d4371137b8bac58842280d46176159709
   QT_VERSION: 6.8.3
   MACOSX_DEPLOYMENT_TARGET: "12.0"
   # Raise to rebuild the cached dependencies (libfaust, libsndfile, libmicrohttpd)

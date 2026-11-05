@@ -127,10 +127,11 @@ release, `faust-ref` to build another Faust commit). To try a branch:
   `.tar.gz`. libjack, libasound and libcurl are left to the system.
 - **Windows**: Qt via `jurplel/install-qt-action`, libsndfile 1.2.0 zip, libmicrohttpd and PortAudio from `lib/`;
   tests are not run (`TESTS` is off on Windows).
-- **x86_64**: `example.echo`, `example.quadEcho`, `example.stereoEcho` and `dsp.llvm_x86_feedback_delay` are disabled
-  (`X86_LLVM_CRASHES` in `tests/CMakeLists.txt`): the LLVM 23 x86 code generator crashes on a feedback delay of
-  `int(slider)-1` at optimisation level >= 1 (FaustLive itself crashes on these programs on x86_64). Re-enable once fixed.
-- Bump `QT_VERSION` / `FAUST_REF` in the workflow env; raise `DEPS_CACHE_VERSION` to force a rebuild of the deps.
+- **LLVM 23 needs Faust >= 2.92.3** (commit `e2b2737f7`): before, libfaust built negative integer constants with
+  `ConstantInt::get(i32, int)`, which no longer truncates in LLVM 23, so the x86 code generator crashed on `ef.echo1s`
+  (`echo.dsp`, `quadEcho.dsp`, `stereoEcho.dsp`) and arm64 produced wrong code. `dsp.llvm_x86_feedback_delay` catches it.
+- Bump `QT_VERSION` / `FAUST_REF` in the workflow env (the deps cache key contains the Faust commit, so a new
+  `FAUST_REF` rebuilds libfaust); raise `DEPS_CACHE_VERSION` to force a rebuild of the deps otherwise.
 
 ## Runtime layout and caches (important when debugging)
 

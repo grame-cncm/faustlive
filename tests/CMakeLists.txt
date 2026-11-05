@@ -66,17 +66,6 @@ foreach (DSP ${EXTRA_DSPS})
 	set_tests_properties (dsp.${NAME} PROPERTIES FIXTURES_REQUIRED session LABELS "dsp")
 endforeach()
 
-# Known crash of the LLVM x86 code generator (LLVM 23.1.x, Faust 2.92.2, optimisation >= 1):
-# a delay of 'int(slider) - 1' in a feedback loop (ef.echo1s...) stops the compilation on a
-# trap after printing 'renamable $r8d = MOV32ri i32'. Minimal case: tests/dsp/llvm_x86_feedback_delay.dsp.
-# Disabled on x86_64 only (FaustLive itself crashes there when compiling these programs):
-# remove from this list once fixed in Faust/LLVM.
-set (X86_LLVM_CRASHES example.echo example.quadEcho example.stereoEcho dsp.llvm_x86_feedback_delay)
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
-	set_tests_properties (${X86_LLVM_CRASHES} PROPERTIES DISABLED TRUE)
-	message (STATUS "Tests disabled on x86_64 (LLVM x86 code generator crash): ${X86_LLVM_CRASHES}")
-endif()
-
 # Every library shipped in the Qt resources must be importable from the session Libs folder
 file (STRINGS ${QRCFILE} LIBS REGEX "<file.*>Libs/.*\\.lib</file>")
 foreach (ENTRY ${LIBS})
