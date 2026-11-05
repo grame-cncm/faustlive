@@ -1,16 +1,16 @@
 #!/bin/bash
-# Builds the FaustLive dependencies for macOS into a prefix, for the CI
-# (.github/workflows/all.yml) or locally:
+# Builds the FaustLive dependencies for macOS or Linux into a prefix, for the
+# CI (.github/workflows/all.yml) or locally:
 #   - libmicrohttpd (static, no HTTPS)
 #   - libsndfile (static, no external libraries: WAV, AIFF, CAF... but no FLAC, Ogg or MP3)
 #   - Faust: the compiler, libfaust.a with the LLVM backend, libOSCFaust.a, libHTTPDFaust.a
 # for the architecture of the machine.
 #
-# usage: build-deps-macos.sh <prefix> <faust source dir>
+# usage: build-deps.sh <prefix> <faust source dir>
 # environment:
 #   LLVM_CONFIG                llvm-config of the static LLVM (see .github/actions/fetch-llvm), required
 #   LLVM_REQUIRED_VERSION      optional, checked by the Faust build
-#   MACOSX_DEPLOYMENT_TARGET   default 12.0 (Qt 6.8 needs macOS 12)
+#   MACOSX_DEPLOYMENT_TARGET   macOS only, default 12.0 (Qt 6.8 needs macOS 12)
 #   JOBS                       default: number of CPUs
 #
 # Afterwards: PATH=<prefix>/faust/bin:$PATH PKG_CONFIG_PATH=<prefix>/lib/pkgconfig
@@ -26,25 +26,40 @@ fi
 mkdir -p "$1"
 PREFIX=$(cd "$1" && pwd)
 FAUST_SRC=$(cd "$2" && pwd)
-export MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-12.0}
-JOBS=${JOBS:-$(sysctl -n hw.ncpu)}
 ARCH=$(uname -m)
 WORK="$PREFIX/.work"
+case "$(uname -s)" in
+    Darwin)
+        export MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-12.0}
+        SYSTEM="macOS >= $MACOSX_DEPLOYMENT_TARGET"
+        JOBS=${JOBS:-$(sysctl -n hw.ncpu)}
+        sha256() { shasum -a 256 < "$1" | cut -d' ' -f1; }
+        ;;
+    Linux)
+        SYSTEM="Linux, glibc $(ldd --version | head -n1 | awk '{print $NF}')"
+        JOBS=${JOBS:-$(nproc)}
+        sha256() { sha256sum < "$1" | cut -d' ' -f1; }
+        ;;
+    *)
+        echo "unsupported system $(uname -s)" >&2
+        exit 1
+        ;;
+esac
 
 MHD_VERSION=1.0.2
 MHD_SHA256=df324fcd0834175dab07483133902d9774a605bfa298025f69883288fd20a8c7
 SNDFILE_VERSION=1.2.2
 SNDFILE_SHA256=3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e
 
-command -v pkg-config > /dev/null || { echo "pkg-config is required (brew install pkgconf)" >&2; exit 1; }
-echo "Building FaustLive dependencies for $ARCH, macOS >= $MACOSX_DEPLOYMENT_TARGET, in $PREFIX"
+command -v pkg-config > /dev/null || { echo "pkg-config is required" >&2; exit 1; }
+echo "Building FaustLive dependencies for $ARCH, $SYSTEM, in $PREFIX"
 echo "LLVM: $LLVM_CONFIG ($("$LLVM_CONFIG" --version))"
 
 # download <url> <sha256> : prints the path of the checked archive
 download() {
     local file="$WORK/$(basename "$1")"
     [ -f "$file" ] || curl -fsSL --retry 3 -o "$file" "$1"
-    if [ "$(shasum -a 256 < "$file" | cut -d' ' -f1)" != "$2" ]; then
+    if [ "$(sha256 "$file")" != "$2" ]; then
         rm -f "$file"
         echo "$(basename "$1"): unexpected sha256" >&2
         exit 1

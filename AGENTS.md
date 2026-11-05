@@ -23,7 +23,7 @@ the sound. Version: `version.txt` (2.5.21).
 | `Resources/Libs/` | Git submodule → [grame-cncm/faustlibraries](https://github.com/grame-cncm/faustlibraries) |
 | `Build/` | `CMakeLists.txt` (the real build), `Makefile` (wrapper), `Make.bat` (Windows), `rsrc/` (plist, rc, desktop file). `FaustLive.pro` is legacy qmake |
 | `tests/` | Test suite (CTest), see below |
-| `.github/` | CI: `workflows/all.yml` (macOS arm64/x86_64 and Windows binaries, see "Continuous integration"), `actions/fetch-llvm` and `llvm/` (copied from Faust), `scripts/build-deps-macos.sh`. `.travis.yml` and `docker/` are obsolete |
+| `.github/` | CI: `workflows/all.yml` (macOS arm64/x86_64, Linux x86_64/aarch64 and Windows binaries, see "Continuous integration"), `actions/fetch-llvm` and `llvm/` (copied from Faust), `scripts/build-deps.sh`, `scripts/package-linux.sh`. `.travis.yml` and `docker/` are obsolete |
 
 ## Building
 
@@ -102,6 +102,8 @@ release, `faust-ref` to build another Faust commit). To try a branch:
 |---|---|---|
 | `build-macos` (`macos-arm64`) | `macos-15` | `FaustLive-<version>-macos-arm64.dmg` |
 | `build-macos` (`macos-x86_64`) | `macos-15-intel` | `FaustLive-<version>-macos-x86_64.dmg` |
+| `build-linux` (`linux-x86_64`) | `ubuntu-24.04`, manylinux_2_28 container | `FaustLive-<version>-linux-x86_64.tar.gz` |
+| `build-linux` (`linux-aarch64`) | `ubuntu-24.04-arm`, manylinux_2_28 container | `FaustLive-<version>-linux-aarch64.tar.gz` |
 | `build-windows` (`win64`) | `windows-2022` | `FaustLive-<version>-win64.exe` (NSIS, `Build/Make.bat package`) |
 
 - **LLVM**: Grame's static LLVM (release `llvm-<version>-<revision>` of grame-cncm/faust), downloaded and
@@ -111,13 +113,23 @@ release, `faust-ref` to build another Faust commit). To try a branch:
   `libfaust` + `libOSCFaust` + `libHTTPDFaust`, installed in `$RUNNER_TEMP/deps/faust` and cached
   (key: platform, `DEPS_CACHE_VERSION`, Faust commit, LLVM checksums, deps script). `faust -libdir` is relative to
   the executable, so FaustLive's CMake finds it through `PATH`.
-- **macOS** dependencies come from `.github/scripts/build-deps-macos.sh <prefix> <faust source>`, which also runs
+- **macOS and Linux** dependencies come from `.github/scripts/build-deps.sh <prefix> <faust source>`, which also runs
   locally (needs `LLVM_CONFIG`): static libmicrohttpd and libsndfile **without external libraries** (soundfiles in
-  WAV/AIFF/CAF..., no FLAC/Ogg/MP3), deployment target 12.0 (Qt 6.8). Then `make -C Build cmake faustlive`,
+  WAV/AIFF/CAF..., no FLAC/Ogg/MP3), then Faust.
+- **macOS**: deployment target 12.0 (Qt 6.8). Then `make -C Build cmake faustlive`,
   `ctest -LE app`, `make -C Build package` (macdeployqt + ad-hoc `codesign`, `CODESIGN_ID` to sign for real;
   the dmg is not notarized).
+- **Linux**: like Faust's libfaust, built in the `quay.io/pypa/manylinux_2_28_<arch>` image of `.github/llvm/release.env`
+  (AlmaLinux 8, glibc 2.28: runs on Ubuntu 20.04, Debian 10, RHEL 8 and later). System packages from `dnf`
+  (JACK, ALSA, curl, X11/xcb), Qt from `aqtinstall`, JACK audio driver, `ctest -LE app`, then
+  `.github/scripts/package-linux.sh <builddir> <outdir>`: install in an AppDir, bundle Qt and the other libraries with
+  linuxdeploy + linuxdeploy-plugin-qt (pinned, sha256 checked), add a `FaustLive` launcher and a README, make the
+  `.tar.gz`. libjack, libasound and libcurl are left to the system.
 - **Windows**: Qt via `jurplel/install-qt-action`, libsndfile 1.2.0 zip, libmicrohttpd and PortAudio from `lib/`;
   tests are not run (`TESTS` is off on Windows).
+- **x86_64**: `example.echo`, `example.quadEcho`, `example.stereoEcho` and `dsp.llvm_x86_feedback_delay` are disabled
+  (`X86_LLVM_CRASHES` in `tests/CMakeLists.txt`): the LLVM 23 x86 code generator crashes on a feedback delay of
+  `int(slider)-1` at optimisation level >= 1 (FaustLive itself crashes on these programs on x86_64). Re-enable once fixed.
 - Bump `QT_VERSION` / `FAUST_REF` in the workflow env; raise `DEPS_CACHE_VERSION` to force a rebuild of the deps.
 
 ## Runtime layout and caches (important when debugging)

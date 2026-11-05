@@ -48,7 +48,8 @@ To build the FaustLive project, go to the `Build` folder and start with the READ
 ### Continuous integration
 
 The [faustlive workflow](.github/workflows/all.yml) builds the binaries on GitHub Actions: a `.dmg` for macOS
-Apple Silicon and one for macOS Intel (macOS 12 or later, ad-hoc signed, not notarized), and the Windows x64 installer.
+Apple Silicon and one for macOS Intel (macOS 12 or later, ad-hoc signed, not notarized), a `.tar.gz` archive for
+Linux x86_64 and aarch64 (glibc 2.28 or later, needs JACK), and the Windows x64 installer.
 It runs on tags and from the Actions tab (`workflow_dispatch`), where it can create a draft release.
 libfaust is built from the Faust sources with the static LLVM published by the Faust project.
 
