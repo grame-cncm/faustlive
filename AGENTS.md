@@ -67,12 +67,12 @@ ctest --test-dir <builddir> -LE app -j 8   # everything that runs headless (CI)
 | Test | What it checks |
 |---|---|
 | `stage_session` (fixture) | `tests/stage_resources.cmake` copies `Libs/` and `Examples/` **as listed in `Resources/application.qrc`** (aliases included) into `<builddir>/tests/session`, like FaustLive does in its session folder |
-| `example.<name>` | each bundled example compiles through `tests/faustlive_dsp_check` (same libfaust calls and `-I` order as `FLSessionManager::createFactory` in local mode), every imported `.lib` comes from the bundled Libs (not from a system Faust install), mono (and poly when the DSP is an instrument) instances produce finite samples, and the LLVM bitcode cache round trip gives the same output |
+| `example.<name>` | each bundled example compiles through `tests/faustlive_dsp_check` (same libfaust calls and `-I` order as `FLSessionManager::createFactory` in local mode), every imported `.lib` comes from the bundled Libs (not from a system Faust install), mono (and poly when the DSP is an instrument) instances produce finite samples, and the LLVM bitcode cache round trip gives the same output and keeps the compile options, library list and include pathnames |
 | `dsp.<name>` | same for `tests/dsp/*.dsp` (DX7 through `dx.`, old pre-2.0 libraries, smoke DSP) |
 | `library.<name>` | each bundled library can be imported |
 | `library.stdfaust_prefixes` | every `xx = library("…")` of `stdfaust.lib` resolves in the bundled Libs |
-| `unit.utilities` | `tests/tst_utilities.cpp`: compile-option splitting, `isStringInt`, file helpers, `SimpleParser`. Known bugs are marked `QEXPECT_FAIL`: when you fix one, remove its `QEXPECT_FAIL` |
-| `app.smoke` | `tests/app_smoke.cmake` launches the real app headless (`QT_QPA_PLATFORM=offscreen`) with **a temporary `HOME`**, checks it is still running after 10 s, that the session folder holds the flattened libraries, and that the DSP was compiled to `SHAFolder` |
+| `unit.utilities` | `tests/tst_utilities.cpp`: compile-option splitting, `isStringInt`, file helpers, external commands (`executeInstruction`, tar round trip, `deleteDirectoryAndContent`, `touchFolder`), `FJUI` connection renaming, audio crossfade gains (`AudioFader_Implementation`), `SimpleParser`. Known bugs are marked `QEXPECT_FAIL`: when you fix one, remove its `QEXPECT_FAIL` |
+| `app.smoke` | `tests/app_smoke.cmake` launches the real app headless (`QT_QPA_PLATFORM=offscreen`) with **a temporary `HOME`**, checks it is still running after 10 s, that the session folder holds the flattened libraries, and that the DSP was compiled to `SHAFolder`; then starts it again on the same session and checks that the bitcode cache is read (file not rewritten) |
 
 Add a regression DSP by dropping a `.dsp` file into `tests/dsp/` (add `declare nvoices "4";` to also test it
 polyphonically), then re-run cmake. Never run the app or tests against the real `~/.FaustLive-CurrentSession-*`
@@ -142,9 +142,12 @@ release, `faust-ref` to build another Faust commit). To try a branch:
 - At startup `FLApp::create_Session_Hierarchy` copies `:/Libs`, `:/Examples`, `:/Html`… into it
   **only for files that are missing**. So a user who upgrades FaustLive keeps the old libraries unless
   `FAUSTLIVE_APP_VERSION` is raised. Raise it for a release that ships new libraries.
-- `SHAFolder/<SHA>/`: source (`<SHA>.dsp`), bitcode (`<SHA>_bitcode_process.bc`, `_bitcode_effect.bc`),
-  dependencies (`<SHA>.ini`). The SHA comes from `expandDSPFromString` and does not include the LLVM or
-  libfaust version or the optimisation level.
+- `SHAFolder/<SHA>/`: source (`<SHA>.dsp`), bitcode cache (`<SHA>-<KEY>_bitcode_process.bc`, `_bitcode_effect.bc`),
+  dependencies (`<SHA>.ini`). The SHA comes from `expandDSPFromString`; `KEY` (`bitcodeCachePath` in
+  FLSessionManager.cpp) is a SHA1 of the SHA, the Faust options, the optimisation level, `getCLibFaustVersion()`,
+  `LLVM_VERSION` and `getDSPMachineTarget()`, so a bitcode file from another libfaust/LLVM/CPU is never read.
+  `createFactory` reads the cache when the file exists (`app.smoke` checks it on a second launch), else compiles.
+- `cleanSHAFolder` keeps at most 100 SHA folders and removes the least recently used one (`touchFolder` dates).
 - `Windows/FLW-<i>/`: per-window settings. `Settings.ini`: global preferences.
 
 ## Compilation pipeline (where to look)
@@ -167,20 +170,22 @@ release, `faust-ref` to build another Faust commit). To try a branch:
   must be reset.
 - Do not commit build outputs (`Build/bin`, `Build/builddir`, `*.dmg`, `Build/xcode`).
 
-## Known issues (found during the 2026-11 review, not fixed)
+## Known issues (2026-11 review, not fixed)
 
-- **Bitcode cache never used**: `FLSessionManager::createFactory` tests `QFileInfo(irFile).exists()`, but
-  `writePolyDSPFactoryToBitcodeFile` writes `irFile + "_bitcode_process.bc"`. Every DSP is recompiled.
-  If you enable the cache, also add the LLVM/libfaust version to the key (see the README "incorrect cache" crash).
-- `utilities.cpp` `executeInstruction` passes a whole command line to `QProcess::start(program, {})`, so
-  `touch`/`rm`/`tar` never run, and it always reports success (it is only called from dead helpers).
-- `get_numberParameters` / `parse_compilationParams` disagree on options that do not start with `-`
-  (`"foo -vec"` loses `-vec`). `isStringInt("")` is true. `readFile` decodes as Latin-1.
-- Qt 6: `SIGNAL(error(QNetworkReply::NetworkError))` (FLExportManager.cpp, FLSessionManager.cpp) no longer
-  exists (`errorOccurred`), so network errors are silently ignored.
-- `FLComponentItem.cpp` calls `createDSP` with `NULL` settings, which `createDSP` dereferences.
-- Audio fader flags are `volatile`, not atomic. The GUI thread busy-waits in `wait_EndFade`. The JACK fader
-  allocates on the real-time thread.
-- `FLApp::~FLApp` uses `delete` on arrays allocated with `new[]`. There are many leaks of `factory`/`argv`/`QSettings`.
+Fixed since (see `git log`): bitcode cache, `executeInstruction` (touch/rm/tar/sound2faust/script),
+option parsing, `isStringInt("")`, `readFile`, Qt 6 network signals, NULL settings in `createDSP`, fader flags and
+busy waits, JACK RT allocations, `FJUI::update`, FLServerHttp, several leaks. Still open:
+
+- **JACK DSP swap** (`JA_audioFader::upDate_DSP`, GUI thread): when the fade ends the audio thread goes back to the
+  normal path with the *old* `fDSP` at full volume until the GUI swaps `fDSP`/`fDSPIn`, and the extra ports of the old
+  DSP are unregistered while the audio thread may still use them. The swap should happen in the audio thread at the end
+  of the fade. Not changed: no JACK test setup.
+- `start_Fade` ignores a failed start of the new CoreAudio/PortAudio stream: the old one fades out, the window
+  plays nothing and the update is reported as successful (needs a `bool` in the `AudioManager` interface).
+- `FLWinSettings::setValue` hides (does not override) `QSettings::setValue`: calls through a `QSettings*` do not
+  update the general `Windows/<i>/Path|Name|SHA` keys.
+- Other leaks: `QNetworkAccessManager` per export request, `QFileDialog`/`QMessageBox` created with `new` and never
+  deleted, `FLWindow` objects whose `init_Window` failed (`delete win` does not delete its audio manager and tool bar).
 - `Build/CMakeLists.txt`: `message(FATAL …)` should be `FATAL_ERROR`. (FaustLive is compiled as C++17, also with Qt 5.)
-- NetJack and REMOTE builds are not maintained against current Faust headers.
+- NetJack and REMOTE builds are not maintained against current Faust headers (the NetJack and PortAudio files are not
+  compiled on macOS).
