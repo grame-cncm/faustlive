@@ -227,7 +227,9 @@ jobs:
       with:
         platform: ${{ matrix.llvm-platform }}
 
-    - uses: actions/cache@v4
+    # restore + save (instead of actions/cache): the dependencies are saved as soon as
+    # they are built, even when a later step of the job fails
+    - uses: actions/cache/restore@v4
       id: deps
       with:
         path: ${{ steps.faust.outputs.deps }}
@@ -236,6 +238,12 @@ jobs:
     - name: Build libmicrohttpd, libsndfile and Faust
       if: steps.deps.outputs.cache-hit != 'true'
       run: .github/scripts/build-deps.sh "${{ steps.faust.outputs.deps }}" faust
+
+    - uses: actions/cache/save@v4
+      if: steps.deps.outputs.cache-hit != 'true'
+      with:
+        path: ${{ steps.faust.outputs.deps }}
+        key: ${{ steps.deps.outputs.cache-primary-key }}
 
     - uses: actions/cache@v4
       if: matrix.qt == 'aqt'
@@ -265,7 +273,12 @@ jobs:
         export PKG_CONFIG_PATH="${{ steps.faust.outputs.deps }}/lib/pkgconfig"
         faust --version
         make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG $QTOPT -DCMAKE_PREFIX_PATH=$QT_PREFIX -DCMAKE_BUILD_TYPE=Release"
-        make -C Build faustlive -j "$(nproc)"
+        make -C Build faustlive -j "$(nproc)" || {
+          echo "::group::Link command of FaustLive"
+          cat Build/builddir/CMakeFiles/FaustLive.dir/link.txt
+          echo "::endgroup::"
+          exit 1
+        }
 
     - name: Test
       # app.smoke needs an audio device
