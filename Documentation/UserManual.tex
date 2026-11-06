@@ -54,7 +54,7 @@ FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled
 FaustLive embeds the Faust compiler (libfaust) and its LLVM backend, and the Faust libraries: nothing else has to be installed to compile and run Faust programs.
 
 \begin{itemize}
-\item macOS 12 or later, native applications for Apple Silicon and Intel Macs. The applications are not notarized: the first time, right-click the application and choose \textit{Open}, or remove the quarantine attribute with \texttt{xattr -dr com.apple.quarantine /Applications/FaustLive.app}.
+\item macOS 12 or later, native applications for Apple Silicon and Intel Macs. The applications are not notarized, so macOS refuses to open a downloaded copy the first time. Then go to \textit{System Settings > Privacy \& Security} and click \textit{Open Anyway} (on macOS 14 and earlier, right-clicking the application and choosing \textit{Open} also works), or remove the quarantine attribute in a terminal: \texttt{xattr -dr com.apple.quarantine /Applications/FaustLive.app}.
 \item Windows x64: installer.
 \item Linux x86\_64 and aarch64: an archive to extract anywhere, then run \texttt{./FaustLive}. It needs a Linux with glibc 2.28 or later (Ubuntu 20.04, Debian 10, RHEL 8 or later), and JACK (or PipeWire with its JACK support), libcurl and ALSA from the distribution.
 \end{itemize}
