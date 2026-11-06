@@ -253,6 +253,7 @@ void AudioCreator::visualSettingsToTempSettings()
 //Store temporary settings
 void AudioCreator::tempSettingsToSavedSettings()
 {
+    delete fTempSettings;  // its widgets belong to fTempBox
     delete fTempBox;
     fTempBox = new QGroupBox();
     fTempSettings = fFactory->createAudioSettings(fTempBox);

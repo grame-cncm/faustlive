@@ -38,6 +38,23 @@
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
 
+// Frees an argv made by FLSessionManager::getFactoryArgv (strdup'ed strings)
+static void freeArgv(int argc, const char** argv)
+{
+    for (int i = 0; i < argc; i++) {
+        free((void*)argv[i]);
+    }
+    delete [] argv;
+}
+
+// Frees an argv made by getFactoryArgv when leaving the scope (libfaust copies the arguments)
+struct ArgvGuard {
+    int fArgc;
+    const char** fArgv;
+    ArgvGuard(int argc, const char** argv) : fArgc(argc), fArgv(argv) {}
+    ~ArgvGuard() { freeArgv(fArgc, fArgv); }
+};
+
 /* When creating a new DSP, it is associated to a unique SHA Key calculated from 
  the faust code, the name and the compilation options */
 /* This allows one to accelerate compilation when reusing the same DSP */
@@ -134,6 +151,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
     int argc;
     const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
+    ArgvGuard argvGuard(argc, argv);
     std::string shaKey, err;
     //EXPAND DSP JUST TO GET SHA KEY
 
@@ -622,16 +640,16 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     // MACHINE
     
     if (settings) {
-        argv[iteratorParams++] = "-lm";
+        argv[iteratorParams++] = strdup("-lm");
         //argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
-        argv[iteratorParams++] = "";
+        argv[iteratorParams++] = strdup("");
         //printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
     }
     
     /*
     if (settings) {
-        argv[iteratorParams++] = "-rm";
-        //argv[iteratorParams++] = "-lm";
+        argv[iteratorParams++] = strdup("-rm");
+        //argv[iteratorParams++] = strdup("-lm");
         //argv[iteratorParams++] = strdup(settings->value("RemoteProcessing/MachineTarget", "dummy").toString().toStdString().c_str());
         argv[iteratorParams++] = strdup(getDSPMachineTarget().c_str());
         printf("getFactoryArgv RemoteProcessing/MachineTarget %s\n", argv[iteratorParams]);
@@ -640,7 +658,7 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
  
     // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams++] = "-I";   
+        argv[iteratorParams++] = strdup("-I");   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         std::string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
@@ -655,26 +673,26 @@ const char** FLSessionManager::getFactoryArgv(const QString& sourcePath, const Q
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
-    argv[iteratorParams++] = "-I";
+    argv[iteratorParams++] = strdup("-I");
     std::string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
     
-    argv[iteratorParams++] = "-I";
+    argv[iteratorParams++] = strdup("-I");
     std::string examplesFolder = fSessionFolder.toStdString() + "/Examples";
     argv[iteratorParams++] = strdup(examplesFolder.c_str());
     
     // Polyphonic support
     if (settings) {
-        argv[iteratorParams++] = "-poly";
-        argv[iteratorParams++] = (settings->value("Polyphony/Enabled", 
-            FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool()) ? "1": "0";
+        argv[iteratorParams++] = strdup("-poly");
+        argv[iteratorParams++] = strdup((settings->value("Polyphony/Enabled", 
+            FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool()) ? "1": "0");
             
-        argv[iteratorParams++] = "-voices";
+        argv[iteratorParams++] = strdup("-voices");
         argv[iteratorParams++] = strdup(settings->value("Polyphony/Voice", "4").toString().toStdString().c_str());
         
-        argv[iteratorParams++] = "-group";
-        argv[iteratorParams++] = (settings->value("Polyphony/GroupEnabled", 
-            FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0";
+        argv[iteratorParams++] = strdup("-group");
+        argv[iteratorParams++] = strdup((settings->value("Polyphony/GroupEnabled", 
+            FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", false)).toBool()) ? "1": "0");
     }
 
     argv[argc] = NULL; // NULL terminated argv
@@ -720,13 +738,10 @@ const char** FLSessionManager::getRemoteInstanceArgv(QSettings* winSettings, int
     return argv;
 }
 
-//--Delete params
+//--Delete params (made by getFactoryArgv)
 void FLSessionManager::deleteArgv(int argc, const char** argv)
 {
-    for (int i = 0; i < argc; i++) {
-        delete argv[i];
-    }
-    delete[] argv;
+    freeArgv(argc, argv);
 }
 
 //------------------- Generation of auxilary files ----------------------
@@ -753,6 +768,7 @@ bool FLSessionManager::generateAuxFiles(const QString& shaKey, const QString& so
     updateFolderDate(shaKey);
     int argc;
     const char** argv = getFactoryArgv(sourcePath, faustOptions, NULL, argc);
+    ArgvGuard argvGuard(argc, argv);
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
 
 	if (faustOptions != "") {
@@ -780,27 +796,28 @@ bool FLSessionManager::generateSVG(const QString& shaKey, const QString& sourceP
     }
     
     const char** argv = new const char*[argc];
+    ArgvGuard argvGuard(argc, argv);  // every entry is filled below with strdup
      
     // sourcePath include is first
     if (sourcePath != "") {
-        argv[iteratorParams++] = "-I";   
+        argv[iteratorParams++] = strdup("-I");   
         QString sourceChemin = QFileInfo(sourcePath).absolutePath();
         std::string path = sourceChemin.toStdString();
         argv[iteratorParams++] = strdup(path.c_str());
     }
     
     //The library path is where libraries like the scheduler architecture file are = currentSession
-    argv[iteratorParams++] = "-I";
+    argv[iteratorParams++] = strdup("-I");
     std::string libsFolder = fSessionFolder.toStdString() + "/Libs";
     argv[iteratorParams++] = strdup(libsFolder.c_str());
     
-    argv[iteratorParams++] = "-I";
+    argv[iteratorParams++] = strdup("-I");
     std::string examplesFolder = fSessionFolder.toStdString() + "/Examples";
     argv[iteratorParams++] = strdup(examplesFolder.c_str());
     
     std::string pathSVG = svgPath.toStdString();
-    argv[iteratorParams++] = "-svg";
-    argv[iteratorParams++] = "-O";
+    argv[iteratorParams++] = strdup("-svg");
+    argv[iteratorParams++] = strdup("-O");
     argv[iteratorParams++] = strdup(pathSVG.c_str());
     
     QString sourceFile = fSessionFolder + "/SHAFolder/" + shaKey + "/" + shaKey + ".dsp";
@@ -829,6 +846,7 @@ QString FLSessionManager::getExpandedVersion(QSettings* settings, const QString&
     QString defaultOptions = FLSettings::_Instance()->value("General/Compilation/FaustOptions", "").toString();
     QString faustOptions = settings->value("Compilation/FaustOptions", defaultOptions).toString();
     const char** argv = getFactoryArgv(settings->value("Path", "").toString(), faustOptions, NULL, argc);
+    ArgvGuard argvGuard(argc, argv);
     std::string error_msg;
     
     return QString(expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg).c_str());
@@ -1049,7 +1067,8 @@ std::map<int, QString> FLSessionManager::snapshotRestoration(const QString& file
     //If 2 windows are pointing on the same lost source, the Dialog has not to appear twice
     QMap<QString, int> updated;
     QString snapshotSettings = snapshotFolder + "/Settings.ini";
-    QSettings* generalSettings = new QSettings(snapshotSettings, QSettings::IniFormat);
+    QSettings snapshotIni(snapshotSettings, QSettings::IniFormat);
+    QSettings* generalSettings = &snapshotIni;
     generalSettings->beginGroup("Windows");
     QStringList groups = generalSettings->childGroups();
     
@@ -1186,11 +1205,11 @@ QVector<QString> FLSessionManager::readDependencies(const QString& shaValue)
 {
     QVector<QString> dependencies;
     QString shaPath = fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
-    QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
-    QStringList groups = settings->childKeys();
+    QSettings settings(shaPath, QSettings::IniFormat);
+    QStringList groups = settings.childKeys();
     
     for (int i = 0; i < groups.size(); i++) {
-        QString dependency = settings->value(QString::number(i), "").toString();
+        QString dependency = settings.value(QString::number(i), "").toString();
         dependencies.push_back(dependency);
     }
     
@@ -1200,10 +1219,10 @@ QVector<QString> FLSessionManager::readDependencies(const QString& shaValue)
 void FLSessionManager::writeDependencies(QVector<QString> dependencies, const QString& shaValue)
 {
     QString shaPath = fSessionFolder + "/SHAFolder/" + shaValue + "/" + shaValue + ".ini";
-    QSettings* settings = new QSettings(shaPath, QSettings::IniFormat);
+    QSettings settings(shaPath, QSettings::IniFormat);  // written when destroyed
     
     for (int i = 0; i < dependencies.size(); i++) {
-        settings->setValue(QString::number(i), dependencies[i]);
+        settings.setValue(QString::number(i), dependencies[i]);
     }
 }
 
