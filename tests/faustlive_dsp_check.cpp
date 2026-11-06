@@ -260,6 +260,21 @@ int main(int argc, char* argv[])
         std::string readError;
         std::unique_ptr<dsp_poly_factory> reloaded(readPolyDSPFactoryFromBitcodeFile(stem, "", readError, -1));
         if (!reloaded) return fail(file, "cannot reload bitcode: " + readError);
+        // FLSessionManager::createFactory uses these on a cache hit (-double test, SoundUI paths, dependencies)
+        dsp_factory* process2 = reloaded->fProcessFactory;
+        if (process2->getCompileOptions() != process->getCompileOptions()) {
+            return fail(file, "reloaded factory has different compile options: '" + process2->getCompileOptions() +
+                                  "' instead of '" + process->getCompileOptions() + "'");
+        }
+        if (process2->getLibraryList() != process->getLibraryList()) {
+            return fail(file, "reloaded factory has a different library list");
+        }
+        if (process2->getIncludePathnames() != process->getIncludePathnames()) {
+            return fail(file, "reloaded factory has different include pathnames");
+        }
+        if (bool(reloaded->fEffectFactory) != bool(factory->fEffectFactory)) {
+            return fail(file, "reloaded factory lost or gained its effect factory");
+        }
         step("reloaded instance");
         std::unique_ptr<dsp> mono2(reloaded->fProcessFactory->createDSPInstance());
         if (!mono2) return fail(file, "reloaded createDSPInstance() returned null");

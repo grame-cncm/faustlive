@@ -31,6 +31,10 @@
 #define LLVM_DSP
 #include "faust/dsp/poly-llvm-dsp.h"
 
+#ifndef LLVM_VERSION
+#define LLVM_VERSION "unknown"
+#endif
+
 #define DEFAULTNAME "DefaultName"
 #define kMaxSHAFolders 100
 
@@ -68,6 +72,22 @@ void FLSessionManager::deleteInstance()
 
 /* The compilation is divided into 2 steps : factory creation then instance creation */
 /* It is not possible to merge those 2 functions because some audio init is needed in between */
+
+// Name of the bitcode cache files of a DSP (without the "_bitcode_process.bc" suffix).
+// The SHA key of the expanded code does not change with the compiler: the libfaust and LLVM versions,
+// the machine target, the options and the optimisation level are added, so that a bitcode file written
+// by another libfaust/LLVM (or for another CPU) is never reused.
+static std::string bitcodeCachePath(const QString& factoryFolder, const std::string& shaKey, const QString& faustOptions, int optLevel)
+{
+    QString key = QString::fromStdString(shaKey)
+        + " options: " + faustOptions.simplified()
+        + " opt: " + QString::number(optLevel)
+        + " libfaust: " + getCLibFaustVersion()
+        + " llvm: " + LLVM_VERSION
+        + " target: " + QString::fromStdString(getDSPMachineTarget());
+    QString hash = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Sha1).toHex().toUpper();
+    return (factoryFolder + "/" + QString::fromStdString(shaKey) + "-" + hash).toStdString();
+}
 
 QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLWinSettings* settings, QString& errorMsg)
 {
@@ -123,7 +143,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     }
 
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
-    std::string irFile = factoryFolder.toStdString() + "/" + shaKey;
+    std::string irFile = bitcodeCachePath(factoryFolder, shaKey, faustOptions, optLevel);
     QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
     
 // Save source
@@ -159,10 +179,12 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
             settings->setValue("OutputNumber", 0);
         }
         
-        //----Use IR Saving if possible
-        if (QFileInfo(irFile.c_str()).exists()) {
+        //----Use the bitcode cache if possible (written below by writePolyDSPFactoryToBitcodeFile)
+        if (QFileInfo(QString::fromStdString(irFile + "_bitcode_process.bc")).exists()) {
         #ifdef LLVM_DSP_FACTORY
-            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", error, optLevel);
+            // On failure (unreadable file), the DSP is compiled again
+            std::string readError;
+            toCompile->fLLVMFactory = readPolyDSPFactoryFromBitcodeFile(irFile, "", readError, optLevel);
         #else
             toCompile->fLLVMFactory = NULL;  // TODO
         #endif
