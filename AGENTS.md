@@ -121,7 +121,8 @@ release, `faust-ref` to build another Faust commit). To try a branch:
   the dmg is not notarized).
 - **Linux**: like Faust's libfaust, built in the `quay.io/pypa/manylinux_2_28_<arch>` image of `.github/llvm/release.env`
   (AlmaLinux 8, glibc 2.28: runs on Ubuntu 20.04, Debian 10, RHEL 8 and later). System packages from `dnf`
-  (JACK, ALSA, curl, X11/xcb), Qt from `aqtinstall`, JACK audio driver, `ctest -LE app`, then
+  (JACK, ALSA, curl, X11/xcb). Qt: 6.8.3 from `aqtinstall` on x86_64; the Qt 5.15 of AlmaLinux 8 (`-DQT6=off`)
+  on aarch64, because Qt's aarch64 Linux binaries need glibc 2.38. JACK audio driver, `ctest -LE app`, then
   `.github/scripts/package-linux.sh <builddir> <outdir>`: install in an AppDir, bundle Qt and the other libraries with
   linuxdeploy + linuxdeploy-plugin-qt (pinned, sha256 checked), add a `FaustLive` launcher and a README, make the
   `.tar.gz`. libjack, libasound and libcurl are left to the system.
@@ -181,6 +182,5 @@ release, `faust-ref` to build another Faust commit). To try a branch:
 - Audio fader flags are `volatile`, not atomic. The GUI thread busy-waits in `wait_EndFade`. The JACK fader
   allocates on the real-time thread.
 - `FLApp::~FLApp` uses `delete` on arrays allocated with `new[]`. There are many leaks of `factory`/`argv`/`QSettings`.
-- `Build/CMakeLists.txt`: `message(FATAL …)` should be `FATAL_ERROR`, and `CMAKE_CXX_STANDARD` is set to 17 then 11.
-  Qt 6 forces C++17 anyway.
+- `Build/CMakeLists.txt`: `message(FATAL …)` should be `FATAL_ERROR`. (FaustLive is compiled as C++17, also with Qt 5.)
 - NetJack and REMOTE builds are not maintained against current Faust headers.

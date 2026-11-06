@@ -150,14 +150,20 @@ jobs:
             os: ubuntu-24.04
             image: quay.io/pypa/manylinux_2_28_x86_64
             llvm-platform: linux-x86_64
+            # Qt's x86_64 Linux binaries are built on RHEL 8 (glibc 2.28)
+            qt: aqt
             qt-host: linux
             qt-arch: linux_gcc_64
+            qt-packages: ''
           - name: linux-aarch64
             os: ubuntu-24.04-arm
             image: quay.io/pypa/manylinux_2_28_aarch64
             llvm-platform: linux-aarch64
-            qt-host: linux_arm64
-            qt-arch: linux_gcc_arm64
+            # Qt's aarch64 Linux binaries need glibc 2.38: use the Qt 5.15 of AlmaLinux 8
+            qt: system5
+            qt-host: ''
+            qt-arch: ''
+            qt-packages: qt5-qtbase-devel
     runs-on: ${{ matrix.os }}
     # The image of the LLVM build (see .github/llvm/release.env): one toolchain for LLVM,
     # libfaust and FaustLive, and binaries that need glibc 2.28 only.
@@ -186,7 +192,8 @@ jobs:
           jack-audio-connection-kit-devel alsa-lib-devel libcurl-devel \
           mesa-libGL-devel mesa-libEGL-devel libxkbcommon-devel libxkbcommon-x11 \
           fontconfig freetype dbus-libs glib2 libX11 libX11-xcb libxcb libSM libICE \
-          xcb-util-cursor xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          xcb-util-cursor xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
+          ${{ matrix.qt-packages }}
         /opt/python/cp312-cp312/bin/python -m pip install cmake==3.31.6 aqtinstall==3.3.*
         echo /opt/python/cp312-cp312/bin >> "$GITHUB_PATH"
 
@@ -231,36 +238,47 @@ jobs:
       run: .github/scripts/build-deps.sh "${{ steps.faust.outputs.deps }}" faust
 
     - uses: actions/cache@v4
+      if: matrix.qt == 'aqt'
       id: qt
       with:
         path: ${{ steps.faust.outputs.qt }}
         key: qt-${{ env.QT_VERSION }}-${{ matrix.qt-arch }}
 
     - name: Install Qt
-      if: steps.qt.outputs.cache-hit != 'true'
+      if: matrix.qt == 'aqt' && steps.qt.outputs.cache-hit != 'true'
       run: python -m aqt install-qt ${{ matrix.qt-host }} desktop "$QT_VERSION" ${{ matrix.qt-arch }} --outputdir "${{ steps.faust.outputs.qt }}"
 
     - name: Build FaustLive
       run: |
         set -euo pipefail
-        QT_ROOT_DIR=$(dirname "$(dirname "$(ls "${{ steps.faust.outputs.qt }}"/"$QT_VERSION"/*/bin/qmake)")")
-        echo "QT_ROOT_DIR=$QT_ROOT_DIR" >> "$GITHUB_ENV"
+        if [ "${{ matrix.qt }}" = aqt ]; then
+          QMAKE=$(ls "${{ steps.faust.outputs.qt }}"/"$QT_VERSION"/*/bin/qmake)
+          QTOPT=-DQT6=on
+        else
+          QMAKE=$(command -v qmake-qt5)
+          QTOPT=-DQT6=off
+        fi
+        QT_PREFIX=$("$QMAKE" -query QT_INSTALL_PREFIX)
+        echo "Qt $("$QMAKE" -query QT_VERSION) in $QT_PREFIX"
+        echo "QMAKE=$QMAKE" >> "$GITHUB_ENV"
         export PATH="${{ steps.faust.outputs.deps }}/faust/bin:$PATH"
         export PKG_CONFIG_PATH="${{ steps.faust.outputs.deps }}/lib/pkgconfig"
         faust --version
-        make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR -DCMAKE_BUILD_TYPE=Release"
+        make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG $QTOPT -DCMAKE_PREFIX_PATH=$QT_PREFIX -DCMAKE_BUILD_TYPE=Release"
         make -C Build faustlive -j "$(nproc)"
 
     - name: Test
       # app.smoke needs an audio device
       run: |
+        grep -m1 "model name" /proc/cpuinfo || true
+        echo "CPU extensions: $(grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E '^(avx|sse4|fma|f16c|bmi)' | sort -u | tr '\n' ' ')"
         cd Build/builddir
         ctest -LE app --output-on-failure -j "$(nproc)"
 
     - name: Make the package
       run: |
         export PATH="${{ steps.faust.outputs.deps }}/faust/bin:$PATH"
-        QMAKE="$QT_ROOT_DIR/bin/qmake" .github/scripts/package-linux.sh Build/builddir Build
+        .github/scripts/package-linux.sh Build/builddir Build
 
     - name: Upload FaustLive package
       uses: actions/upload-artifact@v4

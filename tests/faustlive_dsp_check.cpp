@@ -175,6 +175,12 @@ std::vector<std::string> factoryArgs(const Options& opts)
     return args;
 }
 
+// Progress on stderr (unbuffered), so that a crash (signal) shows the step it happened in
+void step(const char* what)
+{
+    std::fprintf(stderr, "step: %s\n", what);
+}
+
 int fail(const std::string& file, const std::string& msg)
 {
     std::fprintf(stderr, "FAIL %s: %s\n", file.c_str(), msg.c_str());
@@ -198,6 +204,7 @@ int main(int argc, char* argv[])
     cargs.push_back(nullptr);
 
     // 1. Compile, as FaustLive does
+    step("compile");
     std::string error;
     std::unique_ptr<llvm_dsp_poly_factory> factory(
         createPolyDSPFactoryFromFile(file, int(args.size()), cargs.data(), "", error, -1));
@@ -218,6 +225,7 @@ int main(int argc, char* argv[])
     }
 
     // 3. Monophonic instance (and polyphonic one if asked)
+    step("mono instance");
     std::unique_ptr<dsp> mono(process->createDSPInstance());
     if (!mono) return fail(file, "createDSPInstance() returned null");
     mono->init(opts.fSampleRate);
@@ -228,6 +236,7 @@ int main(int argc, char* argv[])
     }
 
     if (opts.fVoices > 0) {
+        step("poly instance");
         std::unique_ptr<dsp_poly> poly(factory->createPolyDSPInstance(opts.fVoices, true, true));
         if (!poly) return fail(file, "createPolyDSPInstance() returned null");
         poly->init(opts.fSampleRate);
@@ -245,10 +254,13 @@ int main(int argc, char* argv[])
     if (!opts.fCache.empty()) {
         fs::create_directories(opts.fCache);
         std::string stem = (fs::path(opts.fCache) / fs::path(file).stem()).string();
+        step("write bitcode");
         writePolyDSPFactoryToBitcodeFile(factory.get(), stem);
+        step("read bitcode");
         std::string readError;
         std::unique_ptr<dsp_poly_factory> reloaded(readPolyDSPFactoryFromBitcodeFile(stem, "", readError, -1));
         if (!reloaded) return fail(file, "cannot reload bitcode: " + readError);
+        step("reloaded instance");
         std::unique_ptr<dsp> mono2(reloaded->fProcessFactory->createDSPInstance());
         if (!mono2) return fail(file, "reloaded createDSPInstance() returned null");
         mono2->init(opts.fSampleRate);

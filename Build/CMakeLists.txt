@@ -30,8 +30,6 @@ endif()
 # Raise it for a release that must not reuse the previous session caches (libraries, SHAFolder...)
 set (FAUSTLIVE_APP_VERSION 2.14)
 
-set (CMAKE_CXX_STANDARD 11)
-
 #######################################
 # check for pkg-config 
 # used later for libsndfile and libmicrohttpd
