@@ -12,6 +12,26 @@
 #include "utilities.h"
 #include "SimpleParser.h"
 #include "FJUI.h"
+#include "AudioFader_Implementation.h"
+
+// Gives access to the crossfade code run by the CoreAudio/PortAudio audio callbacks
+struct TestFader : public AudioFader_Implementation {
+    // Runs blocks of 'blockSize' frames of a constant 1 signal, returns the output of the first channel
+    std::vector<float> run(int blockSize, int blocks)
+    {
+        std::vector<float> out;
+        std::vector<float> left(blockSize), right(blockSize);
+        float* buffers[2] = {left.data(), right.data()};
+        for (int b = 0; b < blocks; b++) {
+            std::fill(left.begin(), left.end(), 1.f);
+            std::fill(right.begin(), right.end(), 1.f);
+            crossfade_Calcul(blockSize, 2, buffers);
+            out.insert(out.end(), left.begin(), left.end());
+        }
+        return out;
+    }
+    bool fadingIn() { return fDoWeFadeIn; }
+};
 
 class TestUtilities : public QObject {
     Q_OBJECT
@@ -227,6 +247,49 @@ class TestUtilities : public QObject {
         std::string file = dir.filePath("Connections.jc").toStdString();
         FJUI::update(file.c_str(), std::map<std::string, std::string>());
         QVERIFY(FJUI::recallConnections(file.c_str()).empty());
+    }
+
+    //---------------- Audio crossfade (AudioFader_Implementation, CoreAudio/PortAudio streams)
+    void crossfade_data()
+    {
+        QTest::addColumn<int>("blockSize");
+        QTest::newRow("64") << 64;
+        QTest::newRow("128") << 128;
+        QTest::newRow("512") << 512;
+        QTest::newRow("1024") << 1024;
+    }
+
+    void crossfade()
+    {
+        QFETCH(int, blockSize);
+        const int fadeLength = int(1.f / kFadeCoefficient);   // samples
+        const int blocks = fadeLength / blockSize + 8;
+
+        // Fading out stream: gain goes down to 0, then stays at 0 until the stream is stopped
+        TestFader out;
+        out.set_doWeFadeOut(true);
+        std::vector<float> o = out.run(blockSize, blocks);
+        QVERIFY(!out.get_doWeFadeOut());
+        int end = fadeLength + blockSize;
+        for (int i = 1; i < int(o.size()); i++) {
+            QVERIFY2(o[i] <= o[i - 1], qPrintable(QString("fade out gain goes up at sample %1").arg(i)));
+        }
+        for (int i = end; i < int(o.size()); i++) {
+            QVERIFY2(o[i] == 0.f, qPrintable(QString("fade out not silent at sample %1: %2").arg(i).arg(o[i])));
+        }
+
+        // Fading in stream: gain goes up to 1, then stays at 1
+        TestFader in;
+        in.set_doWeFadeIn(true);
+        std::vector<float> v = in.run(blockSize, blocks);
+        QVERIFY(!in.fadingIn());
+        QVERIFY(v[0] < 0.01f);
+        for (int i = 1; i < int(v.size()); i++) {
+            QVERIFY2(v[i] >= v[i - 1], qPrintable(QString("fade in gain goes down at sample %1").arg(i)));
+        }
+        for (int i = end; i < int(v.size()); i++) {
+            QVERIFY2(v[i] == 1.f, qPrintable(QString("fade in not at full volume at sample %1: %2").arg(i).arg(v[i])));
+        }
     }
 
     //---------------- SimpleParser (FaustWeb /targets answer)

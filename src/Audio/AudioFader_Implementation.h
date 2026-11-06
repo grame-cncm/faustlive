@@ -18,7 +18,8 @@
 
 #include <atomic>
 
-#define kNumberOfCrossFadeProcess 60
+// Gain step per sample: a crossfade lasts 1/kFadeCoefficient samples (about 0.7 s at 44.1 kHz),
+// whatever the buffer size
 #define kFadeCoefficient 0.00003255f
 //#define kFadeOutCoefficient 0.000386
 
@@ -34,7 +35,8 @@ class AudioFader_Implementation
         // Only used by the audio thread (and before the stream starts)
         float   fInCoef;                 // Coefficients of multiplication   
         float   fOutCoef;                // during audio crossfade
-        int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
+        int     fNumberOfFadeProcess;    // Number of audio callbacks of the current fade
+        bool    fFadedOut;               // The fade out is finished: silence until the stream is stopped
         
         void    increment_crossFade();
         

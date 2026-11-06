@@ -103,7 +103,8 @@ if (QTTEST_FOUND)
 	add_executable (tst_utilities
 		${TESTDIR}/tst_utilities.cpp
 		${SRCDIR}/Utilities/utilities.cpp
-		${SRCDIR}/MenusAndDialogs/SimpleParser.cpp)
+		${SRCDIR}/MenusAndDialogs/SimpleParser.cpp
+		${SRCDIR}/Audio/AudioFader_Implementation.cpp)
 	set_target_properties (tst_utilities PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 	target_include_directories (tst_utilities PRIVATE ${SRCDIR}/Utilities ${SRCDIR}/MenusAndDialogs ${SRCDIR}/Audio)
 	target_link_libraries (tst_utilities PRIVATE ${QTLIBS} ${QTTESTLIB})
