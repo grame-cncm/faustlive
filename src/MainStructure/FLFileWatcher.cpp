@@ -135,7 +135,6 @@ void FLFileWatcher::reset_Timer(const QString fileModified)
     }
     
     fSourceToChanged = fileModified;
-    fWinChanged = fMap[fileModified];
     
     //If the signal is triggered multiple times in 2 second, only 1 is taken into account
     if (fSynchroTimer->isActive()) {
@@ -148,10 +147,17 @@ void FLFileWatcher::reset_Timer(const QString fileModified)
 void FLFileWatcher::fileChanged()
 {
     fSynchroTimer->stop();
+    
+    // Read the list now, not when the timer started: a window closed in the meantime
+    // was removed by stopWatcher (and is deleted)
+    QList<FLWindow*> windows = fMap[fSourceToChanged];
     QList<FLWindow*>::iterator it;
         
-    for (it = fWinChanged.begin() ; it != fWinChanged.end(); it++) {
-        (*it)->selfUpdate();
+    for (it = windows.begin() ; it != windows.end(); it++) {
+        // An update can close another window (audio error): check it is still watching
+        if (fMap[fSourceToChanged].contains(*it)) {
+            (*it)->selfUpdate();
+        }
     }
 }
 

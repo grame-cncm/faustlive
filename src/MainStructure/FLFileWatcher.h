@@ -36,7 +36,6 @@ class FLFileWatcher : public QSettings
         QTimer*                         fSynchroTimer;
         
         QString                         fSourceToChanged;
-        QList<FLWindow*>                fWinChanged;
         
         std::map<QString, QList<FLWindow*> > fMap;
         
