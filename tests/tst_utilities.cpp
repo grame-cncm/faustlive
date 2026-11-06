@@ -11,6 +11,7 @@
 
 #include "utilities.h"
 #include "SimpleParser.h"
+#include "FJUI.h"
 
 class TestUtilities : public QObject {
     Q_OBJECT
@@ -194,6 +195,38 @@ class TestUtilities : public QObject {
         after.refresh();
         QVERIFY(after.lastModified() > before);
         QVERIFY(QDir(folder).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty());
+    }
+
+    //---------------- FJUI (Connections.jc of a window, renamed on duplicate / snapshot import)
+    void connectionsUpdate()
+    {
+        QTemporaryDir dir;
+        std::string file = dir.filePath("Connections.jc").toStdString();
+        std::list<std::pair<std::string, std::string> > connections;
+        connections.push_back(std::make_pair("FLW-1:out_0", "system:playback_1"));
+        connections.push_back(std::make_pair("FLW-12:out_0", "FLW-1:in 0"));
+        connections.push_back(std::make_pair("system:capture_1", "FLW-2:in_0"));
+        FJUI::saveConnections(file.c_str(), connections);
+        QCOMPARE(FJUI::recallConnections(file.c_str()), connections);
+
+        std::map<std::string, std::string> changes;
+        changes["FLW-1"] = "FLW-3";
+        changes["FLW-2"] = "FLW-4";
+        FJUI::update(file.c_str(), changes);
+
+        std::list<std::pair<std::string, std::string> > expected;
+        expected.push_back(std::make_pair("FLW-3:out_0", "system:playback_1"));
+        expected.push_back(std::make_pair("FLW-12:out_0", "FLW-3:in 0"));
+        expected.push_back(std::make_pair("system:capture_1", "FLW-4:in_0"));
+        QCOMPARE(FJUI::recallConnections(file.c_str()), expected);
+    }
+
+    void connectionsUpdateMissingFile()
+    {
+        QTemporaryDir dir;
+        std::string file = dir.filePath("Connections.jc").toStdString();
+        FJUI::update(file.c_str(), std::map<std::string, std::string>());
+        QVERIFY(FJUI::recallConnections(file.c_str()).empty());
     }
 
     //---------------- SimpleParser (FaustWeb /targets answer)

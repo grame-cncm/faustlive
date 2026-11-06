@@ -74,45 +74,32 @@ struct FJUI
         return Connections;
     }
     
+    // Renames 'port' (client:port) if its client name is a key of changeTable
+    // (followed by ':', so that FLW-1 does not match FLW-12)
+    static void renameClient(std::string& port, const std::map<std::string, std::string>& changeTable)
+    {
+        std::map<std::string, std::string>::const_iterator it;
+        for (it = changeTable.begin(); it != changeTable.end(); it++) {
+            size_t pos = port.find(it->first);
+            if (pos != std::string::npos && pos + it->first.length() < port.length() && port[pos + it->first.length()] == ':') {
+                port.replace(pos, it->first.length(), it->second);
+                break;
+            }
+        }
+    }
+    
     //Updating the connections in the file following the changeTable
     static void update(const char* filename, std::map<std::string, std::string> changeTable)
 	{
-        std::list<std::pair<std::string, std::string> > Connections;
+        // Same parser as recallConnections (quoted names, which may contain blanks)
+        std::list<std::pair<std::string, std::string> > Connections = recallConnections(filename);
+        std::list<std::pair<std::string, std::string> >::iterator it;
         
-        std::ifstream readF(filename);
-		std::string  port1, port2;
+        for (it = Connections.begin(); it != Connections.end(); it++) {
+            renameClient(it->first, changeTable);
+            renameClient(it->second, changeTable);
+        }
         
-		while (readF.good()) {
-			readF >> port1 >> port2;
-            
-            std::map<std::string,std::string>::iterator it;
-            for (it = changeTable.begin(); it != changeTable.end() ; it++) {
-                size_t pos = port1.find(it->first);
-                if (pos != std::string::npos) {
-                    char nextCharacter = port1[pos+it->first.length()];
-                    //This way freeverb1 is not recognized in freeverb12!
-                    if (nextCharacter == ':') {
-                        port1.erase(pos, it->first.length());
-                        port1.insert(pos, it->second);
-                        break;
-                    }
-                }
-            }
-            for (it = changeTable.begin(); it != changeTable.end() ; it++) {
-                size_t pos = port2.find(it->first);
-                if (pos != std::string::npos) {
-                    char nextCharacter = port2[pos+it->first.length()];
-                    if (nextCharacter == ':') {
-                        port2.erase(pos, it->first.length());
-                        port2.insert(pos, it->second);
-                        break;
-                    }
-                }
-            }
-            
-            Connections.push_back(std::make_pair(port1, port2));
-		}
-		readF.close();
         FJUI::saveConnections(filename, Connections);
     }
 };
