@@ -40,7 +40,8 @@ CA_audioSettings::~CA_audioSettings()
 //Accessors to the Buffersize
 int CA_audioSettings::get_BufferSize()
 {
-    char* bs_str = fBufferSize->text().toLatin1().data();
+    QByteArray bs_str_bytes = fBufferSize->text().toLatin1();  // must outlive bs_str
+    const char* bs_str = bs_str_bytes.constData();
     return (isStringInt(bs_str) ? atoi(bs_str) : 512);
 }
 
@@ -53,7 +54,8 @@ void CA_audioSettings::setVisualSettings()
 //Visual to Real
 void CA_audioSettings::storeVisualSettings()
 {
-    char* bs_str = fBufferSize->text().toLatin1().data();
+    QByteArray bs_str_bytes = fBufferSize->text().toLatin1();  // must outlive bs_str
+    const char* bs_str = bs_str_bytes.constData();
     int buffer_size = (isStringInt(bs_str) ? ((atoi(bs_str) == 0) ? 512 : atoi(bs_str)) : 512);
     
     fBufferSize->setText(QString::number(buffer_size));

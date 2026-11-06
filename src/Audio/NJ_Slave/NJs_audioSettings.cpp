@@ -112,7 +112,8 @@ bool NJs_audioSettings::isEqual(AudioSettings* as)
 //Accessors to the parameters
 int NJs_audioSettings::get_compressionValue()
 {
-    char* str = fCVLine->text().toLatin1().data();
+    QByteArray str_bytes = fCVLine->text().toLatin1();  // must outlive str
+    const char* str = str_bytes.constData();
     return (isStringInt(str) ? atoi(str) : -1);
 }
 
@@ -123,19 +124,22 @@ QString NJs_audioSettings::get_IP()
 
 int NJs_audioSettings::get_Port()
 {
-    char* str = fPortLine->text().toLatin1().data();
+    QByteArray str_bytes = fPortLine->text().toLatin1();  // must outlive str
+    const char* str = str_bytes.constData();
     return (isStringInt(str) ? atoi(str) : DEFAULT_PORT);
 }
 
 int NJs_audioSettings::get_mtu()
 {   
-    char* str = fMTULine->text().toLatin1().data();
+    QByteArray str_bytes = fMTULine->text().toLatin1();  // must outlive str
+    const char* str = str_bytes.constData();
     return (isStringInt(str) ? atoi(str) : DEFAULT_MTU);
 }
 
 int NJs_audioSettings::get_latency()
 {
-    char* str = fPortLine->text().toLatin1().data();
+    QByteArray str_bytes = fLatLine->text().toLatin1();  // must outlive str
+    const char* str = str_bytes.constData();
     return (isStringInt(str) ? atoi(str) : DEFAULT_LATENCY);
 }
 

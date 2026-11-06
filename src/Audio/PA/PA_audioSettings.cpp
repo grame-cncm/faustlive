@@ -66,8 +66,10 @@ void PA_audioSettings::setVisualSettings()
 void PA_audioSettings::storeVisualSettings()
 {
     FLSettings* settings = FLSettings::_Instance();
-    char* sr_str = fSampleRate->text().toLatin1().data();
-    char* bs_str = fBufferSize->text().toLatin1().data();
+    QByteArray sr_str_bytes = fSampleRate->text().toLatin1();  // must outlive sr_str
+    const char* sr_str = sr_str_bytes.constData();
+    QByteArray bs_str_bytes = fBufferSize->text().toLatin1();  // must outlive bs_str
+    const char* bs_str = bs_str_bytes.constData();
     
     int sample_rate = (isStringInt(sr_str) ? ((atoi(sr_str) == 0) ? 44100 : atoi(sr_str)) : 44100);
     settings->setValue("General/Audio/PortAudio/SampleRate", sample_rate);
