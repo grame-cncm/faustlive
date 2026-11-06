@@ -12,6 +12,8 @@
 #include <sstream>
 #include <iostream>
 #include <fstream> 
+#include <thread>
+#include <chrono>
 
 #ifndef WIN32
 #include <curl/curl.h>
@@ -44,9 +46,16 @@ FLServerHttp::FLServerHttp(const std::string& home)
     fHtml = "";
     fJson = "";
     fMaxCients = 20;
+    fDaemon = NULL;
 }
 
-FLServerHttp::~FLServerHttp() {}
+// The daemon thread calls this object: stop it first
+FLServerHttp::~FLServerHttp()
+{
+    // Release a request waiting in handlePost, MHD_stop_daemon joins its thread
+    compileFailed("FaustLive is quitting");
+    stop();
+}
 
 void FLServerHttp::createInstance(const std::string& home)
 {
@@ -149,18 +158,24 @@ int FLServerHttp::handlePost(MHD_Connection* connection, const char* /**url**/, 
         port = atoi(portNumber.c_str()); 
     }
     
+    // Queued to the GUI thread (FLApp::compile_HttpData), which answers with compileSuccessfull/compileFailed
     emit compile(con_info->data.c_str(), port);
     
-    while (fPosted != true){}
+    // fUrl and fError are written before fPosted is set
+    while (!fPosted) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
         
     fPosted = false;
     
     if (fCompiled) {
         con_info->answerstring = fUrl;
         return sendPage(connection, con_info->answerstring.c_str(), con_info->answerstring.size(), MHD_HTTP_OK, "text/plain");
+    } else {
+        // Without a response, the client waited forever
+        con_info->answerstring = kErrorCompile1 + fError + kErrorCompile2;
+        return sendPage(connection, con_info->answerstring.c_str(), con_info->answerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
     }
-        
-    return MHD_YES;
 }
 
 //Callback that parses the content of a post request
@@ -170,11 +185,12 @@ int FLServerHttp::iteratePost(void* coninfo_cls, MHD_ValueKind, const char* key,
     
     if (size > 0) {
         
+        // 'data' is not NUL terminated, and a value can come in several chunks
         if (strcmp(key,"var") == 0)
-            con_info->data += data;
+            con_info->data.append(data, size);
         
         if (strcmp(key,"interfaceurl") == 0)
-            con_info->winUrl = data;
+            con_info->winUrl.append(data, size);
     }
     
     con_info->answercode = MHD_HTTP_OK;
@@ -213,7 +229,7 @@ int FLServerHttp::answerToConnection(void* cls,
             con_info->postprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, (MHD_PostDataIterator)iteratePost, (void*)con_info);
             
             if (NULL == con_info->postprocessor) {
-                free(con_info);
+                delete con_info;  // allocated with new (it contains std::string)
                 return MHD_NO;
             }
             
@@ -262,6 +278,7 @@ int FLServerHttp::sendPage(struct MHD_Connection* connection, const char* page, 
     MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
     std::cout << "FLServerHttp::sendPage " << status_code << std::endl;
     ret = MHD_queue_response(connection, status_code, response);
+    MHD_destroy_response(response);  // the connection keeps its own reference
     
     return ret;
 }

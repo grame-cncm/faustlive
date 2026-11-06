@@ -40,6 +40,7 @@
 #include <microhttpd.h>
 
 #include <QObject>
+#include <atomic>
 
 #define POSTBUFFERSIZE 512
 
@@ -70,8 +71,9 @@ class FLServerHttp : public QObject
         std::string fError;  // Not important right now
         std::string fUrl;    // Url of wrapped http page
         
-        bool fPosted;        // Post request completed
-        bool fCompiled;      // Compilation sucess
+        // Written by the GUI thread (compileSuccessfull/compileFailed), read by the microhttpd thread
+        std::atomic<bool> fPosted;        // Post request completed
+        std::atomic<bool> fCompiled;      // Compilation sucess
         
         std::string fServerAddress;
         std::string fJson;
