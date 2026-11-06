@@ -166,11 +166,11 @@ bool tarFolder(const QString& folder, QString& errorMsg)
     return executeProgram("tar", args, errorMsg);
 }
 
-// Extracts a snapshot made by tarFolder next to the .tar file
-bool untarFolder(const QString& folder, QString& errorMsg)
+// Extracts a .tar made by tarFolder into the 'destination' folder
+bool untarFolder(const QString& tarFile, const QString& destination, QString& errorMsg)
 {
     QStringList args;
-    args << "xf" << folder << "-C" << QFileInfo(folder).absolutePath();
+    args << "xf" << tarFile << "-C" << destination;
     return executeProgram("tar", args, errorMsg);
 }
 

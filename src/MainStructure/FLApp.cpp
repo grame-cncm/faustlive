@@ -1134,9 +1134,8 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
     if(!importOption)
         shut_AllWindows_FromWindow();
     
-    QString folderName = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
-    
-    std::map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename);
+    QString folderName, extractFolder;
+    std::map<int, QString> restoredSources = FLSessionManager::_Instance()->snapshotRestoration(filename, folderName, extractFolder);
 
     std::map<int, int> indexChanges;
     
@@ -1169,9 +1168,10 @@ void FLApp::recall_Snapshot(const QString& name, bool importOption){
             errorPrinting(error);
     }
     
-#ifndef _WIN32
-    deleteDirectoryAndContent(folderName);
-#endif
+    // Only the extracted copy is deleted (on Windows the snapshot is the folder itself)
+    if (extractFolder != "") {
+        deleteDirectoryAndContent(extractFolder);
+    }
     
 	fRecalling = false;
     

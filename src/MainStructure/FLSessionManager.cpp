@@ -998,20 +998,29 @@ void FLSessionManager::copySHAFolder(const QString& snapshotFolder)
     }
 }
 
-std::map<int, QString> FLSessionManager::snapshotRestoration(const QString& file)
+// The snapshot is extracted into the session Temp folder (returned in 'extractFolder', to be deleted by the caller),
+// never next to the .tar file where a folder of the same name may belong to the user.
+std::map<int, QString> FLSessionManager::snapshotRestoration(const QString& file, QString& snapshotFolder, QString& extractFolder)
 {
     QString filename = file;
     
 #ifndef _WIN32    
-    if (QFileInfo(filename).completeSuffix() != "tar")
+    if (QFileInfo(filename).suffix() != "tar")
         filename += ".tar";
 
+    extractFolder = fSessionFolder + "/Temp/Snapshot-" + QString::number(QDateTime::currentMSecsSinceEpoch());
+    QDir().mkpath(extractFolder);
+    
     QString error;
-    if (!untarFolder(filename, error))
+    if (!untarFolder(filename, extractFolder, error))
         FLErrorWindow::_Instance()->print_Error(error);
+    
+    snapshotFolder = extractFolder + "/" + QFileInfo(filename).completeBaseName();
+#else
+    extractFolder = "";
+    snapshotFolder = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
 #endif
     
-    QString snapshotFolder = QFileInfo(filename).canonicalPath() + "/" + QFileInfo(filename).baseName();
     copySHAFolder(snapshotFolder);
     std::map<int, QString> windowIndexToSource;
     
@@ -1071,6 +1080,14 @@ std::map<int, QString> FLSessionManager::snapshotRestoration(const QString& file
 // To know if the contant was modified or the path, the original file has to be compared to the SHA saved file
 void FLSessionManager::createSnapshot(const QString& snapshotFolder)
 {
+#ifndef _WIN32
+    // The folder is deleted once archived: never use an existing one
+    if (QFileInfo(snapshotFolder).exists()) {
+        FLErrorWindow::_Instance()->print_Error(snapshotFolder + " already exists: choose another snapshot name.");
+        return;
+    }
+#endif
+    
     QDir snapshot(snapshotFolder);
     snapshot.mkdir(snapshotFolder);
     

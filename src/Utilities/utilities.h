@@ -24,7 +24,7 @@ bool	executeInstruction(const QString& instruct, QString& errorMsg);
 void	deleteDirectoryAndContent(const QString& directory);
 
 bool	tarFolder(const QString& folder, QString& errorMsg);
-bool	untarFolder(const QString& folder, QString& errorMsg);
+bool	untarFolder(const QString& tarFile, const QString& destination, QString& errorMsg);
 
 bool	rmDir(const QString &dirPath);
 bool	cpDir(const QString &srcPath, const QString &dstPath);

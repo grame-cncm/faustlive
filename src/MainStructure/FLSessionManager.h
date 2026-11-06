@@ -227,7 +227,7 @@ class FLSessionManager : public QObject
         void                saveCurrentSources(const QString& sessionFolder);
         std::map<int, QString>   currentSessionRestoration();
         void                createSnapshot(const QString& snapshotFolder);
-        std::map<int, QString>   snapshotRestoration(const QString& filename);
+        std::map<int, QString>   snapshotRestoration(const QString& filename, QString& snapshotFolder, QString& extractFolder);
         
     
 /* This is a not finished attempt to implement a publish service of DSP to make them accessible from the outside */

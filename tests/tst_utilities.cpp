@@ -161,8 +161,11 @@ class TestUtilities : public QObject {
         QVERIFY(QFileInfo(snapshot + ".tar").exists());
         deleteDirectoryAndContent(snapshot);
         QVERIFY(!QFileInfo(snapshot).exists());
-        QVERIFY2(untarFolder(snapshot + ".tar", error), qPrintable(error));
-        QCOMPARE(pathToContent(snapshot + "/Windows/FLW-1/FLW-1.dsp"), QString("process = _;"));
+        // The archive is relative: it can be extracted anywhere
+        QString elsewhere = dir.filePath("Temp");
+        QVERIFY(QDir().mkpath(elsewhere));
+        QVERIFY2(untarFolder(snapshot + ".tar", elsewhere, error), qPrintable(error));
+        QCOMPARE(pathToContent(elsewhere + "/My Snapshot/Windows/FLW-1/FLW-1.dsp"), QString("process = _;"));
     }
 #endif
 
