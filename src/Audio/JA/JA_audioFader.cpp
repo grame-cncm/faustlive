@@ -15,24 +15,9 @@
 //Calculation of sample[i,j] mixing 2 dsp (one fading in/one fading out)
 float JA_audioFader::crossfade_calculation(int i, int j)
 {
-    bool connectFadeOut = false;
-    bool connectFadeIn = false;
-    std::list<std::pair<std::string, std::string> >::const_iterator it;
-     
-    for (it = fConnections.begin(); it != fConnections.end(); it++) {
-        std::string jackPort(jack_port_name(fOutputPorts[j]));
-        if (jackPort.compare(it->first) == 0) {
-            connectFadeOut = true;
-            break;
-        }
-    }
-    for (it = fConnectionsIn.begin(); it != fConnectionsIn.end(); it++) {
-        std::string jackPort(jack_port_name(fOutputPorts[j]));
-        if (jackPort.compare(it->first) == 0) {
-            connectFadeIn = true;
-            break;
-        }
-    }
+    // fConnectionsIn is a copy of fConnections (init_FadeIn_Audio): both DSP use the same ports
+    bool connectFadeOut = (j < int(fConnectedOut.size())) && fConnectedOut[j];
+    bool connectFadeIn = connectFadeOut;
     
     if (connectFadeIn && connectFadeOut) {
         return (fIntermediateFadeIn[j][i] * (1-fInCoef)) + (fIntermediateFadeOut[j][i] * fOutCoef);
@@ -54,6 +39,15 @@ JA_audioFader::JA_audioFader() :jackaudio_midi()
         setenv("JACK_NO_START_SERVER", val_on, 1);
     }
     reset_Values();
+    
+    fIntermediateFadeOut = NULL;
+    fIntermediateFadeIn = NULL;
+    fDSPIn = NULL;
+    
+    // init_FadeIn_Audio adds ports while the audio thread reads these vectors:
+    // they must never be reallocated
+    fInputPorts.reserve(1024);
+    fOutputPorts.reserve(1024);
 }
 
 JA_audioFader::~JA_audioFader() 
@@ -127,6 +121,19 @@ void JA_audioFader::init_FadeIn_Audio(dsp* DSP, const char* portsName)
     fDSPIn->init(jack_get_sample_rate(fClient));
     saveConnections();
     fConnectionsIn = fConnections;
+    
+    // Which output ports are connected, for crossfade_calculation (audio thread)
+    fConnectedOut.assign(fOutputPorts.size(), 0);
+    for (size_t j = 0; j < fOutputPorts.size(); j++) {
+        std::string jackPort(jack_port_name(fOutputPorts[j]));
+        std::list<std::pair<std::string, std::string> >::const_iterator it;
+        for (it = fConnections.begin(); it != fConnections.end(); it++) {
+            if (jackPort == it->first) {
+                fConnectedOut[j] = 1;
+                break;
+            }
+        }
+    }
 }
 
 //Connect Jack port following Connections
@@ -180,12 +187,21 @@ void JA_audioFader::upDate_DSP()
         fOutputPorts.resize(fDSPIn->getNumOutputs());
     }
     
+    // The fade is finished: the audio thread no longer uses the intermediate buffers
+    for (int i = 0; i < fDSPIn->getNumOutputs(); i++) {
+        delete [] fIntermediateFadeIn[i];
+    }
+    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+        delete [] fIntermediateFadeOut[i];
+    }
+    delete [] fIntermediateFadeOut;
+    delete [] fIntermediateFadeIn;
+    fIntermediateFadeOut = NULL;
+    fIntermediateFadeIn = NULL;
+    
     dsp* DspInt = fDSP;
     fDSP = fDSPIn; 
     fDSPIn = DspInt;
-    
-    delete [] fIntermediateFadeOut;
-    delete [] fIntermediateFadeIn;
 }
 
 // JACK callbacks

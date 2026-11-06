@@ -14,6 +14,7 @@
 
 #include <list>
 #include <string>
+#include <vector>
 #include "faust/audio/jack-dsp.h"
 #include "AudioFader_Interface.h"
 #include "AudioFader_Implementation.h"
@@ -29,6 +30,10 @@ class JA_audioFader : public jackaudio_midi, public AudioFader_Interface, public
         float** fIntermediateFadeIn;
     
         std::list<std::pair<std::string, std::string> > fConnectionsIn;		// Connections list
+        
+        // fConnectedOut[j]: output port j is connected (computed by the GUI thread before the fade,
+        // so that the audio thread does not compare port names, which allocates)
+        std::vector<char> fConnectedOut;
         
         virtual void processAudio(jack_nframes_t nframes);
     
