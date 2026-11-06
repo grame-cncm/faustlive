@@ -168,6 +168,11 @@ release, `faust-ref` to build another Faust commit). To try a branch:
 - Release: `./version x.y.z` (updates `version.txt`, plist, rc), update `changelog.txt` and
   `FAUSTLIVE_VERSION` in `.github/workflows/all.yml` (the workflow checks it against `version.txt`), raise `FAUSTLIVE_APP_VERSION` if the session caches
   must be reset.
+- Documentation of the packages: `README.html` is generated at build time from `README.md` and `changelog.txt`
+  (`Build/readme.cmake`, never commit it). For a release, rebuild `Documentation/UserManual.pdf`
+  (`make -C Documentation`, it takes the version from `version.txt`; update the session folder name it mentions if
+  `FAUSTLIVE_APP_VERSION` changed) and copy `documentation/faust-quick-reference.pdf` from the Faust version used
+  (`FAUST_REF`); commit both PDFs (they are also embedded in the application for the help window).
 - Do not commit build outputs (`Build/bin`, `Build/builddir`, `*.dmg`, `Build/xcode`).
 
 ## Known issues (2026-11 review, not fixed)

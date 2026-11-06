@@ -23,7 +23,10 @@
 
 \begin{document}
 
-\title{FaustLive - User Manual \\ v.2.44}
+% the version comes from ../version.txt (see the Makefile of this folder)
+\newcommand{\flversion}{\input{../version.txt}\unskip}
+
+\title{FaustLive - User Manual \\ version \flversion}
 
 \author{Grame, Centre National de Création Musicale\\
 {\small <research@grame.fr>} \\
@@ -46,6 +49,28 @@ FaustLive is the ideal tool for fast prototyping. Faust programs can be compiled
 \tableofcontents
 
 \newpage
+\section{Installation}
+
+FaustLive embeds the Faust compiler (libfaust) and its LLVM backend, and the Faust libraries: nothing else has to be installed to compile and run Faust programs.
+
+\begin{itemize}
+\item macOS 12 or later, native applications for Apple Silicon and Intel Macs. The applications are not notarized: the first time, right-click the application and choose \textit{Open}, or remove the quarantine attribute with \texttt{xattr -dr com.apple.quarantine /Applications/FaustLive.app}.
+\item Windows x64: installer.
+\item Linux x86\_64 and aarch64: an archive to extract anywhere, then run \texttt{./FaustLive}. It needs a Linux with glibc 2.28 or later (Ubuntu 20.04, Debian 10, RHEL 8 or later), and JACK (or PipeWire with its JACK support), libcurl and ALSA from the distribution.
+\end{itemize}
+
+\subsection{Session folder}
+FaustLive keeps its state in a session folder: \texttt{\$HOME/.FaustLive-CurrentSession-2.14} on macOS and Linux, \texttt{FaustLive-CurrentSession-2.14} in the user folder on Windows (or in the folder given by the \texttt{FAUSTLIVE\_SESSIONDIR} environment variable). It holds:
+\begin{itemize}
+\item the Faust libraries (\texttt{Libs}) and the examples (\texttt{Examples}) used by the compiler,
+\item the settings of the application and of each window,
+\item the compiled programs (\texttt{SHAFolder}): a program that has already been compiled with the same compiler, options and optimization level is reloaded from this cache instead of being compiled again.
+\end{itemize}
+If FaustLive does not start because of a damaged session, quit it, remove this folder and start FaustLive again.
+
+\subsection{Faust libraries}
+The Faust standard libraries (\texttt{stdfaust.lib}, with all the prefixes like \texttt{fi.}, \texttt{os.}, \texttt{dx.}) and the libraries of the previous versions of Faust (\texttt{music.lib}, \texttt{filter.lib}, \texttt{effect.lib}, ...) are bundled with FaustLive and copied in the session folder. A library placed next to the compiled \texttt{.dsp} file is found first.
+
 \section{Dynamic Compilation}
 FaustLive embeds a full compilation chain to provide an ultra-short edit-compile-run cycle.
 The ensuing features are :
@@ -65,10 +90,10 @@ On a running application, you can drop Faust code as :
 \begin{itemize}
 \item A string \\process=+;
 \item A .dsp file \\/Users/you/Desktop/plus.dsp
-\item A URL \\http://faust.grame.fr/www/vumeter.dsp
-\item A .wav file \\/Users/you/Desktop/myBird.wav
+\item A URL \\https://raw.githubusercontent.com/grame-cncm/faust/master-dev/examples/analysis/vumeter.dsp
+\item A sound file (.wav, .aif, .aiff, .aifc) \\/Users/you/Desktop/myBird.wav
 \end{itemize}
-The dropped code is compiled and the new application replaces the previous one.
+The dropped code is compiled and the new application replaces the previous one. A sound file is converted to a Faust program by the \texttt{sound2faust} tool of the Faust distribution, which must be installed (in \texttt{/usr/local/bin} on macOS and Linux).
 
 \subsection{Paste} 
 You can also paste Faust code with the same result as Drag and Drop.
@@ -170,11 +195,11 @@ The polyphonic instrument can then be controlled with MIDI messages by checking 
 
 \begin{itemize}
 
-\item Code Generation Options : In the parameters, you can change the compilation options of your running DSP. Faust compilation options are available in Faust documentation. LLVM optimization level is a number contained between 0 and 3. 
+\item Code Generation Options : In the parameters, you can change the compilation options of your running DSP (for example \texttt{-double} or \texttt{-ftz 2}). Faust compilation options are described in the Faust documentation (\texttt{faust --help}). The LLVM optimization level is a number between 0 and 4, or -1 (the default) for the highest level.
 
-\item Additional Compilation Step : a new call to the Faust compiler is executed with new output feature (for example : -lang ajs -o filename.js). This call will be added to any compilation/recompilation within the window.
+\item Additional Compilation Step : a new call to the Faust compiler is executed with new output feature (for example : \texttt{-lang cpp -o filename.cpp}, or \texttt{-svg}). This call will be added to any compilation/recompilation within the window.
 
-\item Post-Compilation Script : after all the compilation steps, you can add an arbitrary command line.
+\item Post-Compilation Script : after all the compilation steps, you can run an arbitrary command line. If it fails, its error message is displayed.
 
 \end{itemize}
 
@@ -195,7 +220,7 @@ In case your source files were modified or deleted outside of FaustLive's execut
 \subsection{Open Component Creator}
 The component creator is a tool to combine your DSPs. The columns represent parallel composition and the rows sequential composition. You can add as many rows and columns as you like. You can also have a feedback DSP. The resulting DSP is a sequence of parallel components. \\
 
-The parallel composition is "stereoized" before being put it sequence. And the recursive composition with the feedback DSP is "recursivized". This way, the resulting DSP always has 2 inputs and 2 outputs. To know the detail of the functions stereoize and recursivize, see music.lib. 
+The parallel composition is "stereoized" before being put it sequence. And the recursive composition with the feedback DSP is "recursivized". This way, the resulting DSP always has 2 inputs and 2 outputs. To know the detail of the functions stereoize and recursivize, see the old \texttt{music.lib} library (bundled with FaustLive).
 
 
 \subsection{Close All Windows}
@@ -213,8 +238,8 @@ Any changes in the compilation options will be taken into account for all the ne
 Depending on your operating system and on your version of FaustLive, certain drivers are or not available.
 The default drivers are :
 \begin{itemize}
-\item CoreAudio on OSX
-\item JACK on Linux
+\item CoreAudio on macOS
+\item JACK on Linux (a JACK server, or PipeWire with its JACK support, must be running)
 \item PortAudio on Windows
 \end{itemize}
 

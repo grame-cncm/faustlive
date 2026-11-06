@@ -400,6 +400,15 @@ install (
 endif()
 
 ####################################
+# README.html: README.md + changelog.txt, generated at build time (see readme.cmake)
+set (README_HTML ${CMAKE_CURRENT_BINARY_DIR}/README.html)
+add_custom_command (OUTPUT ${README_HTML}
+	COMMAND ${CMAKE_COMMAND} -DROOT=${ROOT} -DOUT=${README_HTML} -P ${CMAKE_CURRENT_SOURCE_DIR}/readme.cmake
+	DEPENDS ${ROOT}/README.md ${ROOT}/changelog.txt ${CMAKE_CURRENT_SOURCE_DIR}/strapdown.min.js ${CMAKE_CURRENT_SOURCE_DIR}/readme.cmake
+	COMMENT "Generating README.html")
+add_custom_target (readme ALL DEPENDS ${README_HTML})
+
+####################################
 # install documentation
 install (
     FILES ${ROOT}/Documentation/faust-quick-reference.pdf ${ROOT}/Documentation/UserManual.pdf DESTINATION ${INSTALL_DOC}
@@ -407,7 +416,7 @@ install (
 )
 if (APPLE OR WIN32)
 install (
-    FILES ${ROOT}/build/README.html DESTINATION ${INSTALL_BIN}
+    FILES ${README_HTML} DESTINATION ${INSTALL_BIN}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 else()
