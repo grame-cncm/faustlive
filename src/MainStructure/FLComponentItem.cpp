@@ -40,6 +40,9 @@ FLComponentItem::FLComponentItem(const QString& index, QWidget* parent) : QWidge
 FLComponentItem::FLComponentItem(const QString& source, QRect rect, QWidget* parent) : QWidget(parent)
 {
     fSource = source;
+    fCompiledDSP = NULL;
+    fLayout = NULL;
+    fCurrentWidget = NULL;
     setGeometry(rect);
 }
 
@@ -115,10 +118,17 @@ void FLComponentItem::createInterfaceInRect(const QString& source)
         return;
     }
     
-    fCompiledDSP = sessionManager->createDSP(factorySetts, source, NULL, NULL, NULL, errorMsg);
+    dsp* newDSP = sessionManager->createDSP(factorySetts, source, NULL, NULL, NULL, errorMsg);
     
-    if (fCompiledDSP == NULL)
+    if (newDSP == NULL) {
+        sessionManager->deleteFactory(factorySetts);
+        FLErrorWindow::_Instance()->print_Error(errorMsg);
         return;
+    }
+    
+    // A new drop replaces the previous DSP, deleted after its interface (below)
+    dsp* oldDSP = fCompiledDSP;
+    fCompiledDSP = newDSP;
     
     fSource = source;
 //    setTitle(QFileInfo(fSource).baseName());
@@ -156,6 +166,10 @@ void FLComponentItem::createInterfaceInRect(const QString& source)
     setLayout(fLayout);
     
     fCurrentWidget = inter;
+    
+    if (oldDSP) {
+        sessionManager->deleteDSPandFactory(oldDSP);
+    }
 }
 
 void FLComponentItem::dropEvent(QDropEvent* event)

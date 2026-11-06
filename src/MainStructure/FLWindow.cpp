@@ -204,7 +204,8 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     FLMessageWindow::_Instance()->raise();
     
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
-    QPair<QString, void*> factorySetts = sessionManager->createFactory(source, fSettings, errorMsg);
+    // fSource is the generated .dsp file when 'source' is a sound file
+    QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
     FLMessageWindow::_Instance()->hide();
     
     if (!factorySetts.second) { // testing if the factory pointer is null (= the compilation failed)
@@ -212,11 +213,13 @@ bool FLWindow::init_Window(int init, const QString& source, QString& errorMsg)
     }
   	
     if (!init_audioClient(errorMsg)) {
+        sessionManager->deleteFactory(factorySetts);
         return false;
     }
 
-    fCurrentDSP = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
+    fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
     if (!fCurrentDSP) {
+        sessionManager->deleteFactory(factorySetts);
         return false;
     }
     
@@ -403,14 +406,17 @@ bool FLWindow::update_Window(const QString& source)
     }
 
     QPair<QString, void*> factorySetts = sessionManager->createFactory(sourceToCompile, fSettings, errorMsg);
-    bool isUpdateSucessfull = factorySetts.second;
+    bool isUpdateSucessfull = (factorySetts.second != NULL);
     
     if (isUpdateSucessfull) {
         
         //creating the new DSP instance
-        dsp* new_dsp = sessionManager->createDSP(factorySetts, source, fSettings, remoteDSPCallback, this, errorMsg);
-         
-        if (new_dsp) {
+        dsp* new_dsp = sessionManager->createDSP(factorySetts, sourceToCompile, fSettings, remoteDSPCallback, this, errorMsg);
+        
+        if (!new_dsp) {
+            sessionManager->deleteFactory(factorySetts);
+            isUpdateSucessfull = false;
+        } else {
             
             QString newName = fSettings->value("Name", "").toString();
             
@@ -442,6 +448,10 @@ bool FLWindow::update_Window(const QString& source)
                     
                 //Launch User Interface
                 runInterfaces();
+            } else {
+                // The current DSP keeps playing
+                sessionManager->deleteDSPandFactory(new_dsp);
+                isUpdateSucessfull = false;
             }
         }
     }
@@ -778,6 +788,11 @@ bool FLWindow::resetAudioDSPInterfaces()
     QString errorMsg;
     FLSessionManager* sessionManager = FLSessionManager::_Instance();
     QPair<QString, void*> factorySetts = sessionManager->createFactory(fSource, fSettings, errorMsg);
+    if (!factorySetts.second) {
+        // Keep the current DSP and audio
+        errorPrint(errorMsg);
+        return false;
+    }
   
     float saveW = 0.0;
     float saveH = 0.0;
@@ -799,6 +814,11 @@ bool FLWindow::resetAudioDSPInterfaces()
     deleteInterfaces();
   
     fCurrentDSP = sessionManager->createDSP(factorySetts, fSource, fSettings, remoteDSPCallback, this, errorMsg);
+    if (!fCurrentDSP) {
+        sessionManager->deleteFactory(factorySetts);
+        errorPrint(errorMsg);
+        return false;
+    }
     
     if (update_AudioArchitecture(errorMsg)) {
         
@@ -1112,14 +1132,18 @@ void FLWindow::closeWindow()
     }
     
     FLSessionManager::_Instance()->deleteDSPandFactory(fCurrentDSP);
+    fCurrentDSP = NULL;
     deleteInterfaces();
 
 #ifdef REMOTE
     delete fStatusBar;
+    fStatusBar = NULL;
 #endif
 
     delete fAudioManager;
+    fAudioManager = NULL;
     delete fToolBar;
+    fToolBar = NULL;
     
     blockSignals(true);
 }
@@ -1343,12 +1367,16 @@ void FLWindow::saveWindow()
     
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
-    fRCInterface->saveState(rcfilename.toLatin1().data());
+    if (fRCInterface) {
+        fRCInterface->saveState(rcfilename.toStdString().c_str());
+    }
     
     //Audio Connections parameters
     QString connectFile = fHome + "/Windows/" + fWindowName + "/Connections.jc";
     
-    fAudioManager->save_Connections(connectFile.toStdString());
+    if (fAudioManager) {
+        fAudioManager->save_Connections(connectFile.toStdString());
+    }
     
     //Writing new settings in file (for infos to be synchronized)
     fSettings->sync();
@@ -1359,7 +1387,7 @@ void FLWindow::recall_Window()
     //Graphical parameters//
     QString rcfilename = fHome + "/Windows/" + fWindowName + "/Graphics.rc";
     
-    if (QFileInfo(rcfilename).exists()) {
+    if (fRCInterface && QFileInfo(rcfilename).exists()) {
         fRCInterface->recallState(rcfilename.toStdString().c_str());
     }
 }

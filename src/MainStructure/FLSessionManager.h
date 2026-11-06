@@ -122,6 +122,7 @@ struct factorySettings {
     factorySettings()
     {
         fFactory = NULL;
+        fType = TYPE_LOCAL;
         fSoundfileInterface = NULL;
     }
 };
@@ -213,6 +214,7 @@ class FLSessionManager : public QObject
                         QString& errorMsg);
 
         void deleteDSPandFactory(dsp* toDeleteDSP);
+        void deleteFactory(QPair<QString, void*> factorySetts);
         
         QString             getExpandedVersion(QSettings* settings, const QString& source);
         

@@ -106,9 +106,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     }
     
     QString machineName = "local processing";
+#ifdef REMOTE
     if (settings) {
         machineName = settings->value("RemoteProcessing/MachineName", machineName).toString();
     }
+#endif
     
     int argc;
     const char** argv = getFactoryArgv(path, faustOptions, ((machineName == "local processing") ? NULL : settings), argc);
@@ -120,14 +122,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         return qMakePair(QString(""), (void*)NULL);
     }
 
-//  shaKey = "8F41F6181694A1B561F33328CF75A82DB5E22934";
-//	string organizedOptions = FL_reorganize_compilation_options(faustOptions);
-    
-    std::string optvalue = QString::number(optLevel).toStdString();
-    
-//  string fullShaString = organizedOptions + optvalue + faustContent.toStdString();
-//  string shaKey = FL_generate_sha1(fullShaString);
-    
     QString factoryFolder = fSessionFolder + "/SHAFolder/" + shaKey.c_str();
     std::string irFile = factoryFolder.toStdString() + "/" + shaKey;
     QString faustFile = factoryFolder + "/" + shaKey.c_str() + ".dsp";
@@ -144,6 +138,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 //---- CreateFactory settings
     factorySettings* mySetts = new factorySettings();
     factory* toCompile = new factory();
+    mySetts->fFactory = toCompile;
     std::string error = "";
     
 //------ Additionnal compilation step or options (if set so in settings)
@@ -159,6 +154,11 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     if (machineName == "local processing") {
         mySetts->fType = TYPE_LOCAL;
         
+        if (settings) {
+            settings->setValue("InputNumber", 0);
+            settings->setValue("OutputNumber", 0);
+        }
+        
         //----Use IR Saving if possible
         if (QFileInfo(irFile.c_str()).exists()) {
         #ifdef LLVM_DSP_FACTORY
@@ -166,7 +166,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         #else
             toCompile->fLLVMFactory = NULL;  // TODO
         #endif
-            
         }
         //toCompile->fLLVMFactory = readDSPFactoryFromMachineFile(irFile); // in progress but still does not work reliably for all DSP...
 
@@ -179,11 +178,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         #else
             toCompile->fLLVMFactory = createInterpreterDSPFactoryFromFile(fileToCompile, argc, argv, error);
         #endif
-            
-            if (settings) {
-                settings->setValue("InputNumber", 0);
-                settings->setValue("OutputNumber", 0);
-            }
             
             if (toCompile->fLLVMFactory) {
                 
@@ -199,6 +193,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
                 }
             } else {
                 errorMsg = error.c_str();
+                deleteFactory(qMakePair(QString(""), (void*)mySetts));
 			    return qMakePair(QString(""), (void*)NULL);
             }
         }
@@ -240,6 +235,7 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
         
         if (!toCompile->fRemoteFactory) {
             errorMsg = error.c_str();
+            deleteFactory(qMakePair(QString(""), (void*)mySetts));
             return qMakePair(QString(""), (void*)NULL);
         }
         
@@ -258,7 +254,6 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
 //#endif
     
 //----- Saving params because compilation was successfull (otherwise, we return before)
-    mySetts->fFactory = toCompile;
     mySetts->fPath = path;
     mySetts->fName = name;
     
@@ -295,6 +290,10 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 {
 //----- Decode factory settings ------
     factorySettings* mySetts = (factorySettings*)(factorySetts.second);
+    if (!mySetts || !mySetts->fFactory) {
+        errorMsg = "No DSP factory";
+        return NULL;
+    }
     factory* toCompile = mySetts->fFactory;
     
     QString path = mySetts->fPath;
@@ -303,12 +302,18 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
     dsp* compiledDSP = NULL;
     
 //----Create Local DSP Instance
-    if (type == TYPE_LOCAL) {
+    if (type == TYPE_LOCAL && toCompile->fLLVMFactory) {
     
-        std::string voices = settings->value("Polyphony/Voice", "4").toString().toStdString();
-        bool polyphony = settings->value("Polyphony/Enabled", FLSettings::_Instance()->value("General/Control/PolyphonyDefaultChecked", false)).toBool();
-        bool group = settings->value("Polyphony/GroupEnabled", FLSettings::_Instance()->value("General/Control/PolyphonyGroupDefaultChecked", true)).toBool();
-        bool midi = settings->value("MIDI/Enabled", FLSettings::_Instance()->value("General/Control/MIDIDefaultChecked", false)).toBool();
+        // 'settings' is NULL for the component creator (FLComponentItem): use the general defaults
+        FLSettings* general = FLSettings::_Instance();
+        QVariant polyDefault = general->value("General/Control/PolyphonyDefaultChecked", false);
+        QVariant groupDefault = general->value("General/Control/PolyphonyGroupDefaultChecked", true);
+        QVariant midiDefault = general->value("General/Control/MIDIDefaultChecked", false);
+        
+        std::string voices = (settings ? settings->value("Polyphony/Voice", "4") : QVariant("4")).toString().toStdString();
+        bool polyphony = (settings ? settings->value("Polyphony/Enabled", polyDefault) : polyDefault).toBool();
+        bool group = (settings ? settings->value("Polyphony/GroupEnabled", groupDefault) : groupDefault).toBool();
+        bool midi = (settings ? settings->value("MIDI/Enabled", midiDefault) : midiDefault).toBool();
         bool is_double = hasCompileOption(toCompile->fLLVMFactory, "-double");
         
         // For polyphony support
@@ -318,7 +323,12 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
             // 'synchronized_dsp' to remove as soon as soundfile change is automatically synchronized inside the DSP
             //compiledDSP = new synchronized_dsp(toCompile->fLLVMFactory->createDSPInstance());
             compiledDSP = toCompile->fLLVMFactory->createDSPInstance();
-            if (is_double) compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
+            if (compiledDSP && is_double) compiledDSP = new dsp_sample_adapter<double, float>(compiledDSP);
+        }
+        
+        if (!compiledDSP) {
+            errorMsg = "Impossible to create DSP instance";
+            return NULL;
         }
         
         // Setup SoundUI manager
@@ -395,7 +405,9 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 	Q_UNUSED(error_callback_arg);
 #endif
     
-    fDSPToFactory[compiledDSP] = mySetts;
+    if (compiledDSP) {
+        fDSPToFactory[compiledDSP] = mySetts;
+    }
     
     //-----Save settings
     if (compiledDSP && settings) {
@@ -414,28 +426,52 @@ dsp* FLSessionManager::createDSP(QPair<QString, void*> factorySetts, const QStri
 // Factory and instances are associated not to have to maintain both from the ouside of the session manager
 void FLSessionManager::deleteDSPandFactory(dsp* toDeleteDSP)
 {
-    factorySettings* factoryToDelete = fDSPToFactory[toDeleteDSP];
-    fDSPToFactory.remove(toDeleteDSP);
+    // NULL or unknown DSP (for instance after a failed recompilation): nothing to delete
+    if (!toDeleteDSP || !fDSPToFactory.contains(toDeleteDSP)) {
+        return;
+    }
+    
+    factorySettings* factoryToDelete = fDSPToFactory.take(toDeleteDSP);
     
     if (factoryToDelete->fType == TYPE_LOCAL) {
         delete toDeleteDSP;
-    #ifdef LLVM_DSP_FACTORY
-        delete factoryToDelete->fFactory->fLLVMFactory;
-    #else
-        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
-    #endif
-        factoryToDelete->fFactory->fLLVMFactory = NULL;
-        delete factoryToDelete->fSoundfileInterface;
-        factoryToDelete->fSoundfileInterface = NULL;
     }
 #ifdef REMOTE
     else {
         //deleteRemoteDSPInstance((remote_dsp*)toDeleteDSP);
         delete toDeleteDSP;
-        deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
-        factoryToDelete->fFactory->fRemoteFactory = NULL;
     }
 #endif
+    
+    deleteFactory(qMakePair(QString(""), (void*)factoryToDelete));
+}
+
+// Deletes a factory returned by createFactory (when no DSP instance was created with it, or after its instance was deleted)
+void FLSessionManager::deleteFactory(QPair<QString, void*> factorySetts)
+{
+    factorySettings* factoryToDelete = (factorySettings*)(factorySetts.second);
+    if (!factoryToDelete) {
+        return;
+    }
+    
+    if (factoryToDelete->fFactory) {
+        if (factoryToDelete->fType == TYPE_LOCAL) {
+        #ifdef LLVM_DSP_FACTORY
+            delete factoryToDelete->fFactory->fLLVMFactory;
+        #else
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factoryToDelete->fFactory->fLLVMFactory));
+        #endif
+        }
+    #ifdef REMOTE
+        else {
+            deleteRemoteDSPFactory(factoryToDelete->fFactory->fRemoteFactory);
+        }
+    #endif
+        delete factoryToDelete->fFactory;
+    }
+    
+    delete factoryToDelete->fSoundfileInterface;
+    delete factoryToDelete;
 }
 
 //--- Managing Faust Source to obtain a name and a Faust program as a string ---
