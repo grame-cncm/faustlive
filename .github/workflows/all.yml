@@ -261,18 +261,19 @@ jobs:
         set -euo pipefail
         if [ "${{ matrix.qt }}" = aqt ]; then
           QMAKE=$(ls "${{ steps.faust.outputs.qt }}"/"$QT_VERSION"/*/bin/qmake)
-          QTOPT=-DQT6=on
+          QTOPT="-DQT6=on -DCMAKE_PREFIX_PATH=$("$QMAKE" -query QT_INSTALL_PREFIX)"
         else
+          # system Qt: found by default. No CMAKE_PREFIX_PATH=/usr, which would make CMake
+          # pick /usr/bin/c++ (GCC 8) instead of the gcc-toolset compiler of libfaust.
           QMAKE=$(command -v qmake-qt5)
           QTOPT=-DQT6=off
         fi
-        QT_PREFIX=$("$QMAKE" -query QT_INSTALL_PREFIX)
-        echo "Qt $("$QMAKE" -query QT_VERSION) in $QT_PREFIX"
+        echo "Qt $("$QMAKE" -query QT_VERSION) in $("$QMAKE" -query QT_INSTALL_PREFIX), C++ compiler: $(command -v c++)"
         echo "QMAKE=$QMAKE" >> "$GITHUB_ENV"
         export PATH="${{ steps.faust.outputs.deps }}/faust/bin:$PATH"
         export PKG_CONFIG_PATH="${{ steps.faust.outputs.deps }}/lib/pkgconfig"
         faust --version
-        make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG $QTOPT -DCMAKE_PREFIX_PATH=$QT_PREFIX -DCMAKE_BUILD_TYPE=Release"
+        make -C Build cmake CMAKEOPT="-DLLVM_CONFIG=$LLVM_CONFIG $QTOPT -DCMAKE_BUILD_TYPE=Release"
         make -C Build faustlive -j "$(nproc)" || {
           echo "::group::Link command of FaustLive"
           cat Build/builddir/CMakeFiles/FaustLive.dir/link.txt
