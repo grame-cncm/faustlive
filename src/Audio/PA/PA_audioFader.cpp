@@ -20,6 +20,13 @@ PA_audioFader::~PA_audioFader() {}
 
 int PA_audioFader::processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
 {
+    AVOIDDENORMALS;
+    
+    // Cleanup hardware outputs that are not used by DSP (as portaudio::processAudio does)
+    for (int i = fDSP->getNumOutputs(); i < fDevNumOutChans; i++) {
+        memset(obuf[i], 0, sizeof(float) * frames);
+    }
+    
     // Process samples
     fDSP->compute(current_time * 1000000., frames, ibuf, obuf);
     crossfade_Calcul(frames, fDevNumOutChans, obuf);
