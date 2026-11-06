@@ -12,6 +12,7 @@
 #define _CA_audioManager_h
 
 #include "AudioManager.h"
+#include <string>
 
 class CA_audioFader;
 
@@ -23,7 +24,7 @@ class CA_audioManager : public AudioManager {
     
         //Settings are common to the 2 audioFader that can co-exist during a crossfade    
         int                 fBufferSize;
-        const char*         fName;
+        std::string         fName;  // copy: the caller passes a temporary toStdString().c_str()
         bool                fInit; //To know which way the audio was initialized
     
         CA_audioFader*      fCurrentAudio;

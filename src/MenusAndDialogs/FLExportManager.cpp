@@ -619,7 +619,7 @@ void FLExportManager::showSaveB(){
         fTextZone->setText(sucessMsg);
         fTextZone->show();
         
-        if(fChoice == "std::ios" || fChoice == "binary.apk" || fChoice == "binary.html"){
+        if(fChoice == "ios" || fChoice == "binary.apk" || fChoice == "binary.html"){
             
             //Construction of the flashcode
             const int padding = 5;

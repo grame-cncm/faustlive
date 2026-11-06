@@ -67,7 +67,7 @@ bool CA_audioManager::setDSP(QString& error, dsp* DSP, const char* /*port_name*/
     if (fInit) {
         fCurrentAudio->setDsp(DSP);
         return true;
-    } else if (init(fName, DSP)) {
+    } else if (init(fName.c_str(), DSP)) {
         FLSettings::_Instance()->setValue("General/Audio/CoreAudio/BufferSize", getBufferSize());
         return true;
     } else {
