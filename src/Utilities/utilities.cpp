@@ -64,52 +64,114 @@ QString pathToContent(const QString& path)
     return result;
 }
 
+// Updates the modification date of a folder (FLSessionManager::cleanSHAFolder removes the oldest ones)
 void touchFolder(const QString& path)
 {
-    QString instruction = "touch " + path;
-    QString error("");
-    executeInstruction(instruction, error);
+    if (!QFileInfo(path).isDir()) {
+        return;
+    }
+    // Adding and removing an entry updates the folder date, on every platform
+    QFile stamp(path + "/.touch");
+    if (stamp.open(QIODevice::WriteOnly)) {
+        stamp.close();
+        stamp.remove();
+    }
 }
 
-bool executeInstruction(const QString& instruct, QString& errorMsg)
+// Runs a program with its arguments (no shell) and waits for its end.
+// Returns false, with an error message, when it cannot start, crashes, times out or exits with a non zero code.
+bool executeProgram(const QString& program, const QStringList& args, QString& errorMsg, int timeoutMs)
 {
     QProcess myCmd;
-    QByteArray error;
-    QStringList args;
+    myCmd.start(program, args);
     
-    myCmd.start(instruct, args);
-    myCmd.waitForFinished();
-    error = myCmd.readAllStandardError();
+    if (!myCmd.waitForStarted()) {
+        errorMsg = program + " : " + myCmd.errorString();
+        return false;
+    }
     
-    if (myCmd.readChannel() == QProcess::StandardError ) {
-        errorMsg = error.data();
-		return false;
-	} else {
-		return true;
-	}
+    if (!myCmd.waitForFinished(timeoutMs)) {
+        myCmd.kill();
+        myCmd.waitForFinished();
+        errorMsg = program + " : did not finish in time";
+        return false;
+    }
+    
+    if (myCmd.exitStatus() != QProcess::NormalExit || myCmd.exitCode() != 0) {
+        errorMsg = program + " : " + QString::fromLocal8Bit(myCmd.readAllStandardError());
+        if (myCmd.exitStatus() != QProcess::NormalExit) {
+            errorMsg += " (crashed)";
+        } else {
+            errorMsg += " (exit code " + QString::number(myCmd.exitCode()) + ")";
+        }
+        return false;
+    }
+    
+    return true;
 }
 
-//Delete recursively the content of a folder
+// Runs a command line (program and arguments, with quotes for arguments containing spaces)
+bool executeInstruction(const QString& instruct, QString& errorMsg)
+{
+#if QT_VERSION >= 0x050F00
+    QStringList args = QProcess::splitCommand(instruct);
+#else
+    // Same rules as QProcess::splitCommand (Qt >= 5.15): blanks separate arguments, except inside double quotes
+    QStringList args;
+    QString arg;
+    bool inQuote = false, hasArg = false;
+    for (int i = 0; i < instruct.size(); i++) {
+        QChar c = instruct[i];
+        if (c == '"') {
+            inQuote = !inQuote;
+            hasArg = true;
+        } else if (!inQuote && c.isSpace()) {
+            if (hasArg) args << arg;
+            arg.clear();
+            hasArg = false;
+        } else {
+            arg += c;
+            hasArg = true;
+        }
+    }
+    if (hasArg) args << arg;
+#endif
+    
+    if (args.isEmpty()) {
+        errorMsg = "Empty command";
+        return false;
+    }
+    
+    QString program = args.takeFirst();
+    return executeProgram(program, args, errorMsg);
+}
+
+// Deletes a folder and its content
 void deleteDirectoryAndContent(const QString& directory)
 {
-    QString rmInstruct("rm -r ");
-    rmInstruct += directory;
-    QString errorMsg("");
-    executeInstruction(rmInstruct, errorMsg);
+    QDir dir(directory);
+    // Never QDir("") (the current folder) nor a root folder
+    if (directory.isEmpty() || !dir.exists() || dir.isRoot()) {
+        return;
+    }
+    dir.removeRecursively();
 }
 
+// Creates <folder>.tar, containing the folder under its own name (relative path)
 bool tarFolder(const QString& folder, QString& errorMsg)
 {
-    QString systemInstruct("tar cfv ");
-    systemInstruct += folder + ".tar " + folder;
-    return executeInstruction(systemInstruct, errorMsg);
+    QFileInfo info(folder);
+    QStringList args;
+    args << "cf" << (folder + ".tar") << "-C" << info.absolutePath() << info.fileName();
+    return executeProgram("tar", args, errorMsg);
 }
 
+// Extracts a snapshot made by tarFolder next to the .tar file
 bool untarFolder(const QString& folder, QString& errorMsg)
 {
-    QString systemInstruct("tar xfv ");
-    systemInstruct += folder +" -C /";
-    return executeInstruction(systemInstruct, errorMsg);
+    QStringList args;
+    args << "xf" << folder << "-C" << QFileInfo(folder).absolutePath();
+    return executeProgram("tar", args, errorMsg);
 }
 
 //Remove a directory

@@ -19,6 +19,7 @@ void	writeFile(const QString& filePath, const QString& content);
 QString readFile(const QString& filePath);
 QString pathToContent(const QString& path);
 void	touchFolder(const QString& path);
+bool	executeProgram(const QString& program, const QStringList& args, QString& errorMsg, int timeoutMs = 120000);
 bool	executeInstruction(const QString& instruct, QString& errorMsg);
 void	deleteDirectoryAndContent(const QString& directory);
 

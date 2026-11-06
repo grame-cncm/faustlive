@@ -263,8 +263,6 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         QString waveFile = destinationFile;
         waveFile += "_waveform.dsp";
         destinationFile += ".dsp";
-        QString systemInstruct;
-        
 		// figure out the right name for faust2sound depending of the OS
         
 #ifdef _WIN32
@@ -287,15 +285,15 @@ bool FLWindow::ifWavToString(const QString& source, QString& newSource)
         //        else
         //            exeFile = QCoreApplication::applicationDirPath() + "/FaustLive.app/Contents/MacOS/sound2faust";
 #endif
-        systemInstruct += exeFile + " ";
-        systemInstruct += "\"" + source + "\"" + " -o " + waveFile;
-        
         if (!QFileInfo(exeFile).exists()) {
             FLErrorWindow::_Instance()->print_Error("ERROR : soundToFaust executable could not be found!");
         }
         
+        // Arguments are passed as a list: paths may contain blanks
+        QStringList args;
+        args << source << "-o" << waveFile;
         QString errorMsg("");
-        if (!executeInstruction(systemInstruct, errorMsg)) {
+        if (!executeProgram(exeFile, args, errorMsg)) {
             FLErrorWindow::_Instance()->print_Error(errorMsg);
         }
         

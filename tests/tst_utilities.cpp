@@ -115,6 +115,86 @@ class TestUtilities : public QObject {
         QCOMPARE(readFile(path), content);
     }
 
+    //---------------- external commands (sound2faust, post-compilation script, snapshots)
+#ifndef Q_OS_WIN
+    void executeInstructionRuns()
+    {
+        // executeInstruction() used to give the whole command line to QProcess::start(program, {}),
+        // so nothing ever ran and it always reported success.
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QString file = dir.filePath("with blank.txt");
+        QString error;
+        QVERIFY2(executeInstruction("touch \"" + file + "\"", error), qPrintable(error));
+        QVERIFY(QFileInfo(file).exists());
+    }
+
+    void executeInstructionErrors()
+    {
+        QString error;
+        QVERIFY(!executeInstruction("false", error));
+        QVERIFY(error.contains("exit code 1"));
+        error.clear();
+        QVERIFY(!executeInstruction("/nonexistent/faustlive-command", error));
+        QVERIFY(!error.isEmpty());
+        QVERIFY(!executeInstruction("   ", error));
+    }
+
+    void executeProgramArguments()
+    {
+        QTemporaryDir dir;
+        QString file = dir.filePath("a b \"c\".txt");
+        QString error;
+        QVERIFY2(executeProgram("touch", QStringList{file}, error), qPrintable(error));
+        QVERIFY(QFileInfo(file).exists());
+    }
+
+    void tarRoundTrip()
+    {
+        // FLSessionManager::createSnapshot / snapshotRestoration
+        QTemporaryDir dir;
+        QString snapshot = dir.filePath("My Snapshot");
+        QVERIFY(QDir().mkpath(snapshot + "/Windows/FLW-1"));
+        writeFile(snapshot + "/Windows/FLW-1/FLW-1.dsp", "process = _;");
+        QString error;
+        QVERIFY2(tarFolder(snapshot, error), qPrintable(error));
+        QVERIFY(QFileInfo(snapshot + ".tar").exists());
+        deleteDirectoryAndContent(snapshot);
+        QVERIFY(!QFileInfo(snapshot).exists());
+        QVERIFY2(untarFolder(snapshot + ".tar", error), qPrintable(error));
+        QCOMPARE(pathToContent(snapshot + "/Windows/FLW-1/FLW-1.dsp"), QString("process = _;"));
+    }
+#endif
+
+    void deleteDirectory()
+    {
+        QTemporaryDir dir;
+        QString folder = dir.filePath("SHA key");
+        QVERIFY(QDir().mkpath(folder + "/sub"));
+        writeFile(folder + "/sub/file.dsp", "process = _;");
+        deleteDirectoryAndContent(folder);
+        QVERIFY(!QFileInfo(folder).exists());
+        QVERIFY(QFileInfo(dir.path()).exists());
+        // An empty path must not mean the current folder
+        deleteDirectoryAndContent("");
+        QVERIFY(QDir::current().exists());
+    }
+
+    void touchFolderDate()
+    {
+        // FLSessionManager::cleanSHAFolder removes the least recently used SHA folders
+        QTemporaryDir dir;
+        QString folder = dir.filePath("SHA");
+        QVERIFY(QDir().mkpath(folder));
+        QDateTime before = QFileInfo(folder).lastModified();
+        QTest::qWait(1100);
+        touchFolder(folder);
+        QFileInfo after(folder);
+        after.refresh();
+        QVERIFY(after.lastModified() > before);
+        QVERIFY(QDir(folder).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty());
+    }
+
     //---------------- SimpleParser (FaustWeb /targets answer)
     void parseTargets()
     {

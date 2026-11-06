@@ -259,9 +259,10 @@ QPair<QString, void*> FLSessionManager::createFactory(const QString& source, FLW
     
 //----- If a post-compilation script option is set : execute it !
     if (settings && settings->value("Script/Options", "").toString() != "") {
-        QString erroMsg;
-        if (!executeInstruction(settings->value("Script/Options", "").toString(), errorMsg)) {
-            FLErrorWindow::_Instance()->print_Error(errorMsg);
+        // The script error must not go to errorMsg: the compilation succeeded
+        QString scriptError;
+        if (!executeInstruction(settings->value("Script/Options", "").toString(), scriptError)) {
+            FLErrorWindow::_Instance()->print_Error(QString("Post-compilation script : ") + scriptError);
         }
     }
     
