@@ -173,6 +173,12 @@ release, `faust-ref` to build another Faust commit). To try a branch:
   (`make -C Documentation`, it takes the version from `version.txt`; update the session folder name it mentions if
   `FAUSTLIVE_APP_VERSION` changed) and copy `documentation/faust-quick-reference.pdf` from the Faust version used
   (`FAUST_REF`); commit both PDFs (they are also embedded in the application for the help window).
+- macOS release packages: the CI dmgs are only ad-hoc signed, and Gatekeeper refuses a downloaded copy (macOS 15+).
+  Before publishing, re-sign and notarize them on a Mac with the GRAME Developer ID and a notarytool keychain profile
+  (created once by a person: `xcrun notarytool store-credentials <profile> --apple-id ... --team-id XN9RP996NW`):
+  `Build/macos-sign-dmg.sh <ci.dmg> <out.dmg> "Developer ID Application: GRAME (XN9RP996NW)" <profile>`, then check
+  `spctl -a -t open --context context:primary-signature -vv <out.dmg>` (expect "Notarized Developer ID") and replace
+  the release asset. The hardened runtime needs `Build/rsrc/FaustLive.entitlements` (LLVM JIT, audio input).
 - Do not commit build outputs (`Build/bin`, `Build/builddir`, `*.dmg`, `Build/xcode`).
 
 ## Known issues (2026-11 review, not fixed)
