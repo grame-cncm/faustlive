@@ -154,9 +154,9 @@ FLApp::~FLApp(){
     
     delete fAudioCreator;
     
-    delete fRecentFileAction;
-    delete fRrecentSessionAction;
-    delete fIrecentSessionAction;
+    delete [] fRecentFileAction;
+    delete [] fRrecentSessionAction;
+    delete [] fIrecentSessionAction;
     delete fMenuBar;
     
     delete fInitTimer;
@@ -990,7 +990,7 @@ void FLApp::update_Recent_Session()
     
     for (QList<QString>::iterator it = fRecentSessions.begin(); it != fRecentSessions.end(); it++){
         
-        printf("Index = %i || Size = %lld || Session = %s\n", index, fRecentSessions.size(), it->toStdString().c_str());
+        printf("Index = %i || Size = %lld || Session = %s\n", index, (long long)fRecentSessions.size(), it->toStdString().c_str());
         
         if(index<kMAXRECENT){
         
@@ -1750,7 +1750,7 @@ void FLApp::stop_Server()
 //Update when a file is dropped on HTTP interface (it has the same behavior as a drop in FaustLive window)
 void FLApp::compile_HttpData(const char* data, int port)
 {
-    FLWindow* win;
+    FLWindow* win = NULL;
     QString source(data);
     QString error("");
     
@@ -1778,8 +1778,14 @@ void FLApp::compile_HttpData(const char* data, int port)
     } else {
         win = httpPortToWin(port);
         
-        if(win->update_Window(source))
+        // The window may have been closed (or its HTTP interface switched off) since the page was served
+        if (!win) {
+            error = "No FaustLive window with HTTP port " + QString::number(port);
+        } else if (win->update_Window(source)) {
             success = true;
+        } else {
+            error = "Compilation failed, see the FaustLive error window";
+        }
     }
     
 //The server has to know whether the compilation is successfull, to stop blocking the answer to its client
