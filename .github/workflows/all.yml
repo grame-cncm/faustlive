@@ -170,9 +170,19 @@ jobs:
     - name: Install the system packages
       run: |
         set -euo pipefail
-        dnf install -y dnf-plugins-core epel-release
+        # the AlmaLinux mirrors sometimes serve an empty repomd.xml: retry
+        retry() {
+          for i in 1 2 3; do
+            "$@" && return 0
+            echo "::warning::'$*' failed (attempt $i), retrying"
+            dnf clean all
+            sleep 20
+          done
+          return 1
+        }
+        retry dnf install -y dnf-plugins-core epel-release
         dnf config-manager --set-enabled powertools
-        dnf install -y git zip xz file pkgconfig \
+        retry dnf install -y git zip xz file pkgconfig \
           jack-audio-connection-kit-devel alsa-lib-devel libcurl-devel \
           mesa-libGL-devel mesa-libEGL-devel libxkbcommon-devel libxkbcommon-x11 \
           fontconfig freetype dbus-libs glib2 libX11 libX11-xcb libxcb libSM libICE \

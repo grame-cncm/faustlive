@@ -80,6 +80,10 @@ echo "::endgroup::"
 
 #######################################
 echo "::group::Bundle the libraries (linuxdeploy)"
+# the installed binary has no RPATH: linuxdeploy finds Qt through LD_LIBRARY_PATH
+QT_LIBS=$("$QMAKE" -query QT_INSTALL_LIBS)
+echo "Qt libraries: $QT_LIBS"
+LD_LIBRARY_PATH="$QT_LIBS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
 "$WORK/tools/linuxdeploy" --appdir "$DIST" \
     --executable "$DIST/usr/bin/FaustLive" \
     --desktop-file "$DIST/usr/share/applications/FaustLive.desktop" \
