@@ -204,22 +204,26 @@ void FLHelpWindow::parseLibs(std::map<std::string, std::vector<std::pair<std::st
             infoLibs[libName].push_back(std::make_pair(key, value));
         }
 
+        delete meta;
         delete temp_dsp;
-        
-    #ifdef LLVM_DSP_FACTORY
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(temp_factory));
-    #else
-        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(temp_factory));
-    #endif
     }
+    
+    // Also when no instance could be created
+#ifdef LLVM_DSP_FACTORY
+    deleteDSPFactory(static_cast<llvm_dsp_factory*>(temp_factory));
+#else
+    deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(temp_factory));
+#endif
 }
 
 void FLHelpWindow::setLibText()
 {
-    if (QFileInfo(fTreeLibs->currentItem()->text(0)).completeSuffix() != "lib") {
-        std::vector<std::pair<std::string, std::string> > libInfos = fInfoLibs[fTreeLibs->currentItem()->parent()->text(0).toStdString()];
+    // No current item when the selection is cleared; top level items (libraries) have no parent
+    QTreeWidgetItem* item = fTreeLibs->currentItem();
+    if (item && item->parent() && QFileInfo(item->text(0)).completeSuffix() != "lib") {
+        std::vector<std::pair<std::string, std::string> > libInfos = fInfoLibs[item->parent()->text(0).toStdString()];
         for (size_t i=0; i<libInfos.size(); i++) {
-            if (libInfos[i].first.compare(fTreeLibs->currentItem()->text(0).toStdString()) == 0) {
+            if (libInfos[i].first.compare(item->text(0).toStdString()) == 0) {
                 fLibsText->setPlainText(libInfos[i].second.c_str());
                 break;
             }

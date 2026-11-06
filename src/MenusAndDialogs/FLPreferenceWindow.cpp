@@ -225,7 +225,7 @@ void FLPreferenceWindow::save()
         settings->setValue("General/Compilation/OptValue", -1);
     }
     
-    if (settings->value("General/Network/FaustWebUrl", "http://faustservices.grame.fr").toString() != fServerLine->text()){
+    if (settings->value("General/Network/FaustWebUrl", "http://faustservice.grame.fr").toString() != fServerLine->text()){
         settings->setValue("General/Network/FaustWebUrl", fServerLine->text());
         emit urlChanged();
     }
