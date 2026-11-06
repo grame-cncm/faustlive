@@ -145,9 +145,10 @@ class CA_audioFader : public audio, public AudioFader_Interface
         virtual int getNumInputs() { return -1; }
         virtual int getNumOutputs() { return -1; }
     
+        // Called from the GUI thread
         void force_stopFade()
         {
-            fCrossFadeDevice.reset_Values();
+            fCrossFadeDevice.stop_Fade();
         }
     
 };

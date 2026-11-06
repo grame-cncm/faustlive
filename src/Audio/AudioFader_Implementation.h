@@ -16,6 +16,8 @@
 //#define kFadeInCoefficient 1.000356
 //#define kFadeOutCoefficient 1.000186
 
+#include <atomic>
+
 #define kNumberOfCrossFadeProcess 60
 #define kFadeCoefficient 0.00003255f
 //#define kFadeOutCoefficient 0.000386
@@ -24,9 +26,12 @@ class AudioFader_Implementation
 {
     protected:
     
-        volatile bool fDoWeFadeOut;
-        volatile bool fDoWeFadeIn;
+        // Set by the GUI thread, cleared by the audio thread at the end of the fade.
+        // Atomic (not volatile) so that the data written before the flag (JACK buffers, DSP) is visible to the other thread.
+        std::atomic<bool> fDoWeFadeOut;
+        std::atomic<bool> fDoWeFadeIn;
         
+        // Only used by the audio thread (and before the stream starts)
         float   fInCoef;                 // Coefficients of multiplication   
         float   fOutCoef;                // during audio crossfade
         int     fNumberOfFadeProcess;    // Number of fade out process before considering that the signal is almost null
@@ -44,7 +49,10 @@ class AudioFader_Implementation
         void set_doWeFadeOut(bool val);
         void set_doWeFadeIn(bool val);
         bool get_doWeFadeOut();
+        // Not to be called while the audio thread runs (it writes the coefficients)
         void reset_Values();
+        // Can be called from the GUI thread: the stream then plays without fade
+        void stop_Fade();
 
 };
 

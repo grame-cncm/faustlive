@@ -78,5 +78,5 @@ bool NJs_audioFader::get_FadeOut()
 
 void NJs_audioFader::force_stopFade()
 {
-    reset_Values();
+    stop_Fade();  // GUI thread: do not write the coefficients used by the audio thread
 }

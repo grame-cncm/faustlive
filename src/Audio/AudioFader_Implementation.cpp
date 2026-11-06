@@ -50,6 +50,12 @@ void AudioFader_Implementation::reset_Values()
     fDoWeFadeIn = false;
 }
 
+void AudioFader_Implementation::stop_Fade()
+{
+    fDoWeFadeOut = false;
+    fDoWeFadeIn = false;
+}
+
 void AudioFader_Implementation::increment_crossFade()
 {
     if (fNumberOfFadeProcess != kNumberOfCrossFadeProcess && fOutCoef > 0) {

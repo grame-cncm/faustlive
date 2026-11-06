@@ -9,6 +9,8 @@
 // CA_audioManager controls 2 CA_audioFader. It can switch from one to another with a crossfade or it can act like a simple coreaudio-dsp
 
 #include <QDateTime>
+#include <QElapsedTimer>
+#include <QThread>
 
 #if defined(_WIN32) && !defined(GCC)
 # pragma warning (disable: 4100)
@@ -98,6 +100,8 @@ bool CA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
     if (fFadeInAudio->init(name, DSP)) {
         return true;
     } else {
+        delete fFadeInAudio;
+        fFadeInAudio = 0;
         error = "Impossible to init new CoreAudio client";
         return false;
     }
@@ -120,14 +124,17 @@ void CA_audioManager::start_Fade()
 void CA_audioManager::wait_EndFade()
 {
 //   In case of CoreAudio Bug : If the Render function is not called, the loop could be infinite. This way, it isn't.
-    QDateTime currentTime(QDateTime::currentDateTime());
-        
+    QElapsedTimer timer;
+    timer.start();
+    
+    // Sleep instead of spinning at 100% CPU during the fade (about 0.7 s)
     while (fCurrentAudio->get_FadeOut()) {
-        QDateTime currentTime2(QDateTime::currentDateTime());
-        if (currentTime.secsTo(currentTime2) > 3) {
+        if (timer.elapsed() > 3000) {
             fFadeInAudio->force_stopFade();
             fCurrentAudio->force_stopFade();
+            break;
         }
+        QThread::msleep(1);
     }
 
     fCurrentAudio->stop();

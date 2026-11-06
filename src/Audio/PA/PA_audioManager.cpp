@@ -15,6 +15,8 @@
 #include "FLSettings.h"
 
 #include <QFileInfo>
+#include <QElapsedTimer>
+#include <QThread>
 
 PA_audioManager::PA_audioManager(AudioShutdownCallback cb, void* arg): AudioManager(cb, arg)
 {
@@ -88,6 +90,8 @@ bool PA_audioManager::init_FadeAudio(QString& error, const char* name, dsp* DSP)
 	if (fFadeInAudio->init(name, DSP)) {
 		return true;
 	} else {
+        delete fFadeInAudio;
+        fFadeInAudio = 0;
         error = "Impossible to init new Port Audio Client";
         return false;
     }
@@ -104,7 +108,17 @@ void PA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void PA_audioManager::wait_EndFade()
 {
-    while (fCurrentAudio->get_FadeOut()) {}
+    // Sleep instead of spinning; give up if the audio callback is no longer called (device lost)
+    QElapsedTimer timer;
+    timer.start();
+    while (fCurrentAudio->get_FadeOut()) {
+        if (timer.elapsed() > 3000) {
+            fFadeInAudio->stop_Fade();
+            fCurrentAudio->stop_Fade();
+            break;
+        }
+        QThread::msleep(1);
+    }
     fCurrentAudio->stop();
     PA_audioFader* intermediate = fCurrentAudio;
     fCurrentAudio = fFadeInAudio;

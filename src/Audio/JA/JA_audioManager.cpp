@@ -13,6 +13,8 @@
 #include "JA_audioManager.h"
 #include "JA_audioFader.h"
 #include <QFileInfo>
+#include <QElapsedTimer>
+#include <QThread>
 #include "FLSettings.h"
 
 void JA_audioManager::shutdown_message(const char * msg, void* arg)
@@ -81,7 +83,16 @@ void JA_audioManager::start_Fade()
 //When the crossfade ends, the DSP is updated in jackaudio Fader
 void JA_audioManager::wait_EndFade()
 {
-    while (fCurrentAudio->get_FadeOut()) {}
+    // Sleep instead of spinning; give up if the JACK callback is no longer called (server stopped)
+    QElapsedTimer timer;
+    timer.start();
+    while (fCurrentAudio->get_FadeOut()) {
+        if (timer.elapsed() > 3000) {
+            fCurrentAudio->stop_Fade();
+            break;
+        }
+        QThread::msleep(1);
+    }
     fCurrentAudio->upDate_DSP();
 }
 
