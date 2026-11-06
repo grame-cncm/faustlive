@@ -568,7 +568,7 @@ QString FLSessionManager::ifGoogleDocToString(const QString& source)
         QNetworkReply* fGetKeyReply = m->get(requete);
         
         connect(fGetKeyReply, SIGNAL(finished()), this, SLOT(receiveDSP()));
-        connect(fGetKeyReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+        connect(fGetKeyReply, QNETWORKREPLY_ERROR_SIGNAL, this, SLOT(networkError(QNetworkReply::NetworkError)));
     }
     
     return UrlText;

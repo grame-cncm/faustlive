@@ -15,3 +15,10 @@
 	#define QTNEWCONFIRMOVERWRITE
 #endif
 
+// QNetworkReply::error(NetworkError) was renamed errorOccurred in Qt 5.15 and removed in Qt 6
+#if QT_VERSION >= 0x050F00
+	#define QNETWORKREPLY_ERROR_SIGNAL SIGNAL(errorOccurred(QNetworkReply::NetworkError))
+#else
+	#define QNETWORKREPLY_ERROR_SIGNAL SIGNAL(error(QNetworkReply::NetworkError))
+#endif
+
