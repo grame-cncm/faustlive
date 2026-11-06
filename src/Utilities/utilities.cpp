@@ -32,7 +32,7 @@ QString readFile(const QString& filePath)
     QFile f(filePath);
     
     if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        content = QLatin1String(f.readAll());
+        content = QString::fromUtf8(f.readAll());
         f.close();
     }
     
@@ -226,9 +226,12 @@ bool cpDir(const QString &srcPath, const QString &dstPath)
 //Verify if the word is a number
 bool isStringInt(const char* word)
 {
+    if (!word || word[0] == 0) {
+        return false;
+    }
     bool returning = true;
     for (size_t i = 0; i < strlen(word); i++) {
-        if (!isdigit(word[i])) {
+        if (!isdigit((unsigned char)word[i])) {
             returning = false;
             break;
         }
@@ -587,26 +590,19 @@ std::string FL_generate_sha1(const std::string& dsp_content)
 
 //---------------COMPILATION OPTIONS
 
-//Get number of compilation options
+//Get number of compilation options (blank separated words)
+//It must agree with parse_compilationParams: getFactoryArgv calls it get_numberParameters times
 int get_numberParameters(const QString& compilOptions)
 {
     int argc = 0;
-    int pos = compilOptions.indexOf("-");
+    bool inWord = false;
     
-    while (pos != -1 && pos < compilOptions.size()) {
-        
-        argc++;
-        pos = compilOptions.indexOf(" ", pos);
-        
-        while (pos != -1 && pos < compilOptions.size()) {
-            if (compilOptions[pos] == ' ') {
-                pos++;
-            } else if(compilOptions[pos] == '-') {
-                break;
-            } else {
-                argc++;
-                pos = compilOptions.indexOf(" ", pos);
-            }
+    for (int i = 0; i < compilOptions.size(); i++) {
+        if (compilOptions[i].isSpace()) {
+            inWord = false;
+        } else if (!inWord) {
+            inWord = true;
+            argc++;
         }
     }
     
@@ -614,27 +610,22 @@ int get_numberParameters(const QString& compilOptions)
 }
 
 //Hand written Parser
-//Returns : the first option found, skipping the ' '
+//Returns : the first option found, skipping the blanks
 //CompilOptions : the rest of the options are kept in
 std::string parse_compilationParams(QString& compilOptions)
 {
-    QString returning = "";
-    int pos = 0;
-    
-    while (pos != -1 && pos < compilOptions.size()) {
-        if (compilOptions[pos] == ' ') {
-            pos++;
-        } else {
-            int pos2 = compilOptions.indexOf(" ", pos);
-            returning = compilOptions.mid(pos, pos2-pos);
-            if (pos2 == -1) {
-                pos2 = compilOptions.size();
-            }
-            compilOptions.remove(0, pos2);
-            break;
-        }
+    int start = 0;
+    while (start < compilOptions.size() && compilOptions[start].isSpace()) {
+        start++;
     }
     
+    int end = start;
+    while (end < compilOptions.size() && !compilOptions[end].isSpace()) {
+        end++;
+    }
+    
+    QString returning = compilOptions.mid(start, end - start);
+    compilOptions.remove(0, end);
     return returning.toStdString();
 }
 

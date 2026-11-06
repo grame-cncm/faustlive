@@ -43,16 +43,15 @@ class TestUtilities : public QObject {
         QTest::newRow("extra blanks") << "  -vec   -lv 1  " << QStringList{"-vec", "-lv", "1"};
         QTest::newRow("dash in value") << "-I /tmp/my-dir -double" << QStringList{"-I", "/tmp/my-dir", "-double"};
         QTest::newRow("leading value") << "foo -double" << QStringList{"foo", "-double"};
+        QTest::newRow("value then key") << "-vs 32 bar -vec" << QStringList{"-vs", "32", "bar", "-vec"};
+        QTest::newRow("tabs") << "-vec\t-vs\t16" << QStringList{"-vec", "-vs", "16"};
+        QTest::newRow("trailing value") << "-ftz 2" << QStringList{"-ftz", "2"};
     }
 
     void compilationOptions()
     {
         QFETCH(QString, options);
         QFETCH(QStringList, expected);
-        QEXPECT_FAIL("leading value",
-                     "get_numberParameters() only counts from the first '-', so getFactoryArgv() "
-                     "passes 'foo' and drops '-double'",
-                     Continue);
         QCOMPARE(splitOptions(options), expected);
     }
 
@@ -76,13 +75,13 @@ class TestUtilities : public QObject {
         QTest::newRow("letters") << "12a" << false;
         QTest::newRow("blank") << " 1" << false;
         QTest::newRow("empty") << "" << false;
+        QTest::newRow("non ascii") << QString::fromUtf8("1\u00e9") << false;
     }
 
     void stringInt()
     {
         QFETCH(QString, word);
         QFETCH(bool, expected);
-        QEXPECT_FAIL("empty", "isStringInt(\"\") returns true, so an empty port field is accepted as 0", Continue);
         QCOMPARE(isStringInt(word.toLatin1().constData()), expected);
     }
 
@@ -111,7 +110,6 @@ class TestUtilities : public QObject {
         QString path = dir.filePath("page.html");
         QString content = QString::fromUtf8("<p>Écho</p>");
         writeFile(path, content);
-        QEXPECT_FAIL("", "readFile() decodes files as Latin-1 instead of UTF-8", Continue);
         QCOMPARE(readFile(path), content);
     }
 
